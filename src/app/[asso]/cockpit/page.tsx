@@ -1,43 +1,151 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationBySlug, getCockpitStats } from "@/lib/queries";
+import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const SECTIONS = [
-  { t: "Équipage", d: "Liste, recherche et fiches des adhérents. Segmentation par cours / statut." },
-  { t: "Paiements", d: "Encaissés, en attente, échoués. Reversés directement sur votre compte." },
-  { t: "Configuration", d: "Modifier cours, tarifs, infos et design du site." },
-  { t: "Tour de contrôle", d: "Emailing : tous, un cours précis, ou par statut. Export CSV." },
+function Cur() {
+  return <span className="cur">_</span>;
+}
+
+const NAV = [
+  "AUJOURD'HUI",
+  "ÉQUIPAGE",
+  "TOUR DE CONTRÔLE",
+  "TRÉSORERIE",
+  "MESSAGERIE",
+  "DOSSIERS",
+  "JOURNAL",
+  "ATELIER",
 ];
 
 export default async function Cockpit({ params }: { params: { asso: string } }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
+  const s = await getCockpitStats(org.slug);
+  const aMettreAJour = s.enAttente + s.enRetard;
 
   return (
-    <main className="min-h-screen bg-bg-alt">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3 md:px-8">
-          <span className="font-mono text-sm font-bold">Cockpit · {org.nom}</span>
-          <Link href={`/${org.slug}`} className="text-sm text-ink-soft hover:text-ink">Voir le site →</Link>
-        </div>
+    <main className="min-h-screen text-ink">
+      {/* Top bar */}
+      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
+        <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
+        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+          {org.nom} · MISSION 2026
+        </span>
       </header>
-      <div className="mx-auto max-w-6xl px-5 py-12 md:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">back-office</p>
-        <h1 className="mt-2 text-3xl font-bold">Pilotez {org.nom}</h1>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2">
-          {SECTIONS.map((s) => (
-            <div key={s.t} className="rounded-card border border-line bg-surface p-6 shadow-sm">
-              <h2 className="text-lg font-bold">{s.t}</h2>
-              <p className="mt-2 text-ink-soft">{s.d}</p>
-            </div>
-          ))}
+
+      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
+        {/* Sommaire indexé */}
+        <nav className="border-b border-line px-6 py-6 md:border-b-0 md:border-r md:px-7">
+          {NAV.map((label, i) => {
+            const actif = i === 0;
+            return (
+              <div
+                key={label}
+                className={`mono py-[10px] text-[12px] tracking-wide ${
+                  actif ? "font-bold text-ink" : "text-ink-soft"
+                }`}
+              >
+                {String(i + 1).padStart(2, "0")} {label}
+                {actif ? <Cur /> : <span className="text-ink-faint">_</span>}
+              </div>
+            );
+          })}
+          <div className="mono mt-6 border-t border-line pt-5">
+            <div className="text-[10px] uppercase tracking-label text-ink-soft">TRÉSORERIE</div>
+            <div className="mt-2 text-[12px] text-brand">✓ reversée direct</div>
+            <div className="mt-0.5 text-[11px] text-ink-faint">0 % commission</div>
+          </div>
+        </nav>
+
+        {/* Contenu */}
+        <div>
+          {/* Header / accueil */}
+          <div className="border-b border-line px-6 py-8 md:px-10 md:py-10">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              AUJOURD&apos;HUI<Cur /> <span className="text-ink-faint">· Mission du jour</span>
+            </p>
+            <h1 className="mt-4 text-[26px] font-medium tracking-[-0.01em] md:text-[30px]">Bonsoir.</h1>
+            <p className="mt-3 max-w-prose text-lg text-ink-soft">
+              Tout est prêt pour le prochain entraînement.{" "}
+              {aMettreAJour > 0 ? (
+                <span className="text-ink">
+                  Il reste {aMettreAJour} dossier{aMettreAJour > 1 ? "s" : ""} à mettre à jour.
+                </span>
+              ) : (
+                <span className="text-ink">Tous les dossiers sont à jour.</span>
+              )}
+            </p>
+          </div>
+
+          {/* KPI ledger */}
+          <div className="grid grid-cols-2 gap-px border-b border-line bg-line md:grid-cols-4">
+            <Kpi n={s.equipage.toLocaleString("fr-FR")} label="EN ÉQUIPAGE" />
+            <Kpi n={String(s.enAttente)} label="DOSSIERS EN ATTENTE" />
+            <Kpi n={String(s.enRetard)} label="COTISATIONS EN RETARD" />
+            <Kpi n={formatPrix(s.tresorerieCentimes)} label="TRÉSORERIE · SAISON" />
+          </div>
+
+          {/* Tour de contrôle */}
+          <div className="px-6 pt-8 md:px-10">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              TOUR DE CONTRÔLE<Cur /> <span className="text-ink-faint">03</span>
+            </p>
+          </div>
+          <div className="px-6 pb-10 pt-3 md:px-10">
+            <Ligne idx="01" action>
+              Cotisations en retard — <span className="mono">{s.enRetard}</span> adhérents
+            </Ligne>
+            <Ligne idx="02" action>
+              Dossiers en attente — <span className="mono">{s.enAttente}</span> adhérents
+            </Ligne>
+            <Ligne idx="03" ok>
+              Paiements à jour — <span className="mono">{s.paye}</span> adhérents
+            </Ligne>
+          </div>
         </div>
-        <p className="mt-6 font-mono text-xs text-ink-soft">
-          Accès réservé (admin asso / encadrant) — authentification : jalon suivant.
-        </p>
+      </div>
+
+      <div className="mono flex justify-between border-t border-line px-6 py-4 text-[11px] md:px-8">
+        <span className="text-ink-soft">JOURNAL DE BORD</span>
+        <span className="text-ink-faint">klubster.fr/{org.slug}/cockpit</span>
       </div>
     </main>
+  );
+}
+
+function Kpi({ n, label }: { n: string; label: string }) {
+  return (
+    <div className="bg-paper px-5 py-6 md:px-7">
+      <div className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
+      <div className="mono mt-2 text-[30px] font-bold tracking-[-0.02em]">{n}</div>
+    </div>
+  );
+}
+
+function Ligne({
+  idx,
+  children,
+  action,
+  ok,
+}: {
+  idx: string;
+  children: React.ReactNode;
+  action?: boolean;
+  ok?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-5 border-b border-line py-4 last:border-b-0">
+      <span className="mono text-[11px] text-ink-faint">{idx}</span>
+      <span className="flex-1 text-[15px]">{children}</span>
+      {action ? (
+        <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">
+          RELANCER →
+        </button>
+      ) : null}
+      {ok ? <span className="mono text-[12px] text-brand">✓ À JOUR</span> : null}
+    </div>
   );
 }
