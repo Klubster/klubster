@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCockpitStats } from "@/lib/queries";
+import { getProfile } from "@/lib/auth";
+import { deconnexion } from "@/app/connexion/actions";
 import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -9,45 +11,38 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-const NAV = [
-  "AUJOURD'HUI",
-  "ÉQUIPAGE",
-  "TOUR DE CONTRÔLE",
-  "TRÉSORERIE",
-  "MESSAGERIE",
-  "DOSSIERS",
-  "JOURNAL",
-  "ATELIER",
-];
+const NAV = ["AUJOURD'HUI", "ÉQUIPAGE", "TOUR DE CONTRÔLE", "TRÉSORERIE", "MESSAGERIE", "DOSSIERS", "JOURNAL", "ATELIER"];
 
 export default async function Cockpit({ params }: { params: { asso: string } }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
+
+  const profile = await getProfile();
+  const autorise = profile && (profile.organisation_id === org.id || profile.role === "super_admin");
+  if (!autorise) redirect(`/connexion?next=/${org.slug}/cockpit`);
+
   const s = await getCockpitStats(org.slug);
   const aMettreAJour = s.enAttente + s.enRetard;
+  const prenom = profile?.prenom?.trim();
 
   return (
     <main className="min-h-screen text-ink">
-      {/* Top bar */}
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
-        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
-          {org.nom} · MISSION 2026
-        </span>
+        <div className="flex items-center gap-5">
+          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">{org.nom} · MISSION 2026</span>
+          <form action={deconnexion}>
+            <button className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">DÉCONNEXION</button>
+          </form>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
-        {/* Sommaire indexé */}
         <nav className="border-b border-line px-6 py-6 md:border-b-0 md:border-r md:px-7">
           {NAV.map((label, i) => {
             const actif = i === 0;
             return (
-              <div
-                key={label}
-                className={`mono py-[10px] text-[12px] tracking-wide ${
-                  actif ? "font-bold text-ink" : "text-ink-soft"
-                }`}
-              >
+              <div key={label} className={`mono py-[10px] text-[12px] tracking-wide ${actif ? "font-bold text-ink" : "text-ink-soft"}`}>
                 {String(i + 1).padStart(2, "0")} {label}
                 {actif ? <Cur /> : <span className="text-ink-faint">_</span>}
               </div>
@@ -60,27 +55,24 @@ export default async function Cockpit({ params }: { params: { asso: string } }) 
           </div>
         </nav>
 
-        {/* Contenu */}
         <div>
-          {/* Header / accueil */}
           <div className="border-b border-line px-6 py-8 md:px-10 md:py-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               AUJOURD&apos;HUI<Cur /> <span className="text-ink-faint">· Mission du jour</span>
             </p>
-            <h1 className="mt-4 text-[26px] font-medium tracking-[-0.01em] md:text-[30px]">Bonsoir.</h1>
+            <h1 className="mt-4 text-[26px] font-medium tracking-[-0.01em] md:text-[30px]">
+              Bonsoir{prenom ? `, ${prenom}` : ""}.
+            </h1>
             <p className="mt-3 max-w-prose text-lg text-ink-soft">
               Tout est prêt pour le prochain entraînement.{" "}
               {aMettreAJour > 0 ? (
-                <span className="text-ink">
-                  Il reste {aMettreAJour} dossier{aMettreAJour > 1 ? "s" : ""} à mettre à jour.
-                </span>
+                <span className="text-ink">Il reste {aMettreAJour} dossier{aMettreAJour > 1 ? "s" : ""} à mettre à jour.</span>
               ) : (
                 <span className="text-ink">Tous les dossiers sont à jour.</span>
               )}
             </p>
           </div>
 
-          {/* KPI ledger */}
           <div className="grid grid-cols-2 gap-px border-b border-line bg-line md:grid-cols-4">
             <Kpi n={s.equipage.toLocaleString("fr-FR")} label="EN ÉQUIPAGE" />
             <Kpi n={String(s.enAttente)} label="DOSSIERS EN ATTENTE" />
@@ -88,22 +80,15 @@ export default async function Cockpit({ params }: { params: { asso: string } }) 
             <Kpi n={formatPrix(s.tresorerieCentimes)} label="TRÉSORERIE · SAISON" />
           </div>
 
-          {/* Tour de contrôle */}
           <div className="px-6 pt-8 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               TOUR DE CONTRÔLE<Cur /> <span className="text-ink-faint">03</span>
             </p>
           </div>
           <div className="px-6 pb-10 pt-3 md:px-10">
-            <Ligne idx="01" action>
-              Cotisations en retard — <span className="mono">{s.enRetard}</span> adhérents
-            </Ligne>
-            <Ligne idx="02" action>
-              Dossiers en attente — <span className="mono">{s.enAttente}</span> adhérents
-            </Ligne>
-            <Ligne idx="03" ok>
-              Paiements à jour — <span className="mono">{s.paye}</span> adhérents
-            </Ligne>
+            <Ligne idx="01" action>Cotisations en retard — <span className="mono">{s.enRetard}</span> adhérents</Ligne>
+            <Ligne idx="02" action>Dossiers en attente — <span className="mono">{s.enAttente}</span> adhérents</Ligne>
+            <Ligne idx="03" ok>Paiements à jour — <span className="mono">{s.paye}</span> adhérents</Ligne>
           </div>
         </div>
       </div>
@@ -125,26 +110,12 @@ function Kpi({ n, label }: { n: string; label: string }) {
   );
 }
 
-function Ligne({
-  idx,
-  children,
-  action,
-  ok,
-}: {
-  idx: string;
-  children: React.ReactNode;
-  action?: boolean;
-  ok?: boolean;
-}) {
+function Ligne({ idx, children, action, ok }: { idx: string; children: React.ReactNode; action?: boolean; ok?: boolean }) {
   return (
     <div className="flex items-center gap-5 border-b border-line py-4 last:border-b-0">
       <span className="mono text-[11px] text-ink-faint">{idx}</span>
       <span className="flex-1 text-[15px]">{children}</span>
-      {action ? (
-        <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">
-          RELANCER →
-        </button>
-      ) : null}
+      {action ? <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">RELANCER →</button> : null}
       {ok ? <span className="mono text-[12px] text-brand">✓ À JOUR</span> : null}
     </div>
   );
