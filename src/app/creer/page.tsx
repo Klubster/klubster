@@ -1,61 +1,71 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { Container } from "@/components/ui/Layout";
+
+function Cur() {
+  return <span className="cur">_</span>;
+}
 
 const TEMPLATES = [
-  { id: "boxe", label: "Club de boxe" },
-  { id: "judo", label: "Club de judo" },
-  { id: "danse", label: "École de danse" },
-  { id: "foot", label: "Club de foot" },
-  { id: "autre", label: "Autre association" },
+  ["boxe", "Club de boxe"],
+  ["judo", "Club de judo"],
+  ["danse", "École de danse"],
+  ["foot", "Club de foot"],
+  ["tennis", "Club de tennis"],
+  ["autre", "Autre association"],
 ];
 
-const ETAPES = ["Template", "Identité", "Couleurs", "Infos", "Cours & tarifs", "Publier"];
+const ETAPES = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
 
 export default function CreerPage() {
   const [etape, setEtape] = useState(0);
   const [template, setTemplate] = useState<string | null>(null);
   const [nom, setNom] = useState("");
+  const slug = nom ? nom.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "") : "monclub";
 
   const suivant = () => setEtape((e) => Math.min(e + 1, ETAPES.length - 1));
   const precedent = () => setEtape((e) => Math.max(e - 1, 0));
+  const dernier = etape === ETAPES.length - 1;
 
   return (
-    <main className="min-h-screen bg-bg-alt">
-      <header className="border-b border-line bg-surface">
-        <Container className="flex items-center justify-between py-3">
-          <Link href="/" className="font-mono text-lg font-bold lowercase">klubster</Link>
-          <span className="font-mono text-xs text-ink-soft">
-            étape {etape + 1}/{ETAPES.length} · {ETAPES[etape]}
-          </span>
-        </Container>
+    <main className="min-h-screen text-ink">
+      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
+        <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
+        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+          ÉTAPE {String(etape + 1).padStart(2, "0")}/06 — {ETAPES[etape]}<Cur />
+        </span>
       </header>
 
-      <Container className="py-12">
-        {/* progression */}
-        <div className="mb-8 flex gap-1.5">
-          {ETAPES.map((_, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full ${i <= etape ? "bg-brand" : "bg-line"}`} />
+      <div className="mx-auto max-w-3xl px-6 py-12 md:px-8 md:py-16">
+        {/* Progression indexée */}
+        <div className="mb-12 grid grid-cols-6 gap-px border border-line bg-line">
+          {ETAPES.map((label, i) => (
+            <div key={label} className={`bg-paper px-3 py-3 ${i <= etape ? "" : "opacity-40"}`}>
+              <div className="mono text-[10px]" style={{ color: i <= etape ? "#279B65" : undefined }}>
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className="mono mt-1 truncate text-[9px] uppercase tracking-wider text-ink-soft">{label}</div>
+            </div>
           ))}
         </div>
 
-        <div className="mx-auto max-w-xl rounded-card border border-line bg-surface p-8 shadow-sm">
+        <div className="border border-line bg-paper p-8 md:p-10">
           {etape === 0 && (
             <div>
-              <h1 className="text-2xl font-bold">Quel type d&apos;association ?</h1>
-              <p className="mt-2 text-ink-soft">On pré-remplit cours, créneaux et pièces pour vous.</p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {TEMPLATES.map((t) => (
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 01 — TEMPLATE<Cur /></p>
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Quel type d&apos;association ?</h1>
+              <p className="mt-3 text-ink-soft">On pré-remplit cours, créneaux et pièces pour vous.</p>
+              <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
+                {TEMPLATES.map(([id, label]) => (
                   <button
-                    key={t.id}
-                    onClick={() => setTemplate(t.id)}
-                    className={`rounded-control border p-4 text-left text-sm transition-colors ${
-                      template === t.id ? "border-ink bg-bg-alt" : "border-line hover:bg-bg-alt"
-                    }`}
+                    key={id}
+                    onClick={() => setTemplate(id)}
+                    className={`bg-paper px-5 py-4 text-left text-[15px] ${template === id ? "font-medium" : "text-ink-soft hover:text-ink"}`}
                   >
-                    {t.label}
+                    <span className="mono mr-2 text-[11px]" style={{ color: template === id ? "#279B65" : "#C2C2BD" }}>
+                      {template === id ? "■" : "□"}
+                    </span>
+                    {label}
                   </button>
                 ))}
               </div>
@@ -64,54 +74,63 @@ export default function CreerPage() {
 
           {etape === 1 && (
             <div>
-              <h1 className="text-2xl font-bold">Le nom de votre club</h1>
-              <label className="mt-6 block text-sm font-medium text-ink">Nom de l&apos;association</label>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 02 — IDENTITÉ<Cur /></p>
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Le nom de votre club.</h1>
+              <label className="mono mt-8 block text-[11px] uppercase tracking-label text-ink-soft">NOM DE L&apos;ASSOCIATION</label>
               <input
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder="Ex. USM Boxe Anglaise"
-                className="mt-2 w-full rounded-control border border-line px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                className="mt-3 w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
               />
-              <p className="mt-2 font-mono text-xs text-ink-soft">
-                Votre adresse : klubster.fr/{nom ? nom.toLowerCase().replace(/[^a-z0-9]+/g, "") : "monclub"}
+              <p className="mono mt-3 text-[12px] text-ink-soft">
+                Votre adresse : klubster.fr/<span className="text-ink">{slug}</span>
               </p>
             </div>
           )}
 
-          {etape > 1 && etape < ETAPES.length - 1 && (
+          {etape > 1 && !dernier && (
             <div>
-              <h1 className="text-2xl font-bold">{ETAPES[etape]}</h1>
-              <p className="mt-2 text-ink-soft">
-                Cette étape sera branchée au prochain jalon (logo/couleurs, infos pratiques, cours &
-                tarifs avec valeurs par défaut du template).
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+                SECTION {String(etape + 1).padStart(2, "0")} — {ETAPES[etape]}<Cur />
+              </p>
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">{ETAPES[etape]}.</h1>
+              <p className="mt-3 max-w-prose text-ink-soft">
+                Cette étape sera branchée au prochain jalon : couleurs et logo, infos pratiques, puis
+                cours / tarifs / créneaux pré-remplis par le template choisi.
               </p>
             </div>
           )}
 
-          {etape === ETAPES.length - 1 && (
+          {dernier && (
             <div>
-              <h1 className="text-2xl font-bold">Prêt à publier 🎉</h1>
-              <p className="mt-2 text-ink-soft">
-                À ce stade, on crée l&apos;organisation en base et on redirige vers
-                klubster.fr/&lt;slug&gt;. (Création réelle + Stripe Connect : jalon suivant.)
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 06 — PUBLIER<Cur /></p>
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Prêt à publier.</h1>
+              <p className="mt-3 max-w-prose text-ink-soft">
+                On crée l&apos;organisation en base et on redirige vers klubster.fr/{slug}.
+                (Création réelle + Stripe Connect : prochain jalon produit.)
               </p>
             </div>
           )}
 
-          <div className="mt-8 flex justify-between">
-            <Button variant="ghost" onClick={precedent} disabled={etape === 0}>
-              ← Précédent
-            </Button>
-            {etape < ETAPES.length - 1 ? (
-              <Button onClick={suivant} disabled={etape === 0 && !template}>
-                Continuer →
-              </Button>
+          <div className="mt-10 flex items-center justify-between border-t border-line pt-6">
+            <button onClick={precedent} disabled={etape === 0} className="mono text-[12px] text-ink-soft hover:text-ink disabled:opacity-30">
+              ← PRÉCÉDENT
+            </button>
+            {!dernier ? (
+              <button
+                onClick={suivant}
+                disabled={etape === 0 && !template}
+                className="mono bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 disabled:opacity-30"
+              >
+                CONTINUER →
+              </button>
             ) : (
-              <Button disabled>Publier (bientôt)</Button>
+              <button disabled className="mono border border-ink px-6 py-3 text-[12px] opacity-40">PUBLIER (BIENTÔT)</button>
             )}
           </div>
         </div>
-      </Container>
+      </div>
     </main>
   );
 }

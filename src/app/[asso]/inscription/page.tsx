@@ -9,58 +9,68 @@ export default async function InscriptionPage({ params }: { params: { asso: stri
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);
-  const accent = org.couleur_primaire ?? "#0B1220";
+  const accent = org.couleur_primaire ?? "#111111";
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-12 md:px-8">
-      <Link href={`/${org.slug}`} className="text-sm text-ink-soft hover:text-ink">← {org.nom}</Link>
-      <h1 className="mt-4 text-3xl font-bold">Inscription</h1>
-      <p className="mt-2 text-ink-soft">
-        Première séance d&apos;essai gratuite. L&apos;inscription se finalise en ligne avec paiement
-        sécurisé (en une fois ou échelonné).
-      </p>
+    <main className="min-h-screen text-ink">
+      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
+        <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
+        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+          INSCRIPTION<span style={{ color: accent }}>_</span>
+        </span>
+      </header>
 
-      <form className="mt-8 space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Prénom" />
-          <Field label="Nom" />
-          <Field label="Email" type="email" />
-          <Field label="Téléphone" type="tel" />
-        </div>
+      <div className="mx-auto max-w-2xl px-6 py-14 md:px-8">
+        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+          SECTION 01 — ADHÉSION<span style={{ color: accent }}>_</span>
+        </p>
+        <h1 className="mt-6 text-3xl font-medium md:text-4xl">Rejoindre {org.nom}.</h1>
+        <p className="mt-4 max-w-prose text-ink-soft">
+          Première séance d&apos;essai gratuite. L&apos;inscription se finalise en ligne, paiement
+          sécurisé (en une fois ou échelonné).
+        </p>
 
-        <div>
-          <label className="block text-sm font-medium text-ink">Cours souhaité</label>
-          <select className="mt-2 w-full rounded-control border border-line px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand">
-            {cours.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nom} — {formatPrix(c.tarif_centimes)} / an
-              </option>
-            ))}
-          </select>
-        </div>
+        <form className="mt-12 space-y-px border border-line bg-line">
+          <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-2">
+            <Field label="PRÉNOM" />
+            <Field label="NOM" />
+            <Field label="EMAIL" type="email" />
+            <Field label="TÉLÉPHONE" type="tel" />
+          </div>
+          <div className="bg-paper px-5 py-4">
+            <label className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
+            <select className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
+              {cours.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nom} — {formatPrix(c.tarif_centimes)} / an
+                </option>
+              ))}
+            </select>
+          </div>
+        </form>
 
         <button
           type="button"
-          className="w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow-sm"
+          className="mono mt-8 w-full px-6 py-4 text-[13px] text-white"
           style={{ background: accent }}
         >
-          Continuer vers le paiement (bientôt)
+          CONTINUER VERS LE PAIEMENT →
         </button>
-        <p className="text-center font-mono text-xs text-ink-soft">
-          Pièces (certificat médical, photo…) et paiement Stripe : jalon suivant.
+        <p className="mono mt-4 text-center text-[11px] text-ink-faint">
+          Pièces (certificat médical, photo…) et paiement Stripe : prochain jalon.
         </p>
-      </form>
+      </div>
     </main>
   );
 }
 
 function Field({ label, type = "text" }: { label: string; type?: string }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-ink">{label}</label>
+    <div className="bg-paper px-5 py-4">
+      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</label>
       <input
         type={type}
-        className="mt-2 w-full rounded-control border border-line px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+        className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
       />
     </div>
   );
