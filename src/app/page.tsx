@@ -4,50 +4,33 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function Surtitre({ n, children }: { n: string; children: React.ReactNode }) {
   return (
     <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-      {children}
+      SECTION {n} — {children}
       <Cur />
     </p>
   );
 }
 
-const MODULES = [
-  "Site du club",
-  "Inscriptions",
-  "Paiements",
-  "Documents",
-  "Présences",
-  "Emails",
-  "Trésorerie",
-  "Journal du club",
+const SAISON = [
+  ["SEPTEMBRE", "Les inscriptions ouvrent. Le site est déjà prêt. Les paiements arrivent directement sur votre compte."],
+  ["OCTOBRE", "Deux certificats manquent. Klubster vous le rappelle."],
+  ["DÉCEMBRE", "Les attestations sont envoyées. Les parents sont informés."],
+  ["JUIN", "La saison est terminée. Vous connaissez votre trésorerie. Les réinscriptions sont prêtes."],
 ];
 
-const ETAPES = [
-  "Créer son association.",
-  "Choisir un modèle de sport.",
-  "Ajouter les cours.",
-  "Définir les tarifs.",
-  "Connecter Stripe.",
-  "Publier.",
+const TOUT = ["Le site du club", "Les adhérents", "Les paiements", "Les documents", "Les emails", "La présence", "Le QR code (bientôt)"];
+
+const PROBLEMES = [
+  ["Les certificats", "Klubster sait lesquels manquent."],
+  ["Les cotisations", "Les paiements arrivent directement sur votre compte. 0 % de commission."],
+  ["Les groupes", "Un mail aux U15 ? Deux clics."],
+  ["Les documents", "Chaque adhérent possède son dossier."],
 ];
 
-const DEMAIN = [
-  "Application mobile",
-  "Pointage par QR Code",
-  "Assistant IA",
-  "Publications automatiques",
-  "Gestion des licences",
-  "Boutique",
-];
-
-const SEMAINE = [
-  ["LUN", "Il manque un certificat."],
-  ["MER", "Un parent demande le lien d'inscription."],
-  ["VEN", "Il faut relancer trois cotisations."],
-  ["W-E", "Vous refaites un tableau Excel."],
-];
+const ETAPES = ["Créer le club.", "Choisir un modèle.", "Ajouter les cours.", "Connecter Stripe.", "Publier."];
+const DEMAIN = ["Application mobile", "Pointage par QR Code", "Assistant IA", "Boutique du club", "Gestion des licences"];
 
 export default function Home() {
   return (
@@ -55,13 +38,12 @@ export default function Home() {
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 md:px-8">
-          <Link href="/" className="font-logo text-lg font-semibold">
-            k<Cur />
-          </Link>
+          <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-ink-soft md:flex">
-            <a href="#cockpit" className="hover:text-ink">Le produit</a>
+            <a href="#histoire" className="hover:text-ink">L’histoire</a>
+            <a href="#saison" className="hover:text-ink">Une saison</a>
             <a href="#tarifs" className="hover:text-ink">Tarifs</a>
-            <Link href="/usmboxe" className="hover:text-ink">Exemple</Link>
+            <Link href="/usmboxe" className="hover:text-ink">Un club</Link>
           </nav>
           <Link href="/creer" className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
             CRÉER MON ASSOCIATION →
@@ -72,83 +54,88 @@ export default function Home() {
       {/* HERO */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-32">
-          <Label>MISSION 2026 — L&apos;OS DES ASSOCIATIONS</Label>
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">L’OS DES ASSOCIATIONS<Cur /></p>
           <h1 className="mt-8 max-w-[16ch] text-[40px] font-medium leading-[1.04] tracking-[-0.015em] md:text-[58px]">
-            Les clubs méritent mieux qu&apos;un tableur.
+            Les clubs méritent mieux qu’un tableur.
           </h1>
           <p className="mt-8 max-w-prose text-lg text-ink-soft">
-            Votre association entièrement en ligne. Site, inscriptions, paiements, adhérents,
-            emailing. En moins de vingt minutes.
+            Votre association entièrement en ligne. Site, inscriptions, paiements, adhérents.
+            En moins de vingt minutes.
           </p>
-          <p className="mt-3 text-lg">Pensé par un président d&apos;association. Pour les présidents.</p>
+          <p className="mt-3 text-lg">Pensé par un président d’association. Pour les présidents.</p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/creer" className="mono bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90">
-              CRÉER MON ASSOCIATION →
-            </Link>
-            <Link href="/usmboxe" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
-              VOIR UN CLUB EN LIGNE
-            </Link>
+            <Link href="/creer" className="mono bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90">CRÉER MON ASSOCIATION →</Link>
+            <Link href="/usmboxe" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">VOIR UN CLUB EN LIGNE</Link>
           </div>
         </div>
       </section>
 
-      {/* BANDEAU */}
-      <div className="border-b border-line bg-bg-alt/40">
-        <div className="mono mx-auto grid max-w-5xl grid-cols-1 divide-y divide-line text-[12px] text-ink-soft md:grid-cols-3 md:divide-x md:divide-y-0">
-          <span className="px-6 py-4"><span className="text-brand">✓</span> Paiements reversés sur votre compte</span>
-          <span className="px-6 py-4"><span className="text-brand">✓</span> 0 % de commission Klubster</span>
-          <span className="px-6 py-4"><span className="text-brand">✓</span> Pensé pour les clubs sportifs</span>
+      {/* 01 — POURQUOI */}
+      <section id="histoire" className="border-b border-line">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2">
+          <div className="px-6 py-20 md:px-8 md:py-28">
+            <Surtitre n="01">POURQUOI KLUBSTER EXISTE</Surtitre>
+            <p className="mt-8 max-w-prose text-2xl font-medium leading-snug md:text-[26px]">
+              Pendant des années, j’ai dirigé un club. Le problème n’était pas le sport. Le problème,
+              c’était tout le reste.
+            </p>
+            <div className="mono mt-8 grid grid-cols-2 gap-y-2 text-[13px] text-ink-soft">
+              <span>Les certificats.</span><span>Les cotisations.</span>
+              <span>Les feuilles d’inscription.</span><span>Les mails.</span>
+              <span>Les relances.</span><span>Les tableaux Excel.</span>
+            </div>
+            <p className="mt-8 max-w-prose text-lg">
+              J’ai créé Klubster pour supprimer cette partie. Pas pour ajouter un outil de plus.
+            </p>
+          </div>
+          <PhotoPlate fig="FIG. 01" legende="Le gymnase, un soir de semaine." />
         </div>
-      </div>
+      </section>
 
-      {/* SECTION 01 — POURQUOI */}
+      {/* 02 — UNE SAISON */}
+      <section id="saison" className="border-b border-line">
+        <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
+          <Surtitre n="02">UNE SAISON AVEC KLUBSTER</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Une année, racontée.</h2>
+          <div className="mt-12 border-t border-line">
+            {SAISON.map(([mois, texte]) => (
+              <div key={mois} className="grid grid-cols-1 gap-2 border-b border-line py-6 md:grid-cols-[160px_1fr] md:gap-8">
+                <div className="mono text-[13px] tracking-wider text-ink">{mois}<span className="text-brand">_</span></div>
+                <p className="max-w-prose text-lg text-ink-soft">{texte}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 03 — TOUT AU MÊME ENDROIT */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-          <Label>SECTION 01 — POURQUOI</Label>
-          <h2 className="mt-8 max-w-[20ch] text-3xl font-medium leading-tight md:text-4xl">
-            Vous n&apos;avez pas créé votre club pour gérer des papiers.
-          </h2>
-          <div className="mt-12 border-t border-line">
-            {SEMAINE.map(([j, t]) => (
-              <div key={j} className="flex items-baseline gap-6 border-b border-line py-4">
-                <span className="mono w-16 shrink-0 text-[12px] tracking-wider text-ink-faint">{j}</span>
-                <span className="text-lg">{t}</span>
+          <Surtitre n="03">TOUT EST AU MÊME ENDROIT</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Un seul endroit. Une seule vue.</h2>
+          <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
+            {TOUT.map((t, i) => (
+              <div key={t} className="bg-paper px-5 py-6">
+                <span className="mono text-[10px] tracking-wider text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
+                <div className="mt-4 text-[15px] font-medium">{t}</div>
               </div>
             ))}
           </div>
-          <p className="mt-12 max-w-prose text-lg text-ink-soft">
-            Klubster enlève toute cette partie. Pour que vous puissiez revenir là où votre club
-            existe vraiment : <span className="text-ink">sur le terrain.</span>
-          </p>
         </div>
       </section>
 
-      {/* SECTION 02 — LE COCKPIT */}
-      <section id="cockpit" className="border-b border-line">
+      {/* 04 — LE COCKPIT */}
+      <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-          <Label>SECTION 02 — LE COCKPIT</Label>
-          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">
-            Tout ce qui compte.<br />Un seul endroit.
-          </h2>
-          <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
-            {MODULES.map((m, i) => (
-              <div key={m} className="bg-paper px-5 py-6">
-                <span className="mono text-[10px] tracking-wider text-ink-faint">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div className="mt-4 text-[15px] font-medium">{m}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Aperçu du Cockpit */}
+          <Surtitre n="04">LE COCKPIT</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Votre club, chaque matin.</h2>
           <div className="mt-10 border border-line bg-paper p-7">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">AUJOURD&apos;HUI<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">AUJOURD’HUI<Cur /></p>
             <p className="mt-4 max-w-prose text-lg">
-              Bonsoir, Mathieu. Tout est prêt pour l&apos;entraînement de ce soir. Il reste seulement
+              Bonsoir, Mathieu. Tout est prêt pour l’entraînement de ce soir. Il reste seulement
               <span className="mono"> 2</span> certificats à récupérer.
             </p>
-            <div className="mono mt-6 flex flex-wrap gap-x-10 gap-y-3 text-ink">
+            <div className="mono mt-6 flex flex-wrap gap-x-10 gap-y-3">
               <span><span className="text-[26px] font-bold">304</span> <span className="text-[11px] text-ink-soft">EN ÉQUIPAGE</span></span>
               <span><span className="text-[26px] font-bold">12</span> <span className="text-[11px] text-ink-soft">DOSSIERS</span></span>
               <span><span className="text-[26px] font-bold">38 200</span> <span className="text-[11px] text-ink-soft">€ ENCAISSÉS</span></span>
@@ -157,10 +144,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 03 — EN 20 MINUTES */}
+      {/* 05 — PENSÉ POUR LES CLUBS */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-          <Label>SECTION 03 — EN 20 MINUTES</Label>
+          <Surtitre n="05">PENSÉ POUR LES CLUBS</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Quatre corvées en moins.</h2>
+          <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
+            {PROBLEMES.map(([titre, texte]) => (
+              <div key={titre} className="bg-paper px-7 py-8">
+                <div className="text-[17px] font-medium">{titre}</div>
+                <p className="mt-2 text-ink-soft">{texte}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 06 — ZÉRO COMMISSION */}
+      <section className="border-b border-line bg-ink text-paper">
+        <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-28">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-faint">SECTION 06 — AUCUNE COMMISSION<span className="text-brand">_</span></p>
+          <h2 className="mt-8 max-w-[20ch] text-3xl font-medium leading-snug md:text-[34px]">
+            Vos paiements ne passent jamais par nous.
+          </h2>
+          <p className="mt-8 max-w-prose text-lg text-paper/70">
+            Ils arrivent directement sur votre compte Stripe. Vous restez propriétaire de votre
+            argent. Klubster est simplement votre outil. Nous ne prenons <span className="text-paper">aucun pourcentage</span> —
+            vous payez seulement votre abonnement.
+          </p>
+        </div>
+      </section>
+
+      {/* 07 — EN VINGT MINUTES */}
+      <section className="border-b border-line">
+        <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
+          <Surtitre n="07">EN MOINS DE VINGT MINUTES</Surtitre>
           <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Votre club est en ligne.</h2>
           <ol className="mt-12 max-w-2xl border-t border-line">
             {ETAPES.map((e, i) => (
@@ -173,43 +191,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 04 — POUR LES BÉNÉVOLES */}
+      {/* 08 — CONÇU SUR LE TERRAIN */}
       <section className="border-b border-line">
         <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2">
           <div className="flex flex-col justify-between bg-ink p-10 text-paper md:p-12" style={{ minHeight: 360 }}>
-            <span className="mono text-[10px] tracking-label text-ink-faint">FIG. 02<span className="text-brand">_</span></span>
-            <div>
-              <p className="text-2xl font-medium leading-snug md:text-[28px]">
-                Conçu par un président.<br />Pour les présidents.
-              </p>
-              <p className="mono mt-6 text-[13px] leading-relaxed text-ink-faint">
-                Pas par une agence. Pas par des consultants. Chaque écran existe parce qu&apos;un
-                président de club en avait besoin.
-              </p>
-            </div>
+            <span className="mono text-[10px] tracking-label text-ink-faint">SECTION 08 — CONÇU SUR LE TERRAIN<span className="text-brand">_</span></span>
+            <p className="text-2xl font-medium leading-snug md:text-[30px]">
+              Conçu par un président.<br />Pour les présidents.<br />Point.
+            </p>
           </div>
-          <div className="flex flex-col justify-between border-t border-line p-10 md:border-l md:border-t-0 md:p-12">
-            <span className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 04 — POUR LES BÉNÉVOLES<Cur /></span>
-            <div className="mt-8 text-ink-soft">
-              <p className="text-base leading-relaxed">
-                Une image, ici : un gymnase vide, une paire de gants, une feuille d&apos;inscription
-                posée sur une table.
-              </p>
-              <p className="mono mt-4 text-[11px] text-ink-faint">[ planche photo N&amp;B — emplacement réservé ]</p>
-            </div>
-          </div>
+          <PhotoPlate fig="FIG. 02" legende="Une paire de gants, une feuille d’inscription." border />
         </div>
       </section>
 
-      {/* SECTION 05 — TARIFS */}
+      {/* 09 — TARIFS */}
       <section id="tarifs" className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-          <Label>SECTION 05 — TARIFS</Label>
-          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">
-            Un abonnement simple.<br />Sans commission.
-          </h2>
+          <Surtitre n="09">TARIFS</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Un abonnement simple. Sans commission.</h2>
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
-            <Plan nom="STARTER" prix="9" cible="jusqu'à 100 adhérents" />
+            <Plan nom="STARTER" prix="9" cible="jusqu’à 100 adhérents" />
             <Plan nom="CLUB" prix="19" cible="101 à 300 adhérents" reco />
             <Plan nom="CLUB +" prix="29" cible="plus de 300 adhérents" />
           </div>
@@ -220,18 +221,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 06 — DEMAIN */}
+      {/* 10 — DEMAIN */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-          <Label>SECTION 06 — DEMAIN</Label>
-          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">
-            Klubster évolue avec votre club.
-          </h2>
+          <Surtitre n="10">DEMAIN</Surtitre>
+          <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">On travaille déjà dessus.</h2>
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 md:grid-cols-3">
             {DEMAIN.map((d) => (
               <div key={d} className="flex items-center justify-between bg-paper px-5 py-5">
                 <span className="text-[15px]">{d}</span>
-                <span className="mono text-[10px] tracking-wider text-ink-faint">BIENTÔT</span>
+                <span className="mono text-[10px] tracking-wider text-ink-faint">EN COURS</span>
               </div>
             ))}
           </div>
@@ -248,16 +247,27 @@ export default function Home() {
             </div>
             <nav className="mono grid grid-cols-2 gap-x-12 gap-y-2 text-[12px] text-ink-soft sm:grid-cols-1">
               <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
-              <a href="#" className="hover:text-ink">Journal</a>
+              <a href="#histoire" className="hover:text-ink">L’histoire</a>
               <a href="#tarifs" className="hover:text-ink">Tarifs</a>
-              <a href="#" className="hover:text-ink">Documentation</a>
-              <a href="#" className="hover:text-ink">Contact</a>
+              <Link href="/connexion" className="hover:text-ink">Espace président</Link>
             </nav>
           </div>
           <p className="mono mt-12 text-[11px] text-ink-faint">© {new Date().getFullYear()} KLUBSTER</p>
         </div>
       </footer>
     </main>
+  );
+}
+
+function PhotoPlate({ fig, legende, border }: { fig: string; legende: string; border?: boolean }) {
+  return (
+    <div className={`flex flex-col justify-between bg-bg-alt px-8 py-12 ${border ? "border-t border-line md:border-l md:border-t-0" : "border-t border-line md:border-l md:border-t-0"}`} style={{ minHeight: 320 }}>
+      <span className="mono text-[10px] uppercase tracking-label text-ink-faint">{fig} — PHOTO N&amp;B</span>
+      <div>
+        <p className="text-ink-soft">{legende}</p>
+        <p className="mono mt-3 text-[11px] text-ink-faint">[ emplacement réservé ]</p>
+      </div>
+    </div>
   );
 }
 
