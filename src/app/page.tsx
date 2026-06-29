@@ -265,7 +265,7 @@ function PhotoPlate({ fig, legende, src, border }: { fig: string; legende: strin
     return (
       <div className={`relative ${frame}`} style={{ minHeight: 360 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={legende} className="absolute inset-0 h-full w-full object-cover" style={{ filter: "grayscale(1) contrast(1.04)" }} />
+        <img src={src} alt={legende} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-ink/85 px-5 py-3">
           <span className="mono text-[10px] uppercase tracking-label text-paper/60">{fig}</span>
           <span className="mono text-[11px] text-paper/90">{legende}</span>

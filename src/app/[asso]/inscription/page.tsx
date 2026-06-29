@@ -2,10 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { formatPrix } from "@/lib/format";
+import { inscrireAdherent } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function InscriptionPage({ params }: { params: { asso: string } }) {
+export default async function InscriptionPage({
+  params,
+  searchParams,
+}: {
+  params: { asso: string };
+  searchParams: { erreur?: string };
+}) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);
@@ -26,50 +33,59 @@ export default async function InscriptionPage({ params }: { params: { asso: stri
         </p>
         <h1 className="mt-6 text-3xl font-medium md:text-4xl">Rejoindre {org.nom}.</h1>
         <p className="mt-4 max-w-prose text-ink-soft">
-          Première séance d&apos;essai gratuite. L&apos;inscription se finalise en ligne, paiement
-          sécurisé (en une fois ou échelonné).
+          Première séance d&apos;essai gratuite. Remplissez vos informations, le club vous recontacte
+          pour finaliser.
         </p>
 
-        <form className="mt-12 space-y-px border border-line bg-line">
-          <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-2">
-            <Field label="PRÉNOM" />
-            <Field label="NOM" />
-            <Field label="EMAIL" type="email" />
-            <Field label="TÉLÉPHONE" type="tel" />
-          </div>
-          <div className="bg-paper px-5 py-4">
-            <label className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
-            <select className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
-              {cours.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nom} — {formatPrix(c.tarif_centimes)} / an
-                </option>
-              ))}
-            </select>
-          </div>
-        </form>
+        {searchParams?.erreur ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            Une erreur est survenue. Vérifiez vos informations et réessayez.
+          </p>
+        ) : null}
 
-        <button
-          type="button"
-          className="mono mt-8 w-full px-6 py-4 text-[13px] text-white"
-          style={{ background: accent }}
-        >
-          CONTINUER VERS LE PAIEMENT →
-        </button>
+        <form action={inscrireAdherent} className="mt-12">
+          <input type="hidden" name="slug" value={org.slug} />
+          <div className="space-y-px border border-line bg-line">
+            <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-2">
+              <Field label="PRÉNOM" name="prenom" required />
+              <Field label="NOM" name="nom" required />
+              <Field label="EMAIL" name="email" type="email" />
+              <Field label="TÉLÉPHONE" name="tel" type="tel" />
+            </div>
+            <div className="bg-paper px-5 py-4">
+              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
+              <select name="cours" required className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
+                {cours.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nom} — {formatPrix(c.tarif_centimes)} / an
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="mono mt-8 w-full px-6 py-4 text-[13px] text-white" style={{ background: accent }}>
+            VALIDER MON INSCRIPTION →
+          </button>
+        </form>
         <p className="mono mt-4 text-center text-[11px] text-ink-faint">
-          Pièces (certificat médical, photo…) et paiement Stripe : prochain jalon.
+          Paiement en ligne sécurisé (Stripe) : activé prochainement par le club.
         </p>
       </div>
     </main>
   );
 }
 
-function Field({ label, type = "text" }: { label: string; type?: string }) {
+function Field({ label, name, type = "text", required }: { label: string; name: string; type?: string; required?: boolean }) {
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</label>
+      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">
+        {label}{required ? " *" : ""}
+      </label>
       <input
+        name={name}
         type={type}
+        required={required}
         className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
       />
     </div>
