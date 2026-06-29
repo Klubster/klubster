@@ -1,5 +1,6 @@
 // Types reflétant le schéma multi-tenant Supabase (public.*).
 // Chaque ligne porte un organisation_id (isolation RLS).
+import type { FormConfig } from "@/types/form";
 
 export type Role = "super_admin" | "admin_asso" | "encadrant" | "adherent";
 export type PlanAbonnement = "starter" | "club" | "club_plus";
@@ -30,6 +31,7 @@ export interface Organisation {
   accroche: string | null;
   presentation: string | null;
   infos_pratiques: string | null;
+  form_config: FormConfig | null;
 }
 
 export interface Cours {

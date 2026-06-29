@@ -117,6 +117,14 @@ export default async function Cockpit({
             ) : null}
           </div>
 
+          {/* CONFIGURATION */}
+          <div className="border-b border-line px-6 py-7 md:px-10">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ATELIER<Cur /></p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href={`/${org.slug}/cockpit/formulaire`} className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">FORMULAIRE D&apos;INSCRIPTION →</Link>
+            </div>
+          </div>
+
           <div className="px-6 pt-8 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               TOUR DE CONTRÔLE<Cur /> <span className="text-ink-faint">03</span>
