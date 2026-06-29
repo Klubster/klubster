@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCockpitStats } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
+import { connecterStripe } from "./stripe-actions";
 import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,13 @@ function Cur() {
 
 const NAV = ["AUJOURD'HUI", "ÉQUIPAGE", "TOUR DE CONTRÔLE", "TRÉSORERIE", "MESSAGERIE", "DOSSIERS", "JOURNAL", "ATELIER"];
 
-export default async function Cockpit({ params }: { params: { asso: string } }) {
+export default async function Cockpit({
+  params,
+  searchParams,
+}: {
+  params: { asso: string };
+  searchParams: { stripe?: string };
+}) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
 
@@ -24,6 +31,8 @@ export default async function Cockpit({ params }: { params: { asso: string } }) 
   const s = await getCockpitStats(org.slug);
   const aMettreAJour = s.enAttente + s.enRetard;
   const prenom = profile?.prenom?.trim();
+  const stripeConnecte = !!org.stripe_account_id;
+  const connecterAvecSlug = connecterStripe.bind(null, org.slug);
 
   return (
     <main className="min-h-screen text-ink">
@@ -78,6 +87,34 @@ export default async function Cockpit({ params }: { params: { asso: string } }) 
             <Kpi n={String(s.enAttente)} label="DOSSIERS EN ATTENTE" />
             <Kpi n={String(s.enRetard)} label="COTISATIONS EN RETARD" />
             <Kpi n={formatPrix(s.tresorerieCentimes)} label="TRÉSORERIE · SAISON" />
+          </div>
+
+          {/* PAIEMENTS / STRIPE */}
+          <div className="border-b border-line px-6 py-7 md:px-10">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
+            {stripeConnecte ? (
+              <p className="mt-4 text-[15px]">
+                <span className="mono text-brand">✓</span> Stripe connecté. Les cotisations sont encaissées
+                directement sur le compte du club — Klubster ne prend aucune commission.
+              </p>
+            ) : (
+              <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="max-w-prose text-[15px] text-ink-soft">
+                  Connectez Stripe pour encaisser les cotisations en ligne — l&apos;argent arrive
+                  directement sur votre compte, <span className="text-ink">0 % de commission</span>.
+                </p>
+                <form action={connecterAvecSlug}>
+                  <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                    CONNECTER STRIPE →
+                  </button>
+                </form>
+              </div>
+            )}
+            {searchParams?.stripe === "nonconfig" ? (
+              <p className="mono mt-3 text-[11px] text-ink-faint">
+                Stripe n&apos;est pas encore configuré côté plateforme (clé API manquante).
+              </p>
+            ) : null}
           </div>
 
           <div className="px-6 pt-8 md:px-10">
