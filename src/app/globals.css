@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: theme(colors.surface);
+  color: theme(colors.ink.DEFAULT);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Titres en monospace, façon techno-éditoriale (DESIGN_SYSTEM). */
+h1, h2, h3, .font-display {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* Chiffres tabulaires pour montants/KPIs. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { animation: reveal .4s ease both; }
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
