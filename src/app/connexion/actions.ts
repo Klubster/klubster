@@ -16,7 +16,7 @@ export async function inscription(input: {
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
-    options: { data: { prenom: input.prenom, nom: input.nom } },
+    options: { data: { prenom: input.prenom, nom: input.nom, role: "admin_asso" } },
   });
   if (error) return { error: traduire(error.message) };
   if (!data.session) return { message: "Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous." };
