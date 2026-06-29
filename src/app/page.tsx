@@ -88,7 +88,7 @@ export default function Home() {
               J’ai créé Klubster pour supprimer cette partie. Pas pour ajouter un outil de plus.
             </p>
           </div>
-          <PhotoPlate fig="FIG. 01" legende="Le gymnase, un soir de semaine." />
+          <PhotoPlate fig="FIG. 01" legende="Le gymnase, un soir de semaine." src="/gymnase.jpg" />
         </div>
       </section>
 
@@ -200,7 +200,7 @@ export default function Home() {
               Conçu par un président.<br />Pour les présidents.<br />Point.
             </p>
           </div>
-          <PhotoPlate fig="FIG. 02" legende="Une paire de gants, une feuille d’inscription." border />
+          <PhotoPlate fig="FIG. 02" legende="USM Boxe Montauban, avant l’entraînement." src="/boxe.jpg" border />
         </div>
       </section>
 
@@ -259,9 +259,22 @@ export default function Home() {
   );
 }
 
-function PhotoPlate({ fig, legende, border }: { fig: string; legende: string; border?: boolean }) {
+function PhotoPlate({ fig, legende, src, border }: { fig: string; legende: string; src?: string; border?: boolean }) {
+  const frame = "border-t border-line md:border-l md:border-t-0";
+  if (src) {
+    return (
+      <div className={`relative ${frame}`} style={{ minHeight: 360 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={legende} className="absolute inset-0 h-full w-full object-cover" style={{ filter: "grayscale(1) contrast(1.04)" }} />
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-ink/85 px-5 py-3">
+          <span className="mono text-[10px] uppercase tracking-label text-paper/60">{fig}</span>
+          <span className="mono text-[11px] text-paper/90">{legende}</span>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className={`flex flex-col justify-between bg-bg-alt px-8 py-12 ${border ? "border-t border-line md:border-l md:border-t-0" : "border-t border-line md:border-l md:border-t-0"}`} style={{ minHeight: 320 }}>
+    <div className={`flex flex-col justify-between bg-bg-alt px-8 py-12 ${frame}`} style={{ minHeight: 320 }}>
       <span className="mono text-[10px] uppercase tracking-label text-ink-faint">{fig} — PHOTO N&amp;B</span>
       <div>
         <p className="text-ink-soft">{legende}</p>
