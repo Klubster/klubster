@@ -36,7 +36,7 @@ export async function inscrireAdherent(formData: FormData) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { prenom, nom, role: "adherent" } },
+      options: { data: { prenom, nom, role: "adherent" }, emailRedirectTo: `${BASE}/auth/callback` },
     });
     if (error) redirect(`/${slug}/inscription?erreur=compte`);
     userId = data.user?.id ?? null;

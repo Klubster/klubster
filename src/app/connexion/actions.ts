@@ -16,7 +16,7 @@ export async function inscription(input: {
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
-    options: { data: { prenom: input.prenom, nom: input.nom, role: "admin_asso" } },
+    options: { data: { prenom: input.prenom, nom: input.nom, role: "admin_asso" }, emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app"}/auth/callback` },
   });
   if (error) return { error: traduire(error.message) };
   if (!data.session) return { message: "Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous." };
