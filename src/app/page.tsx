@@ -187,7 +187,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation lines={["Parce que personne", "ne devient", "président d’un club", "pour remplir des formulaires"]} />
+      <Citation lines={["Parce que personne", "ne devient bénévole", "dans un club", "pour remplir des formulaires"]} />
 
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
