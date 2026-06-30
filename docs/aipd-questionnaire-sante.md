@@ -80,7 +80,7 @@
 
 | Action | Priorité | Échéance | Statut |
 |---|---|---|---|
-| **Purge automatique** des attestations en fin de saison — critère opposable : suppression au **31/08 de l'année N** (ou J+30 après date de fin de saison déclarée par le club) | Haute | Avant la 1re fin de saison | À faire |
+| **Purge automatique** des attestations en fin de saison — critère opposable : suppression de toute attestation créée **avant le 1er septembre courant** (réalise le « 31/08 » sans toucher la saison en cours). Fonction `purger_questionnaires_sante()` + tâche `pg_cron` quotidienne (03:00 UTC). | Haute | — | **Fait** |
 | Journalisation des accès aux attestations de santé | Moyenne | — | À faire |
 | Restreindre l'affichage de la signature au strict nécessaire | Moyenne | — | À faire |
 | **Désignation d'un DPO** — *probablement obligatoire* : Klubster, sous-traitant, réalise à titre principal un traitement à grande échelle de données de l'art. 9 (santé) concernant des mineurs (art. 37.1.c). À **confirmer/trancher avec le conseil RGPD**, indépendamment du volume. | Haute | À confirmer sans tarder | **À trancher** |
