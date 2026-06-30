@@ -34,3 +34,12 @@ body {
 
 /* 0px partout : aucun arrondi. */
 * { border-radius: 0 !important; }
+
+/* Révélations au scroll — discrètes, additives (ne touchent pas aux tokens). */
+.kb-reveal { opacity: 0; transform: translateY(16px); transition: opacity .85s cubic-bezier(.22,.61,.36,1), transform .85s cubic-bezier(.22,.61,.36,1); }
+.kb-reveal.kb-in { opacity: 1; transform: none; }
+.kb-quote { opacity: 0; transform: translateY(10px); transition: opacity 1.05s ease, transform 1.05s ease; }
+.kb-quote.kb-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .kb-reveal, .kb-quote { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
