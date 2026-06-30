@@ -2,13 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-// Parallaxe très douce sur une grande photo. L'image est légèrement zoomée
-// pour éviter tout bord vide. Désactivée si prefers-reduced-motion.
+// Parallaxe douce + respiration lente de l'image (via .kb-breathe en CSS).
+// Le translate (parallaxe) est porté par un conteneur, le scale (respiration)
+// par l'image : les deux transforms se composent sans se gêner.
 export default function Parallax({
   src,
   alt,
   className = "",
-  strength = 0.08,
+  strength = 0.1,
 }: {
   src: string;
   alt: string;
@@ -16,7 +17,7 @@ export default function Parallax({
   strength?: number;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
-  const img = useRef<HTMLImageElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -27,12 +28,12 @@ export default function Parallax({
     const update = () => {
       raf = 0;
       const w = wrap.current;
-      const im = img.current;
-      if (!w || !im) return;
+      const el = inner.current;
+      if (!w || !el) return;
       const r = w.getBoundingClientRect();
       const vh = window.innerHeight;
       const center = r.top + r.height / 2 - vh / 2;
-      im.style.transform = `translate3d(0, ${(-center * strength).toFixed(1)}px, 0) scale(1.14)`;
+      el.style.transform = `translate3d(0, ${(-center * strength).toFixed(1)}px, 0)`;
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
@@ -49,14 +50,10 @@ export default function Parallax({
 
   return (
     <div ref={wrap} className={`overflow-hidden ${className}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={img}
-        src={src}
-        alt={alt}
-        className="absolute inset-0 h-full w-full object-cover will-change-transform"
-        style={{ transform: "scale(1.14)" }}
-      />
+      <div ref={inner} className="absolute inset-0 will-change-transform">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} className="kb-breathe absolute inset-0 h-full w-full object-cover" />
+      </div>
     </div>
   );
 }

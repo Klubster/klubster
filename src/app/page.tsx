@@ -2,6 +2,7 @@ import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import CockpitPreview from "@/components/site/CockpitPreview";
+import Citation from "@/components/site/Citation";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -11,25 +12,7 @@ function Cur() {
 function Chapitre({ src, alt, h = "h-[72vh] md:h-screen" }: { src: string; alt: string; h?: string }) {
   return (
     <section className={`relative w-full overflow-hidden ${h}`}>
-      <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.08} />
-    </section>
-  );
-}
-
-// Citation = bloc-manifeste. Pas de police littéraire : du Space Mono très grand,
-// mesure courte, interligne serré, beaucoup de vide, _ vert en fin. La différence
-// vient de la mise en page, pas d'une voix extérieure (univers terminal/carnet).
-function Citation({ children, topTight }: { children: React.ReactNode; topTight?: boolean }) {
-  const pt = topTight ? "pt-16 md:pt-24" : "pt-32 md:pt-48";
-  return (
-    <section>
-      <div className={`mx-auto max-w-[720px] px-6 pb-32 text-center md:px-8 md:pb-48 ${pt}`}>
-        <Reveal kind="quote">
-          <p className="mono text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[40px]">
-            {children}<span className="cur">_</span>
-          </p>
-        </Reveal>
-      </div>
+      <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.12} />
     </section>
   );
 }
@@ -55,7 +38,7 @@ function DoublePage({
   return (
     <section className="grid grid-cols-1 md:grid-cols-2">
       <div className={`relative min-h-[58vh] overflow-hidden md:min-h-[88vh] ${flip ? "md:order-2" : ""}`}>
-        <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.06} />
+        <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.08} />
       </div>
       <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
         <Reveal className="max-w-md">
@@ -127,7 +110,7 @@ export default function Home() {
 
       {/* HERO — clarté d'abord (H1), puis le slogan en émotion, puis la signature */}
       <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
-        <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.05} />
+        <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8 md:pb-20">
@@ -172,7 +155,7 @@ export default function Home() {
         <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
       </DoublePage>
 
-      <Citation>Avant les adhérents.<br />Avant le bruit</Citation>
+      <Citation lines={["Avant les adhérents.", "Avant le bruit"]} />
 
       {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
       <section className="grid grid-cols-1 md:grid-cols-2">
@@ -200,11 +183,11 @@ export default function Home() {
           </div>
         </div>
         <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
-          <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.06} />
+          <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.08} />
         </div>
       </section>
 
-      <Citation>Parce que personne<br />ne devient<br />président d’un club<br />pour remplir des formulaires</Citation>
+      <Citation lines={["Parce que personne", "ne devient", "président d’un club", "pour remplir des formulaires"]} />
 
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
@@ -306,7 +289,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation topTight>Le meilleur logiciel<br />est celui qu’on oublie</Citation>
+      <Citation topTight lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
 
       {/* la saison */}
       <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
@@ -372,19 +355,19 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation topTight>On ne fait jamais<br />les inscriptions<br />quand on a le temps</Citation>
+      <Citation topTight lines={["On ne fait jamais", "les inscriptions", "quand on a le temps"]} />
 
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
         <div className="flex flex-col items-center justify-center py-24 md:py-32">
-          <span className="font-logo text-[110px] leading-none text-brand md:text-[190px]">k_</span>
+          <span className="kb-float font-logo text-[110px] leading-none text-brand md:text-[190px]">k_</span>
           <span className="mono mt-5 text-[12px] uppercase tracking-label text-ink-soft">klubster.fr</span>
         </div>
       </section>
 
       {/* CTA FINAL — photo plein écran */}
       <section className="relative h-[80vh] min-h-[460px] w-full overflow-hidden">
-        <Parallax src="/07-crepuscule.jpg" alt="Une salle éclairée, à la tombée du jour." className="absolute inset-0" strength={0.06} />
+        <Parallax src="/07-crepuscule.jpg" alt="Une salle éclairée, à la tombée du jour." className="absolute inset-0" strength={0.08} />
         <div className="absolute inset-0 bg-ink/55" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="px-6 text-center text-paper">

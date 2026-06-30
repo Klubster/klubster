@@ -29,7 +29,7 @@ body {
 @keyframes kblink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
 .cur { color: #279B65; font-family: var(--font-mono); }
 @media (prefers-reduced-motion: no-preference) {
-  .cur { animation: kblink 1.15s steps(1) infinite; }
+  .cur { animation: kblink 1.2s steps(1) infinite; }
 }
 
 /* 0px partout : aucun arrondi. */
@@ -43,6 +43,28 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .kb-reveal, .kb-quote { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+/* Micro-mouvements (une seule chose bouge à la fois) — pas de vidéo, pas de particules. */
+
+/* Photos : respiration très lente. L'image dérive imperceptiblement. */
+.kb-breathe { transform: scale(1.08); }
+@media (prefers-reduced-motion: no-preference) {
+  .kb-breathe { animation: kbbreathe 24s ease-in-out infinite alternate; }
+}
+@keyframes kbbreathe { from { transform: scale(1.08); } to { transform: scale(1.14); } }
+
+/* Citations : apparition ligne par ligne (machine à écrire). */
+.kb-cite-line { display: block; opacity: 0; transform: translateY(8px); transition: opacity .6s ease, transform .6s ease; }
+.kb-cite-in .kb-cite-line { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .kb-cite-line { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* Grand k_ : respiration imperceptible. */
+@media (prefers-reduced-motion: no-preference) {
+  .kb-float { animation: kbfloat 6s ease-in-out infinite; }
+}
+@keyframes kbfloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.006); } }
 
 /* Lecture des pages légales — lisible, sobre, fidèle à la DA. */
 .legal-prose h2 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.01em; margin: 2.6rem 0 .7rem; color: #111; }
