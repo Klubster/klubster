@@ -84,10 +84,10 @@ const SAISON: [string, string][] = [
 ];
 
 // Un seul produit. Le prix suit la taille du club. Toutes les fonctionnalités incluses partout.
-const PALIERS: { capacite: string; prix: string; desc: string }[] = [
-  { capacite: "Jusqu’à 300 adhérents", prix: "9", desc: "Pour les petits clubs et les associations qui démarrent." },
-  { capacite: "301 à 500 adhérents", prix: "19", desc: "Quand votre club grandit, votre abonnement s’adapte." },
-  { capacite: "Plus de 500 adhérents", prix: "29", desc: "Pour les associations qui accueillent plusieurs centaines d’adhérents." },
+const PALIERS: { capacite: string; prix: string }[] = [
+  { capacite: "Jusqu’à 300 adhérents", prix: "9" },
+  { capacite: "301 à 500 adhérents", prix: "19" },
+  { capacite: "Plus de 500 adhérents", prix: "29" },
 ];
 
 const INCLUS = [
@@ -308,7 +308,6 @@ export default function Home() {
                 <div className="mono mt-5 text-[36px] font-bold tracking-tight">
                   {p.prix}<span className="text-[13px] font-normal text-ink-soft"> €/mois</span>
                 </div>
-                <p className="mt-5 text-[14px] text-ink-soft">{p.desc}</p>
               </div>
             ))}
           </div>
