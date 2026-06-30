@@ -119,7 +119,7 @@ export default function Home() {
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les clubs méritent mieux qu’un tableur.</p>
-            <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">Créé par un président. Pour les présidents.</p>
+            <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">Pour ceux qui font vivre les clubs.</p>
           </div>
         </div>
       </section>
@@ -155,7 +155,7 @@ export default function Home() {
         <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
       </DoublePage>
 
-      <Citation lines={["Avant les adhérents.", "Avant le bruit"]} />
+      <Citation lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
 
       {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
       <section className="grid grid-cols-1 md:grid-cols-2">
