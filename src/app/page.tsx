@@ -221,7 +221,7 @@ export default function Home() {
               <span className="text-brand">●</span> Chronométré à l’USM Boxe
             </p>
             <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Parce qu’un président de club a mieux à faire que d’apprendre un logiciel<span className="cur">_</span>
+              Parce qu’un président de club<br />a mieux à faire<br />que d’apprendre un logiciel<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
