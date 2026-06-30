@@ -78,32 +78,26 @@ const SAISON: [string, string][] = [
   ["JUIN", "La saison se termine. On connaît déjà la suivante."],
 ];
 
-type PlanT = { nom: string; segment: string; capacite: string; prix: string; reco?: boolean; reprise?: string; lignes: string[] };
-const PLANS: PlanT[] = [
-  {
-    nom: "STARTER",
-    segment: "Pour les petits clubs",
-    capacite: "Jusqu’à 100 adhérents",
-    prix: "9",
-    lignes: ["Site web", "Inscriptions en ligne", "Paiements Stripe", "Adhérents", "Emails", "0 % de commission"],
-  },
-  {
-    nom: "CLUB",
-    segment: "Pour les clubs en développement",
-    capacite: "101 à 300 adhérents",
-    prix: "19",
-    reco: true,
-    reprise: "Tout Starter +",
-    lignes: ["Plusieurs disciplines", "Équipe dirigeante", "Statistiques", "Gestion avancée"],
-  },
-  {
-    nom: "CLUB+",
-    segment: "Pour les grands clubs",
-    capacite: "Plus de 300 adhérents",
-    prix: "29",
-    reprise: "Tout Club +",
-    lignes: ["Utilisateurs illimités", "Support prioritaire", "Fonctionnalités avancées"],
-  },
+// Un seul produit. Le prix suit la taille du club. Toutes les fonctionnalités incluses partout.
+const PALIERS: { capacite: string; prix: string; desc: string }[] = [
+  { capacite: "Jusqu’à 100 adhérents", prix: "9", desc: "Pour les petits clubs et les associations qui démarrent." },
+  { capacite: "101 à 300 adhérents", prix: "19", desc: "Quand votre club grandit, votre abonnement s’adapte." },
+  { capacite: "Plus de 300 adhérents", prix: "29", desc: "Pour les associations qui accueillent plusieurs centaines d’adhérents." },
+];
+
+const INCLUS = [
+  "Site web de votre association",
+  "Inscriptions en ligne",
+  "Paiement sécurisé avec Stripe",
+  "Gestion des adhérents",
+  "Gestion des disciplines",
+  "Communication par email",
+  "Documents des adhérents",
+  "Tableau de bord",
+  "Statistiques",
+  "Membres du bureau",
+  "0 % de commission",
+  "Toutes les futures fonctionnalités",
 ];
 
 export default function Home() {
@@ -293,39 +287,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VII — TARIFS (ce que le club garde) — visible sans dépendre d’une animation */}
+      {/* VIII — TARIFS : un seul produit, le prix suit la taille du club */}
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-36">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VIII — TARIFS<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Vous gardez 100 % de vos cotisations.</h2>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Le même Klubster pour tous les clubs.</h2>
+            <p className="mt-6 max-w-prose text-lg text-ink-soft">
+              Le prix s’adapte simplement au nombre d’adhérents. Toutes les fonctionnalités sont incluses,
+              quel que soit votre abonnement.
+            </p>
           </Reveal>
+
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
-            {PLANS.map((p) => (
-              <div key={p.nom} className="flex flex-col bg-paper px-7 py-9">
-                <div className="mono text-[12px] tracking-label text-ink">
-                  {p.nom}<span className="text-brand">_</span>
-                  {p.reco ? <span className="ml-2 text-brand">●</span> : null}
-                </div>
-                <div className="mt-2 text-[15px] font-medium">{p.segment}</div>
-                <div className="mono mt-0.5 text-[11px] text-ink-soft">{p.capacite}</div>
-                <div className="mono mt-6 text-[34px] font-bold tracking-tight">
+            {PALIERS.map((p) => (
+              <div key={p.capacite} className="flex flex-col bg-paper px-7 py-9">
+                <div className="mono text-[12px] uppercase tracking-wide text-ink">{p.capacite}</div>
+                <div className="mono mt-5 text-[36px] font-bold tracking-tight">
                   {p.prix}<span className="text-[13px] font-normal text-ink-soft"> €/mois</span>
                 </div>
-                <div className="mt-6 border-t border-line pt-6">
-                  {p.reprise ? <div className="mono text-[11px] uppercase tracking-wide text-ink-soft">{p.reprise}</div> : null}
-                  <ul className={`${p.reprise ? "mt-3" : ""} space-y-2.5`}>
-                    {p.lignes.map((l) => (
-                      <li key={l} className="flex items-center gap-3 text-[14px]">
-                        <span className="mono text-brand">✓</span>
-                        <span>{l}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <p className="mt-5 text-[14px] text-ink-soft">{p.desc}</p>
               </div>
             ))}
           </div>
+
+          <div className="-mt-px border-x border-b border-line bg-paper px-7 py-8">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">INCLUS DANS TOUTES LES OFFRES<Cur /></p>
+            <ul className="mt-6 grid grid-cols-1 gap-x-10 gap-y-2.5 sm:grid-cols-2 md:grid-cols-3">
+              {INCLUS.map((f) => (
+                <li key={f} className="flex items-center gap-3 text-[14px]">
+                  <span className="mono text-brand">✓</span>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <p className="mt-10 max-w-prose text-lg text-ink">
             Les paiements arrivent directement sur votre compte Stripe.<br />Klubster ne prélève aucune commission.
           </p>
