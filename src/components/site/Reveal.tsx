@@ -24,6 +24,7 @@ export default function Reveal({
       setShown(true);
       return;
     }
+    // Déclenche dès que l'élément approche (avant son entrée à l'écran) : jamais de contenu masqué.
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -31,7 +32,7 @@ export default function Reveal({
           io.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0, rootMargin: "0px 0px 25% 0px" }
     );
     io.observe(el);
     return () => io.disconnect();
