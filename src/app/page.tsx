@@ -83,8 +83,6 @@ const INCLUS = [
   "Actualité à la une",
   "Documents des adhérents",
   "Tableau de bord",
-  "Statistiques",
-  "Membres du bureau",
   "0 % de commission",
   "Toutes les futures fonctionnalités",
 ];
