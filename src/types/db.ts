@@ -32,6 +32,13 @@ export interface Organisation {
   presentation: string | null;
   infos_pratiques: string | null;
   form_config: FormConfig | null;
+  actualite: Actualite | null;
+}
+
+// Actualité « à la une » affichée dans le hero de la vitrine du club.
+export interface Actualite {
+  texte: string | null;
+  image_url: string | null;
 }
 
 export interface Cours {

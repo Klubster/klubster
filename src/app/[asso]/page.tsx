@@ -36,6 +36,31 @@ export default async function VitrinePage({ params }: { params: { asso: string }
     <main className="text-ink">
       <SiteHeader org={org} />
 
+      {/* ACTUALITÉ À LA UNE (éditable par le club) */}
+      {org.actualite && (org.actualite.texte || org.actualite.image_url) ? (
+        <section className="border-b border-line">
+          {org.actualite.image_url ? (
+            <div className="relative h-64 w-full overflow-hidden md:h-80">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={org.actualite.image_url} alt="Actualité du club" className="absolute inset-0 h-full w-full object-cover" />
+              {org.actualite.texte ? (
+                <div className="absolute inset-x-0 bottom-0 bg-ink/70 px-6 py-5 md:px-8">
+                  <p className="mono text-[10px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
+                  <p className="mt-1 max-w-prose text-paper md:text-lg">{org.actualite.texte}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mx-auto max-w-5xl px-6 py-6 md:px-8">
+              <div className="border-l-2 pl-4" style={{ borderColor: accent }}>
+                <p className="mono text-[10px] uppercase tracking-label" style={{ color: accent }}>À LA UNE_</p>
+                <p className="mt-1 max-w-prose text-lg">{org.actualite.texte}</p>
+              </div>
+            </div>
+          )}
+        </section>
+      ) : null}
+
       {/* HERO */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-32">

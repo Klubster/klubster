@@ -121,6 +121,7 @@ export default async function Cockpit({
           <div className="border-b border-line px-6 py-7 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ATELIER<Cur /></p>
             <div className="mt-4 flex flex-wrap gap-3">
+              <Link href={`/${org.slug}/cockpit/actualite`} className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">ACTUALITÉ À LA UNE →</Link>
               <Link href={`/${org.slug}/cockpit/formulaire`} className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">FORMULAIRE D&apos;INSCRIPTION →</Link>
               <Link href={`/${org.slug}/cockpit/scanner`} className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">SCANNER / APPEL →</Link>
               <Link href={`/${org.slug}/cockpit/paiements`} className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">ENCAISSEMENTS →</Link>
