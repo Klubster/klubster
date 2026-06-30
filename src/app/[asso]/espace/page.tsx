@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deconnexion } from "@/app/connexion/actions";
 import { updateInfos, marquerPieceEmail, uploadPiece } from "./actions";
 import { formatPrix } from "@/lib/format";
+import { texteAttestation, type QSType, type QSResultat } from "@/lib/sante";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,14 @@ export default async function EspacePage({ params }: { params: { asso: string } 
     .from("pieces_adherent").select("id, label, statut").eq("adherent_id", a.id).order("created_at");
   const pieces = (piecesData ?? []) as { id: string; label: string; statut: string }[];
   const manquantes = pieces.filter((p) => p.statut === "manquante").length;
+
+  const { data: qsanteData } = await supabase
+    .from("questionnaires_sante")
+    .select("type, resultat, signataire_nom, signature, created_at")
+    .eq("adherent_id", a.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const qsante = qsanteData as
+    | { type: QSType; resultat: QSResultat; signataire_nom: string | null; signature: string | null; created_at: string }
+    | null;
 
   return (
     <Shell org={org} accent={accent} deconnexion>
@@ -113,6 +122,25 @@ export default async function EspacePage({ params }: { params: { asso: string } 
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* QUESTIONNAIRE DE SANTÉ */}
+      {qsante ? (
+        <div className="mt-12">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUESTIONNAIRE DE SANTÉ<span style={{ color: accent }}>_</span></p>
+          <div className="mt-4 border border-line bg-paper px-5 py-5" style={{ borderLeftWidth: 3, borderLeftColor: accent }}>
+            <p className="text-[14px] leading-relaxed">{texteAttestation(qsante.type, qsante.resultat)}</p>
+            <div className="mono mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[11px] text-ink-soft">
+              <span>{qsante.type === "mineur" ? "MINEUR" : "MAJEUR"}</span>
+              {qsante.signataire_nom ? <span>SIGNÉ : {qsante.signataire_nom}</span> : null}
+              <span>{new Date(qsante.created_at).toLocaleDateString("fr-FR")}</span>
+            </div>
+            {qsante.signature ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qsante.signature} alt="Signature" width={220} height={90} className="mt-3 border border-line bg-white" />
+            ) : null}
           </div>
         </div>
       ) : null}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
+import QuestionnaireSante from "./QuestionnaireSante";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -98,6 +99,9 @@ export default async function InscriptionPage({
               <p className="mono mt-2 text-[11px] text-ink-faint">À déposer dans votre espace adhérent après inscription.</p>
             </fieldset>
           ) : null}
+
+          {/* QUESTIONNAIRE DE SANTÉ */}
+          <QuestionnaireSante accent={accent} />
 
           {/* COMPTE */}
           <fieldset>

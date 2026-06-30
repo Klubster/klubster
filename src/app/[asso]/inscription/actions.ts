@@ -58,6 +58,33 @@ export async function inscrireAdherent(formData: FormData) {
     redirect(`/${slug}/inscription?erreur=1`);
   }
 
+  // Questionnaire de santé (remplace le certificat médical) + signature
+  const qType = String(formData.get("qsante_type") ?? "adulte");
+  const qResultat = String(formData.get("qsante_resultat") ?? "atteste_negatif");
+  const qNaissance = String(formData.get("naissance") ?? "");
+  const qSignature = String(formData.get("qsante_signature") ?? "");
+  const qSignataire = String(formData.get("qsante_signataire") ?? "").trim();
+  const qQualite = String(formData.get("qsante_qualite") ?? "adherent");
+  let qReponses: Record<string, string> = {};
+  try {
+    qReponses = JSON.parse(String(formData.get("qsante_reponses") ?? "{}"));
+  } catch {
+    qReponses = {};
+  }
+  if (qNaissance && qSignature) {
+    const { error: qErr } = await supabase.rpc("enregistrer_questionnaire_sante", {
+      p_adhesion_id: String(adhesionId),
+      p_type: qType,
+      p_date_naissance: qNaissance,
+      p_reponses: qReponses,
+      p_resultat: qResultat,
+      p_signataire_nom: qSignataire || null,
+      p_signataire_qualite: qQualite,
+      p_signature: qSignature,
+    });
+    if (qErr) console.error("enregistrer_questionnaire_sante", qErr.message);
+  }
+
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
   if (mode === "en_ligne" && org.stripe_account_id && stripeConfigured()) {
     const { data: cours } = await supabase.from("cours").select("nom, tarif_centimes").eq("id", coursId).maybeSingle();
