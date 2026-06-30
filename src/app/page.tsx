@@ -65,6 +65,13 @@ function DoublePage({
 
 const DISCIPLINES = ["Sports de combat", "Arts martiaux", "Natation", "Tennis", "Sports collectifs", "Danse", "Gymnastique", "Fitness"];
 
+// Notes de terrain — signature éditoriale récurrente (home, Journal, LinkedIn…).
+const NOTES: [string, string][] = [
+  ["07", "Le premier mercredi de septembre, les dossiers incomplets arrivent tous en même temps."],
+  ["12", "Les bénévoles ouvrent souvent la salle trente minutes avant tout le monde."],
+  ["18", "Les paiements arrivent rarement quand on a le temps de les vérifier."],
+];
+
 const SAISON: [string, string][] = [
   ["SEPTEMBRE", "Les portes rouvrent. Le site du club est déjà en ligne."],
   ["DÉCEMBRE", "Les dossiers sont complets. Personne n’a couru après un papier."],
@@ -169,37 +176,71 @@ export default function Home() {
       {/* transition vers le produit */}
       <Chapitre src="/05-couloir.jpg" alt="Un couloir de gymnase, désert." h="h-[58vh] md:h-[78vh]" />
 
-      {/* III — DÉVELOPPÉ DANS UN VRAI CLUB (la preuve : le fondateur) */}
+      {/* III — SUR LE TERRAIN (la fonctionnalité naît d’un problème réel) + Notes de terrain */}
       <section>
         <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">III — SUR LE TERRAIN<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              On l’utilise avant de vous le vendre.
+              Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
             </h2>
-            <p className="mt-6 text-lg text-ink-soft">
-              Klubster est développé chaque semaine dans un vrai club. Chaque fonctionnalité est d’abord
-              utilisée à l’USM Boxe — en conditions réelles, un mercredi soir — avant d’être ouverte aux
-              autres clubs.
-            </p>
-            <p className="mt-6 text-lg text-ink">
-              « Le premier mercredi de septembre, quarante-sept certificats arrivent en même temps. »{" "}
-              <span className="text-ink-soft">On a conçu Klubster pour ce soir-là.</span>
-            </p>
+            <p className="mono mt-7 text-lg tracking-wide text-ink">Une inscription. Une licence. Un paiement.</p>
+            <p className="mt-4 text-lg text-ink-soft">Klubster évolue au rythme des clubs.</p>
             <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
-              <span className="text-brand">●</span> Utilisé chaque semaine à l’USM Boxe
+              <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
             </p>
+          </Reveal>
+
+          <Reveal className="mt-16">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
+            <div className="mt-6 border-t border-line">
+              {NOTES.map(([num, texte]) => (
+                <div key={num} className="grid grid-cols-1 gap-1 border-b border-line py-5 md:grid-cols-[90px_1fr] md:gap-8">
+                  <div className="mono text-[12px] text-ink-faint">Note #{num}</div>
+                  <p className="text-[15px] text-ink-soft">{texte}</p>
+                </div>
+              ))}
+            </div>
           </Reveal>
         </div>
       </section>
 
       <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
 
-      {/* IV — LE COCKPIT (le produit, une fois l’émotion installée) */}
+      {/* IV — CONÇU POUR LE TERRAIN (la promesse 30 min) */}
+      <section>
+        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
+          <Reveal>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IV — CONÇU POUR LE TERRAIN<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+              Un président n’a jamais une demi-journée à consacrer à un logiciel.
+            </h2>
+            <p className="mt-6 text-lg text-ink-soft">
+              Alors nous avons conçu Klubster pour être configuré en moins de trente minutes. Le reste est déjà prêt.
+            </p>
+            <ul className="mt-8 space-y-2.5">
+              {["Pas de configuration complexe", "Pas de menus inutiles", "Pas de jargon", "Des réglages intelligents par défaut"].map((l) => (
+                <li key={l} className="flex items-center gap-3 text-[15px] text-ink-soft">
+                  <span className="mono text-brand">✓</span>
+                  <span>{l}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
+              <span className="text-brand">●</span> Chronométré à l’USM Boxe
+            </p>
+            <p className="mt-12 text-2xl font-medium leading-snug tracking-[-0.01em] md:text-[30px]">
+              Parce qu’un président de club a mieux à faire que d’apprendre un logiciel.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* V — LE COCKPIT (le produit, une fois l’émotion installée) */}
       <section id="cockpit">
         <div className="mx-auto max-w-6xl px-6 py-24 md:px-8 md:py-36">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IV — LE COCKPIT<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">V — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Et un matin, tout est au même endroit.
             </h2>
@@ -217,7 +258,7 @@ export default function Home() {
       <section id="disciplines">
         <div className="mx-auto max-w-3xl px-6 py-24 text-center md:px-8 md:py-36">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">V — LES DISCIPLINES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VI — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Tous les sports. Le même calme.
             </h2>
@@ -242,7 +283,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VI — UNE SAISON<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VII — UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
             <div className="mt-10">
               {SAISON.map(([mois, texte]) => (
@@ -260,7 +301,7 @@ export default function Home() {
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-36">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VII — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VIII — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Vous gardez 100 % de vos cotisations.</h2>
           </Reveal>
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
