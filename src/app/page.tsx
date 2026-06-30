@@ -193,7 +193,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires</Citation>
+      <Citation>Parce que personne<br />ne devient<br />président d’un club<br />pour remplir des formulaires</Citation>
 
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
