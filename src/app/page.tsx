@@ -198,7 +198,7 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — CONÇU POUR LE TERRAIN<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Un président n’a jamais<br />une demi-journée à consacrer à un logiciel.
+              Les membres du bureau n’ont jamais<br />une demi-journée à consacrer<br />à un logiciel.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               Alors nous avons conçu Klubster pour être configuré en moins de trente minutes. Le reste est déjà prêt.
@@ -212,10 +212,10 @@ export default function Home() {
               ))}
             </ul>
             <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
-              <span className="text-brand">●</span> Chronométré à l’USM Boxe
+              <span className="text-brand">●</span> Testé en conditions réelles à l’USM Boxe
             </p>
             <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Parce qu’un président de club<br />a mieux à faire<br />que d’apprendre un logiciel<span className="cur">_</span>
+              Parce que les bénévoles<br />ont mieux à faire<br />que d’apprendre un logiciel<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
