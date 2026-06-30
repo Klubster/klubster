@@ -333,7 +333,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>On ne fait jamais les inscriptions<br />quand on a le temps</Citation>
+      <Citation>On ne fait jamais<br />les inscriptions<br />quand on a le temps</Citation>
 
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
