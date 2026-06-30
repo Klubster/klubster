@@ -74,7 +74,7 @@ const NOTES: [string, string][] = [
 
 const SAISON: [string, string][] = [
   ["SEPTEMBRE", "Les portes rouvrent. Le site du club est déjà en ligne."],
-  ["DÉCEMBRE", "Les dossiers sont complets. Personne n’a couru après un papier."],
+  ["DÉCEMBRE", "Les dossiers sont complets.\nPersonne n’a couru après un papier."],
   ["JUIN", "La saison se termine. On connaît déjà la suivante."],
 ];
 
@@ -209,7 +209,7 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IV — CONÇU POUR LE TERRAIN<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Un président n’a jamais une demi-journée à consacrer à un logiciel.
+              Un président n’a jamais<br />une demi-journée à consacrer à un logiciel.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               Alors nous avons conçu Klubster pour être configuré en moins de trente minutes. Le reste est déjà prêt.
@@ -238,10 +238,10 @@ export default function Home() {
           <Reveal className="max-w-2xl">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">V — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Et un matin, tout est au même endroit.
+              Et un matin,<br />tout est au même endroit.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Adhésions, licences, paiements, plannings. Vous ouvrez une page, vous voyez votre club.
+              Adhésions, licences, paiements, plannings.<br />Vous ouvrez une page, vous voyez votre club.
             </p>
           </Reveal>
           <Reveal className="mt-14">
@@ -285,7 +285,7 @@ export default function Home() {
               {SAISON.map(([mois, texte]) => (
                 <div key={mois} className="grid grid-cols-1 gap-1 border-t border-line py-5 md:grid-cols-[160px_1fr] md:gap-8">
                   <div className="mono text-[13px] tracking-wider text-ink">{mois}<span className="text-brand">_</span></div>
-                  <p className="text-lg text-ink-soft">{texte}</p>
+                  <p className="whitespace-pre-line text-lg text-ink-soft">{texte}</p>
                 </div>
               ))}
             </div>
@@ -327,7 +327,7 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-10 max-w-prose text-lg text-ink">
-            Les paiements arrivent directement sur votre compte Stripe. Klubster ne prélève aucune commission.
+            Les paiements arrivent directement sur votre compte Stripe.<br />Klubster ne prélève aucune commission.
           </p>
           <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
             Changez d’offre à tout moment. Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
