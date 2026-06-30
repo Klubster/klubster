@@ -133,7 +133,7 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8 md:pb-20">
             <p className="mono text-[11px] uppercase tracking-label text-paper/75">KLUBSTER<Cur /></p>
             <h1 className="mt-5 max-w-[20ch] text-4xl font-medium leading-[1.04] tracking-[-0.02em] text-paper md:text-[58px]">
-              Toute votre association.<br />Au même endroit.
+              Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les clubs méritent mieux qu’un tableur.</p>
             <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">Créé par un président. Pour les présidents.</p>
@@ -144,8 +144,8 @@ export default function Home() {
       {/* Résumé descriptif — un cran plus bas, sans alourdir le hero */}
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
-          <p className="max-w-prose text-ink-soft md:text-lg">
-            Inscriptions, adhérents, paiements, communication, site web — Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
+          <p className="max-w-prose text-ink md:text-lg">
+            Inscriptions, adhérents, paiements, communication, site web,…<br />Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
           </p>
         </div>
       </section>
