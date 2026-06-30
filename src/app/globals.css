@@ -6,6 +6,7 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, monospace;
   --font-logo: "IBM Plex Mono", "Space Mono", monospace;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -23,6 +24,8 @@ body {
 
 /* Mono = labels/chiffres/URL. Le curseur _ est l'ADN de marque. */
 .mono { font-family: var(--font-mono); }
+/* Newsreader = voix de la marque : uniquement les grandes phrases-manifestes. */
+.serif { font-family: var(--font-serif); }
 .tabular { font-variant-numeric: tabular-nums; }
 
 /* Curseur signature : _ vert clignotant. */

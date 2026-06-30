@@ -16,13 +16,17 @@ function Chapitre({ src, alt, h = "h-[72vh] md:h-screen" }: { src: string; alt: 
   );
 }
 
-// Citation : pure respiration. Aucun ornement, aucune explication.
-function Citation({ children }: { children: React.ReactNode }) {
+// Citation = voix de la marque, en Newsreader (serif). Variante "manifeste" :
+// pleine respiration (filets pleine largeur) + guillemet géant graphique à 5 %.
+function Citation({ children, manifeste }: { children: React.ReactNode; manifeste?: boolean }) {
   return (
-    <section>
-      <div className="mx-auto max-w-3xl px-6 py-32 text-center md:px-8 md:py-44">
+    <section className={manifeste ? "border-y border-line" : ""}>
+      <div className={`relative mx-auto max-w-3xl px-6 text-center md:px-8 ${manifeste ? "py-40 md:py-56" : "py-32 md:py-44"}`}>
+        {manifeste ? (
+          <span aria-hidden className="serif pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 select-none text-[200px] leading-none text-ink/5 md:text-[300px]">“</span>
+        ) : null}
         <Reveal kind="quote">
-          <p className="text-[28px] font-medium leading-[1.25] tracking-[-0.01em] text-ink md:text-[42px]">{children}</p>
+          <p className="serif relative text-[30px] font-medium leading-[1.2] tracking-[-0.01em] text-ink md:text-[46px]">{children}</p>
         </Reveal>
       </div>
     </section>
@@ -178,10 +182,7 @@ export default function Home() {
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
               <div className="mt-5 border-t border-line">
                 {NOTES.map(([num, texte]) => (
-                  <div key={num} className="border-b border-line py-4">
-                    <div className="mono text-[11px] text-ink-faint">Note #{num}</div>
-                    <p className="mt-1 text-[14px] text-ink-soft">{texte}</p>
-                  </div>
+                  <p key={num} className="border-b border-line py-4 text-[15px] text-ink-soft">{texte}</p>
                 ))}
               </div>
             </Reveal>
@@ -192,7 +193,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
+      <Citation manifeste>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
 
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
@@ -219,7 +220,7 @@ export default function Home() {
             <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
               <span className="text-brand">●</span> Chronométré à l’USM Boxe
             </p>
-            <p className="mt-12 text-2xl font-medium leading-snug tracking-[-0.01em] md:text-[30px]">
+            <p className="serif mt-12 text-2xl font-medium leading-snug tracking-[-0.01em] md:text-[32px]">
               Parce qu’un président de club a mieux à faire que d’apprendre un logiciel.
             </p>
           </Reveal>
