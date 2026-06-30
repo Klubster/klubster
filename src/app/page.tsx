@@ -161,42 +161,47 @@ export default function Home() {
       <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
         <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
         <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
-        <p className="text-ink">Avant les adhérents. Avant le bruit.</p>
       </DoublePage>
 
-      {/* III — SUR LE TERRAIN (la fonctionnalité naît d’un problème réel) + Notes de terrain */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">III — SUR LE TERRAIN<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
-            </h2>
-            <p className="mono mt-7 text-lg tracking-wide text-ink">Une inscription. Une licence. Un paiement.</p>
-            <p className="mt-4 text-lg text-ink-soft">Klubster évolue au rythme des clubs.</p>
-            <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
-              <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
-            </p>
-          </Reveal>
+      <Citation>Avant les adhérents.<br />Avant le bruit.</Citation>
 
-          <Reveal className="mt-16">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
-            <div className="mt-6 border-t border-line">
-              {NOTES.map(([num, texte]) => (
-                <div key={num} className="grid grid-cols-1 gap-1 border-b border-line py-5 md:grid-cols-[90px_1fr] md:gap-8">
-                  <div className="mono text-[12px] text-ink-faint">Note #{num}</div>
-                  <p className="text-[15px] text-ink-soft">{texte}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
+      {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
+      <section className="grid grid-cols-1 md:grid-cols-2">
+        <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
+          <div className="max-w-md">
+            <Reveal>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">III — SUR LE TERRAIN<Cur /></p>
+              <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
+                Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
+              </h2>
+              <p className="mono mt-6 text-[17px] tracking-wide text-ink">Une inscription. Une licence. Un paiement.</p>
+              <p className="mt-4 text-lg text-ink-soft">Klubster évolue au rythme des clubs.</p>
+              <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">
+                <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
+              </p>
+            </Reveal>
+            <Reveal className="mt-10">
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
+              <div className="mt-5 border-t border-line">
+                {NOTES.map(([num, texte]) => (
+                  <div key={num} className="border-b border-line py-4">
+                    <div className="mono text-[11px] text-ink-faint">Note #{num}</div>
+                    <p className="mt-1 text-[14px] text-ink-soft">{texte}</p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
+          <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.06} />
         </div>
       </section>
 
+      <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
+
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
-
-      <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
 
       {/* IV — CONÇU POUR LE TERRAIN (la promesse 30 min) */}
       <section>
