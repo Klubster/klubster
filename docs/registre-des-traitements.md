@@ -56,7 +56,7 @@ Klubster intervient sous **deux qualités** :
 
 ### B2. Questionnaire de santé (catégorie particulière — art. 9)
 - **Finalité :** attester de l'aptitude à la pratique (remplacement du certificat médical).
-- **Base légale :** consentement explicite et/ou intérêt légitime du club pour l'admission.
+- **Base légale :** consentement explicite (art. 9.2.a) ; pour un mineur, consentement du titulaire de l'autorité parentale. L'intérêt légitime n'est pas une base valable pour l'art. 9.
 - **Données réellement conservées :** **uniquement le résultat** (attestation négative / certificat requis), la **signature** et la **date**. **Le détail des réponses n'est ni transmis ni stocké** (minimisation).
 - **Personnes concernées :** adhérents (dont mineurs) ; signature du représentant légal pour les mineurs.
 - **Durée :** la saison concernée, puis suppression.

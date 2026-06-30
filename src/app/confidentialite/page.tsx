@@ -35,7 +35,7 @@ export default function Confidentialite() {
         <li>Fourniture du service et gestion des adhésions — exécution du contrat ;</li>
         <li>Facturation de l’abonnement — obligation légale et contrat ;</li>
         <li>Sécurité et prévention des abus — intérêt légitime ;</li>
-        <li>Questionnaire de santé — consentement explicite et/ou intérêt légitime du club pour l’admission.</li>
+        <li>Questionnaire de santé (donnée sensible, art. 9) — <strong>consentement explicite</strong> (art. 9.2.a), donné par le représentant légal pour un mineur.</li>
       </ul>
 
       <h2>4. Destinataires et sous-traitants ultérieurs</h2>
@@ -59,8 +59,8 @@ export default function Confidentialite() {
         Le questionnaire de santé remplace le certificat médical. Par minimisation, Klubster ne conserve que
         le <strong>résultat</strong> (attestation négative ou certificat requis), la signature et la date —
         <strong> et non le détail des réponses</strong>. Les données de mineurs sont saisies par le
-        représentant légal. Ces traitements sensibles font l’objet de mesures de sécurité renforcées ; une
-        analyse d’impact (AIPD) est conduite.
+        représentant légal. La base légale est le <strong>consentement explicite</strong> (art. 9.2.a). Ces
+        traitements sensibles font l’objet de mesures de sécurité renforcées et d’une analyse d’impact (AIPD).
       </p>
 
       <h2>7. Sécurité</h2>
