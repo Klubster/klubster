@@ -19,10 +19,11 @@ function Chapitre({ src, alt, h = "h-[72vh] md:h-screen" }: { src: string; alt: 
 // Citation = bloc-manifeste. Pas de police littéraire : du Space Mono très grand,
 // mesure courte, interligne serré, beaucoup de vide, _ vert en fin. La différence
 // vient de la mise en page, pas d'une voix extérieure (univers terminal/carnet).
-function Citation({ children }: { children: React.ReactNode }) {
+function Citation({ children, topTight }: { children: React.ReactNode; topTight?: boolean }) {
+  const pt = topTight ? "pt-16 md:pt-24" : "pt-32 md:pt-48";
   return (
     <section>
-      <div className="mx-auto max-w-[720px] px-6 py-32 text-center md:px-8 md:py-48">
+      <div className={`mx-auto max-w-[720px] px-6 pb-32 text-center md:px-8 md:pb-48 ${pt}`}>
         <Reveal kind="quote">
           <p className="mono text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[40px]">
             {children}<span className="cur">_</span>
@@ -84,9 +85,9 @@ const SAISON: [string, string][] = [
 
 // Un seul produit. Le prix suit la taille du club. Toutes les fonctionnalités incluses partout.
 const PALIERS: { capacite: string; prix: string; desc: string }[] = [
-  { capacite: "Jusqu’à 100 adhérents", prix: "9", desc: "Pour les petits clubs et les associations qui démarrent." },
-  { capacite: "101 à 300 adhérents", prix: "19", desc: "Quand votre club grandit, votre abonnement s’adapte." },
-  { capacite: "Plus de 300 adhérents", prix: "29", desc: "Pour les associations qui accueillent plusieurs centaines d’adhérents." },
+  { capacite: "Jusqu’à 300 adhérents", prix: "9", desc: "Pour les petits clubs et les associations qui démarrent." },
+  { capacite: "301 à 500 adhérents", prix: "19", desc: "Quand votre club grandit, votre abonnement s’adapte." },
+  { capacite: "Plus de 500 adhérents", prix: "29", desc: "Pour les associations qui accueillent plusieurs centaines d’adhérents." },
 ];
 
 const INCLUS = [
@@ -96,6 +97,7 @@ const INCLUS = [
   "Gestion des adhérents",
   "Gestion des disciplines",
   "Communication par email",
+  "Actualité à la une",
   "Documents des adhérents",
   "Tableau de bord",
   "Statistiques",
@@ -200,7 +202,7 @@ export default function Home() {
 
       {/* IV — CONÇU POUR LE TERRAIN (la promesse 30 min) */}
       <section>
-        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
+        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IV — CONÇU POUR LE TERRAIN<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
@@ -229,7 +231,7 @@ export default function Home() {
 
       {/* V — LE COCKPIT (le produit, une fois l’émotion installée) */}
       <section id="cockpit">
-        <div className="mx-auto max-w-6xl px-6 py-24 md:px-8 md:py-36">
+        <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal className="max-w-2xl">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">V — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
@@ -247,7 +249,7 @@ export default function Home() {
 
       {/* V — LES DISCIPLINES */}
       <section id="disciplines">
-        <div className="mx-auto max-w-3xl px-6 py-24 text-center md:px-8 md:py-36">
+        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VI — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
@@ -265,14 +267,14 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>Le meilleur logiciel<br />est celui qu’on oublie</Citation>
+      <Citation topTight>Le meilleur logiciel<br />est celui qu’on oublie</Citation>
 
       {/* la saison */}
       <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
 
-      {/* VI — UNE SAISON (apparaît d’un bloc) */}
+      {/* VII — UNE SAISON (apparaît d’un bloc) */}
       <section>
-        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
+        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VII — UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
@@ -290,13 +292,12 @@ export default function Home() {
 
       {/* VIII — TARIFS : un seul produit, le prix suit la taille du club */}
       <section id="tarifs">
-        <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-36">
+        <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VIII — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Le même Klubster pour tous les clubs.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
-              Le prix s’adapte simplement au nombre d’adhérents. Toutes les fonctionnalités sont incluses,
-              quel que soit votre abonnement.
+              Le prix s’adapte simplement au nombre d’adhérents.<br />Toutes les fonctionnalités sont incluses, quel que soit votre abonnement.
             </p>
           </Reveal>
 
@@ -333,7 +334,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>On ne fait jamais<br />les inscriptions<br />quand on a le temps</Citation>
+      <Citation topTight>On ne fait jamais<br />les inscriptions<br />quand on a le temps</Citation>
 
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
