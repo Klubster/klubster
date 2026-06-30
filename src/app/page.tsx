@@ -70,6 +70,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* BANDEAU PHOTO */}
+      <section className="border-b border-line">
+        <div className="relative h-[200px] w-full overflow-hidden md:h-[320px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/pool.jpg" alt="Un bassin, juste avant l’ouverture." className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-ink/80 px-6 py-3 md:px-8">
+            <span className="mono text-[10px] uppercase tracking-label text-paper/60">FIG. 00</span>
+            <span className="mono text-[11px] text-paper/90">Avant tout le monde.</span>
+          </div>
+        </div>
+      </section>
+
       {/* 01 — POURQUOI */}
       <section id="histoire" className="border-b border-line">
         <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2">
@@ -88,7 +100,7 @@ export default function Home() {
               J’ai créé Klubster pour supprimer cette partie. Pas pour ajouter un outil de plus.
             </p>
           </div>
-          <PhotoPlate fig="FIG. 01" legende="Le gymnase, un soir de semaine." src="/gymnase.jpg" />
+          <PhotoPlate fig="FIG. 01" legende="Le gymnase, un soir de semaine." src="/basket.jpg" />
         </div>
       </section>
 
@@ -200,7 +212,7 @@ export default function Home() {
               Conçu par un président.<br />Pour les présidents.<br />Point.
             </p>
           </div>
-          <PhotoPlate fig="FIG. 02" legende="USM Boxe Montauban, avant l’entraînement." src="/boxe.jpg" border />
+          <PhotoPlate fig="FIG. 02" legende="Le vestiaire, en fin de journée." src="/locker.jpg" border />
         </div>
       </section>
 
