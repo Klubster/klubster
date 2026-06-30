@@ -59,7 +59,7 @@ function DoublePage({
       </div>
       <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
         <Reveal className="max-w-md">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{num} — {kicker}<Cur /></p>
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">{num}</span> — {kicker}<Cur /></p>
           <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">{titre}</h2>
           <div className="mt-6 space-y-4 text-lg text-ink-soft">{children}</div>
         </Reveal>
@@ -119,7 +119,7 @@ export default function Home() {
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
           </nav>
-          <Link href="/creer" className="mono border border-paper/40 px-4 py-2 text-[12px] text-paper hover:bg-paper hover:text-ink">
+          <Link href="/creer" className="mono bg-brand px-4 py-2 text-[12px] text-white hover:opacity-90">
             CRÉER MON ASSOCIATION
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">I — POURQUOI<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">I</span> — POURQUOI<Cur /></p>
             <h2 className="mt-8 text-[32px] font-medium leading-[1.1] tracking-[-0.02em] md:text-[48px]">
               Un club, ce n’est pas une base de données.
             </h2>
@@ -173,7 +173,7 @@ export default function Home() {
         <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
           <div className="max-w-md">
             <Reveal>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">III — SUR LE TERRAIN<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — SUR LE TERRAIN<Cur /></p>
               <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
                 Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
               </h2>
@@ -207,7 +207,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IV — CONÇU POUR LE TERRAIN<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — CONÇU POUR LE TERRAIN<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Un président n’a jamais<br />une demi-journée à consacrer à un logiciel.
             </h2>
@@ -236,7 +236,7 @@ export default function Home() {
       <section id="cockpit">
         <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">V — LE COCKPIT<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Et un matin,<br />tout est au même endroit.
             </h2>
@@ -254,7 +254,7 @@ export default function Home() {
       <section id="disciplines">
         <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VI — LES DISCIPLINES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Tous les sports. Le même calme.
             </h2>
@@ -262,7 +262,7 @@ export default function Home() {
               {DISCIPLINES.map((d, i) => (
                 <span key={d}>
                   {d}
-                  {i < DISCIPLINES.length - 1 ? <span className="text-ink-faint"> · </span> : null}
+                  {i < DISCIPLINES.length - 1 ? <span className="text-brand"> · </span> : null}
                 </span>
               ))}
             </p>
@@ -279,7 +279,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VII — UNE SAISON<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
             <div className="mt-10">
               {SAISON.map(([mois, texte]) => (
@@ -297,7 +297,7 @@ export default function Home() {
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">VIII — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Le même Klubster pour tous les clubs.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
               Le prix s’adapte simplement au nombre d’adhérents.<br />Toutes les fonctionnalités sont incluses, quel que soit votre abonnement.
@@ -308,7 +308,7 @@ export default function Home() {
             {PALIERS.map((p) => (
               <div key={p.capacite} className="flex flex-col bg-paper px-7 py-9">
                 <div className="mono text-[12px] uppercase tracking-wide text-ink">{p.capacite}</div>
-                <div className="mono mt-5 text-[36px] font-bold tracking-tight">
+                <div className="mono mt-5 text-[36px] font-bold tracking-tight text-brand">
                   {p.prix}<span className="text-[13px] font-normal text-ink-soft"> €/mois</span>
                 </div>
               </div>
@@ -341,7 +341,7 @@ export default function Home() {
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
         <div className="flex items-center justify-center py-24 md:py-32">
-          <span className="font-logo text-[110px] leading-none md:text-[190px]">k<span className="text-brand">_</span></span>
+          <span className="font-logo text-[110px] leading-none text-brand md:text-[190px]">k_</span>
         </div>
       </section>
 
