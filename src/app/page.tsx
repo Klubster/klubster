@@ -161,12 +161,8 @@ export default function Home() {
       <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
         <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
         <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
+        <p className="text-ink">Avant les adhérents. Avant le bruit.</p>
       </DoublePage>
-
-      <Citation>Avant les adhérents.<br />Avant le bruit.</Citation>
-
-      {/* l’objet — le ballon */}
-      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
 
       {/* III — SUR LE TERRAIN (la fonctionnalité naît d’un problème réel) + Notes de terrain */}
       <section>
@@ -196,6 +192,9 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+
+      {/* l’objet — le ballon */}
+      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
 
       <Citation>Parce que personne ne devient<br />président d’un club<br />pour remplir des formulaires.</Citation>
 
