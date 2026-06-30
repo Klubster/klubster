@@ -5,9 +5,9 @@ import "./globals.css";
 export const preferredRegion = "cdg1";
 
 export const metadata: Metadata = {
-  title: "Klubster — l'OS des associations",
+  title: "Klubster — Toute votre association, au même endroit",
   description:
-    "Les clubs méritent mieux qu'un tableur. Votre association entièrement en ligne — site, inscriptions, paiements, adhérents, emailing. En moins de vingt minutes. Conçu par un président, pour les présidents.",
+    "Inscriptions, adhérents, paiements, communication, site web — Klubster réunit tout ce dont une association sportive a besoin dans un seul outil, pensé pour les bénévoles. Créé par un président, pour les présidents.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
