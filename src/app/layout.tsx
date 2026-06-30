@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+// RGPD — exécution des fonctions serveur en Europe (Paris). Les données ne sortent pas de l'UE.
+export const preferredRegion = "cdg1";
+
 export const metadata: Metadata = {
   title: "Klubster — l'OS des associations",
   description:

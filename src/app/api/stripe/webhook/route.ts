@@ -3,6 +3,7 @@ import { verifyWebhook } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = "cdg1"; // RGPD — exécution en Europe (Paris)
 
 export async function POST(request: NextRequest) {
   const raw = await request.text();

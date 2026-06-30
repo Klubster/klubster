@@ -14,7 +14,7 @@ export default function MentionsLegales() {
       <ul>
         <li>Directeur de la publication : Mathieu Bourdieu</li>
         <li>Contact : <a href="mailto:contact@klubster.fr">contact@klubster.fr</a></li>
-        <li>TVA : [à compléter — n° de TVA intracommunautaire, ou « TVA non applicable, art. 293 B du CGI » en cas de franchise en base]</li>
+        <li>TVA non applicable — article 293 B du CGI (franchise en base).</li>
       </ul>
 
       <h2>Hébergement</h2>
@@ -44,10 +44,12 @@ export default function MentionsLegales() {
         responsabilité.
       </p>
 
-      <h2>Médiation & litiges</h2>
+      <h2>Litiges</h2>
       <p>
-        Conformément au Code de la consommation, en cas de litige, un médiateur de la consommation peut être
-        saisi : [NOM ET COORDONNÉES DU MÉDIATEUR]. Le présent site est soumis au droit français.
+        Le service Klubster s’adresse à des associations dans le cadre de leur activité, et non à des
+        consommateurs : le dispositif de médiation de la consommation ne s’applique donc pas. Le présent
+        site est soumis au droit français ; à défaut d’accord amiable, le litige relève des juridictions
+        compétentes.
       </p>
     </LegalShell>
   );
