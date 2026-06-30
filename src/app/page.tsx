@@ -157,8 +157,6 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation>Le club ouvre dans quinze minutes.</Citation>
-
       {/* II — LES CLUBS (double-page) */}
       <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
         <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
