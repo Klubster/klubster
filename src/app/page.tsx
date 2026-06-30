@@ -69,10 +69,32 @@ const SAISON: [string, string][] = [
   ["JUIN", "La saison se termine. On connaît déjà la suivante."],
 ];
 
-const PLANS: { nom: string; cible: string; prix: string; reco?: boolean }[] = [
-  { nom: "STARTER", cible: "Pour débuter", prix: "29" },
-  { nom: "CLUB", cible: "Le plus choisi", prix: "59", reco: true },
-  { nom: "PREMIUM", cible: "Les grands clubs", prix: "99" },
+type PlanT = { nom: string; segment: string; capacite: string; prix: string; reco?: boolean; reprise?: string; lignes: string[] };
+const PLANS: PlanT[] = [
+  {
+    nom: "STARTER",
+    segment: "Pour les petits clubs",
+    capacite: "Jusqu’à 100 adhérents",
+    prix: "9",
+    lignes: ["Site web", "Inscriptions en ligne", "Paiements Stripe", "Adhérents", "Emails", "0 % de commission"],
+  },
+  {
+    nom: "CLUB",
+    segment: "Pour les clubs en développement",
+    capacite: "101 à 300 adhérents",
+    prix: "19",
+    reco: true,
+    reprise: "Tout Starter +",
+    lignes: ["Plusieurs disciplines", "Équipe dirigeante", "Statistiques", "Gestion avancée"],
+  },
+  {
+    nom: "CLUB+",
+    segment: "Pour les grands clubs",
+    capacite: "Plus de 300 adhérents",
+    prix: "29",
+    reprise: "Tout Club +",
+    lignes: ["Utilisateurs illimités", "Support prioritaire", "Fonctionnalités avancées"],
+  },
 ];
 
 export default function Home() {
@@ -207,27 +229,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TARIFS — minimal */}
+      {/* TARIFS — ce que le club garde, pas le prix */}
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 py-32 md:px-8 md:py-48">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TARIFS<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Simple. Sans commission.</h2>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Vous gardez 100 % de vos cotisations.</h2>
           </Reveal>
           <Reveal delay={120}>
             <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
               {PLANS.map((p) => (
-                <div key={p.nom} className="relative bg-paper px-7 py-9">
-                  {p.reco ? <div className="absolute left-0 right-0 top-0 h-[2px] bg-brand" /> : null}
-                  <div className="mono text-[12px] tracking-label text-ink">{p.nom}</div>
-                  <div className="mt-1 text-[13px] text-ink-soft">{p.cible}</div>
+                <div key={p.nom} className="flex flex-col bg-paper px-7 py-9">
+                  <div className="mono text-[12px] tracking-label text-ink">
+                    {p.nom}<span className="text-brand">_</span>
+                    {p.reco ? <span className="ml-2 text-brand">●</span> : null}
+                  </div>
+                  <div className="mt-2 text-[15px] font-medium">{p.segment}</div>
+                  <div className="mono mt-0.5 text-[11px] text-ink-soft">{p.capacite}</div>
                   <div className="mono mt-6 text-[34px] font-bold tracking-tight">
                     {p.prix}<span className="text-[13px] font-normal text-ink-soft"> €/mois</span>
+                  </div>
+                  <div className="mt-6 border-t border-line pt-6">
+                    {p.reprise ? <div className="mono text-[11px] uppercase tracking-wide text-ink-soft">{p.reprise}</div> : null}
+                    <ul className={`${p.reprise ? "mt-3" : ""} space-y-2.5`}>
+                      {p.lignes.map((l) => (
+                        <li key={l} className="flex items-center gap-3 text-[14px]">
+                          <span className="mono text-brand">✓</span>
+                          <span>{l}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="mt-8 text-ink-soft">Les paiements arrivent directement sur le compte du club. Klubster ne prend rien dessus.</p>
+            <p className="mt-10 max-w-prose text-lg text-ink">
+              Les paiements arrivent directement sur votre compte Stripe. Klubster ne prélève aucune commission.
+            </p>
+            <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
+              Changez d’offre à tout moment. Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
+            </p>
           </Reveal>
         </div>
       </section>
