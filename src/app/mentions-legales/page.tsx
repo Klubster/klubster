@@ -7,14 +7,14 @@ export default function MentionsLegales() {
     <LegalShell kicker="LÉGAL" titre="Mentions légales" maj="30 juin 2026">
       <h2>Éditeur du site</h2>
       <p>
-        Le site et le service <strong>Klubster</strong> sont édités par <strong>[DÉNOMINATION SOCIALE]</strong>,
-        [forme juridique — ex. SAS] au capital de [MONTANT] €, immatriculée au RCS de [VILLE] sous le
-        numéro <strong>[SIREN / RCS]</strong>, dont le siège social est situé [ADRESSE COMPLÈTE].
+        Le site et le service <strong>Klubster</strong> sont édités par <strong>Mathieu Bourdieu</strong>,
+        entrepreneur individuel, dont le siège est situé <strong>652 chemin de Foumezous, 82370 Corbarieu</strong> (France),
+        immatriculé sous le numéro <strong>SIRET 795&nbsp;109&nbsp;198&nbsp;00023</strong> (SIREN 795&nbsp;109&nbsp;198).
       </p>
       <ul>
-        <li>Numéro de TVA intracommunautaire : [FR XX XXX XXX XXX]</li>
-        <li>Directeur de la publication : [NOM DU REPRÉSENTANT LÉGAL]</li>
-        <li>Contact : <a href="mailto:[EMAIL]">[EMAIL]</a> — [TÉLÉPHONE]</li>
+        <li>Directeur de la publication : Mathieu Bourdieu</li>
+        <li>Contact : <a href="mailto:contact@klubster.fr">contact@klubster.fr</a></li>
+        <li>TVA : [à compléter — n° de TVA intracommunautaire, ou « TVA non applicable, art. 293 B du CGI » en cas de franchise en base]</li>
       </ul>
 
       <h2>Hébergement</h2>

@@ -79,8 +79,9 @@ export default function Confidentialite() {
       <h2>9. Vos droits</h2>
       <p>
         Vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de
-        portabilité. Pour les données détenues par un club, la demande s’adresse d’abord au club. Contact :
-        <a href="mailto:[EMAIL]"> [EMAIL]</a>. Vous pouvez saisir la CNIL (www.cnil.fr).
+        portabilité. Pour les données détenues par un club, la demande s’adresse d’abord au club. Responsable :
+        Mathieu Bourdieu (entrepreneur individuel), 652 chemin de Foumezous, 82370 Corbarieu — Contact :
+        <a href="mailto:contact@klubster.fr"> contact@klubster.fr</a>. Vous pouvez saisir la CNIL (www.cnil.fr).
       </p>
     </LegalShell>
   );
