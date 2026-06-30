@@ -128,7 +128,7 @@ export default function Home() {
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
           <p className="max-w-prose text-ink md:text-lg">
-            Inscriptions, adhérents, paiements, communication, site web,…<br />Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
+            Inscriptions, adhérents, paiements, communication, site web,… Klubster réunit tout ce dont un club a besoin dans un seul outil,<br />pensé pour les bénévoles.
           </p>
         </div>
       </section>
