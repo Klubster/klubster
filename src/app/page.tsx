@@ -296,14 +296,25 @@ export default function Home() {
             <div>
               <span className="font-logo text-lg font-semibold">k<Cur /></span>
               <p className="mt-2 text-ink-soft">Le cockpit de votre association.</p>
-              <p className="mono mt-4 text-[11px] text-ink-faint">Conforme RGPD · Hébergé en France</p>
+              <p className="mono mt-4 text-[11px] text-ink-faint">Conforme RGPD · Hébergé dans l’Union européenne</p>
             </div>
-            <nav className="mono grid grid-cols-2 gap-x-12 gap-y-2 text-[12px] text-ink-soft sm:grid-cols-1">
-              <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
-              <a href="#cockpit" className="hover:text-ink">Le cockpit</a>
-              <a href="#tarifs" className="hover:text-ink">Tarifs</a>
-              <Link href="/connexion" className="hover:text-ink">Espace président</Link>
-            </nav>
+            <div className="flex flex-wrap gap-x-12 gap-y-8">
+              <nav className="mono grid gap-y-2 text-[12px] text-ink-soft">
+                <span className="text-[10px] uppercase tracking-label text-ink-faint">PRODUIT</span>
+                <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
+                <a href="#cockpit" className="hover:text-ink">Le cockpit</a>
+                <a href="#tarifs" className="hover:text-ink">Tarifs</a>
+                <Link href="/connexion" className="hover:text-ink">Espace président</Link>
+              </nav>
+              <nav className="mono grid gap-y-2 text-[12px] text-ink-soft">
+                <span className="text-[10px] uppercase tracking-label text-ink-faint">LÉGAL</span>
+                <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
+                <Link href="/cgu" className="hover:text-ink">CGU</Link>
+                <Link href="/cgv" className="hover:text-ink">CGV</Link>
+                <Link href="/confidentialite" className="hover:text-ink">Confidentialité</Link>
+                <Link href="/sous-traitance" className="hover:text-ink">Sous-traitance (DPA)</Link>
+              </nav>
+            </div>
           </div>
           <p className="mono mt-12 text-[11px] text-ink-faint">© {new Date().getFullYear()} KLUBSTER</p>
         </div>

@@ -43,3 +43,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .kb-reveal, .kb-quote { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+/* Lecture des pages légales — lisible, sobre, fidèle à la DA. */
+.legal-prose h2 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.01em; margin: 2.6rem 0 .7rem; color: #111; }
+.legal-prose h3 { font-size: .95rem; font-weight: 600; margin: 1.4rem 0 .35rem; color: #111; }
+.legal-prose p { color: #6f6f6b; margin: 0 0 1rem; }
+.legal-prose ul { list-style: none; margin: 0 0 1.1rem; padding: 0; }
+.legal-prose li { color: #6f6f6b; position: relative; padding-left: 1.15rem; margin-bottom: .4rem; }
+.legal-prose li::before { content: "—"; position: absolute; left: 0; color: #C2C2BD; }
+.legal-prose a { color: #111; text-decoration: underline; }
+.legal-prose strong { color: #111; font-weight: 500; }
+.legal-prose table { width: 100%; border-collapse: collapse; margin: 0 0 1.2rem; font-size: 14px; }
+.legal-prose th, .legal-prose td { border: 1px solid rgba(17,17,17,0.07); padding: .55rem .7rem; text-align: left; vertical-align: top; color: #6f6f6b; }
+.legal-prose th { color: #111; font-weight: 500; }

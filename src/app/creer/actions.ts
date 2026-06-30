@@ -10,11 +10,13 @@ export interface CreerInput {
   adresse?: string;
   email?: string;
   tel?: string;
+  accepteCGV?: boolean;
 }
 
 export async function creerClub(input: CreerInput) {
   const nom = (input.nom ?? "").trim();
   if (!nom) throw new Error("Le nom est requis.");
+  if (!input.accepteCGV) throw new Error("Vous devez accepter les CGV et le contrat de sous-traitance.");
 
   const slugBase = nom.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "");
   const cours = TEMPLATES_COURS[input.sport] ?? TEMPLATES_COURS["autre"];

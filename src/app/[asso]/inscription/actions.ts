@@ -65,18 +65,14 @@ export async function inscrireAdherent(formData: FormData) {
   const qSignature = String(formData.get("qsante_signature") ?? "");
   const qSignataire = String(formData.get("qsante_signataire") ?? "").trim();
   const qQualite = String(formData.get("qsante_qualite") ?? "adherent");
-  let qReponses: Record<string, string> = {};
-  try {
-    qReponses = JSON.parse(String(formData.get("qsante_reponses") ?? "{}"));
-  } catch {
-    qReponses = {};
-  }
   if (qNaissance && qSignature) {
+    // RGPD — minimisation des données de santé : on ne conserve que le résultat
+    // (atteste_negatif / certificat_requis) + signature + date, jamais le détail des réponses.
     const { error: qErr } = await supabase.rpc("enregistrer_questionnaire_sante", {
       p_adhesion_id: String(adhesionId),
       p_type: qType,
       p_date_naissance: qNaissance,
-      p_reponses: qReponses,
+      p_reponses: {},
       p_resultat: qResultat,
       p_signataire_nom: qSignataire || null,
       p_signataire_qualite: qQualite,

@@ -153,7 +153,8 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
       <input type="hidden" name="qsante_qualite" value={qualite} />
       <input type="hidden" name="qsante_signataire" value={signataire} />
       <input type="hidden" name="qsante_signature" value={signature} />
-      <input type="hidden" name="qsante_reponses" value={JSON.stringify(reponsesTexte)} />
+      {/* RGPD — minimisation : le détail des réponses santé n'est jamais transmis ni stocké,
+          seul le résultat (atteste_negatif / certificat_requis) l'est. */}
       {/* Verrou de validation : coché uniquement si tout est rempli */}
       <input
         type="checkbox"

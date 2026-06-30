@@ -19,6 +19,7 @@ export default function CreerWizard() {
   const [adresse, setAdresse] = useState("");
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
+  const [accepte, setAccepte] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -38,7 +39,7 @@ export default function CreerWizard() {
     setErr(null);
     setLoading(true);
     try {
-      await creerClub({ nom, sport: sport ?? "autre", couleur, adresse, email, tel });
+      await creerClub({ nom, sport: sport ?? "autre", couleur, adresse, email, tel, accepteCGV: accepte });
     } catch (e: unknown) {
       const digest = (e as { digest?: string })?.digest;
       if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw e;
@@ -172,6 +173,14 @@ export default function CreerWizard() {
                 On crée votre club et on l&apos;envoie en ligne sur{" "}
                 <span className="mono text-ink">klubster.fr/{slug}</span>.
               </p>
+              <label className="mt-8 flex cursor-pointer items-start gap-3 border border-line bg-bg-alt px-4 py-3 text-[13px]">
+                <input type="checkbox" checked={accepte} onChange={(e) => setAccepte(e.target.checked)} className="mt-1" />
+                <span>
+                  J&apos;accepte les <a href="/cgv" target="_blank" className="underline">CGV</a> et le{" "}
+                  <a href="/sous-traitance" target="_blank" className="underline">contrat de sous-traitance (DPA)</a>,
+                  en qualité de représentant habilité de l&apos;association.
+                </span>
+              </label>
               {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
             </div>
           )}
@@ -191,7 +200,7 @@ export default function CreerWizard() {
             ) : (
               <button
                 onClick={publier}
-                disabled={loading || !nom.trim()}
+                disabled={loading || !nom.trim() || !accepte}
                 className="mono px-6 py-3 text-[12px] text-white disabled:opacity-40"
                 style={{ background: couleur }}
               >
