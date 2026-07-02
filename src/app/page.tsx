@@ -73,18 +73,17 @@ const PALIERS: { capacite: string; prix: string }[] = [
   { capacite: "Plus de 500 adhérents", prix: "29" },
 ];
 
+// Racontées en résultats, jamais en technologie.
 const INCLUS = [
-  "Site web de votre association",
-  "Inscriptions en ligne",
-  "Paiement sécurisé avec Stripe",
-  "Gestion des adhérents",
-  "Gestion des disciplines",
-  "Communication par email",
-  "Actualité à la une",
-  "Documents des adhérents",
-  "Tableau de bord",
-  "0 % de commission",
-  "Toutes les futures fonctionnalités",
+  "Le site de votre club, en ligne dès le premier soir",
+  "Les inscriptions se remplissent toutes seules — mineurs, cours, pièces : le formulaire s’adapte",
+  "Les cotisations arrivent directement sur le compte du club — 0 % de commission",
+  "Le paiement en 1 ou 3 fois, au choix du club",
+  "Les certificats et documents arrivent directement au bon endroit",
+  "Prévenez tous les parents en deux clics",
+  "L’appel se fait en scannant la carte d’adhérent",
+  "Aujourd’hui_ : l’état de votre club en trois secondes",
+  "Toutes les futures fonctionnalités, sans supplément",
 ];
 
 export default function Home() {
@@ -117,7 +116,9 @@ export default function Home() {
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les clubs méritent mieux qu’un tableur.</p>
-            <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">Pour ceux qui font vivre les clubs.</p>
+            <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">
+              Prêt en moins de 30 minutes<span className="text-brand">_</span>
+            </p>
           </div>
         </div>
       </section>
@@ -127,6 +128,7 @@ export default function Home() {
         <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
           <p className="max-w-prose text-ink md:text-lg">
             Inscriptions, adhérents, paiements, communication, site web,…<br />Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
+            {" "}<span className="text-ink-soft">Et pensé pour être prêt en moins de trente minutes.</span>
           </p>
         </div>
       </section>
@@ -190,45 +192,56 @@ export default function Home() {
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
 
-      {/* IV — CONÇU POUR LE TERRAIN (la promesse 30 min) */}
+      {/* IV — UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — CONÇU POUR LE TERRAIN<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — UNE DEMI-HEURE<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Les membres du bureau n’ont jamais<br />une demi-journée à consacrer<br />à un logiciel.
+              Une demi-heure.<br />C’est tout.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Alors nous avons conçu Klubster pour être configuré en moins de trente minutes. Le reste est déjà prêt.
+              Les membres du bureau n’ont jamais une demi-journée à consacrer à un logiciel.
+              Alors tout est déjà prêt — il ne reste que l’essentiel.
             </p>
-            <ul className="mt-8 space-y-2.5">
-              {["Pas de configuration complexe", "Pas de menus inutiles", "Pas de jargon", "Des réglages intelligents par défaut"].map((l) => (
-                <li key={l} className="flex items-center gap-3 text-[15px] text-ink-soft">
-                  <span className="mono text-brand">✓</span>
-                  <span>{l}</span>
-                </li>
+            <div className="mt-10 border-t border-line">
+              {[
+                ["01", "Créez votre club.", "Un nom, un design, vos couleurs."],
+                ["02", "Ajoutez vos cours.", "Créneaux et tarifs, en quelques lignes."],
+                ["03", "Ajustez votre page.", "Photos, mot du président, FAQ — des chapitres prêts à l’emploi."],
+                ["04", "Ouvrez les inscriptions.", "Votre site est en ligne. Les dossiers arrivent tout seuls."],
+              ].map(([n, titre, texte]) => (
+                <div key={n} className="grid grid-cols-[48px_1fr] gap-4 border-b border-line py-6 md:grid-cols-[64px_1fr]">
+                  <span className="mono text-[13px] text-brand">{n}</span>
+                  <div>
+                    <p className="text-xl font-medium tracking-[-0.01em] md:text-2xl">{titre}</p>
+                    <p className="mt-1.5 text-[15px] text-ink-soft">{texte}</p>
+                  </div>
+                </div>
               ))}
-            </ul>
-            <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
-              <span className="text-brand">●</span> Testé en conditions réelles à l’USM Boxe
+            </div>
+            <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
+              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
             </p>
             <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Parce que les bénévoles<br />ont mieux à faire<br />que d’apprendre un logiciel<span className="cur">_</span>
+              Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre club<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
       </section>
 
-      {/* V — LE COCKPIT (le produit, une fois l’émotion installée) */}
+      {/* V — AUJOURD'HUI_ (le produit : une scène, pas un écran) */}
       <section id="cockpit">
         <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — LE COCKPIT<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — AUJOURD’HUI<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Et un matin,<br />tout est au même endroit.
+              Le club ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Adhésions, licences, paiements, plannings.<br />Vous ouvrez une page, vous voyez votre club.
+              Personne n’a le temps d’apprendre un nouveau logiciel à 18 h 15.<br />
+              C’est pour ça que Klubster s’ouvre sur une phrase, pas sur un tableau de bord :
+              l’état de votre club, en trois secondes.
             </p>
           </Reveal>
           <Reveal className="mt-14">
@@ -237,11 +250,39 @@ export default function Home() {
         </div>
       </section>
 
+      {/* VI — LE PARCOURS (la magie du produit, en temps réel) */}
+      <section>
+        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+          <Reveal>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — PENDANT CE TEMPS<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+              Une inscription, vue de votre côté.
+            </h2>
+            <div className="mt-10 border-t border-line">
+              {[
+                ["18:02", "Une nouvelle inscription arrive."],
+                ["18:04", "Le paiement est reçu — directement sur le compte du club."],
+                ["18:05", "Le questionnaire de santé est signé, la pièce est déposée."],
+                ["18:06", "L’adhérent apparaît dans son cours."],
+              ].map(([h, texte]) => (
+                <div key={h} className="grid grid-cols-[64px_1fr] gap-4 border-b border-line py-5 md:grid-cols-[88px_1fr]">
+                  <span className="mono text-[13px] text-ink-faint">{h}</span>
+                  <p className="text-lg text-ink">{texte}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mono mt-10 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+              Vous n’avez rien eu à faire<span className="cur">_</span>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* VI — UN MERCREDI SOIR (le bénéfice, pas les fonctionnalités) */}
       <section>
         <div className="mx-auto max-w-4xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — UN MERCREDI SOIR<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UN MERCREDI SOIR<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">18 h 30. Le club ouvre.</h2>
           </Reveal>
           <Reveal className="mt-12">
@@ -270,7 +311,7 @@ export default function Home() {
       <section id="disciplines">
         <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — LES DISCIPLINES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Peu importe votre sport.
             </h2>
@@ -296,7 +337,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — UNE SAISON<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IX</span> — UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
             <div className="mt-10">
               {SAISON.map(([mois, texte]) => (
@@ -310,14 +351,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* IX — TARIFS : un seul produit, le prix suit la taille du club */}
+      {/* X — TARIFS : tout est déjà inclus, le prix suit la taille du club */}
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IX</span> — TARIFS<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Le même Klubster pour tous les clubs.</h2>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">X</span> — TARIFS<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
-              Le prix s’adapte simplement au nombre d’adhérents.<br />Toutes les fonctionnalités sont incluses, quel que soit votre abonnement.
+              Pas de version Pro. Pas d’options. Pas de modules.<br />
+              Le prix suit simplement la taille de votre club.
             </p>
           </Reveal>
 
@@ -333,10 +375,10 @@ export default function Home() {
           </div>
 
           <div className="-mt-px border-x border-b border-line bg-paper px-7 py-8">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">INCLUS DANS TOUTES LES OFFRES<Cur /></p>
-            <ul className="mt-6 grid grid-cols-1 gap-x-10 gap-y-2.5 sm:grid-cols-2 md:grid-cols-3">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">DANS TOUTES LES OFFRES<Cur /></p>
+            <ul className="mt-6 max-w-2xl space-y-3">
               {INCLUS.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-[14px]">
+                <li key={f} className="flex items-start gap-3 border-b border-line pb-3 text-[15px] last:border-b-0 last:pb-0">
                   <span className="mono text-brand">✓</span>
                   <span>{f}</span>
                 </li>
@@ -373,6 +415,9 @@ export default function Home() {
             <Link href="/creer" className="mono mt-10 inline-block bg-brand px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
+            <p className="mono mt-6 text-[11px] uppercase tracking-label text-paper/70">
+              Prêt en moins de 30 minutes<span className="text-brand">_</span>
+            </p>
           </div>
         </div>
       </section>

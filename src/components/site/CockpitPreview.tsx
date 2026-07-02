@@ -1,17 +1,11 @@
-// Aperçu du vrai Cockpit (mock statique fidèle au back-office et à son lexique).
-const NAV = ["AUJOURD’HUI", "ÉQUIPAGE", "TOUR DE CONTRÔLE", "TRÉSORERIE", "MESSAGERIE", "DOSSIERS", "JOURNAL", "ATELIER"];
+// Aperçu fidèle du vrai « Aujourd'hui_ » (données de démonstration, lexique et layout réels).
+const NAV = ["AUJOURD’HUI", "INSCRIPTIONS", "PRÉSENCES", "PAIEMENTS", "MESSAGES", "ACTUALITÉ", "SITE"];
 
-const KPIS: [string, string][] = [
-  ["EN ÉQUIPAGE", "304"],
-  ["DOSSIERS EN ATTENTE", "12"],
-  ["COTISATIONS EN RETARD", "5"],
-  ["TRÉSORERIE · SAISON", "38 200 €"],
-];
-
-const CONTROLE: { idx: string; texte: string; tag?: string; ok?: boolean }[] = [
-  { idx: "01", texte: "Cotisations en retard — 5 adhérents", tag: "RELANCER →" },
-  { idx: "02", texte: "Dossiers en attente — 12 adhérents" },
-  { idx: "03", texte: "Paiements à jour — 287 adhérents", ok: true },
+const POINTS: { ok?: boolean; texte: string }[] = [
+  { ok: true, texte: "3 nouvelles inscriptions cette semaine" },
+  { ok: true, texte: "Tous les paiements sont à jour" },
+  { ok: true, texte: "Aucun dossier en attente" },
+  { texte: "Ce soir : Boxe loisirs 18:30–20:00 · 18 inscrits" },
 ];
 
 export default function CockpitPreview() {
@@ -24,7 +18,7 @@ export default function CockpitPreview() {
       </div>
 
       <div className="grid grid-cols-[128px_1fr] md:grid-cols-[168px_1fr]">
-        {/* sidebar — lexique cockpit */}
+        {/* sidebar */}
         <nav className="bg-ink px-3 py-4 text-paper md:px-4">
           {NAV.map((item, i) => (
             <div key={item} className={`mono py-[6px] text-[11px] ${i === 0 ? "font-bold text-paper" : "text-paper/45"}`}>
@@ -34,34 +28,37 @@ export default function CockpitPreview() {
           ))}
         </nav>
 
-        {/* main */}
+        {/* main — l'état du club, pas un tableau de bord */}
         <div className="p-4 md:p-6">
           <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
-            AUJOURD’HUI<span className="text-brand">_</span> · MISSION DU JOUR
+            BONSOIR, MATHIEU · MERCREDI 4 SEPTEMBRE<span className="text-brand">_</span>
           </div>
-          <p className="mt-2 text-[15px]">
-            Bonsoir, Mathieu. <span className="text-ink-soft">Il reste 2 dossiers à mettre à jour.</span>
+          <p className="mt-3 text-[22px] font-medium leading-tight tracking-[-0.01em] md:text-[26px]">
+            Le club est prêt.
           </p>
+          <p className="mt-1.5 text-[13px] text-ink-soft">Tout est à jour pour le cours de ce soir.</p>
 
-          <div className="mt-4 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
-            {KPIS.map(([label, val]) => (
-              <div key={label} className="bg-paper px-3 py-3">
-                <div className="mono text-[9px] uppercase tracking-label text-ink-faint">{label}</div>
-                <div className="mono mt-1 text-[18px] font-bold tracking-tight md:text-[20px]">{val}</div>
+          <div className="mt-4 border border-line">
+            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+              LE CLUB AUJOURD’HUI<span className="text-brand">_</span>
+            </div>
+            {POINTS.map((l) => (
+              <div key={l.texte} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
+                <span className={`mono text-[11px] ${l.ok ? "text-brand" : "text-ink-faint"}`}>{l.ok ? "✓" : "●"}</span>
+                <span className="flex-1 text-[12px]">{l.texte}</span>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 border border-line">
-            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
-              TOUR DE CONTRÔLE<span className="text-brand">_</span>
-            </div>
-            {CONTROLE.map((l) => (
-              <div key={l.idx} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-                <span className="mono text-[10px] text-ink-faint">{l.idx}</span>
-                <span className="flex-1 text-[12px]">{l.texte}</span>
-                {l.tag ? <span className="mono border border-ink px-2 py-1 text-[9px]">{l.tag}</span> : null}
-                {l.ok ? <span className="mono text-[10px] text-brand">✓ À JOUR</span> : null}
+          <div className="mt-4 grid grid-cols-3 gap-px border border-line bg-line">
+            {[
+              ["0", "DOSSIER À TERMINER"],
+              ["0", "COTISATION À RELANCER"],
+              ["3", "INSCRIPTIONS · 7 JOURS"],
+            ].map(([n, label]) => (
+              <div key={label} className="bg-paper px-3 py-3">
+                <div className="mono text-[16px] font-bold tracking-tight md:text-[18px]">{n}</div>
+                <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
               </div>
             ))}
           </div>
