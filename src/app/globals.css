@@ -6,6 +6,17 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, monospace;
   --font-logo: "IBM Plex Mono", "Space Mono", monospace;
+
+  /* Tokens couleur (mode blanc par défaut). Les sites clubs peuvent les surcharger
+     via <ThemeVitrine> (templates blanc/noir — src/lib/themes.ts).
+     ink/paper = triplets RGB pour les modificateurs d'opacité Tailwind. */
+  --k-ink: 17 17 17;
+  --k-ink-soft: #8C8C88;
+  --k-ink-faint: #C2C2BD;
+  --k-paper: 252 252 250;
+  --k-bg-alt: #F5F5F3;
+  --k-surface: #FFFFFF;
+  --k-line: rgba(17,17,17,0.07);
 }
 
 html { -webkit-text-size-adjust: 100%; }

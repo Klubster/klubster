@@ -4,6 +4,7 @@ import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
+import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function InscriptionPage({
   const pieces = org.form_config?.pieces ?? [];
 
   return (
+    <ThemeVitrine org={org}>
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
@@ -129,6 +131,7 @@ export default async function InscriptionPage({
         </form>
       </div>
     </main>
+    </ThemeVitrine>
   );
 }
 

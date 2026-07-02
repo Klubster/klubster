@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { SPORTS, TEMPLATES_COURS } from "@/lib/templates";
-import { creerClub } from "./actions";
+import { THEME_TEMPLATES, THEME_MODES, fontsHrefAll, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
+import { creerClub, type CoursInput } from "./actions";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -11,35 +11,60 @@ function Cur() {
 const ETAPES = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
 const COULEURS = ["#189460", "#2D5B7A", "#A03C6E", "#1E7A4F", "#B5651D", "#7A4D8C", "#B23B3B", "#111111"];
 
+interface CoursRow {
+  nom: string;
+  public_cible: string;
+  tarif: string; // € /an, saisi librement
+}
+
+const ROW_VIDE: CoursRow = { nom: "", public_cible: "", tarif: "" };
+
 export default function CreerWizard() {
   const [etape, setEtape] = useState(0);
-  const [sport, setSport] = useState<string | null>(null);
+  const [template, setTemplate] = useState<ThemeTemplateId | null>(null);
+  const [mode, setMode] = useState<ThemeMode>("blanc");
   const [couleur, setCouleur] = useState("#189460");
   const [nom, setNom] = useState("");
   const [adresse, setAdresse] = useState("");
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
+  const [cours, setCours] = useState<CoursRow[]>([{ ...ROW_VIDE }]);
   const [accepte, setAccepte] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const slug = nom ? nom.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "") : "monclub";
-  const cours = sport ? TEMPLATES_COURS[sport] ?? [] : [];
   const suivant = () => setEtape((e) => Math.min(e + 1, ETAPES.length - 1));
   const precedent = () => setEtape((e) => Math.max(e - 1, 0));
   const dernier = etape === ETAPES.length - 1;
-  const peutContinuer = (etape === 0 && !sport) || (etape === 1 && !nom.trim()) ? false : true;
+  const peutContinuer = (etape === 0 && !template) || (etape === 1 && !nom.trim()) ? false : true;
 
-  function choisirSport(id: string) {
-    setSport(id);
-    setCouleur(SPORTS.find((s) => s.id === id)?.couleur ?? "#111111");
+  function majCours(i: number, patch: Partial<CoursRow>) {
+    setCours((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   }
 
   async function publier() {
     setErr(null);
     setLoading(true);
     try {
-      await creerClub({ nom, sport: sport ?? "autre", couleur, adresse, email, tel, accepteCGV: accepte });
+      const coursValides: CoursInput[] = cours
+        .filter((c) => c.nom.trim())
+        .map((c) => ({
+          nom: c.nom.trim(),
+          public_cible: c.public_cible.trim() || null,
+          tarif_centimes: Math.max(0, Math.round((parseFloat(c.tarif.replace(",", ".")) || 0) * 100)),
+        }));
+      await creerClub({
+        nom,
+        template: template ?? "editorial",
+        mode,
+        couleur,
+        adresse,
+        email,
+        tel,
+        cours: coursValides,
+        accepteCGV: accepte,
+      });
     } catch (e: unknown) {
       const digest = (e as { digest?: string })?.digest;
       if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw e;
@@ -50,6 +75,8 @@ export default function CreerWizard() {
 
   return (
     <main className="min-h-screen text-ink">
+      {/* Polices des 6 templates, pour les aperçus de l'étape 01. */}
+      <link rel="stylesheet" href={fontsHrefAll()} />
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
@@ -77,21 +104,60 @@ export default function CreerWizard() {
           {etape === 0 && (
             <div>
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 01 — TEMPLATE<Cur /></p>
-              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Quel type d&apos;association ?</h1>
-              <p className="mt-3 text-ink-soft">On pré-remplit cours, créneaux et tarifs pour vous.</p>
-              <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
-                {SPORTS.map((s) => (
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Le design de votre site.</h1>
+              <p className="mt-3 text-ink-soft">Six directions typographiques, en blanc ou en noir. Modifiable plus tard.</p>
+
+              <div className="mt-8 inline-flex border border-line">
+                {THEME_MODES.map((m) => (
                   <button
-                    key={s.id}
-                    onClick={() => choisirSport(s.id)}
-                    className={`bg-paper px-5 py-4 text-left text-[15px] ${sport === s.id ? "font-medium" : "text-ink-soft hover:text-ink"}`}
+                    key={m.id}
+                    onClick={() => setMode(m.id)}
+                    className={`mono px-5 py-2 text-[11px] uppercase tracking-wider ${
+                      mode === m.id ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
+                    }`}
                   >
-                    <span className="mono mr-2 text-[11px]" style={{ color: sport === s.id ? s.couleur : "#C2C2BD" }}>
-                      {sport === s.id ? "■" : "□"}
-                    </span>
-                    {s.label}
+                    {m.label}
                   </button>
                 ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
+                {THEME_TEMPLATES.map((t) => {
+                  const actif = template === t.id;
+                  const fond = mode === "noir" ? "#131312" : "#FCFCFA";
+                  const encre = mode === "noir" ? "#F4F4F1" : "#111111";
+                  const doux = mode === "noir" ? "#9C9C97" : "#8C8C88";
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setTemplate(t.id)}
+                      className="bg-paper p-4 text-left"
+                      style={{ outline: actif ? "2px solid #279B65" : "none", outlineOffset: -2 }}
+                    >
+                      <div className="border border-line px-4 py-5" style={{ background: fond, color: encre }}>
+                        <div className="text-[26px] leading-none" style={{ fontFamily: t.sans }}>Aa</div>
+                        <div className="mt-3 truncate text-[13px] font-medium" style={{ fontFamily: t.sans }}>
+                          {nom.trim() || "Mon association"}
+                        </div>
+                        <div className="mt-1 truncate text-[10px] uppercase tracking-wider" style={{ fontFamily: t.mono, color: doux }}>
+                          inscriptions ouvertes_
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-baseline justify-between gap-2">
+                        <span className={`text-[14px] ${actif ? "font-medium" : ""}`}>
+                          <span className="mono mr-2 text-[11px]" style={{ color: actif ? "#279B65" : "#C2C2BD" }}>
+                            {actif ? "■" : "□"}
+                          </span>
+                          {t.label}
+                        </span>
+                        <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
+                          {mode === "noir" ? "NOIR" : "BLANC"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[12px] text-ink-soft">{t.description}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -117,7 +183,7 @@ export default function CreerWizard() {
             <div>
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 03 — COULEURS<Cur /></p>
               <h1 className="mt-6 text-2xl font-medium md:text-3xl">La couleur du club.</h1>
-              <p className="mt-3 text-ink-soft">Elle habillera votre site. Le reste reste noir &amp; blanc.</p>
+              <p className="mt-3 text-ink-soft">Elle habillera votre site en touches d&apos;accent.</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 {COULEURS.map((c) => (
                   <button
@@ -148,20 +214,48 @@ export default function CreerWizard() {
           {etape === 4 && (
             <div>
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 05 — COURS &amp; TARIFS<Cur /></p>
-              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Vos cours, pré-remplis.</h1>
-              <p className="mt-3 text-ink-soft">Modifiables plus tard dans votre Cockpit.</p>
-              <div className="mt-8 border-t border-line">
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Vos cours.</h1>
+              <p className="mt-3 text-ink-soft">
+                Ajoutez vos cours et tarifs annuels. Optionnel — tout reste modifiable dans votre Cockpit.
+              </p>
+              <div className="mt-8 space-y-3">
                 {cours.map((c, i) => (
-                  <div key={i} className="flex items-baseline justify-between gap-4 border-b border-line py-3">
-                    <span className="mono text-[11px] text-ink-faint">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="flex-1 text-[15px]">{c.nom}</span>
-                    <span className="hidden flex-1 text-[13px] text-ink-soft sm:block">{c.public_cible}</span>
-                    <span className="mono text-[14px] font-bold" style={{ color: couleur }}>
-                      {Math.round(c.tarif_centimes / 100)} € /an
-                    </span>
+                  <div key={i} className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-[1fr_1fr_110px_44px]">
+                    <input
+                      value={c.nom}
+                      onChange={(e) => majCours(i, { nom: e.target.value })}
+                      placeholder="Nom du cours — ex. Ados"
+                      className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
+                    />
+                    <input
+                      value={c.public_cible}
+                      onChange={(e) => majCours(i, { public_cible: e.target.value })}
+                      placeholder="Public — ex. 12-17 ans"
+                      className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
+                    />
+                    <input
+                      value={c.tarif}
+                      onChange={(e) => majCours(i, { tarif: e.target.value })}
+                      placeholder="€ /an"
+                      inputMode="decimal"
+                      className="mono bg-paper px-4 py-3 text-right outline-none focus:bg-bg-alt"
+                    />
+                    <button
+                      onClick={() => setCours((rows) => (rows.length > 1 ? rows.filter((_, j) => j !== i) : [{ ...ROW_VIDE }]))}
+                      aria-label="Supprimer ce cours"
+                      className="mono bg-paper text-[14px] text-ink-faint hover:text-ink"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
+              <button
+                onClick={() => setCours((rows) => [...rows, { ...ROW_VIDE }])}
+                className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
+              >
+                + AJOUTER UN COURS
+              </button>
             </div>
           )}
 

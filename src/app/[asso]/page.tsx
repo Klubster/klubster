@@ -5,6 +5,7 @@ import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
+import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function VitrinePage({ params }: { params: { asso: string }
   }
 
   return (
+    <ThemeVitrine org={org}>
     <main className="text-ink">
       <SiteHeader org={org} />
 
@@ -240,5 +242,6 @@ export default async function VitrinePage({ params }: { params: { asso: string }
         </div>
       </footer>
     </main>
+    </ThemeVitrine>
   );
 }

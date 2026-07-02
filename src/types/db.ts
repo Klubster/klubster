@@ -19,6 +19,8 @@ export interface Organisation {
   slug: string;
   nom: string;
   sport: string | null;
+  theme_template: string | null; // template de design du site (src/lib/themes.ts)
+  theme_mode: string | null;     // "blanc" | "noir"
   logo_url: string | null;
   couleur_primaire: string | null;
   adresse: string | null;

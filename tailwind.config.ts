@@ -6,12 +6,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: "#111111", soft: "#8C8C88", faint: "#C2C2BD" },
+        // Tokens en CSS variables (défauts = mode blanc, voir globals.css) pour permettre
+        // les templates blanc/noir des sites clubs (src/lib/themes.ts). Rendu identique par défaut.
+        ink: { DEFAULT: "rgb(var(--k-ink) / <alpha-value>)", soft: "var(--k-ink-soft)", faint: "var(--k-ink-faint)" },
         brand: { DEFAULT: "#279B65", dark: "#1E7A4F" }, // vert ACCENT ≤5%
-        paper: "#FCFCFA",
-        surface: "#FFFFFF",
-        "bg-alt": "#F5F5F3",
-        line: "rgba(17,17,17,0.07)",
+        paper: "rgb(var(--k-paper) / <alpha-value>)",
+        surface: "var(--k-surface)",
+        "bg-alt": "var(--k-bg-alt)",
+        line: "var(--k-line)",
         success: "#279B65",
         warning: "#B8860B",
         danger: "#B23B3B",

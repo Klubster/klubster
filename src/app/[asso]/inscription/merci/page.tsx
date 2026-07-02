@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
+import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function MerciPage({
     : null;
 
   return (
+    <ThemeVitrine org={org}>
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
@@ -49,6 +51,7 @@ export default async function MerciPage({
         </div>
       </div>
     </main>
+    </ThemeVitrine>
   );
 }
 
