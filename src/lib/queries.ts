@@ -57,3 +57,91 @@ export async function getCockpitStats(slug: string): Promise<CockpitStats> {
     tresorerieCentimes: Number(row.tresorerie_centimes),
   };
 }
+
+/* ——— « Aujourd'hui_ » : le club en un coup d'œil (données réelles uniquement) ——— */
+
+export interface EvenementClub {
+  ts: string; // ISO
+  type: "inscription" | "presence" | "piece";
+  texte: string;
+}
+
+export interface Aujourdhui {
+  nouvelles7j: number;
+  piecesAttendues: number;
+  evenements: EvenementClub[];
+}
+
+// prenom/nom depuis une jointure Supabase (objet ou tableau selon la relation).
+function nomDe(rel: unknown): string {
+  const a = Array.isArray(rel) ? rel[0] : rel;
+  if (a && typeof a === "object" && "prenom" in a) {
+    const p = a as { prenom: string | null; nom: string | null };
+    return [p.prenom, p.nom].filter(Boolean).join(" ") || "Un adhérent";
+  }
+  return "Un adhérent";
+}
+
+export async function getAujourdhui(organisationId: string): Promise<Aujourdhui> {
+  const supabase = createSupabaseServerClient();
+  const depuis7j = new Date(Date.now() - 7 * 86400_000).toISOString();
+
+  const [adh, pres, pieces, nouvelles, attendues] = await Promise.all([
+    supabase
+      .from("adhesions")
+      .select("created_at, adherents(prenom, nom)")
+      .eq("organisation_id", organisationId)
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("presences")
+      .select("created_at, adherents(prenom, nom)")
+      .eq("organisation_id", organisationId)
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("pieces_adherent")
+      .select("updated_at, label, statut, adherents(prenom, nom)")
+      .eq("organisation_id", organisationId)
+      .neq("statut", "attendue")
+      .order("updated_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("adhesions")
+      .select("id", { count: "exact", head: true })
+      .eq("organisation_id", organisationId)
+      .gte("created_at", depuis7j),
+    supabase
+      .from("pieces_adherent")
+      .select("id", { count: "exact", head: true })
+      .eq("organisation_id", organisationId)
+      .eq("statut", "attendue"),
+  ]);
+
+  const evenements: EvenementClub[] = [
+    ...(adh.data ?? []).map((r) => ({
+      ts: r.created_at as string,
+      type: "inscription" as const,
+      texte: `Inscription — ${nomDe(r.adherents)}`,
+    })),
+    ...(pres.data ?? []).map((r) => ({
+      ts: r.created_at as string,
+      type: "presence" as const,
+      texte: `Présence pointée — ${nomDe(r.adherents)}`,
+    })),
+    ...(pieces.data ?? []).map((r) => ({
+      ts: (r.updated_at ?? "") as string,
+      type: "piece" as const,
+      texte: `${r.statut === "par_email" ? "Pièce annoncée par email" : "Pièce déposée"} — ${r.label ?? "document"} (${nomDe(r.adherents)})`,
+    })),
+  ]
+    .filter((e) => e.ts)
+    .sort((a, b) => (a.ts < b.ts ? 1 : -1))
+    .slice(0, 9);
+
+  return {
+    nouvelles7j: nouvelles.count ?? 0,
+    piecesAttendues: attendues.count ?? 0,
+    evenements,
+  };
+}
