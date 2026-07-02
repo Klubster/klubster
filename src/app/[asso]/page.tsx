@@ -8,8 +8,9 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import { normaliserPageConfig } from "@/lib/page-config";
-import { deplacerSection, ajouterSection, supprimerSection } from "./edition-actions";
-import type { SectionCustom } from "@/types/db";
+import { deplacerSection, supprimerSection } from "./edition-actions";
+import { ChapitreView } from "@/components/site/Chapitres";
+import { AjouterChapitre } from "@/components/site/AjouterChapitre";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function VitrinePage({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { edition?: string };
+  searchParams: { edition?: string; chapitre?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -56,7 +57,7 @@ export default async function VitrinePage({
   for (const cle of pc.ordre) {
     const sc = pc.custom.find((c) => c.id === cle);
     if (sc) {
-      rendus.push({ cle, id: sc.id, custom: true, node: (n) => <SectionCustomView s={sc} n={n} accent={accent} /> });
+      rendus.push({ cle, id: sc.id, custom: true, node: (n) => <ChapitreView s={sc} n={n} accent={accent} /> });
       continue;
     }
     if (cle === "presentation" && org.presentation) {
@@ -310,8 +311,8 @@ export default async function VitrinePage({
         </section>
       ))}
 
-      {/* AJOUTER UNE SECTION (mode édition) */}
-      {edition ? <AjouterSectionForm slug={org.slug} accent={accent} /> : null}
+      {/* AJOUTER UN CHAPITRE (mode édition) */}
+      {edition ? <AjouterChapitre slug={org.slug} accent={accent} type={searchParams?.chapitre} /> : null}
 
       {/* FOOTER — signature Klubster */}
       <footer>
@@ -357,153 +358,3 @@ function Controles({ slug, cle, first, last, custom }: { slug: string; cle: stri
   );
 }
 
-/* ——— Sections personnalisées (templates photo/texte) ——— */
-function SectionCustomView({ s, n, accent }: { s: SectionCustom; n: string; accent: string }) {
-  const label = (s.titre ?? "Le club").toUpperCase();
-  const img = s.image_url ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={s.image_url} alt={s.titre ?? "Photo du club"} className="absolute inset-0 h-full w-full object-cover" />
-  ) : null;
-
-  if (s.type === "triptyque") {
-    return (
-      <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-          SECTION {n} — {label}
-          <span style={{ color: accent }}>_</span>
-        </p>
-        {s.titre ? <h2 className="mt-8 max-w-[24ch] text-3xl font-medium leading-tight md:text-4xl">{s.titre}</h2> : null}
-        <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
-          <p className="bg-paper px-6 py-8 text-lg leading-relaxed text-ink-soft">{s.texte}</p>
-          <div className="relative h-72 overflow-hidden bg-paper md:h-auto">{img}</div>
-          <p className="bg-paper px-6 py-8 text-lg leading-relaxed text-ink-soft">{s.texte2}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const photoDroite = s.type === "photo-droite";
-  const colonneTexte = (
-    <div className="px-6 py-20 md:px-8 md:py-24">
-      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-        SECTION {n} — {label}
-        <span style={{ color: accent }}>_</span>
-      </p>
-      {s.titre ? <h2 className="mt-8 max-w-[20ch] text-3xl font-medium leading-tight md:text-4xl">{s.titre}</h2> : null}
-      <p className="mt-8 max-w-prose text-lg leading-relaxed text-ink-soft">{s.texte}</p>
-    </div>
-  );
-  const colonnePhoto = (
-    <div
-      className={`relative h-72 overflow-hidden md:h-auto ${
-        photoDroite ? "border-t border-line md:border-l md:border-t-0" : "border-b border-line md:border-r md:border-b-0"
-      }`}
-    >
-      {img}
-    </div>
-  );
-
-  return (
-    <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2">
-      {photoDroite ? (
-        <>
-          {colonneTexte}
-          {colonnePhoto}
-        </>
-      ) : (
-        <>
-          {colonnePhoto}
-          {colonneTexte}
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ——— Formulaire d'ajout de section (mode édition) ——— */
-function AjouterSectionForm({ slug, accent }: { slug: string; accent: string }) {
-  return (
-    <section className="border-b border-line bg-bg-alt">
-      <div className="mx-auto max-w-5xl px-6 py-14 md:px-8">
-        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-          AJOUTER UNE SECTION
-          <span style={{ color: accent }}>_</span>
-        </p>
-        <form action={ajouterSection.bind(null, slug)} className="mt-8 space-y-6">
-          <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
-            <TemplateChoix value="photo-gauche" defaultChecked blocs={["P", "T"]} label="Photo à gauche" desc="Photo ½ page à gauche, texte à droite." />
-            <TemplateChoix value="photo-droite" blocs={["T", "P"]} label="Photo à droite" desc="Texte ½ page à gauche, photo à droite." />
-            <TemplateChoix value="triptyque" blocs={["T", "P", "T"]} label="Triptyque" desc="Photo au milieu, texte de chaque côté." />
-          </div>
-          <input
-            name="titre"
-            placeholder="Titre (optionnel) — ex. Notre salle"
-            className="w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
-          />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <textarea
-              name="texte"
-              rows={4}
-              placeholder="Texte (colonne de gauche)"
-              className="w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
-            />
-            <textarea
-              name="texte2"
-              rows={4}
-              placeholder="Texte de droite (triptyque uniquement)"
-              className="w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <input type="file" name="photo" accept="image/*" required className="mono text-[12px] text-ink-soft" />
-            <button type="submit" className="mono px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90" style={{ background: accent }}>
-              AJOUTER LA SECTION →
-            </button>
-          </div>
-          <p className="text-[13px] text-ink-soft">
-            Photo obligatoire, 5 Mo max. La section arrive en bas de page — remontez-la ensuite avec les flèches ↑.
-          </p>
-        </form>
-      </div>
-    </section>
-  );
-}
-
-function TemplateChoix({
-  value,
-  label,
-  desc,
-  blocs,
-  defaultChecked,
-}: {
-  value: string;
-  label: string;
-  desc: string;
-  blocs: ("P" | "T")[];
-  defaultChecked?: boolean;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start gap-3 bg-paper px-4 py-4 hover:bg-bg-alt">
-      <input type="radio" name="type" value={value} defaultChecked={defaultChecked} className="mt-1" />
-      <span className="flex-1">
-        <span className="flex h-10 gap-1" aria-hidden>
-          {blocs.map((b, i) =>
-            b === "P" ? (
-              <span key={i} className="mono grid flex-1 place-items-center border border-line bg-bg-alt text-[8px] tracking-wider text-ink-soft">
-                PHOTO
-              </span>
-            ) : (
-              <span key={i} className="flex-1 border border-line bg-paper p-1.5">
-                <span className="mb-1 block h-1 w-4/5 bg-ink-faint" />
-                <span className="mb-1 block h-1 w-3/5 bg-ink-faint" />
-                <span className="block h-1 w-2/3 bg-ink-faint" />
-              </span>
-            )
-          )}
-        </span>
-        <span className="mt-2 block text-[14px] font-medium">{label}</span>
-        <span className="mt-0.5 block text-[12px] text-ink-soft">{desc}</span>
-      </span>
-    </label>
-  );
-}

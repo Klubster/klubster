@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { normaliserPageConfig } from "@/lib/page-config";
-import type { Organisation, SectionCustom, SectionCustomType } from "@/types/db";
+import type { ItemChapitre, Organisation, SectionCustom, SectionCustomType } from "@/types/db";
 
 async function gardeAdmin(slug: string): Promise<Organisation> {
   const org = await getOrganisationBySlug(slug);
@@ -70,6 +70,85 @@ export async function ajouterSection(slug: string, formData: FormData) {
   const section: SectionCustom = { id: `c${Date.now()}`, type, titre, texte, texte2, image_url: imageUrl };
   pc.custom.push(section);
   pc.ordre.push(section.id);
+  await sauver(org, pc, slug);
+}
+
+// Upload d'une image du chapitre vers le bucket public `sections`. Renvoie l'URL publique ou null.
+async function uploaderImage(orgId: string, file: unknown, prefixe: string): Promise<string | null> {
+  if (!file || typeof file !== "object" || !("size" in file)) return null;
+  const f = file as File;
+  if (f.size <= 0 || f.size > 5 * 1024 * 1024 || !(f.type ?? "").startsWith("image/")) return null;
+  const supabase = createSupabaseServerClient();
+  const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${orgId}/${prefixe}-${Date.now()}-${Math.floor(Math.random() * 1e6)}.${ext}`;
+  const { error } = await supabase.storage.from("sections").upload(path, f, { upsert: true, contentType: f.type || undefined });
+  if (error) {
+    console.error("upload chapitre", error.message);
+    return null;
+  }
+  return supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
+}
+
+const champ = (fd: FormData, nom: string, max = 300) => String(fd.get(nom) ?? "").trim().slice(0, max) || null;
+
+// Ajouter un chapitre depuis la bibliothèque (le layout est imposé par le type).
+export async function ajouterChapitre(slug: string, type: SectionCustomType, formData: FormData) {
+  const org = await gardeAdmin(slug);
+  const pc = normaliserPageConfig(org.page_config);
+  if (pc.custom.length >= 16) redirect(`/${slug}?edition=1`);
+
+  const s: SectionCustom = {
+    id: `c${Date.now()}`,
+    type,
+    titre: champ(formData, "titre", 80),
+    texte: champ(formData, "texte", 2000),
+    texte2: champ(formData, "texte2", 2000),
+    image_url: null,
+    items: [],
+  };
+  const items: ItemChapitre[] = [];
+
+  if (type === "president") {
+    // texte = citation ; items[0] = { titre: nom, texte: rôle }
+    s.image_url = await uploaderImage(org.id, formData.get("photo"), "president");
+    const nom = champ(formData, "nom", 80);
+    const role = champ(formData, "role", 80) ?? "Président du club";
+    if (nom) items.push({ titre: nom, texte: role, image_url: null });
+    if (!s.texte) redirect(`/${slug}?edition=1`); // la citation est le cœur du chapitre
+  } else if (type === "chiffres" || type === "faq" || type === "resultats") {
+    // paires titre/texte : chiffre+label, question+réponse, résultat+détail
+    for (let i = 0; i < 6; i++) {
+      const t = champ(formData, `item_titre_${i}`, 160);
+      const x = champ(formData, `item_texte_${i}`, 600);
+      if (t || x) items.push({ titre: t, texte: x, image_url: null });
+    }
+    if (items.length === 0) redirect(`/${slug}?edition=1`);
+  } else if (type === "equipe") {
+    for (let i = 0; i < 6; i++) {
+      const prenom = champ(formData, `item_titre_${i}`, 60);
+      const role = champ(formData, `item_texte_${i}`, 80);
+      if (!prenom) continue;
+      const url = await uploaderImage(org.id, formData.get(`item_photo_${i}`), "equipe");
+      items.push({ titre: prenom, texte: role, image_url: url });
+    }
+    if (items.length === 0) redirect(`/${slug}?edition=1`);
+  } else if (type === "galerie" || type === "partenaires") {
+    const fichiers = formData.getAll("photos").slice(0, 8);
+    for (const f of fichiers) {
+      const url = await uploaderImage(org.id, f, type);
+      if (url) items.push({ titre: null, texte: null, image_url: url });
+    }
+    if (items.length === 0) redirect(`/${slug}?edition=1`);
+  } else if (type === "citation") {
+    if (!s.texte) redirect(`/${slug}?edition=1`);
+  } else {
+    // Texte & photo (layouts historiques) : géré par ajouterSection.
+    redirect(`/${slug}?edition=1`);
+  }
+
+  s.items = items;
+  pc.custom.push(s);
+  pc.ordre.push(s.id);
   await sauver(org, pc, slug);
 }
 

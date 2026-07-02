@@ -38,16 +38,34 @@ export interface Organisation {
   page_config: PageConfig | null;
 }
 
-// Mode « Édition de page » : ordre des sections de la vitrine + sections personnalisées.
-export type SectionCustomType = "photo-droite" | "photo-gauche" | "triptyque";
+// Mode « Édition de page » : ordre des sections de la vitrine + chapitres personnalisés.
+// Le dirigeant choisit une intention (« Mot du président », « FAQ »…), jamais un layout.
+export type SectionCustomType =
+  | "photo-droite" | "photo-gauche" | "triptyque" // texte & photo (layouts historiques)
+  | "president"    // photo, citation, nom + rôle
+  | "chiffres"     // chiffres clés (paires chiffre/label)
+  | "equipe"       // entraîneurs & bénévoles (photo, prénom, rôle)
+  | "faq"          // questions fréquentes
+  | "galerie"      // photos en grille
+  | "partenaires"  // logos
+  | "resultats"    // résultats & événements (lignes titre/détail)
+  | "citation";    // grande citation pleine largeur
+
+// Élément générique d'un chapitre (question/réponse, chiffre/label, personne, photo…).
+export interface ItemChapitre {
+  titre: string | null;
+  texte: string | null;
+  image_url: string | null;
+}
 
 export interface SectionCustom {
   id: string; // "c<timestamp>"
   type: SectionCustomType;
   titre: string | null;
-  texte: string | null;   // texte principal (gauche)
-  texte2: string | null;  // texte de droite (triptyque)
+  texte: string | null;   // texte principal / citation
+  texte2: string | null;  // texte secondaire / auteur
   image_url: string | null;
+  items?: ItemChapitre[];
 }
 
 export interface PageConfig {
