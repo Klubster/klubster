@@ -9,7 +9,18 @@ function Cur() {
 }
 
 const ETAPES = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
-const COULEURS = ["#189460", "#2D5B7A", "#A03C6E", "#1E7A4F", "#B5651D", "#7A4D8C", "#B23B3B", "#111111"];
+const COULEURS = [
+  // Verts / bleus-verts
+  "#189460", "#1E7A4F", "#2E7A56", "#1E7A7A",
+  // Bleus
+  "#1C6F9C", "#2D5B7A", "#2E5AA0", "#356B8C",
+  // Violets / roses
+  "#7A4D8C", "#5B4A9E", "#A03C6E", "#C2185B",
+  // Rouges / oranges / bruns
+  "#B23B3B", "#7A2E2E", "#C05A1D", "#B5651D",
+  // Jaunes / kaki / neutres
+  "#B8860B", "#5C7A1D", "#444441", "#111111",
+];
 
 interface CoursRow {
   nom: string;
@@ -24,6 +35,7 @@ export default function CreerWizard() {
   const [template, setTemplate] = useState<ThemeTemplateId | null>(null);
   const [mode, setMode] = useState<ThemeMode>("blanc");
   const [couleur, setCouleur] = useState("#189460");
+  const [hexSaisie, setHexSaisie] = useState("");
   const [nom, setNom] = useState("");
   const [adresse, setAdresse] = useState("");
   const [email, setEmail] = useState("");
@@ -41,6 +53,14 @@ export default function CreerWizard() {
 
   function majCours(i: number, patch: Partial<CoursRow>) {
     setCours((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  }
+
+  // Saisie libre d'un code hex (#1A2B3C ou #1AB) : appliqué dès qu'il est valide.
+  function appliquerHex(v: string) {
+    setHexSaisie(v);
+    const h = v.trim().replace(/^#/, "");
+    if (/^[0-9a-fA-F]{6}$/.test(h)) setCouleur("#" + h.toUpperCase());
+    else if (/^[0-9a-fA-F]{3}$/.test(h)) setCouleur("#" + h.split("").map((c) => c + c).join("").toUpperCase());
   }
 
   async function publier() {
@@ -188,13 +208,44 @@ export default function CreerWizard() {
                 {COULEURS.map((c) => (
                   <button
                     key={c}
-                    onClick={() => setCouleur(c)}
+                    onClick={() => { setCouleur(c); setHexSaisie(""); }}
                     aria-label={c}
                     className="h-10 w-10 border"
                     style={{ background: c, borderColor: couleur === c ? "#111" : "transparent", outline: couleur === c ? "2px solid #111" : "none", outlineOffset: 2 }}
                   />
                 ))}
               </div>
+
+              <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">OU VOTRE COULEUR EXACTE<Cur /></p>
+              <div className="mt-3 flex items-center gap-3">
+                <input
+                  value={hexSaisie}
+                  onChange={(e) => appliquerHex(e.target.value)}
+                  placeholder="#1A6FB5"
+                  maxLength={7}
+                  spellCheck={false}
+                  className="mono w-36 border border-line bg-paper px-4 py-3 uppercase outline-none focus:border-ink"
+                />
+                <label
+                  className="relative h-11 w-11 cursor-pointer overflow-hidden border border-line"
+                  style={{ background: couleur }}
+                  title="Ouvrir le sélecteur de couleur"
+                >
+                  <input
+                    type="color"
+                    value={couleur}
+                    onChange={(e) => { setCouleur(e.target.value.toUpperCase()); setHexSaisie(e.target.value.toUpperCase()); }}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    aria-label="Sélecteur de couleur"
+                  />
+                </label>
+                <span className="mono text-[12px] text-ink-soft">
+                  Couleur choisie : <span className="text-ink">{couleur}</span>
+                </span>
+              </div>
+              <p className="mt-3 text-[13px] text-ink-soft">
+                Collez le code hexadécimal de votre couleur (logo, maillot…) ou cliquez sur le carré pour la choisir.
+              </p>
             </div>
           )}
 
