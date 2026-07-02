@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { getProfile } from "@/lib/auth";
 import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
@@ -24,6 +25,12 @@ export default async function VitrinePage({ params }: { params: { asso: string }
   const cours = await getCoursByOrganisation(org.id);
   const accent = org.couleur_primaire ?? "#111111";
 
+  // Bouton Cockpit dans l'en-tête si le visiteur est admin de CE club (ou super-admin).
+  const profile = await getProfile();
+  const estAdmin = Boolean(
+    profile && (profile.role === "super_admin" || (profile.organisation_id === org.id && profile.role === "admin_asso"))
+  );
+
   function Label({ n, children }: { n: string; children: React.ReactNode }) {
     return (
       <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
@@ -36,7 +43,7 @@ export default async function VitrinePage({ params }: { params: { asso: string }
   return (
     <ThemeVitrine org={org}>
     <main className="text-ink">
-      <SiteHeader org={org} />
+      <SiteHeader org={org} estAdmin={estAdmin} />
 
       {/* ACTUALITÉ À LA UNE (éditable par le club) */}
       {org.actualite && (org.actualite.texte || org.actualite.image_url) ? (
@@ -236,9 +243,14 @@ export default async function VitrinePage({ params }: { params: { asso: string }
       <footer>
         <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-4 px-6 py-12 md:flex-row md:items-center md:px-8">
           <span className="mono text-[12px] text-ink-soft">© {new Date().getFullYear()} {org.nom}</span>
-          <a href="https://klubster.vercel.app" className="mono text-[12px] text-ink-soft hover:text-ink">
-            Créé avec <span className="font-logo font-semibold text-ink">k<span className="cur">_</span></span>
-          </a>
+          <div className="flex items-center gap-6">
+            <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-faint hover:text-ink">
+              Admin
+            </Link>
+            <a href="https://klubster.vercel.app" className="mono text-[12px] text-ink-soft hover:text-ink">
+              Créé avec <span className="font-logo font-semibold text-ink">k<span className="cur">_</span></span>
+            </a>
+          </div>
         </div>
       </footer>
     </main>

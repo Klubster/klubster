@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Organisation } from "@/types/db";
 
-export function SiteHeader({ org }: { org: Organisation }) {
+export function SiteHeader({ org, estAdmin }: { org: Organisation; estAdmin?: boolean }) {
   const accent = org.couleur_primaire ?? "#111111";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
@@ -28,13 +28,23 @@ export function SiteHeader({ org }: { org: Organisation }) {
           <a href="#tarifs" className="hover:text-ink">Tarifs</a>
           <a href="#contact" className="hover:text-ink">Contact</a>
         </nav>
-        <Link
-          href={`/${org.slug}/inscription`}
-          className="mono px-4 py-2 text-[12px] text-white transition-opacity hover:opacity-90"
-          style={{ background: accent }}
-        >
-          S&apos;INSCRIRE →
-        </Link>
+        <div className="flex items-center gap-3">
+          {estAdmin ? (
+            <Link
+              href={`/${org.slug}/cockpit`}
+              className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper"
+            >
+              COCKPIT →
+            </Link>
+          ) : null}
+          <Link
+            href={`/${org.slug}/inscription`}
+            className="mono px-4 py-2 text-[12px] text-white transition-opacity hover:opacity-90"
+            style={{ background: accent }}
+          >
+            S&apos;INSCRIRE →
+          </Link>
+        </div>
       </div>
     </header>
   );
