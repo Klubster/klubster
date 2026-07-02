@@ -35,6 +35,24 @@ export interface Organisation {
   infos_pratiques: string | null;
   form_config: FormConfig | null;
   actualite: Actualite | null;
+  page_config: PageConfig | null;
+}
+
+// Mode « Édition de page » : ordre des sections de la vitrine + sections personnalisées.
+export type SectionCustomType = "photo-droite" | "photo-gauche" | "triptyque";
+
+export interface SectionCustom {
+  id: string; // "c<timestamp>"
+  type: SectionCustomType;
+  titre: string | null;
+  texte: string | null;   // texte principal (gauche)
+  texte2: string | null;  // texte de droite (triptyque)
+  image_url: string | null;
+}
+
+export interface PageConfig {
+  ordre: string[]; // clés standard ("presentation", "cours"…) et ids de sections custom
+  custom: SectionCustom[];
 }
 
 // Actualité « à la une » affichée dans le hero de la vitrine du club.

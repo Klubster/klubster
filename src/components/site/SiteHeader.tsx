@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Organisation } from "@/types/db";
 
-export function SiteHeader({ org, estAdmin }: { org: Organisation; estAdmin?: boolean }) {
+export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estAdmin?: boolean; edition?: boolean }) {
   const accent = org.couleur_primaire ?? "#111111";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
@@ -30,12 +30,20 @@ export function SiteHeader({ org, estAdmin }: { org: Organisation; estAdmin?: bo
         </nav>
         <div className="flex items-center gap-3">
           {estAdmin ? (
-            <Link
-              href={`/${org.slug}/cockpit`}
-              className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper"
-            >
-              COCKPIT →
-            </Link>
+            <>
+              <Link
+                href={edition ? `/${org.slug}` : `/${org.slug}?edition=1`}
+                className={`mono px-4 py-2 text-[12px] ${edition ? "bg-ink text-paper hover:bg-ink/90" : "border border-ink hover:bg-ink hover:text-paper"}`}
+              >
+                {edition ? "TERMINER" : "MODIFIER"}
+              </Link>
+              <Link
+                href={`/${org.slug}/cockpit`}
+                className="mono hidden border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper sm:block"
+              >
+                COCKPIT →
+              </Link>
+            </>
           ) : null}
           <Link
             href={`/${org.slug}/inscription`}
