@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { THEME_TEMPLATES, THEME_MODES, fontsHrefAll, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
-import { creerClub, type CoursInput } from "./actions";
+import { creerClub, type CoursInput, type CreneauInput } from "./actions";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -22,13 +22,22 @@ const COULEURS = [
   "#B8860B", "#5C7A1D", "#444441", "#111111",
 ];
 
+const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+interface CreneauRow {
+  jour: string;
+  debut: string;
+  fin: string;
+}
+
 interface CoursRow {
   nom: string;
   public_cible: string;
   tarif: string; // € /an, saisi librement
+  creneaux: CreneauRow[];
 }
 
-const ROW_VIDE: CoursRow = { nom: "", public_cible: "", tarif: "" };
+const ROW_VIDE: CoursRow = { nom: "", public_cible: "", tarif: "", creneaux: [] };
 
 export default function CreerWizard() {
   const [etape, setEtape] = useState(0);
@@ -40,7 +49,10 @@ export default function CreerWizard() {
   const [adresse, setAdresse] = useState("");
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
-  const [cours, setCours] = useState<CoursRow[]>([{ ...ROW_VIDE }]);
+  const [cours, setCours] = useState<CoursRow[]>([{ ...ROW_VIDE, creneaux: [] }]);
+  const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoErr, setLogoErr] = useState<string | null>(null);
   const [accepte, setAccepte] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -53,6 +65,46 @@ export default function CreerWizard() {
 
   function majCours(i: number, patch: Partial<CoursRow>) {
     setCours((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  }
+
+  function majCreneau(i: number, j: number, patch: Partial<CreneauRow>) {
+    setCours((rows) =>
+      rows.map((r, x) =>
+        x === i ? { ...r, creneaux: r.creneaux.map((k, y) => (y === j ? { ...k, ...patch } : k)) } : r
+      )
+    );
+  }
+
+  function ajouterCreneau(i: number) {
+    setCours((rows) =>
+      rows.map((r, x) => (x === i ? { ...r, creneaux: [...r.creneaux, { jour: "lundi", debut: "", fin: "" }] } : r))
+    );
+  }
+
+  function retirerCreneau(i: number, j: number) {
+    setCours((rows) => rows.map((r, x) => (x === i ? { ...r, creneaux: r.creneaux.filter((_, y) => y !== j) } : r)));
+  }
+
+  function choisirLogo(f: File | null) {
+    setLogoErr(null);
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    if (!f) {
+      setLogo(null);
+      setLogoPreview(null);
+      return;
+    }
+    if (!f.type.startsWith("image/")) {
+      setLogo(null); setLogoPreview(null);
+      setLogoErr("Format non reconnu : choisissez une image (PNG, JPG, SVG…).");
+      return;
+    }
+    if (f.size > 2 * 1024 * 1024) {
+      setLogo(null); setLogoPreview(null);
+      setLogoErr("Image trop lourde (2 Mo maximum).");
+      return;
+    }
+    setLogo(f);
+    setLogoPreview(URL.createObjectURL(f));
   }
 
   // Saisie libre d'un code hex (#1A2B3C ou #1AB) : appliqué dès qu'il est valide.
@@ -73,18 +125,27 @@ export default function CreerWizard() {
           nom: c.nom.trim(),
           public_cible: c.public_cible.trim() || null,
           tarif_centimes: Math.max(0, Math.round((parseFloat(c.tarif.replace(",", ".")) || 0) * 100)),
+          creneaux: c.creneaux.filter((k): k is CreneauInput => Boolean(k.jour && k.debut && k.fin)),
         }));
-      await creerClub({
-        nom,
-        template: template ?? "editorial",
-        mode,
-        couleur,
-        adresse,
-        email,
-        tel,
-        cours: coursValides,
-        accepteCGV: accepte,
-      });
+      let logoFd: FormData | null = null;
+      if (logo) {
+        logoFd = new FormData();
+        logoFd.append("logo", logo);
+      }
+      await creerClub(
+        {
+          nom,
+          template: template ?? "editorial",
+          mode,
+          couleur,
+          adresse,
+          email,
+          tel,
+          cours: coursValides,
+          accepteCGV: accepte,
+        },
+        logoFd
+      );
     } catch (e: unknown) {
       const digest = (e as { digest?: string })?.digest;
       if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw e;
@@ -196,6 +257,41 @@ export default function CreerWizard() {
               <p className="mono mt-3 text-[12px] text-ink-soft">
                 Votre adresse : klubster.fr/<span className="text-ink">{slug}</span>
               </p>
+
+              <label className="mono mt-10 block text-[11px] uppercase tracking-label text-ink-soft">LOGO — OPTIONNEL</label>
+              <div className="mt-3 flex items-center gap-4">
+                {logoPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoPreview} alt="Aperçu du logo" className="h-14 w-14 border border-line object-cover" />
+                ) : (
+                  <span
+                    className="grid h-14 w-14 place-items-center border border-line bg-bg-alt text-[18px] font-bold"
+                    style={{ color: couleur }}
+                    aria-hidden
+                  >
+                    {(nom.trim() || "K").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <label className="mono cursor-pointer border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink">
+                  {logo ? "CHANGER LE LOGO" : "AJOUTER UN LOGO"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => choisirLogo(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                {logo ? (
+                  <button onClick={() => choisirLogo(null)} className="mono text-[12px] text-ink-faint hover:text-ink">
+                    RETIRER ×
+                  </button>
+                ) : null}
+              </div>
+              {logoErr ? (
+                <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{logoErr}</p>
+              ) : (
+                <p className="mt-3 text-[13px] text-ink-soft">PNG, JPG ou SVG, 2 Mo max. Sans logo, l&apos;initiale du club fait le travail.</p>
+              )}
             </div>
           )}
 
@@ -269,40 +365,85 @@ export default function CreerWizard() {
               <p className="mt-3 text-ink-soft">
                 Ajoutez vos cours et tarifs annuels. Optionnel — tout reste modifiable dans votre Cockpit.
               </p>
-              <div className="mt-8 space-y-3">
+              <div className="mt-8 space-y-4">
                 {cours.map((c, i) => (
-                  <div key={i} className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-[1fr_1fr_110px_44px]">
-                    <input
-                      value={c.nom}
-                      onChange={(e) => majCours(i, { nom: e.target.value })}
-                      placeholder="Nom du cours — ex. Ados"
-                      className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
-                    />
-                    <input
-                      value={c.public_cible}
-                      onChange={(e) => majCours(i, { public_cible: e.target.value })}
-                      placeholder="Public — ex. 12-17 ans"
-                      className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
-                    />
-                    <input
-                      value={c.tarif}
-                      onChange={(e) => majCours(i, { tarif: e.target.value })}
-                      placeholder="€ /an"
-                      inputMode="decimal"
-                      className="mono bg-paper px-4 py-3 text-right outline-none focus:bg-bg-alt"
-                    />
-                    <button
-                      onClick={() => setCours((rows) => (rows.length > 1 ? rows.filter((_, j) => j !== i) : [{ ...ROW_VIDE }]))}
-                      aria-label="Supprimer ce cours"
-                      className="mono bg-paper text-[14px] text-ink-faint hover:text-ink"
-                    >
-                      ×
-                    </button>
+                  <div key={i} className="border border-line">
+                    <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-[1fr_1fr_110px_44px]">
+                      <input
+                        value={c.nom}
+                        onChange={(e) => majCours(i, { nom: e.target.value })}
+                        placeholder="Nom du cours — ex. Ados"
+                        className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
+                      />
+                      <input
+                        value={c.public_cible}
+                        onChange={(e) => majCours(i, { public_cible: e.target.value })}
+                        placeholder="Public — ex. 12-17 ans"
+                        className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
+                      />
+                      <input
+                        value={c.tarif}
+                        onChange={(e) => majCours(i, { tarif: e.target.value })}
+                        placeholder="€ /an"
+                        inputMode="decimal"
+                        className="mono bg-paper px-4 py-3 text-right outline-none focus:bg-bg-alt"
+                      />
+                      <button
+                        onClick={() => setCours((rows) => (rows.length > 1 ? rows.filter((_, j) => j !== i) : [{ ...ROW_VIDE, creneaux: [] }]))}
+                        aria-label="Supprimer ce cours"
+                        className="mono bg-paper text-[14px] text-ink-faint hover:text-ink"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {/* Créneaux horaires du cours (plusieurs possibles) */}
+                    <div className="border-t border-line bg-bg-alt px-4 py-3">
+                      {c.creneaux.map((k, j) => (
+                        <div key={j} className="flex flex-wrap items-center gap-2 py-1.5">
+                          <select
+                            value={k.jour}
+                            onChange={(e) => majCreneau(i, j, { jour: e.target.value })}
+                            className="mono border border-line bg-paper px-2 py-1.5 text-[12px] capitalize outline-none focus:border-ink"
+                          >
+                            {JOURS.map((jr) => (
+                              <option key={jr} value={jr}>{jr}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="time"
+                            value={k.debut}
+                            onChange={(e) => majCreneau(i, j, { debut: e.target.value })}
+                            className="mono border border-line bg-paper px-2 py-1.5 text-[12px] outline-none focus:border-ink"
+                          />
+                          <span className="mono text-[12px] text-ink-faint">–</span>
+                          <input
+                            type="time"
+                            value={k.fin}
+                            onChange={(e) => majCreneau(i, j, { fin: e.target.value })}
+                            className="mono border border-line bg-paper px-2 py-1.5 text-[12px] outline-none focus:border-ink"
+                          />
+                          <button
+                            onClick={() => retirerCreneau(i, j)}
+                            aria-label="Supprimer ce créneau"
+                            className="mono px-1 text-[13px] text-ink-faint hover:text-ink"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => ajouterCreneau(i)}
+                        className="mono mt-1 text-[11px] uppercase tracking-wider text-ink-soft hover:text-ink"
+                      >
+                        + AJOUTER UN CRÉNEAU
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
               <button
-                onClick={() => setCours((rows) => [...rows, { ...ROW_VIDE }])}
+                onClick={() => setCours((rows) => [...rows, { ...ROW_VIDE, creneaux: [] }])}
                 className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
               >
                 + AJOUTER UN COURS
