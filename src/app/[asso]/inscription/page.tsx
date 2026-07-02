@@ -89,14 +89,24 @@ export default async function InscriptionPage({
             <fieldset>
               <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
               <div className="mt-4 divide-y divide-line border border-line bg-paper">
-                {pieces.map((pc) => (
-                  <div key={pc.id} className="flex items-center justify-between px-5 py-3 text-[14px]">
-                    <span>{pc.label}{pc.obligatoire ? " *" : ""}</span>
-                    <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
-                      {pc.mode === "email" ? "PAR EMAIL" : pc.mode === "upload" ? "À TÉLÉVERSER" : "TÉLÉVERSER OU EMAIL"}
-                    </span>
-                  </div>
-                ))}
+                {pieces.map((pc) => {
+                  const coursLie = pc.cours_id ? cours.find((c) => c.id === pc.cours_id) : null;
+                  return (
+                    <div key={pc.id} className="flex items-center justify-between gap-3 px-5 py-3 text-[14px]">
+                      <span>
+                        {pc.label}{pc.obligatoire ? " *" : ""}
+                        {coursLie ? (
+                          <span className="mono ml-2 text-[10px] uppercase tracking-wider" style={{ color: accent }}>
+                            {coursLie.nom} uniquement
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
+                        {pc.mode === "email" ? "PAR EMAIL" : pc.mode === "upload" ? "À TÉLÉVERSER" : "TÉLÉVERSER OU EMAIL"}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
               <p className="mono mt-2 text-[11px] text-ink-faint">À déposer dans votre espace adhérent après inscription.</p>
             </fieldset>
@@ -120,6 +130,9 @@ export default async function InscriptionPage({
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
               <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
+              {org.form_config?.paiement?.troisFois ? (
+                <Radio name="mode" value="en_ligne_3x" label="En ligne — 3 mensualités" hint="3 prélèvements, un par mois." />
+              ) : null}
               <Radio name="mode" value="cheque" label="Par chèque" hint="À remettre au club." />
               <Radio name="mode" value="especes" label="En espèces" hint="À remettre au club." />
             </div>

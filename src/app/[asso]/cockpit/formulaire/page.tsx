@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import FormBuilder from "./FormBuilder";
 import type { FormConfig } from "@/types/form";
@@ -14,5 +14,14 @@ export default async function Page({ params }: { params: { asso: string } }) {
     redirect(`/connexion?next=/${org.slug}/cockpit/formulaire`);
   }
   const config: FormConfig = org.form_config ?? { pages: [], pieces: [] };
-  return <FormBuilder slug={org.slug} nom={org.nom} initial={config} />;
+  const cours = await getCoursByOrganisation(org.id);
+  return (
+    <FormBuilder
+      slug={org.slug}
+      nom={org.nom}
+      initial={config}
+      cours={cours.map((c) => ({ id: c.id, nom: c.nom }))}
+      stripeConnecte={!!org.stripe_account_id}
+    />
+  );
 }

@@ -66,6 +66,36 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
         ) : null}
       </div>
 
+      {/* RESPONSABLE LÉGAL — affiché automatiquement quand l'adhérent est mineur */}
+      {naissance && type === "mineur" ? (
+        <div className="mt-4 border border-line bg-paper px-5 py-4">
+          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
+            RESPONSABLE LÉGAL<span style={{ color: accent }}>_</span>
+          </p>
+          <p className="mono mt-2 text-[11px] text-ink-faint">
+            L&apos;adhérent est mineur : merci de renseigner l&apos;identité d&apos;un parent ou représentant légal.
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">PRÉNOM *</label>
+              <input name="resp_prenom" required className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+            </div>
+            <div>
+              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">NOM *</label>
+              <input name="resp_nom" required className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+            </div>
+            <div>
+              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">EMAIL *</label>
+              <input name="resp_email" type="email" required className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+            </div>
+            <div>
+              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">TÉLÉPHONE *</label>
+              <input name="resp_tel" type="tel" required className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* QUESTIONS */}
       {naissance ? (
         <div className="mt-4 border border-line bg-paper">

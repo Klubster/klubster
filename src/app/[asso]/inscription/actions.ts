@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
-import { stripeConfigured, createCheckoutForClub } from "@/lib/stripe";
+import { stripeConfigured, createCheckoutForClub, createCheckout3xForClub } from "@/lib/stripe";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -28,6 +28,17 @@ export async function inscrireAdherent(formData: FormData) {
     }
   }
 
+  // Responsable légal (affiché automatiquement quand l'adhérent est mineur)
+  const respPrenom = String(formData.get("resp_prenom") ?? "").trim();
+  const respNom = String(formData.get("resp_nom") ?? "").trim();
+  const respEmail = String(formData.get("resp_email") ?? "").trim();
+  const respTel = String(formData.get("resp_tel") ?? "").trim();
+  if (respPrenom || respNom) {
+    infos["Responsable légal"] = [respPrenom, respNom].filter(Boolean).join(" ");
+    if (respEmail) infos["Responsable légal — email"] = respEmail;
+    if (respTel) infos["Responsable légal — téléphone"] = respTel;
+  }
+
   const supabase = createSupabaseServerClient();
 
   // Compte adhérent (mot de passe)
@@ -51,7 +62,7 @@ export async function inscrireAdherent(formData: FormData) {
     p_tel: tel,
     p_cours_id: coursId || null,
     p_infos: infos,
-    p_mode: mode,
+    p_mode: mode === "en_ligne_3x" ? "en_ligne" : mode,
   });
   if (error || !adhesionId) {
     console.error("register_adherent_full", error?.message);
@@ -82,19 +93,25 @@ export async function inscrireAdherent(formData: FormData) {
   }
 
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
-  if (mode === "en_ligne" && org.stripe_account_id && stripeConfigured()) {
+  const enLigne = mode === "en_ligne" || mode === "en_ligne_3x";
+  const troisFoisActif = org.form_config?.paiement?.troisFois === true;
+  if (enLigne && org.stripe_account_id && stripeConfigured()) {
     const { data: cours } = await supabase.from("cours").select("nom, tarif_centimes").eq("id", coursId).maybeSingle();
     if (cours) {
+      const optsCommunes = {
+        clubAccount: org.stripe_account_id,
+        coursNom: (cours as { nom: string }).nom,
+        montantCentimes: (cours as { tarif_centimes: number }).tarif_centimes,
+        successUrl: `${BASE}/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paye=1`,
+        cancelUrl: `${BASE}/${slug}/inscription?annule=1`,
+        adhesionId: String(adhesionId),
+        clientEmail: email || null,
+      };
       try {
-        const session = await createCheckoutForClub({
-          clubAccount: org.stripe_account_id,
-          coursNom: (cours as { nom: string }).nom,
-          montantCentimes: (cours as { tarif_centimes: number }).tarif_centimes,
-          successUrl: `${BASE}/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paye=1`,
-          cancelUrl: `${BASE}/${slug}/inscription?annule=1`,
-          adhesionId: String(adhesionId),
-          clientEmail: email || null,
-        });
+        const session =
+          mode === "en_ligne_3x" && troisFoisActif
+            ? await createCheckout3xForClub(optsCommunes)
+            : await createCheckoutForClub(optsCommunes);
         if (session?.url) redirect(session.url as string);
       } catch (e) {
         console.error("stripe checkout", e);

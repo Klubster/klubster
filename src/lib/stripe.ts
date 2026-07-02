@@ -106,7 +106,89 @@ export async function createCheckoutForClub(opts: {
   );
 }
 
-export function verifyWebhook(rawBody: string, sigHeader: string | null, secret: string): { type: string; data: { object: Record<string, unknown> } } | null {
+// Paiement en 3 fois : abonnement mensuel de 3 échéances (borné puis annulé via webhook).
+// ⚠️ Stripe facture des frais à chaque prélèvement — avertissement affiché au club dans l'Atelier.
+export async function createCheckout3xForClub(opts: {
+  clubAccount: string;
+  coursNom: string;
+  montantCentimes: number;
+  successUrl: string;
+  cancelUrl: string;
+  adhesionId: string;
+  clientEmail?: string | null;
+}) {
+  const mensualite = Math.round(opts.montantCentimes / 3);
+  return call(
+    "POST",
+    "/checkout/sessions",
+    {
+      mode: "subscription",
+      success_url: opts.successUrl,
+      cancel_url: opts.cancelUrl,
+      customer_email: opts.clientEmail ?? undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: mensualite,
+            recurring: { interval: "month" },
+            product_data: { name: `Cotisation — ${opts.coursNom} (3 mensualités)` },
+          },
+        },
+      ],
+      subscription_data: { metadata: { adhesion_id: opts.adhesionId, echeances: "3" } },
+      metadata: { adhesion_id: opts.adhesionId, echeances: "3" },
+    },
+    opts.clubAccount
+  );
+}
+
+// Après le checkout 3x : borne l'abonnement à exactement 3 échéances, puis annulation automatique.
+export async function planifier3Echeances(subscriptionId: string, clubAccount: string) {
+  const schedule = (await call(
+    "POST",
+    "/subscription_schedules",
+    { from_subscription: subscriptionId },
+    clubAccount
+  )) as { id: string; phases?: Array<{ items?: Array<{ price?: string; quantity?: number }>; start_date?: number }> };
+
+  const phase = schedule.phases?.[0];
+  const item = phase?.items?.[0];
+  if (!item?.price) return;
+
+  await call(
+    "POST",
+    `/subscription_schedules/${schedule.id}`,
+    {
+      end_behavior: "cancel",
+      phases: [
+        {
+          start_date: phase?.start_date,
+          iterations: 3,
+          items: [{ price: item.price, quantity: item.quantity ?? 1 }],
+        },
+      ],
+    },
+    clubAccount
+  );
+}
+
+// Retrouve les métadonnées d'un abonnement (webhook facture → adhesion_id).
+export async function getSubscription(subscriptionId: string, clubAccount: string) {
+  return call("GET", `/subscriptions/${subscriptionId}`, undefined, clubAccount) as Promise<{
+    id: string;
+    metadata?: Record<string, string>;
+  }>;
+}
+
+export interface StripeEvent {
+  type: string;
+  account?: string; // présent pour les événements Connect (compte du club)
+  data: { object: Record<string, unknown> };
+}
+
+export function verifyWebhook(rawBody: string, sigHeader: string | null, secret: string): StripeEvent | null {
   if (!sigHeader) return null;
   const parts: Record<string, string> = {};
   for (const seg of sigHeader.split(",")) {

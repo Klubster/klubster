@@ -20,7 +20,19 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
 
 const TYPES: ChampType[] = ["texte", "zone", "date", "tel", "nombre", "choix", "case"];
 
-export default function FormBuilder({ slug, nom, initial }: { slug: string; nom: string; initial: FormConfig }) {
+export default function FormBuilder({
+  slug,
+  nom,
+  initial,
+  cours = [],
+  stripeConnecte = false,
+}: {
+  slug: string;
+  nom: string;
+  initial: FormConfig;
+  cours?: { id: string; nom: string }[];
+  stripeConnecte?: boolean;
+}) {
   const [config, setConfig] = useState<FormConfig>(initial.pages || initial.pieces ? initial : { pages: [], pieces: [] });
   const [state, setState] = useState<"idle" | "saving" | "ok" | "err">("idle");
 
@@ -149,6 +161,17 @@ export default function FormBuilder({ slug, nom, initial }: { slug: string; nom:
                   <option value="email">Par email</option>
                   <option value="deux">Les deux</option>
                 </select>
+                <select
+                  value={pc.cours_id ?? ""}
+                  onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, cours_id: e.target.value || null } : p)))}
+                  className="border border-line bg-paper px-2 py-2 text-[13px] outline-none focus:border-ink"
+                  title="Cette pièce n'est demandée que pour ce cours"
+                >
+                  <option value="">Tous les cours</option>
+                  {cours.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nom} uniquement</option>
+                  ))}
+                </select>
                 <label className="mono flex items-center gap-1.5 text-[11px] text-ink-soft">
                   <input type="checkbox" checked={pc.obligatoire} onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, obligatoire: e.target.checked } : p)))} />
                   OBLIGATOIRE
@@ -165,6 +188,40 @@ export default function FormBuilder({ slug, nom, initial }: { slug: string; nom:
           >
             + AJOUTER UNE PIÈCE
           </button>
+        </div>
+
+        {/* PAIEMENT */}
+        <div className="mt-14">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<Cur /></p>
+          <div className="mt-6 border border-line bg-paper px-5 py-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={config.paiement?.troisFois === true}
+                onChange={(e) => setConfig((c) => ({ ...c, paiement: { ...c.paiement, troisFois: e.target.checked } }))}
+                className="mt-1"
+              />
+              <span>
+                <span className="text-[15px] font-medium">Proposer le paiement en 3 fois (en ligne)</span>
+                <span className="mt-1 block text-[13px] text-ink-soft">
+                  Trois prélèvements mensuels par carte bancaire, gérés automatiquement.
+                </span>
+              </span>
+            </label>
+            {config.paiement?.troisFois ? (
+              <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#B8860B" }}>
+                ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
+                transaction pour une carte européenne). En 3 fois, la part fixe des frais est donc
+                prélevée trois fois : le club perçoit un peu moins qu&apos;en paiement unique.
+              </p>
+            ) : null}
+            {!stripeConnecte ? (
+              <p className="mono mt-3 text-[11px] text-ink-faint">
+                Stripe n&apos;est pas encore connecté : cette option ne s&apos;affichera aux adhérents
+                qu&apos;une fois Stripe connecté depuis Aujourd&apos;hui_.
+              </p>
+            ) : null}
+          </div>
         </div>
 
         {/* SAVE */}
