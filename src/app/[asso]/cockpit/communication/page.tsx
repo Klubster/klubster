@@ -50,14 +50,21 @@ export default async function MessageriePage({ params }: { params: { asso: strin
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MESSAGERIE — {org.nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Écrire à vos adhérents.</h1>
         <p className="mt-3 text-ink-soft">
-          Choisissez un groupe, écrivez votre message : Klubster prépare l’email et l’ouvre dans votre messagerie,
-          les adhérents en copie cachée.
+          {process.env.RESEND_API_KEY
+            ? "Choisissez un groupe, écrivez votre message : Klubster l'envoie à chaque adhérent, individuellement."
+            : "Choisissez un groupe, écrivez votre message : Klubster prépare l'email et l'ouvre dans votre messagerie, les adhérents en copie cachée."}
         </p>
 
         {membres.length === 0 ? (
           <p className="mono mt-8 text-[12px] text-ink-soft">Aucun adhérent avec un email pour le moment.</p>
         ) : (
-          <Communication membres={membres} cours={cours} contactEmail={org.email_contact} />
+          <Communication
+            membres={membres}
+            cours={cours}
+            contactEmail={org.email_contact}
+            slug={org.slug}
+            envoiDirect={!!process.env.RESEND_API_KEY}
+          />
         )}
       </div>
     </main>

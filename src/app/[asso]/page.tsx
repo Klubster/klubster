@@ -322,7 +322,7 @@ export default async function VitrinePage({
             <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-faint hover:text-ink">
               Admin
             </Link>
-            <a href="https://klubster.vercel.app" className="mono text-[12px] text-ink-soft hover:text-ink">
+            <a href="https://klubster.fr" className="mono text-[12px] text-ink-soft hover:text-ink">
               Créé avec <span className="font-logo font-semibold text-ink">k<span className="cur">_</span></span>
             </a>
           </div>

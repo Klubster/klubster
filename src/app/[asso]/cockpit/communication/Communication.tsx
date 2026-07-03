@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { envoyerMessage } from "./actions";
 
 type Membre = { email: string; coursIds: string[] };
 type Cours = { id: string; nom: string };
@@ -9,15 +10,21 @@ export default function Communication({
   membres,
   cours,
   contactEmail,
+  slug,
+  envoiDirect,
 }: {
   membres: Membre[];
   cours: Cours[];
   contactEmail: string | null;
+  slug: string;
+  envoiDirect: boolean; // RESEND_API_KEY configurée côté serveur
 }) {
   const [groupe, setGroupe] = useState<string>("tous");
   const [objet, setObjet] = useState("");
   const [message, setMessage] = useState("");
   const [copie, setCopie] = useState(false);
+  const [envoi, setEnvoi] = useState<{ ok: boolean; texte: string } | null>(null);
+  const [enCours, startTransition] = useTransition();
 
   const emails = useMemo(() => {
     const list = groupe === "tous" ? membres : membres.filter((m) => m.coursIds.includes(groupe));
@@ -30,7 +37,24 @@ export default function Communication({
     `&subject=${encodeURIComponent(objet)}` +
     `&body=${encodeURIComponent(message)}`;
 
-  const trop = emails.length > 80;
+  const pret = emails.length > 0 && objet.trim().length > 0 && message.trim().length > 0;
+
+  function envoyer() {
+    setEnvoi(null);
+    startTransition(async () => {
+      const res = await envoyerMessage(slug, groupe, objet, message);
+      if (res.ok) {
+        setEnvoi({
+          ok: true,
+          texte: `✓ Message envoyé à ${res.envoyes} adhérent${res.envoyes > 1 ? "s" : ""}${res.erreur ? ` — ${res.erreur}` : ""}`,
+        });
+        setObjet("");
+        setMessage("");
+      } else {
+        setEnvoi({ ok: false, texte: res.erreur ?? "L'envoi a échoué." });
+      }
+    });
+  }
 
   async function copier() {
     try {
@@ -78,10 +102,31 @@ export default function Communication({
         />
       </div>
 
+      {envoi ? (
+        <p className="mono text-[12px]" style={{ color: envoi.ok ? "#279B65" : "#B23B3B" }}>{envoi.texte}</p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-4">
+        {envoiDirect ? (
+          <button
+            onClick={envoyer}
+            disabled={!pret || enCours}
+            className="mono bg-brand px-6 py-3 text-[12px] text-white hover:opacity-90 disabled:opacity-40"
+          >
+            {enCours ? "ENVOI…" : "ENVOYER MAINTENANT →"}
+          </button>
+        ) : null}
         <a
           href={emails.length ? mailto : undefined}
-          className={`mono px-6 py-3 text-[12px] ${emails.length ? "bg-brand text-white hover:opacity-90" : "pointer-events-none bg-bg-alt text-ink-faint"}`}
+          className={`mono px-6 py-3 text-[12px] ${
+            envoiDirect
+              ? emails.length
+                ? "border border-ink hover:bg-ink hover:text-paper"
+                : "pointer-events-none border border-line text-ink-faint"
+              : emails.length
+                ? "bg-brand text-white hover:opacity-90"
+                : "pointer-events-none bg-bg-alt text-ink-faint"
+          }`}
         >
           OUVRIR MON EMAIL →
         </a>
@@ -91,8 +136,17 @@ export default function Communication({
       </div>
 
       <p className="mono text-[11px] leading-relaxed text-ink-faint">
-        L’email s’ouvre dans votre messagerie, adresses en copie cachée (Cci) — personne ne voit les autres.
-        {trop ? " Au-delà de ~80 destinataires, certaines messageries tronquent la liste : utilisez « copier les adresses »." : ""}
+        {envoiDirect ? (
+          <>
+            « Envoyer maintenant » expédie un email individuel à chaque adhérent depuis clubs@klubster.fr —
+            les réponses arrivent {contactEmail ? `sur ${contactEmail}` : "sur l'email du club"}.
+            En dépannage, « Ouvrir mon email » passe par votre messagerie (Cci).
+          </>
+        ) : (
+          <>
+            L&apos;email s&apos;ouvre dans votre messagerie, adresses en copie cachée (Cci) — personne ne voit les autres.
+          </>
+        )}
       </p>
     </div>
   );
