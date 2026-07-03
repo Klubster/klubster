@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { stripeConfigured, createCheckoutForClub, createCheckout3xForClub } from "@/lib/stripe";
+import { envoyerEmail } from "@/lib/resend";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -96,11 +97,58 @@ export async function inscrireAdherent(formData: FormData) {
     if (qErr) console.error("enregistrer_questionnaire_sante", qErr.message);
   }
 
+  // Cours choisi (pour les emails de confirmation et le paiement en ligne)
+  const { data: coursChoisi } = await supabase.from("cours").select("nom, tarif_centimes").eq("id", coursId).maybeSingle();
+  const coursNom = (coursChoisi as { nom: string } | null)?.nom ?? "Cours";
+  const tarifCentimes = (coursChoisi as { tarif_centimes: number } | null)?.tarif_centimes ?? 0;
+
+  // Emails de confirmation (non bloquants — l'inscription est déjà enregistrée)
+  const libelleMode =
+    mode === "en_ligne_3x" ? "En ligne — 3 mensualités (carte bancaire)"
+    : mode === "en_ligne" ? "En ligne (carte bancaire)"
+    : mode === "cheque" ? "Par chèque, à remettre au club"
+    : "En espèces, à remettre au club";
+  try {
+    if (email) {
+      await envoyerEmail({
+        to: email,
+        fromNom: `${org.nom} via Klubster`,
+        replyTo: org.email_contact,
+        objet: `Votre inscription — ${org.nom}`,
+        texte:
+          `Bonjour ${prenom},\n\n` +
+          `Votre inscription au ${org.nom} est bien enregistrée.\n\n` +
+          `Cours : ${coursNom}\n` +
+          `Cotisation : ${(tarifCentimes / 100).toLocaleString("fr-FR")} € / an\n` +
+          `Règlement : ${libelleMode}\n\n` +
+          `Votre espace adhérent (dossier, pièces à déposer, carte de membre) :\n` +
+          `${BASE}/${slug}/espace\n\n` +
+          `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).\n\n` +
+          `Sportivement,\n${org.nom}`,
+      });
+    }
+    if (org.email_contact) {
+      await envoyerEmail({
+        to: org.email_contact,
+        objet: `Nouvelle inscription — ${prenom} ${nom}`,
+        texte:
+          `Une nouvelle inscription vient d'arriver au ${org.nom} :\n\n` +
+          `${prenom} ${nom}\n` +
+          `Cours : ${coursNom}\n` +
+          `Règlement : ${libelleMode}\n\n` +
+          `À retrouver dans votre cockpit :\n${BASE}/${slug}/cockpit\n\n` +
+          `— Klubster`,
+      });
+    }
+  } catch (e) {
+    console.error("emails inscription", e);
+  }
+
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
   const enLigne = mode === "en_ligne" || mode === "en_ligne_3x";
   const troisFoisActif = org.form_config?.paiement?.troisFois === true;
   if (enLigne && org.stripe_account_id && stripeConfigured()) {
-    const { data: cours } = await supabase.from("cours").select("nom, tarif_centimes").eq("id", coursId).maybeSingle();
+    const cours = coursChoisi;
     if (cours) {
       const optsCommunes = {
         clubAccount: org.stripe_account_id,

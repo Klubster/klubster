@@ -1,6 +1,9 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { envoyerEmail } from "@/lib/resend";
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 import { getTemplate, getMode } from "@/lib/themes";
 
 export interface CreneauInput {
@@ -91,6 +94,29 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
         }
       }
     }
+  }
+
+  // Email de bienvenue au président (non bloquant).
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    const emailPresident = u.user?.email;
+    if (emailPresident) {
+      await envoyerEmail({
+        to: emailPresident,
+        objet: `${nom} est en ligne`,
+        texte:
+          `Bonjour,\n\n` +
+          `Votre club est en ligne. Voici vos trois adresses :\n\n` +
+          `Le site de votre club :\n${BASE}/${slug}\n\n` +
+          `Votre cockpit (l'état du club, chaque jour) :\n${BASE}/${slug}/cockpit\n\n` +
+          `Le lien d'inscription à partager à vos adhérents :\n${BASE}/${slug}/inscription\n\n` +
+          `Prochaines étapes, quand vous voulez : connectez Stripe depuis le cockpit pour encaisser en ligne (0 % de commission), ` +
+          `ajustez votre page avec le bouton Modifier, et partagez le lien d'inscription.\n\n` +
+          `Bonne saison,\nKlubster — klubster.fr`,
+      });
+    }
+  } catch (e) {
+    console.error("email bienvenue", e);
   }
 
   redirect(`/${slug}`);

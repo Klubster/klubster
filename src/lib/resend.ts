@@ -13,6 +13,34 @@ export interface EnvoiResultat {
   erreur?: string;
 }
 
+// Email transactionnel simple (confirmation d'inscription, notification club, bienvenue…).
+export async function envoyerEmail(opts: {
+  to: string;
+  objet: string;
+  texte: string;
+  fromNom?: string; // ex. le nom du club — défaut : Klubster
+  replyTo?: string | null;
+}): Promise<boolean> {
+  if (!KEY) return false;
+  const from = `${(opts.fromNom ?? "Klubster").replace(/["<>]/g, "").slice(0, 60)} <inscriptions@klubster.fr>`;
+  try {
+    const res = await fetch(`${API}/emails`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [opts.to],
+        subject: opts.objet,
+        text: opts.texte,
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // Envoie le même message à chaque destinataire (un email individuel par adhérent,
 // personne ne voit les autres). Batch API : 100 emails max par appel.
 export async function envoyerAuxAdherents(opts: {
