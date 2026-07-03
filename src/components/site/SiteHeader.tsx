@@ -6,7 +6,7 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4 md:px-8">
-        <Link href={`/${org.slug}`} className="flex items-center gap-2.5">
+        <Link href={`/${org.slug}`} className="flex min-w-0 items-center gap-2.5">
           {org.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={org.logo_url} alt={org.nom} className="h-7 w-7 object-cover" />
@@ -19,7 +19,7 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
               {org.nom.charAt(0)}
             </span>
           )}
-          <span className="mono text-[14px] font-bold tracking-tight">{org.nom}</span>
+          <span className="mono truncate text-[14px] font-bold tracking-tight">{org.nom}</span>
         </Link>
         <nav className="mono hidden items-center gap-6 text-[12px] tracking-wide text-ink-soft md:flex">
           <a href="#presentation" className="hover:text-ink">Le club</a>
@@ -28,7 +28,7 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
           <a href="#tarifs" className="hover:text-ink">Tarifs</a>
           <a href="#contact" className="hover:text-ink">Contact</a>
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {estAdmin ? (
             <>
               <Link

@@ -88,7 +88,7 @@ export default async function VitrinePage({
             {cours.length === 0 ? (
               <p className="mt-8 text-ink-soft">Les cours seront bientôt en ligne.</p>
             ) : (
-              <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line lg:grid-cols-3">
+              <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
                 {cours.map((c, i) => (
                   <div key={c.id} className="flex flex-col bg-paper px-6 py-7" style={{ minHeight: 168 }}>
                     <span className="mono text-[10px] tracking-wider text-ink-faint">

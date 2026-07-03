@@ -75,27 +75,28 @@ export default async function Cockpit({
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
-        <div className="flex items-center gap-5">
-          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">{org.nom}</span>
+        <div className="flex min-w-0 items-center gap-5">
+          <span className="mono hidden truncate text-[11px] uppercase tracking-label text-ink-soft sm:block">{org.nom}</span>
           <form action={deconnexion}>
-            <button className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">DÉCONNEXION</button>
+            <button className="mono whitespace-nowrap text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">DÉCONNEXION</button>
           </form>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
-        <nav className="border-b border-line px-6 py-6 md:border-b-0 md:border-r md:px-7">
+        {/* Nav : colonne sur desktop, rail horizontal scrollable sur mobile */}
+        <nav className="flex gap-5 overflow-x-auto border-b border-line px-6 py-4 md:block md:border-b-0 md:border-r md:px-7 md:py-6">
           {NAV.map((item) => (
             <Link
               key={item.n}
               href={item.href}
-              className={`mono block py-[10px] text-[12px] tracking-wide ${item.actif ? "font-bold text-ink" : "text-ink-soft hover:text-ink"}`}
+              className={`mono whitespace-nowrap py-[10px] text-[12px] tracking-wide md:block ${item.actif ? "font-bold text-ink" : "text-ink-soft hover:text-ink"}`}
             >
               {item.n} {item.label}
               {item.actif ? <Cur /> : <span className="text-ink-faint">_</span>}
             </Link>
           ))}
-          <div className="mono mt-6 border-t border-line pt-5">
+          <div className="mono mt-6 hidden border-t border-line pt-5 md:block">
             <div className="text-[10px] uppercase tracking-label text-ink-soft">TRÉSORERIE</div>
             <div className="mt-2 text-[12px] text-brand">✓ reversée direct</div>
             <div className="mt-0.5 text-[11px] text-ink-faint">0 % commission</div>

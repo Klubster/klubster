@@ -17,9 +17,9 @@ export default function CockpitPreview() {
         <span className="mono text-[10px] uppercase tracking-label text-ink-faint">klubster.fr/mon-club/cockpit</span>
       </div>
 
-      <div className="grid grid-cols-[128px_1fr] md:grid-cols-[168px_1fr]">
-        {/* sidebar */}
-        <nav className="bg-ink px-3 py-4 text-paper md:px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-[128px_1fr] md:grid-cols-[168px_1fr]">
+        {/* sidebar — masquée sur mobile pour laisser la scène respirer */}
+        <nav className="hidden bg-ink px-3 py-4 text-paper sm:block md:px-4">
           {NAV.map((item, i) => (
             <div key={item} className={`mono py-[6px] text-[11px] ${i === 0 ? "font-bold text-paper" : "text-paper/45"}`}>
               {String(i + 1).padStart(2, "0")} {item}

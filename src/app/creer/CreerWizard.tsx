@@ -176,7 +176,7 @@ export default function CreerWizard() {
               <div className="mono text-[10px]" style={{ color: i <= etape ? "#279B65" : undefined }}>
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div className="mono mt-1 truncate text-[9px] uppercase tracking-wider text-ink-soft">{label}</div>
+              <div className="mono mt-1 hidden truncate text-[9px] uppercase tracking-wider text-ink-soft sm:block">{label}</div>
             </button>
           ))}
         </div>
@@ -368,7 +368,7 @@ export default function CreerWizard() {
               <div className="mt-8 space-y-4">
                 {cours.map((c, i) => (
                   <div key={i} className="border border-line">
-                    <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-[1fr_1fr_110px_44px]">
+                    <div className="grid grid-cols-[1fr_90px_44px] gap-px bg-line sm:grid-cols-[1fr_1fr_110px_44px]">
                       <input
                         value={c.nom}
                         onChange={(e) => majCours(i, { nom: e.target.value })}
@@ -379,7 +379,7 @@ export default function CreerWizard() {
                         value={c.public_cible}
                         onChange={(e) => majCours(i, { public_cible: e.target.value })}
                         placeholder="Public — ex. 12-17 ans"
-                        className="bg-paper px-4 py-3 outline-none focus:bg-bg-alt"
+                        className="order-last col-span-3 bg-paper px-4 py-3 outline-none focus:bg-bg-alt sm:order-none sm:col-span-1"
                       />
                       <input
                         value={c.tarif}
