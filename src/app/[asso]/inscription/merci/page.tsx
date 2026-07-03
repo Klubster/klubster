@@ -21,6 +21,7 @@ export default async function MerciPage({
   const reglement =
     mode === "cheque" ? "Règlement par chèque : à remettre au club."
     : mode === "especes" ? "Règlement en espèces : à remettre au club."
+    : mode === "en_ligne" && !paye ? "Paiement en ligne non finalisé : vous pourrez régler auprès du club."
     : null;
 
   return (

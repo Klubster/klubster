@@ -39,8 +39,14 @@ export default async function InscriptionPage({
           et voir votre carte de membre.
         </p>
 
-        {searchParams?.erreur === "compte" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Un compte existe déjà avec cet email, ou le mot de passe est trop court (6 caractères min).</p>
+        {searchParams?.erreur === "compte_existant" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            Un compte existe déjà avec cet email. Connectez-vous à votre espace adhérent, ou utilisez une autre adresse.
+          </p>
+        ) : searchParams?.erreur === "compte" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe (6 caractères minimum), puis réessayez dans quelques minutes.
+          </p>
         ) : searchParams?.erreur ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
         ) : null}
@@ -52,10 +58,10 @@ export default async function InscriptionPage({
           <fieldset>
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">IDENTITÉ<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
-              <Field label="PRÉNOM" name="prenom" required />
-              <Field label="NOM" name="nom" required />
-              <Field label="EMAIL" name="email" type="email" required />
-              <Field label="TÉLÉPHONE" name="tel" type="tel" />
+              <Field label="PRÉNOM" name="prenom" required autoComplete="given-name" />
+              <Field label="NOM" name="nom" required autoComplete="family-name" />
+              <Field label="EMAIL" name="email" type="email" required autoComplete="email" />
+              <Field label="TÉLÉPHONE" name="tel" type="tel" autoComplete="tel" />
             </div>
           </fieldset>
 
@@ -129,11 +135,16 @@ export default async function InscriptionPage({
           <fieldset>
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
-              <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
-              {org.form_config?.paiement?.troisFois ? (
-                <Radio name="mode" value="en_ligne_3x" label="En ligne — 3 mensualités" hint="3 prélèvements, un par mois." />
+              {/* Le paiement en ligne n'est proposé que si le club a connecté Stripe. */}
+              {org.stripe_account_id ? (
+                <>
+                  <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
+                  {org.form_config?.paiement?.troisFois ? (
+                    <Radio name="mode" value="en_ligne_3x" label="En ligne — 3 mensualités" hint="3 prélèvements, un par mois." />
+                  ) : null}
+                </>
               ) : null}
-              <Radio name="mode" value="cheque" label="Par chèque" hint="À remettre au club." />
+              <Radio name="mode" value="cheque" defaultChecked={!org.stripe_account_id} label="Par chèque" hint="À remettre au club." />
               <Radio name="mode" value="especes" label="En espèces" hint="À remettre au club." />
             </div>
           </fieldset>
@@ -148,11 +159,11 @@ export default async function InscriptionPage({
   );
 }
 
-function Field({ label, name, type = "text", required }: { label: string; name: string; type?: string; required?: boolean }) {
+function Field({ label, name, type = "text", required, autoComplete }: { label: string; name: string; type?: string; required?: boolean; autoComplete?: string }) {
   return (
     <div className="bg-paper px-5 py-4">
       <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
-      <input name={name} type={type} required={required} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+      <input name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
     </div>
   );
 }

@@ -129,6 +129,8 @@ export default async function Cockpit({
               <Point etat={s.enRetard > 0 ? "urgent" : "ok"}>
                 {s.enRetard > 0 ? (
                   <>{s.enRetard} cotisation{s.enRetard > 1 ? "s" : ""} en retard</>
+                ) : s.enAttente > 0 ? (
+                  <>Aucune cotisation en retard</>
                 ) : (
                   <>Tous les paiements sont à jour</>
                 )}

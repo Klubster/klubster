@@ -59,7 +59,7 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
     p_adresse: input.adresse ?? "",
     p_email: input.email ?? "",
     p_tel: input.tel ?? "",
-    p_accroche: "Une association ouverte à toutes et à tous.",
+    p_accroche: "", // pas d'accroche générique : le hero affiche le nom du club (modifiable ensuite)
     p_slug_base: slugBase,
     p_cours: cours,
   });

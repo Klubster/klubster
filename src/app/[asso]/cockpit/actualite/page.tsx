@@ -28,7 +28,7 @@ export default async function ActualitePage({
   return (
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
-        <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← COCKPIT</Link>
+        <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← AUJOURD&apos;HUI</Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">ATELIER · ACTUALITÉ<Cur /></span>
       </header>
 

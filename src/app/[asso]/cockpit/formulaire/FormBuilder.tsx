@@ -55,7 +55,7 @@ export default function FormBuilder({
   return (
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
-        <Link href={`/${slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← COCKPIT</Link>
+        <Link href={`/${slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← AUJOURD&apos;HUI</Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">FORMULAIRE D&apos;INSCRIPTION<Cur /></span>
       </header>
 

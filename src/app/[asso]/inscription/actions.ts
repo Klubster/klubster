@@ -50,6 +50,10 @@ export async function inscrireAdherent(formData: FormData) {
       options: { data: { prenom, nom, role: "adherent" }, emailRedirectTo: `${BASE}/auth/callback` },
     });
     if (error) redirect(`/${slug}/inscription?erreur=compte`);
+    // Email déjà enregistré : Supabase renvoie un faux utilisateur (anti-énumération, identities vides).
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      redirect(`/${slug}/inscription?erreur=compte_existant`);
+    }
     userId = data.user?.id ?? null;
   }
 

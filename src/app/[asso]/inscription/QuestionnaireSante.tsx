@@ -31,6 +31,9 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
   });
   const resultat = resultatDe(reponsesTexte);
   const qualite = type === "mineur" ? "representant_legal" : "adherent";
+  // L'attestation et la signature n'apparaissent qu'une fois TOUTES les questions répondues.
+  const nbRepondues = Object.keys(reponses).length;
+  const toutRepondu = questions.length > 0 && nbRepondues === questions.length;
 
   return (
     <fieldset>
@@ -133,8 +136,16 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
         </div>
       ) : null}
 
+      {/* PROGRESSION — tant que tout n'est pas répondu, pas d'attestation ni de signature */}
+      {naissance && !toutRepondu ? (
+        <p className="mono mt-4 text-[11px] uppercase tracking-label text-ink-soft">
+          {nbRepondues}/{questions.length} réponses — répondez à toutes les questions pour signer
+          <span style={{ color: accent }}>_</span>
+        </p>
+      ) : null}
+
       {/* RÉSULTAT */}
-      {naissance ? (
+      {naissance && toutRepondu ? (
         <div className="mt-4 border border-line px-5 py-4" style={{ borderLeftWidth: 3, borderLeftColor: accent }}>
           <p className="text-[14px] leading-relaxed">{texteAttestation(type, resultat)}</p>
           {resultat === "certificat_requis" ? (
@@ -146,7 +157,7 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
       ) : null}
 
       {/* SIGNATURE */}
-      {naissance ? (
+      {naissance && toutRepondu ? (
         <div className="mt-4 border border-line bg-paper px-5 py-4">
           <label className="mono text-[10px] uppercase tracking-label text-ink-soft">
             {type === "mineur" ? "NOM DU REPRÉSENTANT LÉGAL *" : "NOM ET PRÉNOM *"}

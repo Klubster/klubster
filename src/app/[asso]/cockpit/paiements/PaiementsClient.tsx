@@ -45,7 +45,10 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
     startTransition(async () => {
       const res = await enregistrerReglement(slug, l.id, montantCentimes, mode);
       if (!res.ok) setErreur(res.error ?? "Erreur.");
-      else router.refresh();
+      else {
+        setSaisie((s) => ({ ...s, [l.id]: "" })); // évite un double encaissement par relance du bouton
+        router.refresh();
+      }
     });
   }
 

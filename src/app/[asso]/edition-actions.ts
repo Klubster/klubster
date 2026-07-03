@@ -17,12 +17,13 @@ async function gardeAdmin(slug: string): Promise<Organisation> {
   return org;
 }
 
-async function sauver(org: Organisation, pc: ReturnType<typeof normaliserPageConfig>, slug: string) {
+async function sauver(org: Organisation, pc: ReturnType<typeof normaliserPageConfig>, slug: string, ancre?: string) {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ page_config: pc }).eq("id", org.id);
   if (error) console.error("page_config", error.message);
   revalidatePath(`/${slug}`);
-  redirect(`/${slug}?edition=1`);
+  // L'ancre ramène le président sur la section qu'il vient de toucher (pas en haut de page).
+  redirect(`/${slug}?edition=1${ancre ? `#${ancre}` : ""}`);
 }
 
 // Remonter (dir = -1) ou descendre (dir = 1) une section.
@@ -33,7 +34,7 @@ export async function deplacerSection(slug: string, cle: string, dir: number) {
   const j = i + (dir < 0 ? -1 : 1);
   if (i < 0 || j < 0 || j >= pc.ordre.length) redirect(`/${slug}?edition=1`);
   [pc.ordre[i], pc.ordre[j]] = [pc.ordre[j], pc.ordre[i]];
-  await sauver(org, pc, slug);
+  await sauver(org, pc, slug, cle);
 }
 
 // Ajouter une section personnalisée depuis un template (photo obligatoire).
@@ -70,7 +71,7 @@ export async function ajouterSection(slug: string, formData: FormData) {
   const section: SectionCustom = { id: `c${Date.now()}`, type, titre, texte, texte2, image_url: imageUrl };
   pc.custom.push(section);
   pc.ordre.push(section.id);
-  await sauver(org, pc, slug);
+  await sauver(org, pc, slug, section.id); // atterrir directement sur la section créée
 }
 
 // Upload d'une image du chapitre vers le bucket public `sections`. Renvoie l'URL publique ou null.
@@ -149,7 +150,7 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
   s.items = items;
   pc.custom.push(s);
   pc.ordre.push(s.id);
-  await sauver(org, pc, slug);
+  await sauver(org, pc, slug, s.id); // atterrir directement sur le chapitre créé
 }
 
 // Supprimer une section personnalisée.
