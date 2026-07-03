@@ -21,6 +21,7 @@ export interface Organisation {
   sport: string | null;
   theme_template: string | null; // template de design du site (src/lib/themes.ts)
   theme_mode: string | null;     // "blanc" | "noir"
+  domaine_custom: string | null; // domaine propre du club (ex. usmboxeanglaise.fr)
   logo_url: string | null;
   couleur_primaire: string | null;
   adresse: string | null;
