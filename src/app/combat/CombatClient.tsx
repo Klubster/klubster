@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 
 const LEVELS: [string, string, string][] = [
   ["LEVEL 1", "Crée ton club.", "Un nom, tes couleurs, ton identité."],
-  ["LEVEL 2", "Ajoute tes cours.", "Créneaux, tarifs et catégories, en quelques lignes."],
-  ["LEVEL 3", "Compose ta page.", "Photos, palmarès, coachs, FAQ — des blocs prêts à poser."],
-  ["LEVEL 4", "Ouvre les inscriptions.", "Ton site est en ligne. Les dossiers se remplissent seuls."],
+  ["LEVEL 2", "Publie tes cours.", "Chaque adhérent choisit les siens."],
+  ["LEVEL 3", "Montre ton club.", "Pas une page vide : photos, palmarès, coachs, FAQ."],
+  ["LEVEL 4", "Ouvre les inscriptions.", "Tu n’as plus rien à envoyer — les dossiers arrivent seuls."],
 ];
 
 const DISCIPLINES = [
@@ -17,19 +17,18 @@ const DISCIPLINES = [
 
 // HUD stats — libellé court + bénéfice réel
 const STATS: [string, string][] = [
-  ["SITE WEB", "ton site en ligne le soir même"],
-  ["INSCRIPTIONS", "elles se remplissent seules : mineurs, cours, pièces"],
-  ["PAIEMENTS", "encaissés sur le compte du club, 0 % de commission"],
-  ["PAIEMENT 3×", "en une ou trois fois, au choix du club"],
-  ["LICENCES", "certificats et licences à jour, sans relancer personne"],
-  ["PRÉSENCES", "l’appel en scannant la carte, en trois secondes"],
-  ["COMMUNICATION", "un message à tout le club, en deux clics"],
+  ["SITE", "ton site en ligne le soir même"],
+  ["INSCRIPTIONS", "elles se remplissent toutes seules"],
+  ["PAIEMENTS", "les cotisations arrivent — 0 % de commission"],
+  ["LICENCES", "plus jamais de licence oubliée"],
+  ["PRÉSENCES", "l’appel prend trois secondes"],
+  ["COMMUNICATION", "tout le club prévenu en deux clics"],
 ];
 
 const TIERS: [string, string, string][] = [
-  ["PLAYER 1", "Jusqu’à 300 adhérents", "9 €"],
-  ["PLAYER 2", "301 à 500 adhérents", "19 €"],
-  ["PLAYER 3", "Plus de 500 adhérents", "29 €"],
+  ["LIGHTWEIGHT", "Jusqu’à 300 adhérents", "9 €"],
+  ["MIDDLEWEIGHT", "301 à 500 adhérents", "19 €"],
+  ["HEAVYWEIGHT", "Plus de 500 adhérents", "29 €"],
 ];
 
 type Intro = null | "ready" | "fight" | "done";
@@ -142,10 +141,12 @@ export default function CombatClient() {
         .cmb-hero{text-align:center;padding:44px 0 8px;background:radial-gradient(120% 80% at 50% 0%,#0d1712 0%,#080c0a 70%)}
         .cmb-round{font-family:'Press Start 2P';font-size:11px;color:var(--red);letter-spacing:2px;text-shadow:0 0 8px rgba(255,77,94,.5)}
         .cmb-round b{color:var(--amb)}
-        .cmb-title{font-family:'Press Start 2P';font-size:21px;line-height:1.6;margin:18px 0 0;color:#fff;text-shadow:3px 3px 0 var(--grnd),6px 6px 0 rgba(0,0,0,.6)}
+        .cmb-title{font-family:'Press Start 2P';font-size:clamp(18px,4.6vw,30px);line-height:1.55;margin:18px 0 0;color:#fff;text-shadow:3px 3px 0 var(--grnd),6px 6px 0 rgba(0,0,0,.6)}
         .cmb-title span{color:var(--grn)}
         .cmb-hsub{font-size:19px;color:#dcebe3;font-weight:500;max-width:600px;margin:18px auto 0}
         .cmb-cta{display:inline-block;font-family:'Press Start 2P';font-size:12px;color:#081109;background:var(--grn);padding:16px 20px;box-shadow:5px 5px 0 var(--grnd)}
+        .cmb-proof{margin-top:18px;font-size:16px;color:#9fb8ab}
+        .cmb-proof b{color:var(--grn)}
         .cmb-sel{font-family:'Press Start 2P';font-size:10px;color:var(--grn);letter-spacing:2px;margin:30px 0 14px}
         .cmb-vs{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
         .cmb-fighter{font-family:inherit;text-align:left;background:#0b1410;border:2px solid #1c3327;width:288px;
@@ -228,10 +229,10 @@ export default function CombatClient() {
       <section className="cmb-hero">
         <div className="cmb-shell">
           <div className="cmb-round">◄ ROUND 1 — <b>FIGHT!</b> ►</div>
-          <h1 className="cmb-title">Tu t’occupes des <span>combattants.</span><br />Klubster s’occupe du reste.</h1>
-          <p className="cmb-hsub">Le logiciel qui gère ton club de combat : inscriptions, licences, certificats, paiements et communication.</p>
+          <h1 className="cmb-title">Tu entraînes.<br /><span>Klubster administre.</span></h1>
+          <p className="cmb-hsub">Le logiciel pensé pour les clubs de combat. Inscriptions, licences, certificats, paiements et communication.</p>
 
-          <div className="cmb-sel">— CHOISIS TON COMBATTANT·E —</div>
+          <div className="cmb-sel">— PLAYER SELECT —</div>
           <div className="cmb-vs">
             <button type="button" className="cmb-fighter" onMouseEnter={hover} onClick={select}>
               <div className="cmb-imgwrap">
@@ -260,6 +261,7 @@ export default function CombatClient() {
 
           <div style={{ marginTop: 30, paddingBottom: 8 }}>
             <Link href="/creer" className="cmb-cta cmb-blink">▶ INSÉRER UNE PIÈCE — CRÉER MON CLUB</Link>
+            <p className="cmb-proof"><b>●</b> Pas une démo — utilisé chaque semaine, sur une saison complète, à l’USM Boxe Anglaise.</p>
           </div>
         </div>
       </section>
@@ -267,7 +269,7 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell">
           <p className="cmb-kick">SELECT · 4 NIVEAUX_</p>
-          <h2 className="cmb-h2">Monte ton club, niveau par niveau.</h2>
+          <h2 className="cmb-h2">Ton club est prêt avant le prochain entraînement.</h2>
           <div className="cmb-grid">
             {LEVELS.map(([lv, t, d]) => (
               <div className="cmb-card" key={lv}>
@@ -282,7 +284,7 @@ export default function CombatClient() {
 
       <section className="cmb-sec" id="stats">
         <div className="cmb-shell">
-          <p className="cmb-kick">STATS · TOUT INCLUS_</p>
+          <p className="cmb-kick">ATTRIBUTS · TOUT INCLUS_</p>
           <h2 className="cmb-h2">Rien à débloquer. Tout est déjà au max.</h2>
           <div className="cmb-hp2">
             {STATS.map(([lab, ben]) => (
@@ -302,7 +304,7 @@ export default function CombatClient() {
         <div className="cmb-shell">
           <p className="cmb-kick">TIME ATTACK · 30:00_</p>
           <h2 className="cmb-h2">Ton club configuré en moins de 30 minutes.</h2>
-          <p className="cmb-lead">Pas de code. Pas de manuel. Pas de formation. Si tu sais remplir un formulaire, tu sais lancer ton club — inscriptions, licences, cours, paiements : tout se règle à la souris.</p>
+          <p className="cmb-lead">Tu n’as rien à apprendre. Tu remplis ton club comme tu remplirais un formulaire. Trente minutes plus tard, ton site est ouvert.</p>
           <div className="cmb-timer">30:00</div>
           <div className="cmb-badges">
             <span>✓ SANS CODE</span>
@@ -327,9 +329,9 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell cmb-quote">
           <p className="cmb-kick">QUI FAIT KLUBSTER_</p>
-          <h2 className="cmb-h2">Je n’ai pas inventé Klubster. J’en avais besoin.</h2>
+          <h2 className="cmb-h2">J’en avais besoin.</h2>
           <p className="cmb-lead">
-            Plus de quinze ans à faire vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise depuis quatre ans. Des licences à saisir, des certificats à relancer, des chèques à encaisser un mercredi soir après l’entraînement.
+            Pendant quinze ans, j’ai fait vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise depuis quatre ans. Des licences à saisir, des certificats à relancer, des chèques à encaisser un mercredi soir après l’entraînement.
           </p>
           <p className="cmb-lead">Klubster, c’est l’outil que j’aurais voulu avoir. Je l’ai construit depuis mon club — pour le mien d’abord, puis pour tous les autres.</p>
           <p className="cmb-sign">MATHIEU BOURDIEU — PRÉSIDENT-FONDATEUR, USM BOXE ANGLAISE<span className="cmb-cur">_</span></p>
