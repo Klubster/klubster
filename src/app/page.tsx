@@ -133,9 +133,9 @@ export default function Home() {
       </section>
 
       {/* I — POURQUOI (double-page, fusion) */}
-      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="I" kicker="POURQUOI" titre="Un club, ce n’est pas une base de données.">
-        <p>C’est un gymnase qu’on ouvre le soir, des bénévoles qui restent tard — souvent les mêmes, souvent seuls.</p>
-        <p>Klubster prend la part invisible (dossiers, paiements, relances) et disparaît derrière le reste.</p>
+      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="I" kicker="POURQUOI" titre="Un club n’est pas une base de données.">
+        <p>C’est une salle qu’on ouvre le soir.<br />Des bénévoles qui arrivent avant tout le monde.<br />Qui repartent après tout le monde.</p>
+        <p>Klubster s’occupe du reste.</p>
       </DoublePage>
 
       <div className="h-14 md:h-28" aria-hidden />
@@ -147,10 +147,10 @@ export default function Home() {
             <Reveal>
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — SUR LE TERRAIN<Cur /></p>
               <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
-                Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
+                Chaque fonctionnalité commence de la même façon.
               </h2>
-              <p className="mt-6 text-lg leading-relaxed text-ink">Un parent arrive sans certificat.<br />Une licence est expirée.<br />Le trésorier attend un paiement.</p>
-              <p className="mt-4 text-lg text-ink-soft">C’est là que naissent les fonctionnalités de Klubster.</p>
+              <p className="mt-6 text-lg leading-relaxed text-ink">Un mercredi soir.<br />Un parent cherche son certificat.<br />Une cotisation manque.<br />Un dossier est incomplet.</p>
+              <p className="mt-4 text-lg text-ink-soft">On rentre. On corrige. Puis on construit.<br />C’est comme ça que naît Klubster.</p>
               <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
               </p>
@@ -181,10 +181,10 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — UNE DEMI-HEURE<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Une demi-heure.<br />C’est tout.
+              Une demi-heure.<br />Pas une demi-journée.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Le bureau n’a jamais une demi-journée pour un logiciel. Tout est déjà prêt — il ne reste que l’essentiel.
+              À 18 h 30, les adhérents arrivent. Personne n’apprend un logiciel à ce moment-là. Alors Klubster est prêt avant vous.
             </p>
             <div className="mt-10 border-t border-line">
               {[
@@ -221,8 +221,13 @@ export default function Home() {
               Le club ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Personne n’apprend un logiciel à 18 h 15. Klubster s’ouvre sur une phrase, pas un tableau de bord : l’état du club en trois secondes.
+              Vous ouvrez Klubster. Une phrase, et le club est prêt.
             </p>
+            <ul className="mono mt-6 space-y-2 text-[15px] text-ink">
+              <li><span className="text-brand">✓</span> Aucun dossier en attente</li>
+              <li><span className="text-brand">✓</span> Tous les paiements sont à jour</li>
+              <li><span className="text-brand">✓</span> Le cours peut commencer</li>
+            </ul>
           </Reveal>
           <Reveal className="mt-14">
             <CockpitPreview />
@@ -265,13 +270,13 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUI FAIT KLUBSTER<span className="text-brand">_</span></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Je n’ai pas inventé Klubster. J’en avais besoin.
+              Klubster est né un mercredi soir.
             </h2>
             <p className="mt-8 text-lg leading-relaxed text-ink-soft">
-              Ça fait plus de quinze ans que je fais vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise, que je dirige depuis quatre ans. Des années de licences à saisir, de certificats à relancer, de chèques à encaisser un mercredi soir après l’entraînement.
+              Je ne l’ai pas créé parce que j’avais envie de faire un logiciel. Je l’ai créé parce que tous les mercredis soirs se ressemblaient : les mêmes certificats, les mêmes chèques, les mêmes relances.
             </p>
             <p className="mt-5 text-lg leading-relaxed text-ink-soft">
-              Klubster, c’est l’outil que j’aurais voulu avoir. Je l’ai construit depuis mon club, pour le mien d’abord — puis pour tous les autres.
+              Un soir, je me suis dit : ce n’est pas normal qu’un bénévole passe plus de temps devant un tableur que sur le terrain. Klubster est né ce soir-là.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide text-ink">
               Mathieu Bourdieu — président-fondateur, USM Boxe Anglaise<span className="text-brand">_</span>
