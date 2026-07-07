@@ -107,10 +107,10 @@ export default function CombatClient() {
   return (
     <div className="cmb">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Press+Start+2P&display=swap');
         .cmb{--grn:#33c47d;--grnd:#279B65;--amb:#ffcc33;--red:#ff4d5e;--bg:#080c0a;--ink:#e9f2ec;
-          font-family:'VT323',monospace;background:var(--bg);color:var(--ink);min-height:100vh;
-          position:relative;overflow-x:hidden;font-size:20px;line-height:1.15}
+          font-family:'Chakra Petch',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;
+          position:relative;overflow-x:hidden;font-size:18px;line-height:1.45}
         .cmb::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
           background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
         .cmb a{color:inherit;text-decoration:none}
@@ -123,7 +123,7 @@ export default function CombatClient() {
         .cmb-intro .r{font-family:'Press Start 2P';font-size:15px;color:var(--amb);letter-spacing:4px}
         .cmb-intro .s{font-family:'Press Start 2P';font-size:46px;color:var(--red);margin-top:20px;text-shadow:4px 4px 0 #6b1e24;animation:cmbpop .25s ease}
         @keyframes cmbpop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
-        .cmb-intro .h{font-family:'VT323';font-size:18px;color:#5a6f63;margin-top:30px}
+        .cmb-intro .h{font-size:15px;color:#6f857a;margin-top:30px}
         /* HUD nav */
         .cmb-hud{position:sticky;top:0;z-index:40;display:flex;justify-content:space-between;align-items:center;
           background:#0a0f0c;border-bottom:2px solid #16261d;padding:12px 20px}
@@ -136,7 +136,7 @@ export default function CombatClient() {
         .cmb-sec{border-top:2px solid #101a15;padding:52px 0}
         .cmb-kick{font-family:'Press Start 2P';font-size:10px;color:var(--grn);letter-spacing:2px}
         .cmb-h2{font-family:'Press Start 2P';font-size:19px;color:#fff;line-height:1.5;margin:16px 0 0;text-shadow:3px 3px 0 var(--grnd)}
-        .cmb-lead{max-width:640px;margin-top:16px;font-size:22px;color:#bcd3c6}
+        .cmb-lead{max-width:640px;margin-top:16px;font-size:18px;line-height:1.5;color:#d3e4da;font-weight:500}
         .cmb-blink{animation:cmbbl 1.1s steps(2) infinite}@keyframes cmbbl{50%{opacity:.4}}
         .cmb-cur{color:var(--grn);animation:cmbbl 1s steps(2) infinite}
         .cmb-hero{text-align:center;padding:44px 0 8px;background:radial-gradient(120% 80% at 50% 0%,#0d1712 0%,#080c0a 70%)}
@@ -144,7 +144,7 @@ export default function CombatClient() {
         .cmb-round b{color:var(--amb)}
         .cmb-title{font-family:'Press Start 2P';font-size:21px;line-height:1.6;margin:18px 0 0;color:#fff;text-shadow:3px 3px 0 var(--grnd),6px 6px 0 rgba(0,0,0,.6)}
         .cmb-title span{color:var(--grn)}
-        .cmb-hsub{font-size:23px;color:#bcd3c6;max-width:600px;margin:18px auto 0}
+        .cmb-hsub{font-size:19px;color:#dcebe3;font-weight:500;max-width:600px;margin:18px auto 0}
         .cmb-cta{display:inline-block;font-family:'Press Start 2P';font-size:12px;color:#081109;background:var(--grn);padding:16px 20px;box-shadow:5px 5px 0 var(--grnd)}
         .cmb-sel{font-family:'Press Start 2P';font-size:10px;color:var(--grn);letter-spacing:2px;margin:30px 0 14px}
         .cmb-vs{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
@@ -186,7 +186,7 @@ export default function CombatClient() {
         .cmb-timer{font-family:'Press Start 2P';font-size:clamp(30px,9vw,52px);color:var(--grn);text-shadow:4px 4px 0 var(--grnd),8px 8px 0 rgba(0,0,0,.5);margin:26px 0 6px;letter-spacing:2px}
         .cmb-badges{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
         .cmb-badges span{font-family:'Press Start 2P';font-size:9px;color:var(--grn);border:2px solid #1c3327;background:#0b1410;padding:10px 12px}
-        .cmb-disc{margin-top:20px;font-size:22px;line-height:2;color:#bcd3c6}
+        .cmb-disc{margin-top:20px;font-size:18px;line-height:2;color:#d3e4da;font-weight:500}
         .cmb-disc b{color:var(--grn)}
         .cmb-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px}
         .cmb-tier{background:#0b1410;border:2px solid #16261d;padding:22px 16px;text-align:center}
