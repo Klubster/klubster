@@ -307,6 +307,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* INTERLUDE — QUI FAIT KLUBSTER (note du fondateur, photo à venir) */}
+      <section>
+        <div className="mx-auto max-w-2xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+          <Reveal>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUI FAIT KLUBSTER<span className="text-brand">_</span></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+              Je n’ai pas inventé Klubster. J’en avais besoin.
+            </h2>
+            <p className="mt-8 text-lg leading-relaxed text-ink-soft">
+              Ça fait plus de quinze ans que je fais vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise, que je dirige depuis quatre ans. Des années de licences à saisir, de certificats à relancer, de chèques à encaisser un mercredi soir après l’entraînement.
+            </p>
+            <p className="mt-5 text-lg leading-relaxed text-ink-soft">
+              Klubster, c’est l’outil que j’aurais voulu avoir. Je l’ai construit depuis mon club, pour le mien d’abord — puis pour tous les autres.
+            </p>
+            <p className="mono mt-8 text-[13px] tracking-wide text-ink">
+              Mathieu Bourdieu — président-fondateur, USM Boxe Anglaise<span className="text-brand">_</span>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* VII — LES DISCIPLINES */}
       <section id="disciplines">
         <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
