@@ -202,7 +202,39 @@ export default function CombatClient() {
         .cmb-foot a{color:#9fb8ab;margin-right:16px}
         .cmb-badge{font-size:18px;color:#8fae9e;margin-top:22px}
         .cmb-badge b{color:var(--grn)}
-        @media(max-width:640px){.cmb-title{font-size:14px}.cmb-h2{font-size:15px}.cmb-grid,.cmb-ko,.cmb-tiers{grid-template-columns:1fr}.cmb-ko .a{border-right:0;border-bottom:2px solid #16261d}.cmb-fighter{width:80vw;max-width:300px}.cmb-hp2{grid-template-columns:1fr}.cmb-intro .s{font-size:30px}}
+        @media(max-width:640px){
+          .cmb{font-size:17px}
+          .cmb-shell{padding:0 16px}
+          .cmb-sec{padding:38px 0}
+          .cmb-hud{padding:10px 13px}
+          .cmb-hud .l{font-size:9px}
+          .cmb-hud .cta{font-size:8px;padding:8px 10px;box-shadow:2px 2px 0 var(--grnd)}
+          .cmb-snd{font-size:8px;padding:6px 8px}
+          .cmb-back{display:none}
+          .cmb-hero{padding:28px 0 6px}
+          .cmb-title{font-size:14px;line-height:1.55}
+          .cmb-hsub{font-size:17px}
+          .cmb-h2{font-size:14px;line-height:1.5}
+          .cmb-lead{font-size:17px}
+          .cmb-proof{font-size:14px}
+          .cmb-sel{margin:24px 0 12px}
+          .cmb-vs{gap:12px}
+          .cmb-fighter{width:78vw;max-width:280px}
+          .cmb-vsbadge{font-size:20px}
+          .cmb-grid,.cmb-tiers{grid-template-columns:1fr}
+          .cmb-card h3{font-size:22px}
+          .cmb-hp2{grid-template-columns:1fr;gap:5px 12px;margin-top:20px}
+          .cmb-hp2 .lab{font-size:8px}
+          .cmb-hp2 .ben{font-size:15px}
+          .cmb-hp2 .bar{flex:0 0 84px}
+          .cmb-disc{font-size:16px;line-height:1.9}
+          .cmb-badges span{font-size:8px;padding:9px 10px}
+          .cmb-tier .pl{font-size:9px}
+          .cmb-sign{font-size:8px;line-height:1.6}
+          .cmb-foot a{display:inline-block;margin:0 14px 8px 0}
+          .cmb-intro .r{font-size:12px}
+          .cmb-intro .s{font-size:28px}
+        }
       `}</style>
 
       {intro && intro !== "done" ? (
