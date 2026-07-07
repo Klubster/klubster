@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import HeroFight from "./HeroFight";
 
 const LEVELS: [string, string, string][] = [
   ["STAGE 1", "Crée ton club.", "Un nom, tes couleurs, ton identité."],
@@ -93,14 +94,6 @@ export default function CombatClient() {
       if (c && c.state === "suspended") { c.resume().catch(() => {}); }
       beep(880, 0.08); beep(1180, 0.09, "square");
     }
-  }
-
-  function hover() { if (soundOn) beep(520, 0.04); }
-
-  function select() {
-    if (soundOn) { beep(660, 0.07); beep(990, 0.11); }
-    const el = document.getElementById("stats");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -280,32 +273,7 @@ export default function CombatClient() {
           <h1 className="cmb-title">Tu entraînes.<br /><span>Klubster administre.</span></h1>
           <p className="cmb-hsub">Le logiciel qui remplace Excel, les formulaires PDF et les groupes WhatsApp.</p>
 
-          <div className="cmb-sel">— PLAYER SELECT —</div>
-          <div className="cmb-vs">
-            <button type="button" className="cmb-fighter" onMouseEnter={hover} onClick={select}>
-              <div className="cmb-imgwrap">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/combat/karateka.jpg" alt="Karatéka en garde, style arcade rétro" />
-              </div>
-              <div className="cmb-meta">
-                <div className="cmb-name">LÉA <small>KARATÉ</small></div>
-                <div className="cmb-hp"><i /></div>
-                <div className="cmb-pick">▶ ENTRER DANS LE DOJO</div>
-              </div>
-            </button>
-            <div className="cmb-vsbadge cmb-blink">VS</div>
-            <button type="button" className="cmb-fighter" onMouseEnter={hover} onClick={select}>
-              <div className="cmb-imgwrap">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/combat/boxeur.jpg" alt="Boxeur en garde, style arcade rétro" />
-              </div>
-              <div className="cmb-meta">
-                <div className="cmb-name">SAM <small>BOXE</small></div>
-                <div className="cmb-hp"><i /></div>
-                <div className="cmb-pick">▶ MONTER SUR LE RING</div>
-              </div>
-            </button>
-          </div>
+          <HeroFight />
 
           <div style={{ marginTop: 30, paddingBottom: 8 }}>
             <Link href="/creer" className="cmb-cta cmb-blink">▶ INSÉRER UNE PIÈCE — CRÉER MON CLUB</Link>
