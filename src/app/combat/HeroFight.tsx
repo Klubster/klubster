@@ -78,7 +78,7 @@ export default function HeroFight() {
         .hf-bg img{width:50%;height:100%;object-fit:cover;object-position:center bottom;display:block}
         @keyframes hfscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .hf-hero{position:absolute;left:7%;bottom:var(--floor);height:clamp(160px,25vw,246px);z-index:3;transition:transform .12s ease}
-        .hf-hero img{position:absolute;bottom:0;left:0;height:100%;width:auto;filter:drop-shadow(0 5px 5px rgba(0,0,0,.6))}
+        .hf-hero img{display:block;height:100%;width:auto;filter:drop-shadow(0 5px 5px rgba(0,0,0,.6))}
         .hf-hero.walking{animation:hfbob .4s ease-in-out infinite}
         @keyframes hfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
         .hf-hero.lunge{transform:translateX(34px)}
@@ -115,7 +115,7 @@ export default function HeroFight() {
         <div className={"hf-ko" + (phase === "ko" ? " on" : "")}>K.O.</div>
 
         <img className="hf-mon" src={m.src} alt=""
-          style={{ transform: reduce ? "translateX(0)" : mt, opacity: mo, transitionDuration: dur, ["--sc" as string]: m.scale } as unknown as CSSProperties} />
+          style={{ transform: reduce ? "translateX(0)" : mt, opacity: mo, transitionDuration: dur, ["--sc" as string]: String(m.scale) } as unknown as CSSProperties} />
       </div>
 
       <p className="hf-cap">TON CLUB CONTRE LA PAPERASSE — DÉMO</p>
