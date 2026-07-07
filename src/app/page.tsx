@@ -233,31 +233,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* V — UN MERCREDI SOIR (le bénéfice, pas les fonctionnalités) */}
+      {/* V — QUAND LE CLUB OUVRE (respiration éditoriale, whitespace, aucun encadré) */}
       <section>
-        <div className="mx-auto max-w-4xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-3xl px-6 py-40 text-center md:px-8 md:py-64">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — UN MERCREDI SOIR<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">18 h 30. Le club ouvre.</h2>
-          </Reveal>
-          <Reveal className="mt-12">
-            <div className="grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-2">
-              <div className="bg-paper px-7 py-9">
-                <p className="mono text-[10px] uppercase tracking-label text-ink-soft">AVANT</p>
-                <ul className="mono mt-5 space-y-2 text-[15px] text-ink-soft">
-                  <li>5 SMS</li>
-                  <li>3 mails</li>
-                  <li>17 dossiers papier</li>
-                  <li>2 chèques</li>
-                  <li>1 tableur</li>
-                </ul>
-              </div>
-              <div className="bg-paper px-7 py-9">
-                <p className="mono text-[10px] uppercase tracking-label text-ink-soft">AVEC KLUBSTER<span className="text-brand">_</span></p>
-                <p className="mt-5 text-[40px] font-medium leading-none tracking-[-0.01em] md:text-[56px]">1 notification<span className="text-brand">.</span></p>
-                <p className="mt-4 text-lg text-ink-soft">C’est tout.</p>
-              </div>
-            </div>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — QUAND LE CLUB OUVRE<Cur /></p>
+            <p className="mx-auto mt-16 max-w-2xl text-2xl font-medium leading-[1.7] tracking-[-0.01em] text-ink md:text-[30px] md:leading-[1.75]">
+              Quand le club ouvre,<br />
+              personne ne pense au logiciel.<br />
+              <span className="text-ink-soft">Les bénévoles pensent aux adhérents.</span><br />
+              <span className="text-ink-soft">Les entraîneurs pensent au cours.</span><br />
+              <span className="text-ink-soft">Les parents pensent à leurs enfants.</span><br />
+              C’est exactement pour ça que Klubster existe.
+            </p>
           </Reveal>
         </div>
       </section>
