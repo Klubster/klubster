@@ -127,42 +127,23 @@ export default function Home() {
       <section className="border-b border-line">
         <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
           <p className="max-w-prose text-ink md:text-lg">
-            Inscriptions, adhérents, paiements, communication, site web,…<br />Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
-            {" "}<span className="text-ink-soft">Et pensé pour être prêt en moins de trente minutes.</span>
+            Inscriptions, paiements, communication, site web : tout ce dont un club a besoin, dans un seul outil <span className="text-ink-soft">pensé pour les bénévoles.</span>
           </p>
         </div>
       </section>
 
-      {/* I — POURQUOI (manifeste) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">I</span> — POURQUOI<Cur /></p>
-            <h2 className="mt-8 text-[32px] font-medium leading-[1.1] tracking-[-0.02em] md:text-[48px]">
-              Un club, ce n’est pas une base de données.
-            </h2>
-            <p className="mt-8 text-lg text-ink-soft">
-              C’est un gymnase qu’on ouvre le soir, des bénévoles qui restent tard, une saison qui recommence.
-              Klubster a été pensé pour disparaître derrière tout ça.
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* II — LES CLUBS (double-page) */}
-      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
-        <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
-        <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
+      {/* I — POURQUOI (double-page, fusion) */}
+      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="I" kicker="POURQUOI" titre="Un club, ce n’est pas une base de données.">
+        <p>C’est un gymnase qu’on ouvre le soir, des bénévoles qui restent tard — souvent les mêmes, souvent seuls.</p>
+        <p>Klubster prend la part invisible (dossiers, paiements, relances) et disparaît derrière le reste.</p>
       </DoublePage>
-
-      <Citation lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
 
       {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
       <section className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
           <div className="max-w-md">
             <Reveal>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — SUR LE TERRAIN<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — SUR LE TERRAIN<Cur /></p>
               <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
                 Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
               </h2>
@@ -196,13 +177,12 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — UNE DEMI-HEURE<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — UNE DEMI-HEURE<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Une demi-heure.<br />C’est tout.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Les membres du bureau n’ont jamais une demi-journée à consacrer à un logiciel.
-              Alors tout est déjà prêt — il ne reste que l’essentiel.
+              Le bureau n’a jamais une demi-journée pour un logiciel. Tout est déjà prêt — il ne reste que l’essentiel.
             </p>
             <div className="mt-10 border-t border-line">
               {[
@@ -234,14 +214,12 @@ export default function Home() {
       <section id="cockpit">
         <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — AUJOURD’HUI<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — AUJOURD’HUI<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Le club ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Personne n’a le temps d’apprendre un nouveau logiciel à 18 h 15.<br />
-              C’est pour ça que Klubster s’ouvre sur une phrase, pas sur un tableau de bord :
-              l’état de votre club, en trois secondes.
+              Personne n’apprend un logiciel à 18 h 15. Klubster s’ouvre sur une phrase, pas un tableau de bord : l’état du club en trois secondes.
             </p>
           </Reveal>
           <Reveal className="mt-14">
@@ -250,39 +228,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VI — LE PARCOURS (la magie du produit, en temps réel) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — PENDANT CE TEMPS<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Une inscription, vue de votre côté.
-            </h2>
-            <div className="mt-10 border-t border-line">
-              {[
-                ["18:02", "Une nouvelle inscription arrive."],
-                ["18:04", "Le paiement est reçu — directement sur le compte du club."],
-                ["18:05", "Le questionnaire de santé est signé, la pièce est déposée."],
-                ["18:06", "L’adhérent apparaît dans son cours."],
-              ].map(([h, texte]) => (
-                <div key={h} className="grid grid-cols-[64px_1fr] gap-4 border-b border-line py-5 md:grid-cols-[88px_1fr]">
-                  <span className="mono text-[13px] text-ink-faint">{h}</span>
-                  <p className="text-lg text-ink">{texte}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mono mt-10 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Vous n’avez rien eu à faire<span className="cur">_</span>
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* VI — UN MERCREDI SOIR (le bénéfice, pas les fonctionnalités) */}
+      {/* V — UN MERCREDI SOIR (le bénéfice, pas les fonctionnalités) */}
       <section>
         <div className="mx-auto max-w-4xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UN MERCREDI SOIR<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — UN MERCREDI SOIR<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">18 h 30. Le club ouvre.</h2>
           </Reveal>
           <Reveal className="mt-12">
@@ -332,7 +282,7 @@ export default function Home() {
       <section id="disciplines">
         <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — LES DISCIPLINES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Peu importe votre sport.
             </h2>
@@ -358,7 +308,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IX</span> — UNE SAISON<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
             <div className="mt-10">
               {SAISON.map(([mois, texte]) => (
@@ -376,7 +326,7 @@ export default function Home() {
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">X</span> — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
               Pas de version Pro. Pas d’options. Pas de modules.<br />
@@ -436,9 +386,6 @@ export default function Home() {
             <Link href="/creer" className="mono mt-10 inline-block bg-brand px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
-            <p className="mono mt-6 text-[11px] uppercase tracking-label text-paper/70">
-              Prêt en moins de 30 minutes<span className="text-brand">_</span>
-            </p>
           </div>
         </div>
       </section>
