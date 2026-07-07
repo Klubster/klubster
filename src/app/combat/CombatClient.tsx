@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 const LEVELS: [string, string, string][] = [
   ["LEVEL 1", "Crée ton club.", "Un nom, un design, tes couleurs."],
   ["LEVEL 2", "Ajoute tes cours.", "Créneaux et tarifs, en quelques lignes."],
-  ["LEVEL 3", "Règle ta page.", "Photos, palmarès, FAQ — prêts à l’emploi."],
+  ["LEVEL 3", "Personnalise ta page.", "Photos, palmarès, FAQ — des blocs prêts à l’emploi."],
   ["LEVEL 4", "Ouvre les inscriptions.", "Ton site est en ligne. Les dossiers arrivent seuls."],
 ];
 
@@ -18,12 +18,12 @@ const DISCIPLINES = [
 // HUD stats — libellé court + bénéfice réel
 const STATS: [string, string][] = [
   ["SITE WEB", "en ligne dès le premier soir"],
-  ["INSCRIPTIONS", "se remplissent seules — mineurs, cours, pièces"],
-  ["PAIEMENTS", "sur le compte du club — 0 % de commission"],
-  ["1 OU 3×", "le paiement au choix du club"],
-  ["LICENCES", "au bon endroit, sans les courir après"],
+  ["INSCRIPTIONS", "se remplissent seules — mineurs, cours et pièces gérés"],
+  ["PAIEMENTS", "directement sur le compte du club, 0 % de commission"],
+  ["PAIEMENT 3×", "en une ou trois fois, au choix du club"],
+  ["LICENCES", "certificats et licences réunis, fini de courir après"],
   ["PRÉSENCES", "l’appel en scannant la carte d’adhérent"],
-  ["COMMUNICATION", "préviens tout le club en deux coups"],
+  ["COMMUNICATION", "un message à tout le club, en deux clics"],
 ];
 
 const TIERS: [string, string, string][] = [
@@ -282,8 +282,8 @@ export default function CombatClient() {
 
       <section className="cmb-sec" id="stats">
         <div className="cmb-shell">
-          <p className="cmb-kick">STATS · TON ÉQUIPE_</p>
-          <h2 className="cmb-h2">Tout est au max, dès le premier jour.</h2>
+          <p className="cmb-kick">STATS · TOUT INCLUS_</p>
+          <h2 className="cmb-h2">Toutes les fonctionnalités, au max dès le premier jour.</h2>
           <div className="cmb-hp2">
             {STATS.map(([lab, ben]) => (
               <div className="row" key={lab} style={{ display: "contents" }}>
@@ -351,7 +351,7 @@ export default function CombatClient() {
             ))}
           </div>
           <p style={{ marginTop: 22, fontSize: 18, color: "#6f8c7d" }}>
-            Les paiements arrivent direct sur ton compte Stripe. Klubster ne prélève aucune commission. Sans engagement.
+            Les paiements arrivent directement sur ton compte Stripe. Klubster ne prélève aucune commission. Sans engagement.
           </p>
           <div style={{ marginTop: 26 }}>
             <Link href="/creer" className="cmb-cta cmb-blink">▶ INSERT COIN — CRÉER MON CLUB</Link>
