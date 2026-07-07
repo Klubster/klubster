@@ -49,14 +49,6 @@ function DoublePage({
   );
 }
 
-const DISCIPLINES = ["Sports de combat", "Danse", "Arts martiaux", "Musique", "Natation", "Théâtre", "Activités culturelles", "Gymnastique", "Sports collectifs", "Loisirs"];
-
-const SAISON: [string, string][] = [
-  ["SEPTEMBRE", "Les portes rouvrent. Le site du club est déjà en ligne."],
-  ["DÉCEMBRE", "Les dossiers sont complets.\nPersonne n’a couru après un papier."],
-  ["JUIN", "La saison se termine. On connaît déjà la suivante."],
-];
-
 // Un seul produit. Le prix suit la taille du club. Toutes les fonctionnalités incluses partout.
 const PALIERS: { capacite: string; prix: string }[] = [
   { capacite: "Jusqu’à 300 adhérents", prix: "9" },
@@ -111,17 +103,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Résumé descriptif — un cran plus bas, sans alourdir le hero */}
-      <section className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16">
-          <p className="max-w-prose text-ink md:text-lg">
-            Inscriptions, paiements, communication, site web : tout ce dont un club a besoin, dans un seul outil <span className="text-ink-soft">pensé pour les bénévoles.</span>
-          </p>
-        </div>
-      </section>
-
-      {/* — grand silence — */}
-      <div className="h-16 md:h-32" aria-hidden />
+      {/* — le hero bascule directement sur la première photo — */}
+      <div className="h-8 md:h-20" aria-hidden />
 
       {/* POURQUOI (double-page) */}
       <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." kicker="POURQUOI" titre="Un club n’est pas une base de données.">
@@ -132,7 +115,7 @@ export default function Home() {
       {/* — très grand silence — */}
       <div className="h-24 md:h-52" aria-hidden />
 
-      {/* SUR LE TERRAIN (texte à gauche, photo à droite) — la scène seule, sans la liste de notes */}
+      {/* SUR LE TERRAIN (texte à gauche, photo à droite) — la scène seule */}
       <section className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex items-center px-6 py-24 md:px-16 md:py-0">
           <Reveal className="max-w-md">
@@ -158,8 +141,8 @@ export default function Home() {
       {/* l’objet — le ballon (respire seul) */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[64vh] md:h-[84vh]" />
 
-      {/* — grand silence — */}
-      <div className="h-24 md:h-48" aria-hidden />
+      {/* — très grand silence (≈200px) — */}
+      <div className="h-28 md:h-56" aria-hidden />
 
       {/* UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
       <section>
@@ -195,10 +178,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* — grand silence — */}
-      <div className="h-20 md:h-40" aria-hidden />
+      {/* — très grand silence (≈200px) — */}
+      <div className="h-28 md:h-56" aria-hidden />
 
-      {/* AUJOURD'HUI_ (le produit : une scène, pas un écran) — intro très courte, le cockpit raconte le reste */}
+      {/* AUJOURD'HUI_ (le produit) — intro très courte, le cockpit comme une planche de magazine */}
       <section id="cockpit">
         <div className="mx-auto max-w-5xl px-6 pb-16 md:px-8 md:pb-28">
           <Reveal className="mx-auto max-w-2xl text-center">
@@ -210,13 +193,13 @@ export default function Home() {
               Vous ouvrez Klubster. Le club est prêt.
             </p>
           </Reveal>
-          <Reveal className="mx-auto mt-20 max-w-4xl md:mt-28">
+          <Reveal className="mx-auto mt-24 max-w-4xl md:mt-32">
             <CockpitPreview />
           </Reveal>
         </div>
       </section>
 
-      {/* — très grand silence — */}
+      {/* — silence — */}
       <div className="h-8 md:h-16" aria-hidden />
 
       {/* QUAND LE CLUB OUVRE (respiration éditoriale, whitespace, aucun encadré) */}
@@ -236,7 +219,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* QUI FAIT KLUBSTER (note du fondateur) */}
+      {/* QUI FAIT KLUBSTER (une scène, pas un parcours) */}
       <section>
         <div className="mx-auto max-w-2xl px-6 pb-16 md:px-8 md:pb-24">
           <Reveal>
@@ -245,10 +228,10 @@ export default function Home() {
               Klubster est né un mercredi soir.
             </h2>
             <p className="mt-8 text-lg leading-relaxed text-ink-soft">
-              Je ne l’ai pas créé parce que j’avais envie de faire un logiciel. Je l’ai créé parce que tous les mercredis soirs se ressemblaient : les mêmes certificats, les mêmes chèques, les mêmes relances.
+              Vingt-deux heures. La salle est vide, les néons encore allumés. Sur une table, une pile de certificats, des chèques agrafés, une liste de relances à faire.
             </p>
             <p className="mt-5 text-lg leading-relaxed text-ink-soft">
-              Un soir, je me suis dit : ce n’est pas normal qu’un bénévole passe plus de temps devant un tableur que sur le terrain. Klubster est né ce soir-là.
+              La même pile que le mercredi d’avant. Klubster est né devant cette table — pour qu’un bénévole ne passe plus ses soirs sur un tableur.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide text-ink">
               Mathieu Bourdieu — président-fondateur, USM Boxe Anglaise<span className="text-brand">_</span>
@@ -260,55 +243,26 @@ export default function Home() {
       {/* — grand silence — */}
       <div className="h-20 md:h-40" aria-hidden />
 
-      {/* LES DISCIPLINES */}
+      {/* Pour qui — une respiration, pas un chapitre (l'ancre disciplines reste) */}
       <section id="disciplines">
-        <div className="mx-auto max-w-3xl px-6 pb-16 text-center md:px-8 md:pb-28">
+        <div className="mx-auto max-w-3xl px-6 py-16 text-center md:px-8 md:py-24">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LES DISCIPLINES<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Peu importe votre association.
-            </h2>
-            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte au fonctionnement de votre association.</p>
-            <p className="mono mt-8 text-[13px] leading-loose tracking-wide text-ink-soft">
-              {DISCIPLINES.map((d, i) => (
-                <span key={d}>
-                  {d}
-                  {i < DISCIPLINES.length - 1 ? <span className="text-brand"> · </span> : null}
-                </span>
-              ))}
+            <p className="text-2xl font-medium leading-[1.5] tracking-[-0.01em] text-ink md:text-[30px] md:leading-[1.6]">
+              Pour le sport.<br />
+              Pour la culture.<br />
+              <span className="text-ink-soft">Pour toutes les associations.</span>
             </p>
           </Reveal>
         </div>
       </section>
 
-      <Citation lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
+      <Citation topTight lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
 
       {/* la saison (respire seule) */}
       <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
 
-      {/* — silence — */}
-      <div className="h-16 md:h-28" aria-hidden />
-
-      {/* UNE SAISON */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pb-16 md:px-8 md:pb-24">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">UNE SAISON<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
-            <div className="mt-10">
-              {SAISON.map(([mois, texte]) => (
-                <div key={mois} className="grid grid-cols-1 gap-1 border-t border-line py-5 md:grid-cols-[160px_1fr] md:gap-8">
-                  <div className="mono text-[13px] tracking-wider text-ink">{mois}<span className="text-brand">_</span></div>
-                  <p className="whitespace-pre-line text-lg text-ink-soft">{texte}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* — grand silence — */}
-      <div className="h-20 md:h-36" aria-hidden />
+      {/* une saison — devenue une simple citation */}
+      <Citation lines={["La saison se termine.", "On connaît déjà la suivante."]} />
 
       {/* TARIFS : tout est déjà inclus, le prix suit la taille du club */}
       <section id="tarifs">
@@ -368,7 +322,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-ink/55" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="px-6 text-center text-paper">
-            <h2 className="text-3xl font-medium leading-tight md:text-[40px]">Ouvrez la saison avec Klubster.</h2>
+            <h2 className="text-3xl font-medium leading-tight md:text-[40px]">Le prochain mercredi soir<br />commence ici.</h2>
             <Link href="/creer" className="mono mt-10 inline-block bg-brand px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
