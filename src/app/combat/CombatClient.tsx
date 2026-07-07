@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const LEVELS: [string, string, string][] = [
-  ["LEVEL 1", "Crée ton club.", "Un nom, un design, tes couleurs."],
-  ["LEVEL 2", "Ajoute tes cours.", "Créneaux et tarifs, en quelques lignes."],
-  ["LEVEL 3", "Personnalise ta page.", "Photos, palmarès, FAQ — des blocs prêts à l’emploi."],
-  ["LEVEL 4", "Ouvre les inscriptions.", "Ton site est en ligne. Les dossiers arrivent seuls."],
+  ["LEVEL 1", "Crée ton club.", "Un nom, tes couleurs, ton identité."],
+  ["LEVEL 2", "Ajoute tes cours.", "Créneaux, tarifs et catégories, en quelques lignes."],
+  ["LEVEL 3", "Compose ta page.", "Photos, palmarès, coachs, FAQ — des blocs prêts à poser."],
+  ["LEVEL 4", "Ouvre les inscriptions.", "Ton site est en ligne. Les dossiers se remplissent seuls."],
 ];
 
 const DISCIPLINES = [
@@ -17,12 +17,12 @@ const DISCIPLINES = [
 
 // HUD stats — libellé court + bénéfice réel
 const STATS: [string, string][] = [
-  ["SITE WEB", "en ligne dès le premier soir"],
-  ["INSCRIPTIONS", "se remplissent seules — mineurs, cours et pièces gérés"],
-  ["PAIEMENTS", "directement sur le compte du club, 0 % de commission"],
+  ["SITE WEB", "ton site en ligne le soir même"],
+  ["INSCRIPTIONS", "elles se remplissent seules : mineurs, cours, pièces"],
+  ["PAIEMENTS", "encaissés sur le compte du club, 0 % de commission"],
   ["PAIEMENT 3×", "en une ou trois fois, au choix du club"],
-  ["LICENCES", "certificats et licences réunis, fini de courir après"],
-  ["PRÉSENCES", "l’appel en scannant la carte d’adhérent"],
+  ["LICENCES", "certificats et licences à jour, sans relancer personne"],
+  ["PRÉSENCES", "l’appel en scannant la carte, en trois secondes"],
   ["COMMUNICATION", "un message à tout le club, en deux clics"],
 ];
 
@@ -267,7 +267,7 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell">
           <p className="cmb-kick">SELECT · 4 NIVEAUX_</p>
-          <h2 className="cmb-h2">Ton club en ligne en 4 niveaux.</h2>
+          <h2 className="cmb-h2">Monte ton club, niveau par niveau.</h2>
           <div className="cmb-grid">
             {LEVELS.map(([lv, t, d]) => (
               <div className="cmb-card" key={lv}>
@@ -283,7 +283,7 @@ export default function CombatClient() {
       <section className="cmb-sec" id="stats">
         <div className="cmb-shell">
           <p className="cmb-kick">STATS · TOUT INCLUS_</p>
-          <h2 className="cmb-h2">Toutes les fonctionnalités, au max dès le premier jour.</h2>
+          <h2 className="cmb-h2">Rien à débloquer. Tout est déjà au max.</h2>
           <div className="cmb-hp2">
             {STATS.map(([lab, ben]) => (
               <div className="row" key={lab} style={{ display: "contents" }}>
@@ -315,7 +315,7 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell">
           <p className="cmb-kick">FIGHTERS_</p>
-          <h2 className="cmb-h2">Peu importe ta discipline.</h2>
+          <h2 className="cmb-h2">Toutes les disciplines de combat. Un seul outil.</h2>
           <p className="cmb-disc">
             {DISCIPLINES.map((d, i) => (
               <span key={d}>{d}{i < DISCIPLINES.length - 1 ? <b> · </b> : null}</span>
@@ -339,7 +339,7 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell">
           <p className="cmb-kick">CONTINUE?_</p>
-          <h2 className="cmb-h2">Un seul Klubster. Le prix suit ta taille.</h2>
+          <h2 className="cmb-h2">Un seul Klubster. Le tarif grandit avec ton club.</h2>
           <div className="cmb-tiers">
             {TIERS.map(([pl, sz, pr]) => (
               <div className="cmb-tier" key={pl}>
