@@ -38,7 +38,7 @@ const INCLUS = [
 
 function Karateka() {
   return (
-    <svg viewBox="0 0 200 212" className="cmb-art" style={{ "--skin": "#eab98d", "--sh": "#d69c6c", "--hair": "#46311f", "--gi": "#f2f4f0", "--gs": "#c9cfc7", "--band": "#33c47d", "--belt": "#1a1a1a" } as CSSProperties}>
+    <svg viewBox="0 0 200 212" className="cmb-art" style={{ "--skin": "#eab98d", "--sh": "#d69c6c", "--hair": "#46311f", "--gi": "#f2f4f0", "--gs": "#c9cfc7", "--band": "#33c47d", "--belt": "#1a1a1a" } as unknown as CSSProperties}>
       <circle cx="100" cy="104" r="92" fill="#33c47d" opacity=".12" />
       <path d="M16 212 Q22 150 78 145 L122 145 Q178 150 184 212 Z" fill="var(--gi)" />
       <path d="M78 145 L70 212 L40 212 Q40 166 78 152 Z" fill="var(--gs)" opacity=".6" />
@@ -69,7 +69,7 @@ function Karateka() {
 
 function Boxeur() {
   return (
-    <svg viewBox="0 0 200 212" className="cmb-art" style={{ "--skin": "#a9713f", "--sh": "#8c5a30", "--hair": "#17110b", "--acc": "#ff4d5e", "--ad": "#c8323f" } as CSSProperties}>
+    <svg viewBox="0 0 200 212" className="cmb-art" style={{ "--skin": "#a9713f", "--sh": "#8c5a30", "--hair": "#17110b", "--acc": "#ff4d5e", "--ad": "#c8323f" } as unknown as CSSProperties}>
       <circle cx="100" cy="104" r="92" fill="#ff4d5e" opacity=".12" />
       <path d="M16 212 Q22 150 78 146 L122 146 Q178 150 184 212 Z" fill="var(--skin)" />
       <path d="M100 152 q-24 10 -38 34 M100 152 q24 10 38 34" stroke="var(--sh)" strokeWidth="3" fill="none" />
