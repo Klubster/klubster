@@ -94,10 +94,10 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold text-paper drop-shadow">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
-            <a href="#cockpit" className="hover:text-paper">Le cockpit</a>
-            <a href="#disciplines" className="hover:text-paper">Disciplines</a>
-            <a href="#tarifs" className="hover:text-paper">Tarifs</a>
-            <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
+            <a href="#cockpit" className="link-underline hover:text-paper">Le cockpit</a>
+            <a href="#disciplines" className="link-underline hover:text-paper">Disciplines</a>
+            <a href="#tarifs" className="link-underline hover:text-paper">Tarifs</a>
+            <Link href="/usmboxe" className="link-underline hover:text-paper">Un club</Link>
           </nav>
           <Link href="/creer" className="mono bg-brand px-4 py-2 text-[12px] text-white hover:opacity-90">
             CRÉER MON ASSOCIATION

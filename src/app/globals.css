@@ -77,6 +77,39 @@ body {
 }
 @keyframes kbfloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.006); } }
 
+/* ——— Raffinements UI/UX (finition, accessibilité, typographie) ——— */
+
+/* Sélection de texte aux couleurs de la marque. */
+::selection { background: rgba(39,155,101,0.16); color: #111; }
+
+/* Défilement doux pour les ancres du menu (respecte reduced-motion). */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* Les cibles d'ancre ne collent pas au bord haut. */
+[id] { scroll-margin-top: 2.5rem; }
+
+/* Focus clavier visible et sobre (accessibilité — WCAG). */
+:focus-visible { outline: 2px solid #279B65; outline-offset: 3px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* Titres : équilibrage des retours à la ligne (évite les orphelins). */
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* Transitions douces sur les éléments interactifs (feel « premium »). */
+a, button { transition: color .22s ease, background-color .22s ease, opacity .22s ease, border-color .22s ease; }
+
+/* Le trait souligné sous les liens de navigation, animé au survol. */
+.link-underline { position: relative; }
+.link-underline::after {
+  content: ""; position: absolute; left: 0; bottom: -3px; height: 1px; width: 100%;
+  background: currentColor; transform: scaleX(0); transform-origin: right;
+  transition: transform .3s cubic-bezier(.22,.61,.36,1);
+}
+.link-underline:hover::after { transform: scaleX(1); transform-origin: left; }
+
 /* Lecture des pages légales — lisible, sobre, fidèle à la DA. */
 .legal-prose h2 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.01em; margin: 2.6rem 0 .7rem; color: #111; }
 .legal-prose h3 { font-size: .95rem; font-weight: 600; margin: 1.4rem 0 .35rem; color: #111; }
