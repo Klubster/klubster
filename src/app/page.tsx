@@ -115,7 +115,7 @@ export default function Home() {
             <h1 className="mt-5 max-w-[20ch] text-4xl font-medium leading-[1.04] tracking-[-0.02em] text-paper md:text-[58px]">
               Toute votre association,<br />au même endroit.
             </h1>
-            <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les clubs méritent mieux qu’un tableur.</p>
+            <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Personne ne devient bénévole pour remplir des formulaires.</p>
             <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
             </p>
@@ -169,8 +169,6 @@ export default function Home() {
           <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.08} />
         </div>
       </section>
-
-      <Citation lines={["Parce que personne", "ne devient bénévole", "dans un club", "pour remplir des formulaires"]} />
 
       {/* l’objet — le ballon */}
       <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
