@@ -76,6 +76,7 @@ export default function HeroFight() {
         .hf-bg{position:absolute;inset:0;display:flex;width:200%;animation:hfscroll 32s linear infinite}
         .hf-bg.pause{animation-play-state:paused}.hf-bg.still{animation:none}
         .hf-bg img{width:50%;height:100%;object-fit:cover;object-position:center bottom;display:block}
+        .hf-fade{position:absolute;left:0;right:0;bottom:0;height:17%;background:linear-gradient(rgba(10,15,12,0),#0a0f0c 82%);z-index:5;pointer-events:none}
         @keyframes hfscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .hf-hero{position:absolute;left:7%;bottom:var(--floor);height:clamp(160px,25vw,246px);z-index:3;transition:transform .12s ease}
         .hf-hero img{display:block;height:100%;width:auto;filter:drop-shadow(0 5px 5px rgba(0,0,0,.6))}
@@ -116,6 +117,8 @@ export default function HeroFight() {
 
         <img className="hf-mon" src={m.src} alt=""
           style={{ transform: reduce ? "translateX(0)" : mt, opacity: mo, transitionDuration: dur, ["--sc" as string]: String(m.scale) } as unknown as CSSProperties} />
+
+        <div className="hf-fade" />
       </div>
 
       <p className="hf-cap">TON CLUB CONTRE LA PAPERASSE — DÉMO</p>
