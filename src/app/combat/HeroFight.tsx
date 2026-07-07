@@ -78,16 +78,16 @@ export default function HeroFight() {
         .hf-bg img{width:50%;height:100%;object-fit:cover;object-position:center bottom;display:block}
         .hf-fade{position:absolute;left:0;right:0;bottom:0;height:17%;background:linear-gradient(rgba(10,15,12,0),#0a0f0c 82%);z-index:5;pointer-events:none}
         @keyframes hfscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-        .hf-hero{position:absolute;left:7%;bottom:var(--floor);height:clamp(160px,25vw,246px);z-index:3;transition:transform .12s ease}
+        .hf-hero{position:absolute;left:22%;bottom:var(--floor);height:clamp(112px,17vw,168px);z-index:3;transition:transform .12s ease}
         .hf-hero img{display:block;height:100%;width:auto;filter:drop-shadow(0 5px 5px rgba(0,0,0,.6))}
         .hf-hero.walking{animation:hfbob .4s ease-in-out infinite}
         @keyframes hfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
         .hf-hero.lunge{transform:translateX(34px)}
-        .hf-mon{position:absolute;right:8%;bottom:var(--floor);height:calc(clamp(140px,21vw,210px) * var(--sc,1));width:auto;z-index:2;
+        .hf-mon{position:absolute;right:24%;bottom:var(--floor);height:calc(clamp(100px,15vw,150px) * var(--sc,1));width:auto;z-index:2;
           filter:drop-shadow(0 5px 5px rgba(0,0,0,.6));transition-property:transform,opacity;transition-timing-function:cubic-bezier(.2,.8,.2,1)}
-        .hf-impact{position:absolute;right:30%;bottom:46%;font-family:'Press Start 2P';font-size:30px;color:#fff;opacity:0;z-index:4;text-shadow:0 0 12px rgba(255,204,51,.9)}
+        .hf-impact{position:absolute;right:40%;bottom:40%;font-family:'Press Start 2P';font-size:24px;color:#fff;opacity:0;z-index:4;text-shadow:0 0 12px rgba(255,204,51,.9)}
         .hf-impact.on{opacity:1;animation:hfpop .25s}
-        .hf-ko{position:absolute;right:13%;bottom:60%;font-family:'Press Start 2P';font-size:28px;color:var(--red);text-shadow:2px 2px 0 #6b1e24;opacity:0;z-index:4}
+        .hf-ko{position:absolute;right:26%;bottom:52%;font-family:'Press Start 2P';font-size:22px;color:var(--red);text-shadow:2px 2px 0 #6b1e24;opacity:0;z-index:4}
         .hf-ko.on{opacity:1;animation:hfpop .25s}
         @keyframes hfpop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
         .hf-cap{text-align:center;font-family:'Press Start 2P';font-size:8px;color:#5f7a6c;padding:9px 0 0}
