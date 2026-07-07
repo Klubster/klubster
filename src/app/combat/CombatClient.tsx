@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const LEVELS: [string, string, string][] = [
-  ["LEVEL 1", "Crée ton club.", "Un nom, tes couleurs, ton identité."],
-  ["LEVEL 2", "Publie tes cours.", "Chaque adhérent choisit les siens."],
-  ["LEVEL 3", "Montre ton club.", "Pas une page vide : photos, palmarès, coachs, FAQ."],
-  ["LEVEL 4", "Ouvre les inscriptions.", "Tu n’as plus rien à envoyer — les dossiers arrivent seuls."],
+  ["STAGE 1", "Crée ton club.", "Un nom, tes couleurs, ton identité."],
+  ["STAGE 2", "Publie tes cours.", "Chaque adhérent choisit les siens."],
+  ["STAGE 3", "Montre ton club.", "Pas une page vide : photos, palmarès, coachs, FAQ."],
+  ["STAGE 4", "Ouvre les inscriptions.", "Tu n’as plus rien à envoyer — les dossiers arrivent seuls."],
 ];
 
 const DISCIPLINES = [
@@ -141,7 +141,7 @@ export default function CombatClient() {
         .cmb-hero{text-align:center;padding:44px 0 8px;background:radial-gradient(120% 80% at 50% 0%,#0d1712 0%,#080c0a 70%)}
         .cmb-round{font-family:'Press Start 2P';font-size:11px;color:var(--red);letter-spacing:2px;text-shadow:0 0 8px rgba(255,77,94,.5)}
         .cmb-round b{color:var(--amb)}
-        .cmb-title{font-family:'Press Start 2P';font-size:clamp(18px,4.6vw,30px);line-height:1.55;margin:18px 0 0;color:#fff;text-shadow:3px 3px 0 var(--grnd),6px 6px 0 rgba(0,0,0,.6)}
+        .cmb-title{font-family:'Press Start 2P';font-size:clamp(20px,5.4vw,38px);line-height:1.5;margin:16px 0 0;color:#fff;text-shadow:3px 3px 0 var(--grnd),6px 6px 0 rgba(0,0,0,.6)}
         .cmb-title span{color:var(--grn)}
         .cmb-hsub{font-size:19px;color:#dcebe3;font-weight:500;max-width:600px;margin:18px auto 0}
         .cmb-cta{display:inline-block;font-family:'Press Start 2P';font-size:12px;color:#081109;background:var(--grn);padding:16px 20px;box-shadow:5px 5px 0 var(--grnd)}
@@ -184,6 +184,21 @@ export default function CombatClient() {
         .cmb-hp2 .bar{flex:0 0 120px;height:12px;border:2px solid #16261d;background:#0c130f;position:relative;overflow:hidden}
         .cmb-hp2 .bar>i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--grnd) 0 7px,var(--grn) 7px 14px)}
         .cmb-hp2 .ben{font-size:19px;color:#a9c6b6}
+        .cmb-stats{margin-top:26px;max-width:680px;display:flex;flex-direction:column;gap:16px}
+        .cmb-stat{display:flex;align-items:center;gap:16px}
+        .cmb-stat .bar{flex:0 0 150px;height:14px;border:2px solid #16261d;background:#0c130f;position:relative;overflow:hidden}
+        .cmb-stat .bar>i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--grnd) 0 8px,var(--grn) 8px 16px)}
+        .cmb-stat .txt{display:flex;flex-direction:column;gap:3px}
+        .cmb-stat .lab{font-family:'Press Start 2P';font-size:10px;color:#fff}
+        .cmb-stat .ben{font-size:17px;color:#c3d6cb}
+        .cmb-gover{text-align:center}
+        .cmb-gover .go{font-family:'Press Start 2P';font-size:clamp(26px,7vw,44px);color:var(--red);text-shadow:4px 4px 0 #6b1e24;letter-spacing:2px}
+        .cmb-gover .for{font-size:20px;color:#8fae9e;margin-top:14px}
+        .cmb-golist{list-style:none;padding:0;margin:22px auto 0;max-width:420px;text-align:left}
+        .cmb-golist li{font-size:20px;color:#c7d6cd;padding:9px 0;border-bottom:1px solid #17231c}
+        .cmb-golist li b{color:var(--red);margin-right:10px}
+        .cmb-cont{font-family:'Press Start 2P';font-size:12px;color:var(--amb);margin-top:26px}
+        .cmb-oui{display:inline-block;margin-top:16px;font-family:'Press Start 2P';font-size:11px;color:#081109;background:var(--grn);padding:13px 18px;box-shadow:4px 4px 0 var(--grnd)}
         .cmb-timer{font-family:'Press Start 2P';font-size:clamp(30px,9vw,52px);color:var(--grn);text-shadow:4px 4px 0 var(--grnd),8px 8px 0 rgba(0,0,0,.5);margin:26px 0 6px;letter-spacing:2px}
         .cmb-badges{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
         .cmb-badges span{font-family:'Press Start 2P';font-size:9px;color:var(--grn);border:2px solid #1c3327;background:#0b1410;padding:10px 12px}
@@ -223,10 +238,11 @@ export default function CombatClient() {
           .cmb-vsbadge{font-size:20px}
           .cmb-grid,.cmb-tiers{grid-template-columns:1fr}
           .cmb-card h3{font-size:22px}
-          .cmb-hp2{grid-template-columns:1fr;gap:5px 12px;margin-top:20px}
-          .cmb-hp2 .lab{font-size:8px}
-          .cmb-hp2 .ben{font-size:15px}
-          .cmb-hp2 .bar{flex:0 0 84px}
+          .cmb-stat{gap:12px}
+          .cmb-stat .bar{flex:0 0 84px}
+          .cmb-stat .lab{font-size:9px}
+          .cmb-stat .ben{font-size:15px}
+          .cmb-golist li{font-size:18px}
           .cmb-disc{font-size:16px;line-height:1.9}
           .cmb-badges span{font-size:8px;padding:9px 10px}
           .cmb-tier .pl{font-size:9px}
@@ -262,7 +278,7 @@ export default function CombatClient() {
         <div className="cmb-shell">
           <div className="cmb-round">◄ ROUND 1 — <b>FIGHT!</b> ►</div>
           <h1 className="cmb-title">Tu entraînes.<br /><span>Klubster administre.</span></h1>
-          <p className="cmb-hsub">Le logiciel pensé pour les clubs de combat. Inscriptions, licences, certificats, paiements et communication.</p>
+          <p className="cmb-hsub">Le logiciel qui remplace Excel, les formulaires PDF et les groupes WhatsApp.</p>
 
           <div className="cmb-sel">— PLAYER SELECT —</div>
           <div className="cmb-vs">
@@ -274,7 +290,7 @@ export default function CombatClient() {
               <div className="cmb-meta">
                 <div className="cmb-name">LÉA <small>KARATÉ</small></div>
                 <div className="cmb-hp"><i /></div>
-                <div className="cmb-pick">▶ FONCTIONNALITÉS KARATÉ</div>
+                <div className="cmb-pick">▶ ENTRER DANS LE DOJO</div>
               </div>
             </button>
             <div className="cmb-vsbadge cmb-blink">VS</div>
@@ -286,7 +302,7 @@ export default function CombatClient() {
               <div className="cmb-meta">
                 <div className="cmb-name">SAM <small>BOXE</small></div>
                 <div className="cmb-hp"><i /></div>
-                <div className="cmb-pick">▶ FONCTIONNALITÉS BOXE</div>
+                <div className="cmb-pick">▶ MONTER SUR LE RING</div>
               </div>
             </button>
           </div>
@@ -299,8 +315,24 @@ export default function CombatClient() {
       </section>
 
       <section className="cmb-sec">
+        <div className="cmb-shell cmb-gover">
+          <div className="go">GAME OVER</div>
+          <p className="for">pour…</p>
+          <ul className="cmb-golist">
+            <li><b>✕</b> Excel et ses colonnes</li>
+            <li><b>✕</b> Les chèques qui traînent</li>
+            <li><b>✕</b> Les certificats oubliés</li>
+            <li><b>✕</b> Les licences en retard</li>
+            <li><b>✕</b> Les SMS à tout le monde</li>
+          </ul>
+          <div className="cmb-cont cmb-blink">CONTINUE ?</div>
+          <div><Link href="/creer" className="cmb-oui">▶ OUI — PASSER À KLUBSTER</Link></div>
+        </div>
+      </section>
+
+      <section className="cmb-sec">
         <div className="cmb-shell">
-          <p className="cmb-kick">SELECT · 4 NIVEAUX_</p>
+          <p className="cmb-kick">MISSION ACCEPTED · 4 STAGES_</p>
           <h2 className="cmb-h2">Ton club est prêt avant le prochain entraînement.</h2>
           <div className="cmb-grid">
             {LEVELS.map(([lv, t, d]) => (
@@ -316,16 +348,13 @@ export default function CombatClient() {
 
       <section className="cmb-sec" id="stats">
         <div className="cmb-shell">
-          <p className="cmb-kick">ATTRIBUTS · TOUT INCLUS_</p>
+          <p className="cmb-kick">POWER UP · CHARACTER STATS_ ★★★★★</p>
           <h2 className="cmb-h2">Rien à débloquer. Tout est déjà au max.</h2>
-          <div className="cmb-hp2">
+          <div className="cmb-stats">
             {STATS.map(([lab, ben]) => (
-              <div className="row" key={lab} style={{ display: "contents" }}>
-                <div className="lab">{lab}</div>
-                <div className="row">
-                  <div className="bar"><i /></div>
-                  <div className="ben">{ben}</div>
-                </div>
+              <div className="cmb-stat" key={lab}>
+                <div className="bar"><i /></div>
+                <div className="txt"><span className="lab">{lab}</span><span className="ben">{ben}</span></div>
               </div>
             ))}
           </div>
@@ -335,7 +364,7 @@ export default function CombatClient() {
       <section className="cmb-sec">
         <div className="cmb-shell">
           <p className="cmb-kick">TIME ATTACK · 30:00_</p>
-          <h2 className="cmb-h2">Ton club configuré en moins de 30 minutes.</h2>
+          <h2 className="cmb-h2">Avant la fin de cette demi-heure, ton club est prêt.</h2>
           <p className="cmb-lead">Tu n’as rien à apprendre. Tu remplis ton club comme tu remplirais un formulaire. Trente minutes plus tard, ton site est ouvert.</p>
           <div className="cmb-timer">30:00</div>
           <div className="cmb-badges">
@@ -362,6 +391,7 @@ export default function CombatClient() {
         <div className="cmb-shell cmb-quote">
           <p className="cmb-kick">QUI FAIT KLUBSTER_</p>
           <h2 className="cmb-h2">J’en avais besoin.</h2>
+          <p className="cmb-lead" style={{ color: "#fff", fontWeight: 600 }}>Je ne suis pas développeur. Je suis président de club.</p>
           <p className="cmb-lead">
             Pendant quinze ans, j’ai fait vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise depuis quatre ans. Des licences à saisir, des certificats à relancer, des chèques à encaisser un mercredi soir après l’entraînement.
           </p>
@@ -388,7 +418,7 @@ export default function CombatClient() {
             Les paiements arrivent directement sur ton compte Stripe. Klubster ne prélève aucune commission. Sans engagement.
           </p>
           <div style={{ marginTop: 26 }}>
-            <Link href="/creer" className="cmb-cta cmb-blink">▶ INSERT COIN — CRÉER MON CLUB</Link>
+            <Link href="/creer" className="cmb-cta cmb-blink">▶ PRESS START — CRÉER MON CLUB</Link>
           </div>
         </div>
       </section>
@@ -402,7 +432,7 @@ export default function CombatClient() {
             <Link href="/cgv">CGV</Link>
             <Link href="/confidentialite">Confidentialité</Link>
           </div>
-          <p className="cmb-badge"><b>●</b> Développé à Montauban. Testé au ring, chaque semaine, à l’USM Boxe.</p>
+          <p className="cmb-badge"><b>●</b> Développé à Montauban. Conçu entre deux entraînements, à l’USM Boxe.</p>
           <p style={{ marginTop: 14, fontSize: 15, color: "#4f645a" }}>© 2026 KLUBSTER</p>
         </div>
       </footer>
