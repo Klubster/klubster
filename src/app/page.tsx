@@ -21,7 +21,6 @@ function Chapitre({ src, alt, h = "h-[72vh] md:h-screen" }: { src: string; alt: 
 function DoublePage({
   src,
   alt,
-  num,
   kicker,
   titre,
   children,
@@ -29,7 +28,6 @@ function DoublePage({
 }: {
   src: string;
   alt: string;
-  num: string;
   kicker: string;
   titre: string;
   children: React.ReactNode;
@@ -37,12 +35,12 @@ function DoublePage({
 }) {
   return (
     <section className="grid grid-cols-1 md:grid-cols-2">
-      <div className={`relative min-h-[58vh] overflow-hidden md:min-h-[88vh] ${flip ? "md:order-2" : ""}`}>
+      <div className={`relative min-h-[62vh] overflow-hidden md:min-h-[92vh] ${flip ? "md:order-2" : ""}`}>
         <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.08} />
       </div>
-      <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
+      <div className="flex items-center px-6 py-24 md:px-16 md:py-0">
         <Reveal className="max-w-md">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">{num}</span> — {kicker}<Cur /></p>
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{kicker}<Cur /></p>
           <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">{titre}</h2>
           <div className="mt-6 space-y-4 text-lg text-ink-soft">{children}</div>
         </Reveal>
@@ -52,13 +50,6 @@ function DoublePage({
 }
 
 const DISCIPLINES = ["Sports de combat", "Danse", "Arts martiaux", "Musique", "Natation", "Théâtre", "Activités culturelles", "Gymnastique", "Sports collectifs", "Loisirs"];
-
-// Notes de terrain — signature éditoriale récurrente (home, Journal, LinkedIn…).
-const NOTES: [string, string][] = [
-  ["07", "Le premier mercredi de septembre, les dossiers incomplets arrivent tous en même temps."],
-  ["12", "Les bénévoles ouvrent souvent la salle trente minutes avant tout le monde."],
-  ["18", "Les paiements arrivent rarement quand on a le temps de les vérifier."],
-];
 
 const SAISON: [string, string][] = [
   ["SEPTEMBRE", "Les portes rouvrent. Le site du club est déjà en ligne."],
@@ -73,14 +64,11 @@ const PALIERS: { capacite: string; prix: string }[] = [
   { capacite: "Plus de 500 adhérents", prix: "29" },
 ];
 
-// Racontées en résultats, jamais en technologie.
+// Racontées en résultats, jamais en technologie. Six suffisent.
 const INCLUS = [
   "Le site de votre club, en ligne dès le premier soir",
   "Les inscriptions se remplissent toutes seules — mineurs, cours, pièces : le formulaire s’adapte",
   "Les cotisations arrivent directement sur le compte du club — 0 % de commission",
-  "Le paiement en 1 ou 3 fois, au choix du club",
-  "Les certificats et documents arrivent directement au bon endroit",
-  "Prévenez tous les parents en deux clics",
   "L’appel se fait en scannant la carte d’adhérent",
   "Aujourd’hui_ : l’état de votre club en trois secondes",
   "Toutes les futures fonctionnalités, sans supplément",
@@ -125,66 +113,66 @@ export default function Home() {
 
       {/* Résumé descriptif — un cran plus bas, sans alourdir le hero */}
       <section className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
+        <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16">
           <p className="max-w-prose text-ink md:text-lg">
             Inscriptions, paiements, communication, site web : tout ce dont un club a besoin, dans un seul outil <span className="text-ink-soft">pensé pour les bénévoles.</span>
           </p>
         </div>
       </section>
 
-      {/* I — POURQUOI (double-page, fusion) */}
-      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="I" kicker="POURQUOI" titre="Un club n’est pas une base de données.">
+      {/* — grand silence — */}
+      <div className="h-16 md:h-32" aria-hidden />
+
+      {/* POURQUOI (double-page) */}
+      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." kicker="POURQUOI" titre="Un club n’est pas une base de données.">
         <p>C’est une salle qu’on ouvre le soir.<br />Des bénévoles qui arrivent avant tout le monde.<br />Qui repartent après tout le monde.</p>
         <p>Klubster s’occupe du reste.</p>
       </DoublePage>
 
-      <div className="h-14 md:h-28" aria-hidden />
+      {/* — très grand silence — */}
+      <div className="h-24 md:h-52" aria-hidden />
 
-      {/* II — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
+      {/* SUR LE TERRAIN (texte à gauche, photo à droite) — la scène seule, sans la liste de notes */}
       <section className="grid grid-cols-1 md:grid-cols-2">
-        <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
-          <div className="max-w-md">
-            <Reveal>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — SUR LE TERRAIN<Cur /></p>
-              <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
-                Chaque fonctionnalité commence de la même façon.
-              </h2>
-              <p className="mt-6 text-lg leading-relaxed text-ink">Un mercredi soir.<br />Un parent cherche son certificat.<br />Une cotisation manque.<br />Un dossier est incomplet.</p>
-              <p className="mt-4 text-lg text-ink-soft">On rentre. On corrige. Puis on construit.<br />C’est comme ça que naît Klubster.</p>
-              <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
-              </p>
-            </Reveal>
-            <Reveal className="mt-10">
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
-              <div className="mt-5 border-t border-line">
-                {NOTES.map(([num, texte]) => (
-                  <p key={num} className="border-b border-line py-4 text-[15px] text-ink-soft">{texte}</p>
-                ))}
-              </div>
-            </Reveal>
-          </div>
+        <div className="flex items-center px-6 py-24 md:px-16 md:py-0">
+          <Reveal className="max-w-md">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SUR LE TERRAIN<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
+              Chaque fonctionnalité commence de la même façon.
+            </h2>
+            <p className="mt-7 text-lg leading-relaxed text-ink">Un mercredi soir.<br />Un parent cherche son certificat.<br />Une cotisation manque.<br />Un dossier est incomplet.</p>
+            <p className="mt-5 text-lg text-ink-soft">On rentre. On corrige. Puis on construit.</p>
+            <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
+              <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
+            </p>
+          </Reveal>
         </div>
-        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
+        <div className="relative min-h-[62vh] overflow-hidden md:min-h-[92vh]">
           <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.08} />
         </div>
       </section>
 
-      {/* l’objet — le ballon */}
-      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
+      {/* — silence — */}
+      <div className="h-16 md:h-28" aria-hidden />
 
-      {/* IV — UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
+      {/* l’objet — le ballon (respire seul) */}
+      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[64vh] md:h-[84vh]" />
+
+      {/* — grand silence — */}
+      <div className="h-24 md:h-48" aria-hidden />
+
+      {/* UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
       <section>
-        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
+        <div className="mx-auto max-w-3xl px-6 pb-16 md:px-8 md:pb-28">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — UNE DEMI-HEURE<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">UNE DEMI-HEURE<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Une demi-heure.<br />Pas une demi-journée.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               À 18 h 30, les adhérents arrivent. Personne n’apprend un logiciel à ce moment-là. Alors Klubster est prêt avant vous.
             </p>
-            <div className="mt-10 border-t border-line">
+            <div className="mt-12 border-t border-line">
               {[
                 ["01", "Créez votre club.", "Un nom, un design, vos couleurs."],
                 ["02", "Ajoutez vos cours.", "Créneaux et tarifs, en quelques lignes."],
@@ -200,44 +188,42 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
-              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
-            </p>
-            <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+            <p className="mono mt-14 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
               Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre club<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
       </section>
 
-      {/* V — AUJOURD'HUI_ (le produit : une scène, pas un écran) */}
+      {/* — grand silence — */}
+      <div className="h-20 md:h-40" aria-hidden />
+
+      {/* AUJOURD'HUI_ (le produit : une scène, pas un écran) — intro très courte, le cockpit raconte le reste */}
       <section id="cockpit">
-        <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — AUJOURD’HUI<Cur /></p>
+        <div className="mx-auto max-w-5xl px-6 pb-16 md:px-8 md:pb-28">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">AUJOURD’HUI<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Le club ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Vous ouvrez Klubster. Une phrase, et le club est prêt.
+              Vous ouvrez Klubster. Le club est prêt.
             </p>
-            <ul className="mono mt-6 space-y-2 text-[15px] text-ink">
-              <li><span className="text-brand">✓</span> Aucun dossier en attente</li>
-              <li><span className="text-brand">✓</span> Tous les paiements sont à jour</li>
-              <li><span className="text-brand">✓</span> Le cours peut commencer</li>
-            </ul>
           </Reveal>
-          <Reveal className="mt-14">
+          <Reveal className="mx-auto mt-20 max-w-4xl md:mt-28">
             <CockpitPreview />
           </Reveal>
         </div>
       </section>
 
-      {/* V — QUAND LE CLUB OUVRE (respiration éditoriale, whitespace, aucun encadré) */}
+      {/* — très grand silence — */}
+      <div className="h-8 md:h-16" aria-hidden />
+
+      {/* QUAND LE CLUB OUVRE (respiration éditoriale, whitespace, aucun encadré) */}
       <section>
         <div className="mx-auto max-w-3xl px-6 py-40 text-center md:px-8 md:py-64">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — QUAND LE CLUB OUVRE<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUAND LE CLUB OUVRE<Cur /></p>
             <p className="mx-auto mt-16 max-w-2xl text-2xl font-medium leading-[1.7] tracking-[-0.01em] text-ink md:text-[30px] md:leading-[1.75]">
               Quand le club ouvre,<br />
               personne ne pense au logiciel.<br />
@@ -250,9 +236,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INTERLUDE — QUI FAIT KLUBSTER (note du fondateur, photo à venir) */}
+      {/* QUI FAIT KLUBSTER (note du fondateur) */}
       <section>
-        <div className="mx-auto max-w-2xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-2xl px-6 pb-16 md:px-8 md:pb-24">
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUI FAIT KLUBSTER<span className="text-brand">_</span></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
@@ -271,11 +257,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VII — LES DISCIPLINES */}
+      {/* — grand silence — */}
+      <div className="h-20 md:h-40" aria-hidden />
+
+      {/* LES DISCIPLINES */}
       <section id="disciplines">
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-3xl px-6 pb-16 text-center md:px-8 md:pb-28">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — LES DISCIPLINES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Peu importe votre association.
             </h2>
@@ -292,16 +281,19 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation topTight lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
+      <Citation lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
 
-      {/* la saison */}
+      {/* la saison (respire seule) */}
       <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
 
-      {/* VIII — UNE SAISON (apparaît d’un bloc) */}
+      {/* — silence — */}
+      <div className="h-16 md:h-28" aria-hidden />
+
+      {/* UNE SAISON */}
       <section>
-        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
+        <div className="mx-auto max-w-3xl px-6 pb-16 md:px-8 md:pb-24">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UNE SAISON<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">UNE SAISON<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
             <div className="mt-10">
               {SAISON.map(([mois, texte]) => (
@@ -315,11 +307,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* X — TARIFS : tout est déjà inclus, le prix suit la taille du club */}
+      {/* — grand silence — */}
+      <div className="h-20 md:h-36" aria-hidden />
+
+      {/* TARIFS : tout est déjà inclus, le prix suit la taille du club */}
       <section id="tarifs">
-        <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-5xl px-6 pb-16 md:px-8 md:pb-32">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
               Pas de version Pro. Pas d’options. Pas de modules.<br />
@@ -359,11 +354,9 @@ export default function Home() {
         </div>
       </section>
 
-      <Citation topTight lines={["On ne fait jamais", "les inscriptions", "quand on a le temps"]} />
-
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
-        <div className="flex flex-col items-center justify-center py-24 md:py-32">
+        <div className="flex flex-col items-center justify-center py-24 md:py-36">
           <span className="kb-float font-logo text-[110px] leading-none text-brand md:text-[190px]">k_</span>
           <span className="mono mt-5 text-[12px] uppercase tracking-label text-ink-soft">klubster.fr</span>
         </div>
