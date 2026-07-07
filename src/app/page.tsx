@@ -51,7 +51,7 @@ function DoublePage({
   );
 }
 
-const DISCIPLINES = ["Sports de combat", "Arts martiaux", "Natation", "Tennis", "Sports collectifs", "Danse", "Gymnastique", "Fitness"];
+const DISCIPLINES = ["Sports de combat", "Danse", "Arts martiaux", "Musique", "Natation", "Théâtre", "Activités culturelles", "Gymnastique", "Sports collectifs", "Loisirs"];
 
 // Notes de terrain — signature éditoriale récurrente (home, Journal, LinkedIn…).
 const NOTES: [string, string][] = [
@@ -138,7 +138,9 @@ export default function Home() {
         <p>Klubster prend la part invisible (dossiers, paiements, relances) et disparaît derrière le reste.</p>
       </DoublePage>
 
-      {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
+      <div className="h-14 md:h-28" aria-hidden />
+
+      {/* II — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
       <section className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
           <div className="max-w-md">
@@ -284,9 +286,9 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Peu importe votre sport.
+              Peu importe votre association.
             </h2>
-            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte au fonctionnement de votre club.</p>
+            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte au fonctionnement de votre association.</p>
             <p className="mono mt-8 text-[13px] leading-loose tracking-wide text-ink-soft">
               {DISCIPLINES.map((d, i) => (
                 <span key={d}>
