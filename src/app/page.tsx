@@ -123,28 +123,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Résumé + fonctionnalités — compréhension immédiate, dans la DA éditoriale */}
+      {/* Résumé descriptif — une seule phrase, puis la respiration */}
       <section className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16">
+        <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
           <p className="max-w-prose text-ink md:text-lg">
-            Inscriptions, adhérents, paiements, communication, site web,…<br />Klubster réunit tout ce dont un club a besoin dans un seul outil, pensé pour les bénévoles.
-            {" "}<span className="text-ink-soft">Et pensé pour être prêt en moins de trente minutes.</span>
+            Inscriptions, paiements, communication, site web.<br />Tout ce dont une association a besoin, dans un seul outil pensé pour les bénévoles.
           </p>
-          <div className="mt-10 grid grid-cols-1 gap-x-12 md:grid-cols-2">
-            {[
-              ["Le site du club", "en ligne dès le premier soir."],
-              ["Les inscriptions", "mineurs, cours, pièces : le formulaire s’adapte."],
-              ["Les paiements", "sur le compte du club, en 1 ou 3 fois — 0 % de commission."],
-              ["Les certificats", "déposés au bon endroit, sans courir après."],
-              ["La communication", "prévenez tous les adhérents en deux clics."],
-              ["Aujourd’hui_", "l’état de votre club en trois secondes."],
-            ].map(([nom, texte]) => (
-              <p key={nom} className="border-t border-line py-3.5 text-[15px]">
-                <span className="mono text-[12px] uppercase tracking-wide text-ink">{nom.endsWith("_") ? <>{nom.slice(0, -1)}<span className="text-brand">_</span></> : nom}</span>
-                <span className="text-ink-soft"> — {texte}</span>
-              </p>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -167,7 +151,7 @@ export default function Home() {
       {/* II — LES CLUBS (double-page) */}
       <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
         <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
-        <p>Klubster prend la part invisible — les dossiers, les paiements, les relances — pour leur laisser le reste.</p>
+        <p>Klubster s’occupe de la part invisible — les dossiers, les paiements, les relances. Eux gardent le reste.</p>
       </DoublePage>
 
       <Citation lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
@@ -182,7 +166,7 @@ export default function Home() {
                 Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-ink">Un parent arrive sans certificat.<br />Une licence est expirée.<br />Le trésorier attend un paiement.</p>
-              <p className="mt-4 text-lg text-ink-soft">C’est là que naissent les fonctionnalités de Klubster.</p>
+              <p className="mt-4 text-lg text-ink-soft">C’est comme ça que Klubster évolue.</p>
               <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
               </p>
@@ -216,7 +200,7 @@ export default function Home() {
               Une demi-heure.<br />C’est tout.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Les membres du bureau n’ont jamais une demi-journée à consacrer à un logiciel.
+              Le bureau n’a jamais une demi-journée à consacrer à un logiciel.
               Alors tout est déjà prêt — il ne reste que l’essentiel.
             </p>
             <div className="mt-10 border-t border-line">
@@ -254,9 +238,8 @@ export default function Home() {
               Le club ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Personne n’a le temps d’apprendre un nouveau logiciel à 18 h 15.<br />
-              C’est pour ça que Klubster s’ouvre sur une phrase, pas sur un tableau de bord :
-              l’état de votre club, en trois secondes.
+              Vous ouvrez Klubster.<br />
+              Le club est prêt.
             </p>
           </Reveal>
           <Reveal className="mt-14">
@@ -293,31 +276,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* VI — UN MERCREDI SOIR (le bénéfice, pas les fonctionnalités) */}
+      {/* VII — QUAND LE CLUB OUVRE (contemplatif — une scène, pas des chiffres) */}
       <section>
-        <div className="mx-auto max-w-4xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — UN MERCREDI SOIR<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">18 h 30. Le club ouvre.</h2>
-          </Reveal>
-          <Reveal className="mt-12">
-            <div className="grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-2">
-              <div className="bg-paper px-7 py-9">
-                <p className="mono text-[10px] uppercase tracking-label text-ink-soft">AVANT</p>
-                <ul className="mono mt-5 space-y-2 text-[15px] text-ink-soft">
-                  <li>5 SMS</li>
-                  <li>3 mails</li>
-                  <li>17 dossiers papier</li>
-                  <li>2 chèques</li>
-                  <li>1 tableur</li>
-                </ul>
-              </div>
-              <div className="bg-paper px-7 py-9">
-                <p className="mono text-[10px] uppercase tracking-label text-ink-soft">AVEC KLUBSTER<span className="text-brand">_</span></p>
-                <p className="mt-5 text-[40px] font-medium leading-none tracking-[-0.01em] md:text-[56px]">1 notification<span className="text-brand">.</span></p>
-                <p className="mt-4 text-lg text-ink-soft">C’est tout.</p>
-              </div>
-            </div>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — QUAND LE CLUB OUVRE<Cur /></p>
+            <p className="mono mt-10 max-w-[720px] text-2xl font-normal leading-[1.2] tracking-[-0.02em] text-ink md:text-[32px]">
+              Quand le club ouvre,<br />personne ne pense au logiciel.
+            </p>
+            <p className="mt-8 text-lg text-ink-soft">
+              Les bénévoles pensent aux adhérents.<br />
+              Et c’est exactement pour ça que Klubster existe<span className="cur">_</span>
+            </p>
           </Reveal>
         </div>
       </section>
@@ -331,13 +301,16 @@ export default function Home() {
               Je n’ai pas inventé Klubster. J’en avais besoin.
             </h2>
             <p className="mt-8 text-lg leading-relaxed text-ink-soft">
-              Ça fait plus de quinze ans que je fais vivre des associations. Neuf ans au bureau d’un club de boxe, puis fondateur et président de l’USM Boxe Anglaise, que je dirige depuis quatre ans. Des années de licences à saisir, de certificats à relancer, de chèques à encaisser un mercredi soir après l’entraînement.
+              Un mercredi soir. Deux certificats manquaient. Trois chèques attendaient encore. Le cours venait de commencer.
             </p>
             <p className="mt-5 text-lg leading-relaxed text-ink-soft">
-              Klubster, c’est l’outil que j’aurais voulu avoir. Je l’ai construit depuis mon club, pour le mien d’abord — puis pour tous les autres.
+              Je me suis demandé pourquoi un bénévole passait autant de temps devant un tableur.
+            </p>
+            <p className="mt-5 text-lg leading-relaxed text-ink">
+              Klubster est né ce soir-là.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide text-ink">
-              Mathieu Bourdieu — président-fondateur, USM Boxe Anglaise<span className="text-brand">_</span>
+              Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
             </p>
           </Reveal>
         </div>
@@ -349,9 +322,9 @@ export default function Home() {
           <Reveal>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — LES DISCIPLINES<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Peu importe votre sport.
+              Chaque association fonctionne différemment.
             </h2>
-            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte au fonctionnement de votre club.</p>
+            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte à la vôtre.</p>
             <p className="mono mt-8 text-[13px] leading-loose tracking-wide text-ink-soft">
               {DISCIPLINES.map((d, i) => (
                 <span key={d}>
@@ -363,8 +336,6 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
-
-      <Citation topTight lines={["Le meilleur logiciel", "est celui qu’on oublie"]} />
 
       {/* la saison */}
       <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
@@ -395,7 +366,7 @@ export default function Home() {
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
               Pas de version Pro. Pas d’options. Pas de modules.<br />
-              Le prix suit simplement la taille de votre club.
+              Seule la taille de votre association fait évoluer le tarif.
             </p>
           </Reveal>
 
