@@ -10,8 +10,13 @@ const POINTS: { ok?: boolean; texte: string }[] = [
 
 export default function CockpitPreview() {
   return (
-    // Planche de magazine : pas de barre de navigateur, l'objet flotte sur le papier (ombre d'impression).
-    <div className="overflow-hidden border border-line bg-paper shadow-[0_50px_100px_-55px_rgba(17,17,17,0.32)]">
+    <div className="overflow-hidden border border-line bg-paper">
+      {/* barre de fenêtre */}
+      <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+        <span className="font-logo text-[13px] font-semibold">k<span className="text-brand">_</span></span>
+        <span className="mono text-[10px] uppercase tracking-label text-ink-faint">klubster.fr/mon-club/cockpit</span>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-[128px_1fr] md:grid-cols-[168px_1fr]">
         {/* sidebar — masquée sur mobile pour laisser la scène respirer */}
         <nav className="hidden bg-ink px-3 py-4 text-paper sm:block md:px-4">
