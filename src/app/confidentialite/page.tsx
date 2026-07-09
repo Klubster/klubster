@@ -42,10 +42,17 @@ export default function Confidentialite() {
       <p>Les données sont accessibles au club concerné et, en tant que prestataires techniques :</p>
       <ul>
         <li><strong>Supabase</strong> (base de données, authentification, stockage) — hébergement AWS, Union européenne ;</li>
-        <li><strong>Vercel</strong> (hébergement applicatif) ;</li>
-        <li><strong>Stripe</strong> (paiements) — aucune donnée bancaire n’est stockée par Klubster.</li>
+        <li><strong>Vercel</strong> (hébergement applicatif) — société américaine ;</li>
+        <li><strong>Stripe</strong> (paiements, entité irlandaise) — aucune donnée bancaire n’est stockée par Klubster ;</li>
+        <li><strong>Resend</strong> (envoi des emails : confirmation de compte, confirmation d’inscription, messages du club) — société américaine.</li>
       </ul>
-      <p>Les données sont hébergées dans l’Union européenne. Aucun transfert hors UE n’est effectué sans garanties appropriées (clauses contractuelles types).</p>
+      <p>
+        <strong>Vos données d’adhérents — dossiers, pièces, questionnaires de santé, paiements — sont stockées
+        dans l’Union européenne</strong> (Irlande), et les traitements serveur s’exécutent à Paris. Deux
+        prestataires sont établis aux États-Unis : Vercel, qui sert les pages du site, et Resend, qui achemine
+        les emails. Les transferts correspondants sont encadrés par les clauses contractuelles types de la
+        Commission européenne.
+      </p>
 
       <h2>5. Durées de conservation</h2>
       <ul>

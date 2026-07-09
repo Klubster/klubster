@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { stripeConfigured, createCheckoutForClub, createCheckout3xForClub } from "@/lib/stripe";
 import { envoyerEmail } from "@/lib/resend";
+import { verifierSoumissionPublique } from "@/lib/antiabus";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -16,6 +17,10 @@ export async function inscrireAdherent(formData: FormData) {
   const coursId = String(formData.get("cours") ?? "");
   const password = String(formData.get("password") ?? "");
   const mode = String(formData.get("mode") ?? "en_ligne");
+
+  // Formulaire public : on filtre les robots AVANT tout envoi d'email ou création de compte.
+  const verdict = await verifierSoumissionPublique(formData, slug);
+  if (!verdict.ok) redirect(`/${slug}/inscription?erreur=${verdict.raison}`);
 
   const org = await getOrganisationBySlug(slug);
   if (!org) redirect(`/${slug}/inscription?erreur=1`);

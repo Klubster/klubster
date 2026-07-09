@@ -45,8 +45,9 @@ export default function SousTraitance() {
       <p>Le Responsable autorise le recours aux sous-traitants ultérieurs suivants, situés dans l’UE ou présentant des garanties appropriées :</p>
       <ul>
         <li>Supabase / AWS (hébergement base de données, authentification, stockage — Union européenne) ;</li>
-        <li>Vercel (hébergement applicatif) ;</li>
-        <li>Stripe (paiements).</li>
+        <li>Vercel Inc. (hébergement applicatif — États-Unis, clauses contractuelles types) ;</li>
+        <li>Stripe (paiements — Irlande) ;</li>
+        <li>Resend Inc. (envoi des emails transactionnels : confirmation de compte, confirmation d’inscription, messages du club à ses adhérents — États-Unis, clauses contractuelles types). Les données transmises se limitent à l’adresse email, au nom et au contenu du message.</li>
       </ul>
       <p>Toute modification est portée à la connaissance du Responsable, qui peut s’y opposer pour un motif légitime.</p>
 

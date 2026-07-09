@@ -47,12 +47,26 @@ export default async function InscriptionPage({
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
             Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe (6 caractères minimum), puis réessayez dans quelques minutes.
           </p>
+        ) : searchParams?.erreur === "trop_de_tentatives" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            Trop de tentatives d&apos;inscription depuis cet appareil. Patientez quelques minutes, puis réessayez.
+          </p>
+        ) : searchParams?.erreur === "robot" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
+          </p>
         ) : searchParams?.erreur ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
         ) : null}
 
         <form action={inscrireAdherent} className="mt-12 space-y-10">
           <input type="hidden" name="slug" value={org.slug} />
+
+          {/* Pot de miel : invisible et non focalisable. Seul un robot le remplit. */}
+          <div aria-hidden className="absolute h-px w-px overflow-hidden opacity-0" style={{ left: "-9999px" }}>
+            <label htmlFor="site_web">Ne remplissez pas ce champ</label>
+            <input id="site_web" type="text" name="site_web" tabIndex={-1} autoComplete="off" defaultValue="" />
+          </div>
 
           {/* IDENTITÉ (base verrouillée) */}
           <fieldset>
