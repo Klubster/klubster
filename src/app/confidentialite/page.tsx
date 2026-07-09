@@ -44,14 +44,15 @@ export default function Confidentialite() {
         <li><strong>Supabase</strong> (base de données, authentification, stockage) — hébergement AWS, Union européenne ;</li>
         <li><strong>Vercel</strong> (hébergement applicatif) — société américaine ;</li>
         <li><strong>Stripe</strong> (paiements, entité irlandaise) — aucune donnée bancaire n’est stockée par Klubster ;</li>
-        <li><strong>Resend</strong> (envoi des emails : confirmation de compte, confirmation d’inscription, messages du club) — société américaine.</li>
+        <li><strong>Resend</strong> (envoi des emails : confirmation de compte, confirmation d’inscription, messages du club) — société américaine ;</li>
+        <li><strong>Cloudflare</strong> (Turnstile — vérification anti-robot du formulaire d’inscription) — société américaine. Turnstile ne dépose aucun cookie publicitaire et ne sert pas au profilage ; il traite l’adresse IP et des signaux techniques du navigateur, le temps de la vérification.</li>
       </ul>
       <p>
         <strong>Vos données d’adhérents — dossiers, pièces, questionnaires de santé, paiements — sont stockées
-        dans l’Union européenne</strong> (Irlande), et les traitements serveur s’exécutent à Paris. Deux
-        prestataires sont établis aux États-Unis : Vercel, qui sert les pages du site, et Resend, qui achemine
-        les emails. Les transferts correspondants sont encadrés par les clauses contractuelles types de la
-        Commission européenne.
+        dans l’Union européenne</strong> (Irlande), et les traitements serveur s’exécutent à Paris. Trois
+        prestataires sont établis aux États-Unis : Vercel, qui sert les pages du site, Resend, qui achemine
+        les emails, et Cloudflare, qui vérifie que l’inscription n’est pas automatisée. Les transferts
+        correspondants sont encadrés par les clauses contractuelles types de la Commission européenne.
       </p>
 
       <h2>5. Durées de conservation</h2>

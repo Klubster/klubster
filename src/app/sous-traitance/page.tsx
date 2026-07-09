@@ -48,6 +48,7 @@ export default function SousTraitance() {
         <li>Vercel Inc. (hébergement applicatif — États-Unis, clauses contractuelles types) ;</li>
         <li>Stripe (paiements — Irlande) ;</li>
         <li>Resend Inc. (envoi des emails transactionnels : confirmation de compte, confirmation d’inscription, messages du club à ses adhérents — États-Unis, clauses contractuelles types). Les données transmises se limitent à l’adresse email, au nom et au contenu du message.</li>
+        <li>Cloudflare Inc. (Turnstile — protection du formulaire d’inscription contre les robots et les abus — États-Unis, clauses contractuelles types). Les données transmises se limitent à l’adresse IP et à des signaux techniques du navigateur, le temps de la vérification. Aucun cookie publicitaire, aucun profilage.</li>
       </ul>
       <p>Toute modification est portée à la connaissance du Responsable, qui peut s’y opposer pour un motif légitime.</p>
 
