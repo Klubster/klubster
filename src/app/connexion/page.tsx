@@ -10,10 +10,13 @@ function Cur() {
 
 function ConnexionInner() {
   const params = useSearchParams();
-  const next = params.get("next") ?? "/creer";
-  // Le visiteur a cliqué « Créer mon association » : on lui ouvre la création de compte,
-  // pas un formulaire de connexion. Un compte existant peut toujours basculer d'un clic.
-  const veutCreer = next === "/creer";
+  const nextParam = params.get("next");
+  const next = nextParam ?? "/creer";
+  // Le visiteur a cliqué « Créer mon association » : on lui ouvre la création de compte.
+  // Attention : seulement si le paramètre est EXPLICITE. Sinon « Espace président »,
+  // qui pointe sur /connexion tout court, accueillerait un président fidèle par un
+  // formulaire d'inscription.
+  const veutCreer = nextParam === "/creer";
   const [mode, setMode] = useState<"login" | "signup">(veutCreer ? "signup" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
