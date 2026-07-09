@@ -4,10 +4,28 @@ import "./globals.css";
 // RGPD — exécution des fonctions serveur en Europe (Paris). Les données ne sortent pas de l'UE.
 export const preferredRegion = "cdg1";
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
+const DESCRIPTION =
+  "Inscriptions, paiements, communication, site web — Klubster réunit tout ce dont une association a besoin dans un seul outil, pensé pour les bénévoles. Prêt en moins de 30 minutes.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: "Klubster — Toute votre association, au même endroit",
-  description:
-    "Inscriptions, adhérents, paiements, communication, site web — Klubster réunit tout ce dont une association sportive a besoin dans un seul outil, pensé pour les bénévoles. Créé par un président, pour les présidents.",
+  description: DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: SITE,
+    siteName: "Klubster",
+    title: "Klubster — Toute votre association, au même endroit",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Klubster — Toute votre association, au même endroit",
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

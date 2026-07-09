@@ -16,6 +16,21 @@ export async function POST(request: NextRequest) {
 
   const admin = createSupabaseAdminClient();
 
+  // Idempotence — Stripe redélivre les événements (au moins une fois). Sans ce verrou,
+  // une redélivrance enregistrerait le règlement en double.
+  if (admin && event.id) {
+    const { error: verrou } = await admin
+      .from("stripe_events")
+      .insert({ event_id: event.id, type: event.type });
+    if (verrou) {
+      // 23505 = violation de clé primaire → événement déjà traité, on acquitte sans rejouer.
+      if (verrou.code === "23505") return NextResponse.json({ received: true, duplicate: true });
+      // Toute autre erreur : on renvoie 500 pour que Stripe redélivre plus tard.
+      console.error("stripe_events", verrou.message);
+      return NextResponse.json({ error: "Verrou d’idempotence indisponible." }, { status: 500 });
+    }
+  }
+
   if (event.type === "checkout.session.completed") {
     const obj = event.data.object as {
       mode?: string;

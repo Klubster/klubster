@@ -183,10 +183,15 @@ export async function getSubscription(subscriptionId: string, clubAccount: strin
 }
 
 export interface StripeEvent {
+  id: string;
   type: string;
   account?: string; // présent pour les événements Connect (compte du club)
   data: { object: Record<string, unknown> };
 }
+
+// Fenêtre de validité d'une signature Stripe. Au-delà, on refuse : sans cela, un
+// payload signé capturé resterait rejouable indéfiniment.
+const TOLERANCE_SECONDES = 300;
 
 export function verifyWebhook(rawBody: string, sigHeader: string | null, secret: string): StripeEvent | null {
   if (!sigHeader) return null;
@@ -198,6 +203,12 @@ export function verifyWebhook(rawBody: string, sigHeader: string | null, secret:
   const t = parts["t"];
   const v1 = parts["v1"];
   if (!t || !v1) return null;
+
+  const horodatage = Number(t);
+  if (!Number.isFinite(horodatage)) return null;
+  const ecart = Math.abs(Math.floor(Date.now() / 1000) - horodatage);
+  if (ecart > TOLERANCE_SECONDES) return null;
+
   const expected = crypto.createHmac("sha256", secret).update(`${t}.${rawBody}`).digest("hex");
   try {
     if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1))) return null;

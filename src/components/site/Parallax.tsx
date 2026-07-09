@@ -10,11 +10,14 @@ export default function Parallax({
   alt,
   className = "",
   strength = 0.1,
+  priority = false,
 }: {
   src: string;
   alt: string;
   className?: string;
   strength?: number;
+  /** Le hero : chargé en priorité (c'est l'élément LCP). Les autres photos attendent le scroll. */
+  priority?: boolean;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
@@ -52,7 +55,14 @@ export default function Parallax({
     <div ref={wrap} className={`overflow-hidden ${className}`}>
       <div ref={inner} className="absolute inset-0 will-change-transform">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} className="kb-breathe absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={src}
+          alt={alt}
+          className="kb-breathe absolute inset-0 h-full w-full object-cover"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "low"}
+          decoding={priority ? "sync" : "async"}
+        />
       </div>
     </div>
   );

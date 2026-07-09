@@ -11,8 +11,11 @@
      via <ThemeVitrine> (templates blanc/noir — src/lib/themes.ts).
      ink/paper = triplets RGB pour les modificateurs d'opacité Tailwind. */
   --k-ink: 17 17 17;
-  --k-ink-soft: #8C8C88;
-  --k-ink-faint: #C2C2BD;
+  /* Contraste WCAG AA sur le papier #FCFCFA :
+     ink-soft porte du texte de lecture → doit passer 4,5:1 (#6f6f6b ≈ 4,9:1).
+     ink-faint est strictement décoratif → jamais d'information contractuelle dedans. */
+  --k-ink-soft: #6f6f6b;
+  --k-ink-faint: #8C8C88;
   --k-paper: 252 252 250;
   --k-bg-alt: #F5F5F3;
   --k-surface: #FFFFFF;

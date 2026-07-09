@@ -11,7 +11,10 @@ function Cur() {
 function ConnexionInner() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/creer";
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  // Le visiteur a cliqué « Créer mon association » : on lui ouvre la création de compte,
+  // pas un formulaire de connexion. Un compte existant peut toujours basculer d'un clic.
+  const veutCreer = next === "/creer";
+  const [mode, setMode] = useState<"login" | "signup">(veutCreer ? "signup" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [prenom, setPrenom] = useState("");
@@ -48,6 +51,15 @@ function ConnexionInner() {
       </header>
 
       <div className="mx-auto max-w-md px-6 py-16 md:px-8">
+        {veutCreer ? (
+          <div className="mb-10">
+            <h1 className="text-3xl font-medium leading-tight tracking-[-0.01em]">Créez votre association.</h1>
+            <p className="mono mt-4 text-[11px] uppercase tracking-label text-ink-soft">
+              Gratuit à la création · Sans engagement · Prêt en moins de 30 minutes<Cur />
+            </p>
+          </div>
+        ) : null}
+
         <div className="mb-8 grid grid-cols-2 gap-px border border-line bg-line">
           <button onClick={() => setMode("login")} className={`mono bg-paper py-3 text-[12px] tracking-wide ${mode === "login" ? "font-bold text-ink" : "text-ink-soft"}`}>
             SE CONNECTER{mode === "login" ? <Cur /> : null}
@@ -79,8 +91,10 @@ function ConnexionInner() {
           {loading ? "…" : mode === "login" ? "SE CONNECTER →" : "CRÉER MON COMPTE →"}
         </button>
 
-        <p className="mono mt-6 text-center text-[11px] text-ink-faint">
-          {mode === "login" ? "Pas encore de club ? Créez un compte." : "Vous gérez déjà un club ? Connectez-vous."}
+        <p className="mono mt-6 text-center text-[11px] text-ink-soft">
+          {mode === "login"
+            ? "Pas encore d’association ? Créez un compte."
+            : "Vous gérez déjà une association ? Connectez-vous."}
         </p>
       </div>
     </main>

@@ -3,6 +3,7 @@ import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import CockpitPreview from "@/components/site/CockpitPreview";
 import Citation from "@/components/site/Citation";
+import MenuMobile from "@/components/site/MenuMobile";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -99,15 +100,28 @@ export default function Home() {
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
           </nav>
-          <Link href="/creer" className="mono bg-brand px-4 py-2 text-[12px] text-white hover:opacity-90">
-            CRÉER MON ASSOCIATION
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/creer" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
+              <span className="hidden sm:inline">CRÉER MON ASSOCIATION</span>
+              <span className="sm:hidden">CRÉER</span>
+            </Link>
+            <MenuMobile
+              ton="clair"
+              liens={[
+                { href: "#cockpit", label: "Le cockpit" },
+                { href: "#disciplines", label: "Disciplines" },
+                { href: "#tarifs", label: "Tarifs" },
+                { href: "/usmboxe", label: "Voir un club" },
+                { href: "/connexion", label: "Espace président" },
+              ]}
+            />
+          </div>
         </div>
       </header>
 
       {/* HERO — clarté d'abord (H1), puis le slogan en émotion, puis la signature */}
       <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
-        <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} />
+        <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8 md:pb-20">
@@ -396,7 +410,7 @@ export default function Home() {
           <p className="mt-10 max-w-prose text-lg text-ink">
             Les paiements arrivent directement sur votre compte Stripe.<br />Klubster ne prélève aucune commission.
           </p>
-          <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
+          <p className="mono mt-3 text-[11px] leading-relaxed text-ink-soft">
             Changez d’offre à tout moment. Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
           </p>
         </div>
@@ -419,7 +433,7 @@ export default function Home() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="px-6 text-center text-paper">
             <h2 className="text-3xl font-medium leading-tight md:text-[40px]">Ouvrez la saison avec Klubster.</h2>
-            <Link href="/creer" className="mono mt-10 inline-block bg-brand px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+            <Link href="/creer" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
             <p className="mono mt-6 text-[11px] uppercase tracking-label text-paper/70">
@@ -441,6 +455,7 @@ export default function Home() {
               <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
               <Link href="/connexion" className="hover:text-ink">Espace président</Link>
               <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
+              <Link href="/cgu" className="hover:text-ink">CGU</Link>
               <Link href="/cgv" className="hover:text-ink">CGV</Link>
               <Link href="/confidentialite" className="hover:text-ink">Confidentialité</Link>
               <Link href="/sous-traitance" className="hover:text-ink">Sous-traitance</Link>

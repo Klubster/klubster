@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MenuMobile from "@/components/site/MenuMobile";
 import type { Organisation } from "@/types/db";
 
 export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estAdmin?: boolean; edition?: boolean }) {
@@ -52,6 +53,16 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
           >
             S&apos;INSCRIRE →
           </Link>
+          <MenuMobile
+            ton="sombre"
+            liens={[
+              { href: "#presentation", label: "Le club" },
+              { href: "#cours", label: "Cours" },
+              { href: "#planning", label: "Planning" },
+              { href: "#tarifs", label: "Tarifs" },
+              { href: "#contact", label: "Contact" },
+            ]}
+          />
         </div>
       </div>
     </header>
