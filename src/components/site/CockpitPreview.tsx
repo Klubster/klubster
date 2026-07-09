@@ -31,7 +31,7 @@ export default function CockpitPreview() {
         {/* main — l'état du club, pas un tableau de bord */}
         <div className="p-4 md:p-6">
           <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
-            BONSOIR, MATHIEU · MERCREDI 4 SEPTEMBRE<span className="text-brand">_</span>
+            BONSOIR, CLAIRE · MERCREDI 4 SEPTEMBRE<span className="text-brand">_</span>
           </div>
           <p className="mt-3 text-[22px] font-medium leading-tight tracking-[-0.01em] md:text-[26px]">
             Le club est prêt.

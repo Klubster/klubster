@@ -52,7 +52,8 @@ function DoublePage({
   );
 }
 
-const DISCIPLINES = ["Sports de combat", "Arts martiaux", "Natation", "Tennis", "Sports collectifs", "Danse", "Gymnastique", "Fitness"];
+// Le titre de la section promet « chaque association » : la liste doit tenir la promesse.
+const DISCIPLINES = ["Sports de combat", "Danse", "Musique", "Théâtre", "Natation", "Sports collectifs", "Arts martiaux", "Loisirs créatifs"];
 
 // Notes de terrain — signature éditoriale récurrente (home, Journal, LinkedIn…).
 const NOTES: [string, string][] = [
@@ -84,7 +85,7 @@ const INCLUS = [
   "Prévenez tous les parents en deux clics",
   "L’appel se fait en scannant la carte d’adhérent",
   "Aujourd’hui_ : l’état de votre club en trois secondes",
-  "Toutes les futures fonctionnalités, sans supplément",
+  "Les évolutions de Klubster, incluses dans votre abonnement",
 ];
 
 export default function Home() {
@@ -129,7 +130,7 @@ export default function Home() {
             <h1 className="mt-5 max-w-[20ch] text-4xl font-medium leading-[1.04] tracking-[-0.02em] text-paper md:text-[58px]">
               Toute votre association,<br />au même endroit.
             </h1>
-            <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les clubs méritent mieux qu’un tableur.</p>
+            <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>
             <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
             </p>

@@ -27,6 +27,13 @@ async function slugPourDomaine(host: string): Promise<string | null> {
   } catch {
     slug = null; // pépin réseau : on sert la plateforme normalement
   }
+  // Le cache est indexé par Host, qui est fourni par le client : sans borne, un flot de
+  // Host distincts ferait croître la Map indéfiniment. On purge, puis on plafonne.
+  if (cacheSlugs.size > 500) {
+    const maintenant = Date.now();
+    for (const [k, v] of cacheSlugs) if (v.expire < maintenant) cacheSlugs.delete(k);
+    if (cacheSlugs.size > 500) cacheSlugs.clear();
+  }
   cacheSlugs.set(host, { slug, expire: Date.now() + 60_000 });
   return slug;
 }

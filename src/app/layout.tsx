@@ -28,10 +28,32 @@ export const metadata: Metadata = {
   },
 };
 
+// Données structurées : permet aux moteurs de comprendre l'offre (3 paliers, un seul produit).
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Klubster",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: SITE,
+  description: DESCRIPTION,
+  inLanguage: "fr-FR",
+  author: { "@type": "Person", name: "Mathieu Bourdieu" },
+  offers: [
+    { "@type": "Offer", price: "9", priceCurrency: "EUR", description: "Jusqu’à 300 adhérents", category: "Abonnement mensuel" },
+    { "@type": "Offer", price: "19", priceCurrency: "EUR", description: "De 301 à 500 adhérents", category: "Abonnement mensuel" },
+    { "@type": "Offer", price: "29", priceCurrency: "EUR", description: "Plus de 500 adhérents", category: "Abonnement mensuel" },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

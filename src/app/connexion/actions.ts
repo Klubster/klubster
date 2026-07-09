@@ -2,11 +2,22 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+/**
+ * `next` vient de l'URL : sans contrôle, `?next=https://exemple-malveillant.fr` renverrait
+ * l'utilisateur fraîchement authentifié vers un site tiers (redirection ouverte → hameçonnage).
+ * On n'accepte qu'un chemin interne : commence par « / », jamais par « // » ni « /\ ».
+ */
+function destinationSure(next: string | undefined): string {
+  if (!next || !next.startsWith("/")) return "/creer";
+  if (next.startsWith("//") || next.startsWith("/\\")) return "/creer";
+  return next;
+}
+
 export async function connexion(input: { email: string; password: string; next?: string }): Promise<{ error?: string }> {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
   if (error) return { error: traduire(error.message) };
-  redirect(input.next || "/creer");
+  redirect(destinationSure(input.next));
 }
 
 export async function inscription(input: {
@@ -20,7 +31,7 @@ export async function inscription(input: {
   });
   if (error) return { error: traduire(error.message) };
   if (!data.session) return { message: "Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous." };
-  redirect(input.next || "/creer");
+  redirect(destinationSure(input.next));
 }
 
 export async function deconnexion() {
