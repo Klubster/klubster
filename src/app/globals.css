@@ -129,6 +129,8 @@ a, button { transition: color .22s ease, background-color .22s ease, opacity .22
 }
 @media (prefers-reduced-motion: reduce) {
   .kb-editable { transition: none; }
+  /* Le point qui pulse dans la barre d'édition s'immobilise. */
+  .animate-pulse { animation: none; }
 }
 
 /* Lecture des pages légales — lisible, sobre, fidèle à la DA. */

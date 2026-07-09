@@ -159,7 +159,9 @@ function FormulaireChapitre({ slug, type, accent }: { slug: string; type: Sectio
           </label>
           <Envoyer accent={accent} />
         </div>
-        <p className="text-[13px] text-ink-soft">Sélectionnez plusieurs fichiers d&apos;un coup (5 Mo max chacun).</p>
+        <p className="text-[13px] text-ink-soft">
+          Sélectionnez plusieurs fichiers d&apos;un coup — 3 Mo maximum par image, et 4 Mo pour l&apos;ensemble.
+        </p>
       </form>
     );
   }

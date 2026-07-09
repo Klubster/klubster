@@ -16,8 +16,11 @@ const CHAMP_INACTIF =
  * qu'une colonne de texte — à droite. Laisser un second champ saisissable, c'est promettre
  * une colonne qui n'existera jamais. On le désactive et on dit pourquoi.
  */
+const TAILLE_MAX = 3 * 1024 * 1024;
+
 export default function FormulaireTextePhoto({ slug, accent }: { slug: string; accent: string }) {
   const [layout, setLayout] = useState<Layout>("photo-gauche");
+  const [photoTropLourde, setPhotoTropLourde] = useState(false);
   const triptyque = layout === "triptyque";
 
   // Où le texte se place réellement, selon le côté de la photo.
@@ -94,23 +97,34 @@ export default function FormulaireTextePhoto({ slug, accent }: { slug: string; a
 
       <div className="flex flex-wrap items-center gap-4">
         <label className="mono text-[11px] uppercase tracking-wider text-ink-soft">
-          PHOTO{" "}
+          PHOTO (3 MO MAX){" "}
           <input
             type="file"
             name="photo"
             accept="image/*"
             required
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              setPhotoTropLourde(Boolean(f && f.size > TAILLE_MAX));
+            }}
             className="mono ml-2 text-[12px] normal-case text-ink-soft"
           />
         </label>
         <button
           type="submit"
-          className="mono px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90"
+          disabled={photoTropLourde}
+          className="mono px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           style={{ background: accent }}
         >
           AJOUTER LE CHAPITRE →
         </button>
       </div>
+
+      {photoTropLourde ? (
+        <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+          Cette photo dépasse 3 Mo. Choisissez-en une plus légère — sinon elle n’atteindra pas le serveur.
+        </p>
+      ) : null}
     </form>
   );
 }

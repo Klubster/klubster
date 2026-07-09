@@ -60,7 +60,7 @@ export async function ajouterSection(slug: string, formData: FormData) {
   const file = formData.get("photo");
   if (file && typeof file === "object" && "size" in file) {
     const f = file as File;
-    if (f.size > 0 && f.size <= 5 * 1024 * 1024 && (f.type ?? "").startsWith("image/")) {
+    if (f.size > 0 && f.size <= 3 * 1024 * 1024 && (f.type ?? "").startsWith("image/")) {
       const supabase = createSupabaseServerClient();
       const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
       const path = `${org.id}/section-${Date.now()}.${ext}`;
@@ -85,7 +85,7 @@ export async function ajouterSection(slug: string, formData: FormData) {
 async function uploaderImage(orgId: string, file: unknown, prefixe: string): Promise<string | null> {
   if (!file || typeof file !== "object" || !("size" in file)) return null;
   const f = file as File;
-  if (f.size <= 0 || f.size > 5 * 1024 * 1024 || !(f.type ?? "").startsWith("image/")) return null;
+  if (f.size <= 0 || f.size > 3 * 1024 * 1024 || !(f.type ?? "").startsWith("image/")) return null;
   const supabase = createSupabaseServerClient();
   const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const path = `${orgId}/${prefixe}-${Date.now()}-${Math.floor(Math.random() * 1e6)}.${ext}`;

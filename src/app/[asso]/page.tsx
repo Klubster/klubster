@@ -242,26 +242,40 @@ export default async function VitrinePage({
     <main className="text-ink">
       <SiteHeader org={org} estAdmin={estAdmin} edition={edition} />
 
-      {/* BARRE DU MODE ÉDITION */}
+      {/* BARRE DU MODE ÉDITION — collante sous le header, impossible à confondre avec le site public */}
       {edition ? (
-        <div className="border-b border-line bg-bg-alt">
+        <div
+          className="sticky top-[57px] z-30 border-y-2"
+          style={{ borderColor: accent, background: `color-mix(in srgb, ${accent} 10%, #FCFCFA)` }}
+        >
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
-            <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
-              MODE ÉDITION<span style={{ color: accent }}>_</span>
-              <span className="ml-3 normal-case tracking-normal">
-                Les zones encadrées sont modifiables. Survolez-en une pour la déplacer.
+            <span className="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+              <span
+                className="inline-flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-label text-white"
+                style={{ background: accent }}
+              >
+                <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                Mode édition
+              </span>
+              <span className="text-ink-soft">
+                Vous modifiez le site de {org.nom}. Les zones encadrées sont déplaçables.
               </span>
             </span>
-            <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
-              TERMINER →
-            </Link>
+            <div className="flex items-center gap-2">
+              <a href="#ajouter" className="mono px-4 py-2 text-[12px] text-white hover:opacity-90" style={{ background: accent }}>
+                AJOUTER UN CHAPITRE
+              </a>
+              <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
+                TERMINER →
+              </Link>
+            </div>
           </div>
 
           {searchParams?.erreur ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
               <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
                 {searchParams.erreur === "photo"
-                  ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (5 Mo maximum)."
+                  ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (3 Mo maximum par photo)."
                   : searchParams.erreur === "vide"
                     ? "Rien n’a été enregistré : ce chapitre était vide. Remplissez au moins un champ."
                     : searchParams.erreur === "enregistrement"
