@@ -5,6 +5,7 @@ import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
+import Turnstile from "@/components/site/Turnstile";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -162,6 +163,8 @@ export default async function InscriptionPage({
               <Radio name="mode" value="especes" label="En espèces" hint="À remettre au club." />
             </div>
           </fieldset>
+
+          <Turnstile />
 
           <button type="submit" className="mono w-full px-6 py-4 text-[13px] text-white" style={{ background: accent }}>
             VALIDER MON INSCRIPTION →
