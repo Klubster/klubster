@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 // Parallaxe douce + respiration lente de l'image (via .kb-breathe en CSS).
@@ -54,14 +55,16 @@ export default function Parallax({
   return (
     <div ref={wrap} className={`overflow-hidden ${className}`}>
       <div ref={inner} className="absolute inset-0 will-change-transform">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {/* next/image : conversion AVIF/WebP + srcset responsive. Les JPEG sources font
+            ~400 Ko chacun ; servis tels quels, ils plombaient le LCP. */}
+        <Image
           src={src}
           alt={alt}
-          className="kb-breathe absolute inset-0 h-full w-full object-cover"
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "low"}
-          decoding={priority ? "sync" : "async"}
+          fill
+          sizes="100vw"
+          quality={82}
+          priority={priority}
+          className="kb-breathe object-cover"
         />
       </div>
     </div>

@@ -3,9 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "Space Mono", ui-monospace, monospace;
-  --font-logo: "IBM Plex Mono", "Space Mono", monospace;
+  /* --kb-* sont fournies par next/font (auto-hébergement). Repli sur les noms de familles
+     si jamais elles n'étaient pas injectées. */
+  --font-sans: var(--kb-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--kb-space-mono), "Space Mono", ui-monospace, monospace;
+  --font-logo: var(--kb-plex-mono), "IBM Plex Mono", "Space Mono", monospace;
 
   /* Tokens couleur (mode blanc par défaut). Les sites clubs peuvent les surcharger
      via <ThemeVitrine> (templates blanc/noir — src/lib/themes.ts).

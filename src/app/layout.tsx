@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Inter, Space_Mono, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+
+// Polices auto-hébergées par Next (aucune requête vers Google depuis le navigateur du
+// visiteur — cohérent avec la politique de confidentialité — et plus de FOUT).
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500"], display: "swap", variable: "--kb-inter" });
+const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap", variable: "--kb-space-mono" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], display: "swap", variable: "--kb-plex-mono" });
 
 // RGPD — exécution des fonctions serveur en Europe (Paris). Les données ne sortent pas de l'UE.
 export const preferredRegion = "cdg1";
@@ -48,17 +55,11 @@ const JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={`${inter.variable} ${spaceMono.variable} ${plexMono.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
-          rel="stylesheet"
         />
       </head>
       <body>{children}</body>
