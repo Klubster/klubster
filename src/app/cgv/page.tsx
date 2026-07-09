@@ -55,8 +55,10 @@ export default function CGV() {
 
       <h2>7. Obligations de l’éditeur</h2>
       <p>
-        L’éditeur fournit le service avec diligence, assure son hébergement au sein de l’Union européenne et
-        met en œuvre des mesures de sécurité appropriées. Il agit en qualité de sous-traitant pour les
+        L’éditeur fournit le service avec diligence et met en œuvre des mesures de sécurité appropriées. Les
+        données des adhérents sont hébergées dans l’Union européenne ; les prestataires établis hors UE sont
+        encadrés par des clauses contractuelles types (voir la <a href="/confidentialite">politique de
+        confidentialité</a>). Il agit en qualité de sous-traitant pour les
         données des adhérents.
       </p>
 
