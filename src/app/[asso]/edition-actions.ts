@@ -150,12 +150,8 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
     }
     if (items.length === 0) redirect(`/${slug}?edition=1&erreur=vide`);
   } else if (type === "galerie" || type === "partenaires") {
-    const fichiers = formData.getAll("photos").slice(0, 8);
-    for (const f of fichiers) {
-      const url = await uploaderImage(org.id, f, type);
-      if (url) items.push({ titre: null, texte: null, image_url: url });
-    }
-    if (items.length === 0) redirect(`/${slug}?edition=1&erreur=photo`);
+    // Ces deux chapitres passent désormais par ajouterChapitreMedias (envoi direct navigateur).
+    redirect(`/${slug}?edition=1&erreur=type`);
   } else if (type === "citation") {
     if (!s.texte) redirect(`/${slug}?edition=1&erreur=vide`);
   } else {
@@ -167,6 +163,50 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
   pc.custom.push(s);
   pc.ordre.push(s.id);
   await sauver(org, pc, slug, s.id, "ajoutee"); // atterrir directement sur le chapitre créé
+}
+
+/**
+ * Galerie / partenaires : les images ont été envoyées directement du navigateur vers
+ * Supabase (limite de 4 Mo des Server Actions). Le serveur ne reçoit que des URLs.
+ *
+ * On ne fait jamais confiance à une URL fournie par le client : chacune doit pointer
+ * vers le bucket `sections` ET vers le dossier de CETTE organisation. Sinon un club
+ * pourrait afficher — ou faire croire qu'il héberge — les images d'un autre.
+ */
+export async function ajouterChapitreMedias(slug: string, type: "galerie" | "partenaires", formData: FormData) {
+  const org = await gardeAdmin(slug);
+  const pc = normaliserPageConfig(org.page_config);
+  if (pc.custom.length >= 16) redirect(`/${slug}?edition=1`);
+
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://basnfuvdjobanejahayt.supabase.co";
+  const prefixeAttendu = `${base}/storage/v1/object/public/sections/${org.id}/`;
+
+  let urls: unknown;
+  try {
+    urls = JSON.parse(String(formData.get("urls") ?? "[]"));
+  } catch {
+    redirect(`/${slug}?edition=1&erreur=photo`);
+  }
+
+  const valides = (Array.isArray(urls) ? urls : [])
+    .filter((u): u is string => typeof u === "string" && u.startsWith(prefixeAttendu))
+    .slice(0, 8);
+
+  if (valides.length === 0) redirect(`/${slug}?edition=1&erreur=photo`);
+
+  const s: SectionCustom = {
+    id: `c${Date.now()}`,
+    type,
+    titre: champ(formData, "titre", 80),
+    texte: champ(formData, "texte", 2000),
+    texte2: null,
+    image_url: null,
+    items: valides.map((url) => ({ titre: null, texte: null, image_url: url })),
+  };
+
+  pc.custom.push(s);
+  pc.ordre.push(s.id);
+  await sauver(org, pc, slug, s.id, "ajoutee");
 }
 
 // Supprimer une section personnalisée.

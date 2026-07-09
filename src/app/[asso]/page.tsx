@@ -378,7 +378,9 @@ export default async function VitrinePage({
       ))}
 
       {/* AJOUTER UN CHAPITRE (mode édition) */}
-      {edition ? <AjouterChapitre slug={org.slug} accent={accent} type={searchParams?.chapitre} /> : null}
+      {edition ? (
+        <AjouterChapitre slug={org.slug} organisationId={org.id} accent={accent} type={searchParams?.chapitre} />
+      ) : null}
 
       {/* FOOTER — signature Klubster */}
       <footer>

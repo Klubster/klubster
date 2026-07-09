@@ -4,12 +4,23 @@ import Link from "next/link";
 import { BIBLIOTHEQUE, getChapitre } from "@/lib/chapitres";
 import { ajouterChapitre } from "@/app/[asso]/edition-actions";
 import FormulaireTextePhoto from "@/components/site/FormulaireTextePhoto";
+import FormulaireGalerie from "@/components/site/FormulaireGalerie";
 import type { SectionCustomType } from "@/types/db";
 
 const CHAMP = "w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink";
 const CHAMP_SM = "w-full border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink";
 
-export function AjouterChapitre({ slug, accent, type }: { slug: string; accent: string; type?: string }) {
+export function AjouterChapitre({
+  slug,
+  organisationId,
+  accent,
+  type,
+}: {
+  slug: string;
+  organisationId: string;
+  accent: string;
+  type?: string;
+}) {
   const chapitre = getChapitre(type);
 
   return (
@@ -51,7 +62,7 @@ export function AjouterChapitre({ slug, accent, type }: { slug: string; accent: 
             </div>
             <p className="mt-2 max-w-prose text-[14px] text-ink-soft">{chapitre.desc}</p>
             <div className="mt-8">
-              <FormulaireChapitre slug={slug} type={chapitre.type} accent={accent} />
+              <FormulaireChapitre slug={slug} organisationId={organisationId} type={chapitre.type} accent={accent} />
             </div>
           </div>
         )}
@@ -68,7 +79,17 @@ function Envoyer({ accent }: { accent: string }) {
   );
 }
 
-function FormulaireChapitre({ slug, type, accent }: { slug: string; type: SectionCustomType; accent: string }) {
+function FormulaireChapitre({
+  slug,
+  organisationId,
+  type,
+  accent,
+}: {
+  slug: string;
+  organisationId: string;
+  type: SectionCustomType;
+  accent: string;
+}) {
   /* Texte & photo : les champs utiles dépendent de la mise en page (composant client). */
   if (type === "photo-droite" || type === "photo-gauche" || type === "triptyque") {
     return <FormulaireTextePhoto slug={slug} accent={accent} />;
@@ -142,28 +163,8 @@ function FormulaireChapitre({ slug, type, accent }: { slug: string; type: Sectio
   }
 
   if (type === "galerie" || type === "partenaires") {
-    return (
-      <form action={ajouterChapitre.bind(null, slug, type)} className="space-y-5">
-        <input
-          name="titre"
-          placeholder={type === "galerie" ? "Titre (optionnel) — ex. La saison en images" : "Titre (optionnel) — ex. Ils nous soutiennent"}
-          className={CHAMP}
-        />
-        {type === "partenaires" ? (
-          <textarea name="texte" rows={2} placeholder="Un mot sur vos partenaires (optionnel)" className={CHAMP} />
-        ) : null}
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="mono text-[11px] uppercase tracking-wider text-ink-soft">
-            {type === "galerie" ? "PHOTOS (JUSQU'À 8)" : "LOGOS (JUSQU'À 8)"}{" "}
-            <input type="file" name="photos" accept="image/*" multiple required className="mono ml-2 text-[12px] normal-case text-ink-soft" />
-          </label>
-          <Envoyer accent={accent} />
-        </div>
-        <p className="text-[13px] text-ink-soft">
-          Sélectionnez plusieurs fichiers d&apos;un coup — 3 Mo maximum par image, et 4 Mo pour l&apos;ensemble.
-        </p>
-      </form>
-    );
+    // Envoi direct navigateur → Supabase : huit photos ne tiennent pas dans une Server Action.
+    return <FormulaireGalerie slug={slug} organisationId={organisationId} type={type} accent={accent} />;
   }
 
   /* citation */
