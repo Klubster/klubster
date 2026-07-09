@@ -45,9 +45,18 @@ export const BIBLIOTHEQUE: GroupeChapitres[] = [
   },
 ];
 
+// « Texte & photo » regroupe trois mises en page. Seule `photo-droite` figure dans la
+// bibliothèque, mais les deux autres doivent ouvrir le même formulaire — sinon un lien
+// direct (?chapitre=photo-gauche) renvoyait la bibliothèque au lieu du chapitre.
+const ALIAS_TEXTE_PHOTO: Record<string, SectionCustomType> = {
+  "photo-gauche": "photo-droite",
+  triptyque: "photo-droite",
+};
+
 export function getChapitre(type: string | null | undefined): Chapitre | null {
+  const recherche = (type && ALIAS_TEXTE_PHOTO[type]) || type;
   for (const g of BIBLIOTHEQUE) {
-    const c = g.chapitres.find((x) => x.type === type);
+    const c = g.chapitres.find((x) => x.type === recherche);
     if (c) return c;
   }
   return null;

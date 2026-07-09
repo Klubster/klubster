@@ -6,6 +6,7 @@ import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
+import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +47,7 @@ export default async function InscriptionPage({
           </p>
         ) : searchParams?.erreur === "compte" ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
-            Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe (6 caractères minimum), puis réessayez dans quelques minutes.
+            Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe ({LONGUEUR_MIN_MDP} caractères minimum), puis réessayez dans quelques minutes.
           </p>
         ) : searchParams?.erreur === "trop_de_tentatives" ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
@@ -141,8 +142,8 @@ export default async function InscriptionPage({
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">VOTRE COMPTE<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 border border-line bg-paper px-5 py-4">
               <label className="mono text-[10px] uppercase tracking-label text-ink-soft">MOT DE PASSE *</label>
-              <input name="password" type="password" required minLength={6} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
-              <p className="mono mt-2 text-[11px] text-ink-faint">6 caractères minimum. Pour accéder à votre espace adhérent.</p>
+              <input name="password" type="password" required minLength={LONGUEUR_MIN_MDP} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+              <p className="mono mt-2 text-[11px] text-ink-soft">{LONGUEUR_MIN_MDP} caractères minimum. Pour accéder à votre espace adhérent.</p>
             </div>
           </fieldset>
 

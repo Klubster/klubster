@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { connexion, inscription, motDePasseOublie } from "./actions";
+import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -42,6 +43,10 @@ function ConnexionInner() {
   async function submit() {
     setErr(null);
     setMsg(null);
+    if (mode === "signup" && password.length < LONGUEUR_MIN_MDP) {
+      setErr(`Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.`);
+      return;
+    }
     setLoading(true);
     try {
       if (mode === "login") {

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { definirNouveauMotDePasse } from "../actions";
+import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -15,6 +16,10 @@ export default function NouveauMotDePasse() {
 
   async function valider() {
     setErr(null);
+    if (password.length < LONGUEUR_MIN_MDP) {
+      setErr(`Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.`);
+      return;
+    }
     if (password !== confirmation) {
       setErr("Les deux mots de passe ne sont pas identiques.");
       return;
@@ -44,7 +49,7 @@ export default function NouveauMotDePasse() {
       <div className="mx-auto max-w-md px-6 py-16 md:px-8">
         <h1 className="text-3xl font-medium leading-tight tracking-[-0.01em]">Choisissez un nouveau mot de passe.</h1>
         <p className="mono mt-4 text-[11px] uppercase tracking-label text-ink-soft">
-          6 caractères minimum<Cur />
+          {LONGUEUR_MIN_MDP} caractères minimum<Cur />
         </p>
 
         <div className="mt-10 space-y-4">

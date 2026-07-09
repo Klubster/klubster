@@ -1,6 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 
 /**
  * `next` vient de l'URL : sans contrôle, `?next=https://exemple-malveillant.fr` renverrait
@@ -59,7 +60,7 @@ export async function motDePasseOublie(email: string): Promise<{ message: string
 
 /** Applique le nouveau mot de passe, une fois la session de récupération établie. */
 export async function definirNouveauMotDePasse(password: string): Promise<{ error?: string }> {
-  if (password.length < 6) return { error: "Le mot de passe doit faire au moins 6 caractères." };
+  if (password.length < LONGUEUR_MIN_MDP) return { error: `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.` };
   const supabase = createSupabaseServerClient();
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return { error: "Lien expiré. Demandez un nouveau lien de réinitialisation." };
@@ -77,6 +78,6 @@ export async function deconnexion() {
 function traduire(msg: string): string {
   if (/Invalid login credentials/i.test(msg)) return "Email ou mot de passe incorrect.";
   if (/already registered/i.test(msg)) return "Un compte existe déjà avec cet email.";
-  if (/Password should be at least/i.test(msg)) return "Le mot de passe doit faire au moins 6 caractères.";
+  if (/Password should be at least/i.test(msg)) return `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.`;
   return msg;
 }
