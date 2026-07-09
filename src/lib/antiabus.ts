@@ -51,7 +51,16 @@ function ip(): string {
 async function turnstileValide(token: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return true; // non configuré : on ne bloque pas
-  if (!token) return false;
+
+  // Jeton absent = le widget ne s'est pas rendu (JS bloqué, bloqueur de pub, panne Cloudflare).
+  // On ne ferme PAS la porte à un vrai parent pour autant : il reste le pot de miel et la
+  // limitation de débit. Un jeton présent mais invalide, en revanche, est un signal net.
+  // ⚠️ À durcir (`return false`) une fois le rendu du widget confirmé en conditions réelles.
+  if (!token) {
+    console.warn("[antiabus] Turnstile configuré mais aucun jeton reçu — soumission acceptée en mode dégradé.");
+    return true;
+  }
+
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
