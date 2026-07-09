@@ -5,6 +5,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { stripeConfigured, createCheckoutForClub, createCheckout3xForClub } from "@/lib/stripe";
 import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -47,6 +48,16 @@ export async function inscrireAdherent(formData: FormData) {
 
   const supabase = createSupabaseServerClient();
 
+  // Les écritures d'inscription passent par la service_role, jamais par la clé anonyme.
+  // Conséquence : `register_adherent_full` et `enregistrer_questionnaire_sante` peuvent être
+  // fermées à `anon` — sinon n'importe qui pouvait déposer un faux questionnaire de santé
+  // (donnée art. 9) sur une adhésion dont il devinait l'identifiant.
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    console.error("inscrireAdherent : service_role indisponible");
+    redirect(`/${slug}/inscription?erreur=1`);
+  }
+
   // Compte adhérent (mot de passe)
   let userId: string | null = null;
   if (email && password) {
@@ -63,7 +74,7 @@ export async function inscrireAdherent(formData: FormData) {
     userId = data.user?.id ?? null;
   }
 
-  const { data: adhesionId, error } = await supabase.rpc("register_adherent_full", {
+  const { data: adhesionId, error } = await admin.rpc("register_adherent_full", {
     p_slug: slug,
     p_user_id: userId,
     p_prenom: prenom,
@@ -89,7 +100,7 @@ export async function inscrireAdherent(formData: FormData) {
   if (qNaissance && qSignature) {
     // RGPD — minimisation des données de santé : on ne conserve que le résultat
     // (atteste_negatif / certificat_requis) + signature + date, jamais le détail des réponses.
-    const { error: qErr } = await supabase.rpc("enregistrer_questionnaire_sante", {
+    const { error: qErr } = await admin.rpc("enregistrer_questionnaire_sante", {
       p_adhesion_id: String(adhesionId),
       p_type: qType,
       p_date_naissance: qNaissance,
@@ -103,7 +114,14 @@ export async function inscrireAdherent(formData: FormData) {
   }
 
   // Cours choisi (pour les emails de confirmation et le paiement en ligne)
-  const { data: coursChoisi } = await supabase.from("cours").select("nom, tarif_centimes").eq("id", coursId).maybeSingle();
+  // Filtré par organisation : sans cela, un coursId d'un autre club (tarif plus bas)
+  // pouvait servir de base au montant du checkout.
+  const { data: coursChoisi } = await supabase
+    .from("cours")
+    .select("nom, tarif_centimes")
+    .eq("id", coursId)
+    .eq("organisation_id", org.id)
+    .maybeSingle();
   const coursNom = (coursChoisi as { nom: string } | null)?.nom ?? "Cours";
   const tarifCentimes = (coursChoisi as { tarif_centimes: number } | null)?.tarif_centimes ?? 0;
 
