@@ -115,6 +115,22 @@ a, button { transition: color .22s ease, background-color .22s ease, opacity .22
 }
 .link-underline:hover::after { transform: scaleX(1); transform-origin: left; }
 
+/* ——— Mode édition d'une vitrine club ———
+   Le bénévole doit voir d'un coup d'œil ce qu'il peut déplacer. Filet pointillé
+   discret au repos, franc au survol. Aucune couleur criarde : la couleur du club. */
+.kb-editable {
+  outline: 1px dashed color-mix(in srgb, var(--kb-accent, #279B65) 45%, transparent);
+  outline-offset: -8px;
+  transition: outline-color .2s ease, background-color .2s ease;
+}
+.kb-editable:hover {
+  outline-color: var(--kb-accent, #279B65);
+  background-color: color-mix(in srgb, var(--kb-accent, #279B65) 3%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kb-editable { transition: none; }
+}
+
 /* Lecture des pages légales — lisible, sobre, fidèle à la DA. */
 .legal-prose h2 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.01em; margin: 2.6rem 0 .7rem; color: #111; }
 .legal-prose h3 { font-size: .95rem; font-weight: 600; margin: 1.4rem 0 .35rem; color: #111; }

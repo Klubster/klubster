@@ -2,7 +2,8 @@
    Le layout est imposé par le chapitre : le dirigeant ne choisit jamais une mise en page. */
 import Link from "next/link";
 import { BIBLIOTHEQUE, getChapitre } from "@/lib/chapitres";
-import { ajouterChapitre, ajouterSection } from "@/app/[asso]/edition-actions";
+import { ajouterChapitre } from "@/app/[asso]/edition-actions";
+import FormulaireTextePhoto from "@/components/site/FormulaireTextePhoto";
 import type { SectionCustomType } from "@/types/db";
 
 const CHAMP = "w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink";
@@ -68,32 +69,9 @@ function Envoyer({ accent }: { accent: string }) {
 }
 
 function FormulaireChapitre({ slug, type, accent }: { slug: string; type: SectionCustomType; accent: string }) {
-  /* Texte & photo : layouts historiques via ajouterSection. */
+  /* Texte & photo : les champs utiles dépendent de la mise en page (composant client). */
   if (type === "photo-droite" || type === "photo-gauche" || type === "triptyque") {
-    return (
-      <form action={ajouterSection.bind(null, slug)} className="space-y-5">
-        <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
-          <label className="flex cursor-pointer items-center gap-3 bg-paper px-4 py-3 text-[14px]">
-            <input type="radio" name="type" value="photo-gauche" defaultChecked /> Photo à gauche
-          </label>
-          <label className="flex cursor-pointer items-center gap-3 bg-paper px-4 py-3 text-[14px]">
-            <input type="radio" name="type" value="photo-droite" /> Photo à droite
-          </label>
-          <label className="flex cursor-pointer items-center gap-3 bg-paper px-4 py-3 text-[14px]">
-            <input type="radio" name="type" value="triptyque" /> Triptyque
-          </label>
-        </div>
-        <input name="titre" placeholder="Titre (optionnel)" className={CHAMP} />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <textarea name="texte" rows={4} placeholder="Texte (colonne de gauche)" className={CHAMP} />
-          <textarea name="texte2" rows={4} placeholder="Texte de droite (triptyque uniquement)" className={CHAMP} />
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <input type="file" name="photo" accept="image/*" required className="mono text-[12px] text-ink-soft" />
-          <Envoyer accent={accent} />
-        </div>
-      </form>
-    );
+    return <FormulaireTextePhoto slug={slug} accent={accent} />;
   }
 
   if (type === "president") {

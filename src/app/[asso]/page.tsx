@@ -52,6 +52,16 @@ export default async function VitrinePage({
     );
   }
 
+  // Noms lisibles des sections — affichés en mode édition pour que le bénévole
+  // sache ce qu'il déplace avant de cliquer.
+  const NOMS_SECTIONS: Record<string, string> = {
+    presentation: "Le club",
+    cours: "Cours",
+    planning: "Planning",
+    tarifs: "Tarifs",
+    contact: "Contact",
+  };
+
   // Sections de la page, dans l'ordre choisi par le club (page_config.ordre).
   const rendus: { cle: string; id?: string; custom: boolean; node: (n: string) => React.ReactNode }[] = [];
   for (const cle of pc.ordre) {
@@ -237,8 +247,10 @@ export default async function VitrinePage({
         <div className="border-b border-line bg-bg-alt">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
             <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
-              MODE ÉDITION — déplacez vos sections avec ↑ ↓, ajoutez-en en bas de page
-              <span style={{ color: accent }}>_</span>
+              MODE ÉDITION<span style={{ color: accent }}>_</span>
+              <span className="ml-3 normal-case tracking-normal">
+                Les zones encadrées sont modifiables. Survolez-en une pour la déplacer.
+              </span>
             </span>
             <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
               TERMINER →
@@ -303,9 +315,22 @@ export default async function VitrinePage({
 
       {/* SECTIONS — ordre piloté par page_config, réorganisable en mode édition */}
       {rendus.map((r, idx) => (
-        <section key={r.cle} id={r.id} className={`border-b border-line ${edition ? "relative" : ""}`}>
+        <section
+          key={r.cle}
+          id={r.id}
+          className={`border-b border-line ${edition ? "kb-editable relative" : ""}`}
+          style={edition ? ({ ["--kb-accent"]: accent } as Record<string, string>) : undefined}
+        >
           {edition ? (
-            <Controles slug={org.slug} cle={r.cle} first={idx === 0} last={idx === rendus.length - 1} custom={r.custom} />
+            <>
+              <span
+                className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[10px] uppercase tracking-label"
+                style={{ borderColor: accent, color: accent }}
+              >
+                {r.custom ? "Chapitre" : NOMS_SECTIONS[r.cle] ?? r.cle}
+              </span>
+              <Controles slug={org.slug} cle={r.cle} first={idx === 0} last={idx === rendus.length - 1} custom={r.custom} accent={accent} />
+            </>
           ) : null}
           {r.node(String(idx + 1).padStart(2, "0"))}
         </section>
@@ -333,24 +358,53 @@ export default async function VitrinePage({
   );
 }
 
-/* ——— Mode édition : contrôles ↑ ↓ (× pour les sections ajoutées) ——— */
-function Controles({ slug, cle, first, last, custom }: { slug: string; cle: string; first: boolean; last: boolean; custom: boolean }) {
+/* ——— Mode édition : contrôles de la section (monter / descendre / supprimer) ——— */
+function Controles({
+  slug,
+  cle,
+  first,
+  last,
+  custom,
+  accent,
+}: {
+  slug: string;
+  cle: string;
+  first: boolean;
+  last: boolean;
+  custom: boolean;
+  accent: string;
+}) {
   return (
-    <div className="absolute right-3 top-3 z-20 flex gap-px border border-line bg-line shadow-sm">
+    <div className="absolute right-3 top-3 z-20 flex gap-px border bg-line" style={{ borderColor: accent }}>
       <form action={deplacerSection.bind(null, slug, cle, -1)}>
-        <button disabled={first} title="Remonter la section" className="mono bg-paper px-3 py-2 text-[13px] hover:bg-bg-alt disabled:opacity-30">
-          ↑
+        <button
+          disabled={first}
+          title="Remonter cette section"
+          aria-label="Remonter cette section"
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
+        >
+          ↑ <span className="hidden sm:inline">Monter</span>
         </button>
       </form>
       <form action={deplacerSection.bind(null, slug, cle, 1)}>
-        <button disabled={last} title="Descendre la section" className="mono bg-paper px-3 py-2 text-[13px] hover:bg-bg-alt disabled:opacity-30">
-          ↓
+        <button
+          disabled={last}
+          title="Descendre cette section"
+          aria-label="Descendre cette section"
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
+        >
+          ↓ <span className="hidden sm:inline">Descendre</span>
         </button>
       </form>
       {custom ? (
         <form action={supprimerSection.bind(null, slug, cle)}>
-          <button title="Supprimer la section" className="mono bg-paper px-3 py-2 text-[13px] hover:bg-bg-alt" style={{ color: "#B23B3B" }}>
-            ×
+          <button
+            title="Supprimer ce chapitre"
+            aria-label="Supprimer ce chapitre"
+            className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt"
+            style={{ color: "#B23B3B" }}
+          >
+            × <span className="hidden sm:inline">Supprimer</span>
           </button>
         </form>
       ) : null}
