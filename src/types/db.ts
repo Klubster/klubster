@@ -110,6 +110,8 @@ export interface Adherent {
   email: string | null;
   telephone: string | null;
   date_naissance: string | null;
+  /** Réponses aux champs personnalisés du formulaire (responsable légal, etc.). */
+  infos: Record<string, string> | null;
   created_at: string;
 }
 

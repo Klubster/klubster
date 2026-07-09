@@ -305,6 +305,7 @@ export default async function Cockpit({
           <div className="border-b border-line px-6 py-8 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ACTIONS RAPIDES<Cur /></p>
             <div className="mt-5 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+              <Geste titre="Gérer les adhérents" desc="Chercher, consulter, modifier une fiche." href={`/${org.slug}/cockpit/adherents`} action="OUVRIR" />
               <Geste titre="Envoyer un message" desc="Aux adhérents, par groupe ou par cours." href={`/${org.slug}/cockpit/communication`} action="OUVRIR" />
               <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
               <Geste titre="Faire l'appel" desc="Scanner la carte ou chercher un nom." href={`/${org.slug}/cockpit/scanner`} action="SCANNER" />
