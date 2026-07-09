@@ -34,6 +34,40 @@ export async function inscription(input: {
   redirect(destinationSure(input.next));
 }
 
+/**
+ * Mot de passe oublié. Sans ce parcours, un président qui perd son mot de passe est
+ * définitivement enfermé dehors — et avec lui les dossiers de tous ses adhérents.
+ *
+ * On répond toujours la même chose, que le compte existe ou non : révéler qu'une adresse
+ * est inscrite permettrait d'énumérer les présidents d'associations.
+ */
+export async function motDePasseOublie(email: string): Promise<{ message: string }> {
+  const propre = email.trim();
+  const reponse = {
+    message: "Si un compte existe pour cette adresse, un lien de réinitialisation vient d’être envoyé.",
+  };
+  if (!propre || !propre.includes("@")) return reponse;
+
+  const supabase = createSupabaseServerClient();
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
+  const { error } = await supabase.auth.resetPasswordForEmail(propre, {
+    redirectTo: `${base}/auth/callback?next=/connexion/nouveau-mot-de-passe`,
+  });
+  if (error) console.error("motDePasseOublie", error.message);
+  return reponse;
+}
+
+/** Applique le nouveau mot de passe, une fois la session de récupération établie. */
+export async function definirNouveauMotDePasse(password: string): Promise<{ error?: string }> {
+  if (password.length < 6) return { error: "Le mot de passe doit faire au moins 6 caractères." };
+  const supabase = createSupabaseServerClient();
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return { error: "Lien expiré. Demandez un nouveau lien de réinitialisation." };
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: traduire(error.message) };
+  redirect("/connexion?message=motdepasse");
+}
+
 export async function deconnexion() {
   const supabase = createSupabaseServerClient();
   await supabase.auth.signOut();

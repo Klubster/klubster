@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { connexion, inscription } from "./actions";
+import { connexion, inscription, motDePasseOublie } from "./actions";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -83,8 +83,13 @@ function ConnexionInner() {
           <Field label="MOT DE PASSE" type="password" value={password} onChange={setPassword} />
         </div>
 
+        {params.get("message") === "motdepasse" && !msg && !err ? (
+          <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>
+            Mot de passe modifié. Connectez-vous.
+          </p>
+        ) : null}
         {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
-        {msg ? <p className="mono mt-4 text-[12px]" style={{ color: "#279B65" }}>{msg}</p> : null}
+        {msg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{msg}</p> : null}
 
         <button
           onClick={submit}
@@ -94,7 +99,27 @@ function ConnexionInner() {
           {loading ? "…" : mode === "login" ? "SE CONNECTER →" : "CRÉER MON COMPTE →"}
         </button>
 
-        <p className="mono mt-6 text-center text-[11px] text-ink-soft">
+        {mode === "login" ? (
+          <p className="mono mt-6 text-center text-[11px] text-ink-soft">
+            <button
+              type="button"
+              onClick={async () => {
+                setErr(null);
+                if (!email) {
+                  setErr("Saisissez votre email, puis cliquez à nouveau.");
+                  return;
+                }
+                const r = await motDePasseOublie(email);
+                setMsg(r.message);
+              }}
+              className="underline underline-offset-2 hover:text-ink"
+            >
+              Mot de passe oublié ?
+            </button>
+          </p>
+        ) : null}
+
+        <p className="mono mt-4 text-center text-[11px] text-ink-soft">
           {mode === "login"
             ? "Pas encore d’association ? Créez un compte."
             : "Vous gérez déjà une association ? Connectez-vous."}

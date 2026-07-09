@@ -6,12 +6,18 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  let dest = searchParams.get("next") ?? "/creer";
+  const nextExplicite = searchParams.get("next");
+  let dest = nextExplicite ?? "/creer";
 
   if (code) {
     const supabase = createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Une destination explicite (ex. réinitialisation de mot de passe) prime sur
+      // la redirection automatique vers le cockpit.
+      if (nextExplicite && nextExplicite.startsWith("/") && !nextExplicite.startsWith("//")) {
+        return NextResponse.redirect(new URL(nextExplicite, origin));
+      }
       const { data: u } = await supabase.auth.getUser();
       const user = u.user;
       if (user) {
