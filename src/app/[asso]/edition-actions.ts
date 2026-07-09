@@ -20,7 +20,12 @@ async function gardeAdmin(slug: string): Promise<Organisation> {
 async function sauver(org: Organisation, pc: ReturnType<typeof normaliserPageConfig>, slug: string, ancre?: string) {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ page_config: pc }).eq("id", org.id);
-  if (error) console.error("page_config", error.message);
+  if (error) {
+    // Sans ceci, un échec d'enregistrement renvoyait la même page qu'un succès :
+    // le bénévole cliquait, rien ne se passait, et rien ne le disait.
+    console.error("page_config", error.message);
+    redirect(`/${slug}?edition=1&erreur=enregistrement`);
+  }
   revalidatePath(`/${slug}`);
   // L'ancre ramène le président sur la section qu'il vient de toucher (pas en haut de page).
   redirect(`/${slug}?edition=1${ancre ? `#${ancre}` : ""}`);
@@ -62,11 +67,13 @@ export async function ajouterSection(slug: string, formData: FormData) {
       const { error: upErr } = await supabase.storage
         .from("sections")
         .upload(path, f, { upsert: true, contentType: f.type || undefined });
-      if (upErr) console.error("upload section", upErr.message);
-      else imageUrl = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
+      if (upErr) {
+        console.error("upload section", upErr.message);
+        redirect(`/${slug}?edition=1&erreur=photo`);
+      } else imageUrl = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
     }
   }
-  if (!imageUrl && !texte) redirect(`/${slug}?edition=1`); // section vide : on ne crée rien
+  if (!imageUrl && !texte) redirect(`/${slug}?edition=1&erreur=vide`); // section vide : on ne crée rien
 
   const section: SectionCustom = { id: `c${Date.now()}`, type, titre, texte, texte2, image_url: imageUrl };
   pc.custom.push(section);
@@ -115,7 +122,7 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
     const nom = champ(formData, "nom", 80);
     const role = champ(formData, "role", 80) ?? "Président du club";
     if (nom) items.push({ titre: nom, texte: role, image_url: null });
-    if (!s.texte) redirect(`/${slug}?edition=1`); // la citation est le cœur du chapitre
+    if (!s.texte) redirect(`/${slug}?edition=1&erreur=vide`); // la citation est le cœur du chapitre
   } else if (type === "chiffres" || type === "faq" || type === "resultats") {
     // paires titre/texte : chiffre+label, question+réponse, résultat+détail
     for (let i = 0; i < 6; i++) {
@@ -123,7 +130,7 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
       const x = champ(formData, `item_texte_${i}`, 600);
       if (t || x) items.push({ titre: t, texte: x, image_url: null });
     }
-    if (items.length === 0) redirect(`/${slug}?edition=1`);
+    if (items.length === 0) redirect(`/${slug}?edition=1&erreur=vide`);
   } else if (type === "equipe") {
     for (let i = 0; i < 6; i++) {
       const prenom = champ(formData, `item_titre_${i}`, 60);
@@ -132,19 +139,19 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
       const url = await uploaderImage(org.id, formData.get(`item_photo_${i}`), "equipe");
       items.push({ titre: prenom, texte: role, image_url: url });
     }
-    if (items.length === 0) redirect(`/${slug}?edition=1`);
+    if (items.length === 0) redirect(`/${slug}?edition=1&erreur=vide`);
   } else if (type === "galerie" || type === "partenaires") {
     const fichiers = formData.getAll("photos").slice(0, 8);
     for (const f of fichiers) {
       const url = await uploaderImage(org.id, f, type);
       if (url) items.push({ titre: null, texte: null, image_url: url });
     }
-    if (items.length === 0) redirect(`/${slug}?edition=1`);
+    if (items.length === 0) redirect(`/${slug}?edition=1&erreur=photo`);
   } else if (type === "citation") {
-    if (!s.texte) redirect(`/${slug}?edition=1`);
+    if (!s.texte) redirect(`/${slug}?edition=1&erreur=vide`);
   } else {
     // Texte & photo (layouts historiques) : géré par ajouterSection.
-    redirect(`/${slug}?edition=1`);
+    redirect(`/${slug}?edition=1&erreur=type`);
   }
 
   s.items = items;

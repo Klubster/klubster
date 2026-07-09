@@ -28,7 +28,7 @@ export default async function VitrinePage({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { edition?: string; chapitre?: string };
+  searchParams: { edition?: string; chapitre?: string; erreur?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -256,6 +256,20 @@ export default async function VitrinePage({
               TERMINER →
             </Link>
           </div>
+
+          {searchParams?.erreur ? (
+            <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
+              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+                {searchParams.erreur === "photo"
+                  ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (5 Mo maximum)."
+                  : searchParams.erreur === "vide"
+                    ? "Rien n’a été enregistré : ce chapitre était vide. Remplissez au moins un champ."
+                    : searchParams.erreur === "enregistrement"
+                      ? "L’enregistrement a échoué. Reconnectez-vous, puis réessayez."
+                      : "Une erreur est survenue. Réessayez."}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
