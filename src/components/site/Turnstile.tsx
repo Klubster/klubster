@@ -12,19 +12,39 @@ import { useEffect, useRef } from "react";
  * Le widget injecte un champ caché « cf-turnstile-response » dans le formulaire parent :
  * c'est ce jeton que le serveur revalide auprès de Cloudflare.
  */
+declare global {
+  interface Window {
+    turnstile?: { remove: (conteneur: HTMLElement) => void };
+  }
+}
+
 export default function Turnstile() {
   const cle = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const conteneur = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!cle) return;
-    if (document.querySelector("script[data-turnstile]")) return;
-    const s = document.createElement("script");
-    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    s.async = true;
-    s.defer = true;
-    s.setAttribute("data-turnstile", "");
-    document.head.appendChild(s);
+    if (!document.querySelector("script[data-turnstile]")) {
+      const s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true;
+      s.defer = true;
+      s.setAttribute("data-turnstile", "");
+      document.head.appendChild(s);
+    }
+
+    // Au démontage (navigation interne Next), on prévient Cloudflare : sinon il continue
+    // de suivre un widget dont le nœud a disparu — « Cannot find Widget … » dans la console.
+    const el = conteneur.current;
+    return () => {
+      if (el && window.turnstile) {
+        try {
+          window.turnstile.remove(el);
+        } catch {
+          /* le widget avait déjà disparu */
+        }
+      }
+    };
   }, [cle]);
 
   if (!cle) return null;
