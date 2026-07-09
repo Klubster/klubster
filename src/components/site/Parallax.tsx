@@ -62,7 +62,7 @@ export default function Parallax({
           alt={alt}
           fill
           sizes="100vw"
-          quality={82}
+          quality={75}
           priority={priority}
           className="kb-breathe object-cover"
         />
