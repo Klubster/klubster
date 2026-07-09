@@ -80,7 +80,7 @@ const INCLUS = [
   "Le site de votre club, en ligne dès le premier soir",
   "Les inscriptions se remplissent toutes seules — mineurs, cours, pièces : le formulaire s’adapte",
   "Les cotisations arrivent directement sur le compte du club — 0 % de commission",
-  "Le paiement en 1 ou 3 fois, au choix du club",
+  "Le paiement jusqu’à 12 fois — le club fixe la limite, l’adhérent choisit",
   "Les certificats et documents arrivent directement au bon endroit",
   "Prévenez tous les parents en deux clics",
   "L’appel se fait en scannant la carte d’adhérent",

@@ -7,6 +7,7 @@ import QuestionnaireSante from "./QuestionnaireSante";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
+import ChoixEcheances from "@/components/site/ChoixEcheances";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +89,10 @@ export default async function InscriptionPage({
               <label className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
               <select name="cours" required className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
                 {cours.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nom} — {formatPrix(c.tarif_centimes)} / an</option>
+                  // data-tarif : lu par le sélecteur de mensualités pour afficher le vrai montant.
+                  <option key={c.id} value={c.id} data-tarif={c.tarif_centimes}>
+                    {c.nom} — {formatPrix(c.tarif_centimes)} / an
+                  </option>
                 ))}
               </select>
             </div>
@@ -155,9 +159,11 @@ export default async function InscriptionPage({
               {org.stripe_account_id ? (
                 <>
                   <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
-                  {org.form_config?.paiement?.troisFois ? (
-                    <Radio name="mode" value="en_ligne_3x" label="En ligne — 3 mensualités" hint="3 prélèvements, un par mois." />
-                  ) : null}
+                  <ChoixEcheances
+                    echeancesMax={org.echeances_max ?? 1}
+                    tarifInitialCentimes={cours[0]?.tarif_centimes ?? 0}
+                    accent={accent}
+                  />
                 </>
               ) : null}
               <Radio name="mode" value="cheque" defaultChecked={!org.stripe_account_id} label="Par chèque" hint="À remettre au club." />

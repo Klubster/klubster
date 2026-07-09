@@ -28,6 +28,8 @@ export interface Organisation {
   email_contact: string | null;
   telephone: string | null;
   stripe_account_id: string | null;
+  /** Mensualités maximales proposées aux adhérents (1 = comptant seul, 12 = mensuel sur la saison). */
+  echeances_max: number;
   abonnement_plan: PlanAbonnement | null;
   publie: boolean;
   created_at: string;

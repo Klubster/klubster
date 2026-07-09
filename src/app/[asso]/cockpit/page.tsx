@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujourdhui } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
-import { connecterStripe } from "./stripe-actions";
+import { connecterStripe, definirEcheancesMax } from "./stripe-actions";
 import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +35,7 @@ export default async function Cockpit({
   const prenom = profile?.prenom?.trim();
   const stripeConnecte = !!org.stripe_account_id;
   const connecterAvecSlug = connecterStripe.bind(null, org.slug);
+  const definirEcheancesAvecSlug = definirEcheancesMax.bind(null, org.slug);
 
   // Heure et jour à Paris — le cockpit parle du réel.
   const maintenant = new Date();
@@ -184,11 +185,43 @@ export default async function Cockpit({
           <div className="border-b border-line px-6 py-7 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
             {stripeConnecte ? (
-              <p className="mt-4 text-[15px]">
-                <span className="mono text-brand">✓</span> Stripe connecté. Les cotisations arrivent
-                directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
-                0 % de commission.
-              </p>
+              <>
+                <p className="mt-4 text-[15px]">
+                  <span className="mono text-brand">✓</span> Stripe connecté. Les cotisations arrivent
+                  directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
+                  0 % de commission.
+                </p>
+
+                {/* Le club fixe le plafond ; l'adhérent choisit dans cette limite. */}
+                <form action={definirEcheancesAvecSlug} className="mt-6 border-t border-line pt-5">
+                  <label htmlFor="echeances_max" className="mono block text-[11px] uppercase tracking-label text-ink-soft">
+                    Paiement en plusieurs fois<Cur />
+                  </label>
+                  <p className="mt-2 max-w-prose text-[14px] text-ink-soft">
+                    Jusqu&apos;à combien de mensualités autorisez-vous vos adhérents ? Ils choisiront
+                    librement dans cette limite. <span className="text-ink">Stripe prélève des frais à chaque
+                    échéance</span> : douze prélèvements coûtent plus cher au club qu&apos;un seul.
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <select
+                      id="echeances_max"
+                      name="echeances_max"
+                      defaultValue={org.echeances_max ?? 1}
+                      className="border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+                    >
+                      <option value={1}>Comptant uniquement</option>
+                      {Array.from({ length: 11 }, (_, i) => i + 2).map((v) => (
+                        <option key={v} value={v}>
+                          Jusqu&apos;à {v} mensualités
+                        </option>
+                      ))}
+                    </select>
+                    <button className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                      ENREGISTRER
+                    </button>
+                  </div>
+                </form>
+              </>
             ) : (
               <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="max-w-prose text-[15px] text-ink-soft">

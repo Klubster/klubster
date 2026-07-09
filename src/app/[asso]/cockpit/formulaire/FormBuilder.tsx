@@ -194,27 +194,18 @@ export default function FormBuilder({
         <div className="mt-14">
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<Cur /></p>
           <div className="mt-6 border border-line bg-paper px-5 py-4">
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={config.paiement?.troisFois === true}
-                onChange={(e) => setConfig((c) => ({ ...c, paiement: { ...c.paiement, troisFois: e.target.checked } }))}
-                className="mt-1"
-              />
-              <span>
-                <span className="text-[15px] font-medium">Proposer le paiement en 3 fois (en ligne)</span>
-                <span className="mt-1 block text-[13px] text-ink-soft">
-                  Trois prélèvements mensuels par carte bancaire, gérés automatiquement.
-                </span>
-              </span>
-            </label>
-            {config.paiement?.troisFois ? (
-              <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#B8860B" }}>
-                ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
-                transaction pour une carte européenne). En 3 fois, la part fixe des frais est donc
-                prélevée trois fois : le club perçoit un peu moins qu&apos;en paiement unique.
-              </p>
-            ) : null}
+            {/* Le réglage vit désormais dans le cockpit, à côté de Stripe : un seul endroit,
+                une seule vérité. Deux écrans qui pilotent la même chose finissent par se contredire. */}
+            <p className="text-[15px] font-medium">Paiement en plusieurs fois</p>
+            <p className="mt-1 text-[13px] text-ink-soft">
+              Le nombre maximal de mensualités (jusqu&apos;à 12) se règle dans le cockpit, sous la
+              carte Stripe. L&apos;adhérent choisit ensuite librement dans cette limite.
+            </p>
+            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#B8860B" }}>
+              ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
+              transaction pour une carte européenne). Plus il y a d&apos;échéances, plus la part fixe
+              est prélevée souvent : le club perçoit un peu moins qu&apos;en paiement unique.
+            </p>
             {!stripeConnecte ? (
               <p className="mono mt-3 text-[11px] text-ink-faint">
                 Stripe n&apos;est pas encore connecté : cette option ne s&apos;affichera aux adhérents

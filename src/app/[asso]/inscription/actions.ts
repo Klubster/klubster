@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
-import { stripeConfigured, createCheckoutForClub, createCheckout3xForClub } from "@/lib/stripe";
+import { stripeConfigured, createCheckoutForClub, createCheckoutEcheancesForClub, bornerEcheances } from "@/lib/stripe";
 import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -83,7 +83,7 @@ export async function inscrireAdherent(formData: FormData) {
     p_tel: tel,
     p_cours_id: coursId || null,
     p_infos: infos,
-    p_mode: mode === "en_ligne_3x" ? "en_ligne" : mode,
+    p_mode: mode === "en_ligne_echeances" ? "en_ligne" : mode,
   });
   if (error || !adhesionId) {
     console.error("register_adherent_full", error?.message);
@@ -126,8 +126,12 @@ export async function inscrireAdherent(formData: FormData) {
   const tarifCentimes = (coursChoisi as { tarif_centimes: number } | null)?.tarif_centimes ?? 0;
 
   // Emails de confirmation (non bloquants — l'inscription est déjà enregistrée)
+  const echeancesChoisies = Math.min(
+    bornerEcheances(formData.get("echeances") ?? 1),
+    bornerEcheances(org.echeances_max ?? 1)
+  );
   const libelleMode =
-    mode === "en_ligne_3x" ? "En ligne — 3 mensualités (carte bancaire)"
+    mode === "en_ligne_echeances" ? `En ligne — ${echeancesChoisies} mensualités (carte bancaire)`
     : mode === "en_ligne" ? "En ligne (carte bancaire)"
     : mode === "cheque" ? "Par chèque, à remettre au club"
     : "En espèces, à remettre au club";
@@ -168,8 +172,7 @@ export async function inscrireAdherent(formData: FormData) {
   }
 
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
-  const enLigne = mode === "en_ligne" || mode === "en_ligne_3x";
-  const troisFoisActif = org.form_config?.paiement?.troisFois === true;
+  const enLigne = mode === "en_ligne" || mode === "en_ligne_echeances";
   if (enLigne && org.stripe_account_id && stripeConfigured()) {
     const cours = coursChoisi;
     if (cours) {
@@ -182,15 +185,25 @@ export async function inscrireAdherent(formData: FormData) {
         adhesionId: String(adhesionId),
         clientEmail: email || null,
       };
+      // L'adhérent choisit son nombre de mensualités, mais jamais au-delà du plafond du club.
+      const demandees = bornerEcheances(formData.get("echeances") ?? 1);
+      const plafond = bornerEcheances(org.echeances_max ?? 1);
+      const echeances = Math.min(demandees, plafond);
+
+      let urlPaiement: string | null = null;
       try {
         const session =
-          mode === "en_ligne_3x" && troisFoisActif
-            ? await createCheckout3xForClub(optsCommunes)
+          mode === "en_ligne_echeances" && echeances > 1
+            ? await createCheckoutEcheancesForClub({ ...optsCommunes, echeances })
             : await createCheckoutForClub(optsCommunes);
-        if (session?.url) redirect(session.url as string);
+        urlPaiement = (session?.url as string) ?? null;
       } catch (e) {
         console.error("stripe checkout", e);
       }
+
+      // ⚠️ redirect() lève NEXT_REDIRECT : appelé DANS le try, il était avalé par le catch
+      // et l'adhérent n'était jamais envoyé chez Stripe. Il doit rester en dehors.
+      if (urlPaiement) redirect(urlPaiement);
     }
   }
 

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { verifyWebhook, planifier3Echeances, getSubscription } from "@/lib/stripe";
+import { verifyWebhook, planifierEcheances, getSubscription, bornerEcheances } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -40,20 +40,22 @@ export async function POST(request: NextRequest) {
     };
     const adhesionId = obj.metadata?.adhesion_id;
 
-    if (obj.mode === "subscription" && obj.metadata?.echeances === "3") {
-      // Paiement en 3 fois : 1re échéance encaissée → on borne l'abonnement à 3 prélèvements.
+    const echeances = bornerEcheances(obj.metadata?.echeances ?? 1);
+
+    if (obj.mode === "subscription" && echeances > 1) {
+      // 1re échéance encaissée → on borne l'abonnement à exactement N prélèvements.
       if (obj.subscription && event.account) {
         try {
-          await planifier3Echeances(obj.subscription, event.account);
+          await planifierEcheances(obj.subscription, event.account, echeances);
         } catch (e) {
-          console.error("planifier3Echeances", e);
+          console.error("planifierEcheances", e);
         }
       }
       if (adhesionId && admin && typeof obj.amount_total === "number" && obj.amount_total > 0) {
         await admin.rpc("enregistrer_reglement_webhook", {
           p_adhesion_id: adhesionId,
           p_montant_centimes: obj.amount_total,
-          p_note: "Échéance 1/3 (Stripe)",
+          p_note: `Échéance 1/${echeances} (Stripe)`,
         });
       }
     } else if (adhesionId && admin) {
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Échéances 2 et 3 du paiement en 3 fois (prélèvements mensuels suivants).
+  // Échéances 2 à N (prélèvements mensuels suivants).
   if (event.type === "invoice.payment_succeeded" || event.type === "invoice.paid") {
     const obj = event.data.object as {
       subscription?: string;
@@ -81,11 +83,19 @@ export async function POST(request: NextRequest) {
       try {
         const sub = await getSubscription(obj.subscription, event.account);
         const adhesionId = sub.metadata?.adhesion_id;
+        const total = bornerEcheances(sub.metadata?.echeances ?? 1);
         if (adhesionId && typeof obj.amount_paid === "number" && obj.amount_paid > 0) {
+          // Le rang de l'échéance = nombre de règlements déjà enregistrés + 1.
+          const { count } = await admin
+            .from("reglements")
+            .select("id", { count: "exact", head: true })
+            .eq("adhesion_id", adhesionId);
+          const rang = (count ?? 0) + 1;
+
           await admin.rpc("enregistrer_reglement_webhook", {
             p_adhesion_id: adhesionId,
             p_montant_centimes: obj.amount_paid,
-            p_note: "Échéance (Stripe)",
+            p_note: `Échéance ${rang}/${total} (Stripe)`,
           });
         }
       } catch (e) {

@@ -106,46 +106,89 @@ export async function createCheckoutForClub(opts: {
   );
 }
 
-// Paiement en 3 fois : abonnement mensuel de 3 échéances (borné puis annulé via webhook).
-// ⚠️ Stripe facture des frais à chaque prélèvement — avertissement affiché au club dans l'Atelier.
-export async function createCheckout3xForClub(opts: {
+/** Plafond produit : 12 mensualités = un prélèvement par mois sur toute la saison. */
+export const ECHEANCES_MAX = 12;
+
+export function bornerEcheances(n: unknown): number {
+  const v = Math.trunc(Number(n));
+  if (!Number.isFinite(v)) return 1;
+  return Math.min(Math.max(v, 1), ECHEANCES_MAX);
+}
+
+/**
+ * Découpe un montant en N mensualités égales, au centime près.
+ * Les arrondis sont absorbés par la première échéance : la somme des mensualités
+ * fait exactement le montant dû. Sans cela, un club encaisserait 1 ou 2 centimes de moins.
+ */
+export function repartirMensualites(montantCentimes: number, echeances: number): number[] {
+  const n = bornerEcheances(echeances);
+  const base = Math.floor(montantCentimes / n);
+  const reste = montantCentimes - base * n;
+  return Array.from({ length: n }, (_, i) => (i === 0 ? base + reste : base));
+}
+
+/**
+ * Paiement en N fois : abonnement mensuel borné à N échéances, puis annulé automatiquement.
+ * ⚠️ Stripe facture des frais à CHAQUE prélèvement — plus il y a d'échéances, plus le club paie.
+ *
+ * Limite connue : Stripe impose une mensualité identique à chaque cycle. On facture donc
+ * `plancher(montant / N)` à chaque échéance, et le reliquat d'arrondi (au plus N−1 centimes)
+ * est ajouté à la première via un `add_invoice_items`.
+ */
+export async function createCheckoutEcheancesForClub(opts: {
   clubAccount: string;
   coursNom: string;
   montantCentimes: number;
+  echeances: number;
   successUrl: string;
   cancelUrl: string;
   adhesionId: string;
   clientEmail?: string | null;
 }) {
-  const mensualite = Math.round(opts.montantCentimes / 3);
-  return call(
-    "POST",
-    "/checkout/sessions",
-    {
-      mode: "subscription",
-      success_url: opts.successUrl,
-      cancel_url: opts.cancelUrl,
-      customer_email: opts.clientEmail ?? undefined,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "eur",
-            unit_amount: mensualite,
-            recurring: { interval: "month" },
-            product_data: { name: `Cotisation — ${opts.coursNom} (3 mensualités)` },
-          },
+  const n = bornerEcheances(opts.echeances);
+  const mensualites = repartirMensualites(opts.montantCentimes, n);
+  const mensualite = mensualites[n - 1]; // la mensualité « normale »
+  const reliquat = mensualites[0] - mensualite; // ajouté à la première facture
+
+  const body: Record<string, unknown> = {
+    mode: "subscription",
+    success_url: opts.successUrl,
+    cancel_url: opts.cancelUrl,
+    customer_email: opts.clientEmail ?? undefined,
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: mensualite,
+          recurring: { interval: "month" },
+          product_data: { name: `Cotisation — ${opts.coursNom} (${n} mensualités)` },
         },
-      ],
-      subscription_data: { metadata: { adhesion_id: opts.adhesionId, echeances: "3" } },
-      metadata: { adhesion_id: opts.adhesionId, echeances: "3" },
-    },
-    opts.clubAccount
-  );
+      },
+    ],
+    subscription_data: { metadata: { adhesion_id: opts.adhesionId, echeances: String(n) } },
+    metadata: { adhesion_id: opts.adhesionId, echeances: String(n) },
+  };
+
+  if (reliquat > 0) {
+    (body.subscription_data as Record<string, unknown>).add_invoice_items = [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: reliquat,
+          product_data: { name: "Ajustement d’arrondi" },
+        },
+      },
+    ];
+  }
+
+  return call("POST", "/checkout/sessions", body, opts.clubAccount);
 }
 
-// Après le checkout 3x : borne l'abonnement à exactement 3 échéances, puis annulation automatique.
-export async function planifier3Echeances(subscriptionId: string, clubAccount: string) {
+/** Après le checkout : borne l'abonnement à exactement N échéances, puis annulation. */
+export async function planifierEcheances(subscriptionId: string, clubAccount: string, echeances: number) {
+  const n = bornerEcheances(echeances);
   const schedule = (await call(
     "POST",
     "/subscription_schedules",
@@ -165,7 +208,7 @@ export async function planifier3Echeances(subscriptionId: string, clubAccount: s
       phases: [
         {
           start_date: phase?.start_date,
-          iterations: 3,
+          iterations: n,
           items: [{ price: item.price, quantity: item.quantity ?? 1 }],
         },
       ],
