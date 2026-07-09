@@ -2,6 +2,20 @@ import type { Cours, Creneau } from "@/types/db";
 
 const JOURS_ORDRE = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 
+/**
+ * Somme d'argent, toujours affichée comme un montant.
+ * `formatPrix` dit « Gratuit » pour zéro, ce qui convient au tarif d'un cours mais
+ * jamais à une trésorerie : « Réglé : Gratuit » n'a aucun sens pour un trésorier.
+ */
+export function formatMontant(centimes: number): string {
+  const euros = (centimes ?? 0) / 100;
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: euros % 1 === 0 ? 0 : 2,
+  }).format(euros);
+}
+
 export function formatPrix(centimes: number): string {
   if (!centimes) return "Gratuit";
   const euros = centimes / 100;

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatPrix } from "@/lib/format";
+import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -178,9 +178,9 @@ export default async function FicheAdherent({
               ))}
               <div className="bg-bg-alt px-5 py-4">
                 <p className="mono text-[12px]">
-                  Réglé : <span className="text-ink">{formatPrix(totalRegle)}</span>
+                  Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
                   {reste > 0 ? (
-                    <span style={{ color: "#B23B3B" }}> · Reste {formatPrix(reste)}</span>
+                    <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
                   ) : (
                     <span style={{ color: "#1E7A4F" }}> · Soldé</span>
                   )}
@@ -195,7 +195,7 @@ export default async function FicheAdherent({
                 <p key={r.id} className="mono border-b border-line px-5 py-3 text-[12px] last:border-b-0">
                   <span className="text-ink-soft">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
                   {" — "}
-                  {formatPrix(r.montant_centimes)}
+                  {formatMontant(r.montant_centimes)}
                   {r.mode ? ` (${r.mode})` : ""}
                   {r.note ? <span className="text-ink-soft"> · {r.note}</span> : null}
                 </p>
