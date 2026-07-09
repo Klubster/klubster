@@ -24,6 +24,13 @@ export default function CGV() {
         <li><strong>29 €/mois</strong> — plus de 500 adhérents.</li>
       </ul>
       <p>Prix hors taxes le cas échéant. L’éditeur peut faire évoluer ses tarifs avec un préavis raisonnable.</p>
+      <p>
+        <strong>Le premier mois est offert.</strong> Aucun prélèvement n’intervient pendant les trente
+        premiers jours. À l’issue de cette période, l’abonnement est prélevé mensuellement sur le moyen de
+        paiement enregistré, et une facture est adressée au Club par email à chaque échéance. Le Club peut
+        résilier à tout moment pendant le mois offert : aucune somme ne sera prélevée. Le palier tarifaire
+        est déterminé par le nombre d’adhérents enregistrés dans le Club.
+      </p>
 
       <h2>3. Souscription</h2>
       <p>
@@ -41,9 +48,10 @@ export default function CGV() {
 
       <h2>5. Durée, résiliation, changement d’offre</h2>
       <p>
-        L’abonnement est sans engagement. Le Club peut changer d’offre ou résilier à tout moment depuis son
-        espace ; la résiliation prend effet à la fin de la période en cours, sans remboursement du mois
-        entamé. À la résiliation, le Club peut récupérer ses données (voir Politique de confidentialité).
+        L’abonnement est sans engagement. Le Club peut consulter ses factures, changer de moyen de paiement,
+        changer d’offre ou résilier à tout moment depuis son cockpit ; la résiliation prend effet à la fin de
+        la période en cours, sans remboursement du mois entamé. À la résiliation, le Club peut récupérer ses
+        données (export des adhérents, voir Politique de confidentialité).
       </p>
 
       <h2>6. Droit de rétractation</h2>

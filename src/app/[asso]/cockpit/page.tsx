@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujourdhui } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
-import { connecterStripe, definirEcheancesMax } from "./stripe-actions";
+import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement } from "./stripe-actions";
+import { palierPourEffectif, PALIERS, JOURS_ESSAI } from "@/lib/stripe";
 import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,16 @@ export default async function Cockpit({
   const stripeConnecte = !!org.stripe_account_id;
   const connecterAvecSlug = connecterStripe.bind(null, org.slug);
   const definirEcheancesAvecSlug = definirEcheancesMax.bind(null, org.slug);
+  const souscrireAvecSlug = souscrireAbonnement.bind(null, org.slug);
+  const gererAvecSlug = gererAbonnement.bind(null, org.slug);
+
+  // Abonnement Klubster — état lisible pour un bénévole, pas du vocabulaire Stripe.
+  const abo = org.abonnement_statut ?? "aucun";
+  const palier = palierPourEffectif(s.equipage);
+  const prixMensuel = PALIERS[palier];
+  const finEssai = org.abonnement_essai_fin
+    ? new Date(org.abonnement_essai_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })
+    : null;
 
   // Heure et jour à Paris — le cockpit parle du réel.
   const maintenant = new Date();
@@ -184,6 +195,54 @@ export default async function Cockpit({
           {/* PAIEMENTS / STRIPE */}
           <div className="border-b border-line px-6 py-7 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
+            {/* ABONNEMENT KLUBSTER — distinct des cotisations. Un bénévole confond vite les deux. */}
+            <div className="mb-8 border-b border-line pb-8">
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+                VOTRE ABONNEMENT KLUBSTER<Cur />
+              </p>
+
+              {abo === "aucun" || abo === "resilie" ? (
+                <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="max-w-prose text-[15px] text-ink-soft">
+                    <span className="text-ink">Le premier mois est offert.</span> Ensuite{" "}
+                    {(prixMensuel.prixCentimes / 100).toLocaleString("fr-FR")} € par mois — {prixMensuel.libelle.toLowerCase()}.
+                    Sans engagement, résiliable en un clic. Aucun prélèvement pendant les {JOURS_ESSAI} premiers jours.
+                  </p>
+                  <form action={souscrireAvecSlug}>
+                    <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                      COMMENCER LE MOIS OFFERT →
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="max-w-prose text-[15px]">
+                    {abo === "essai" ? (
+                      <>
+                        <span className="mono text-brand">✓</span> Mois offert en cours
+                        {finEssai ? <> — premier prélèvement le {finEssai}.</> : "."}
+                      </>
+                    ) : abo === "actif" ? (
+                      <>
+                        <span className="mono text-brand">✓</span> Abonnement actif —{" "}
+                        {(prixMensuel.prixCentimes / 100).toLocaleString("fr-FR")} € par mois. Votre facture
+                        vous est envoyée chaque mois par email.
+                      </>
+                    ) : (
+                      <span style={{ color: "#B23B3B" }}>
+                        Dernier paiement refusé. Mettez à jour votre carte pour éviter la coupure.
+                      </span>
+                    )}
+                  </p>
+                  <form action={gererAvecSlug}>
+                    <button className="mono whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
+                      FACTURES & RÉSILIATION →
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+
             {stripeConnecte ? (
               <>
                 <p className="mt-4 text-[15px]">

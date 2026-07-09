@@ -384,6 +384,9 @@ export default function Home() {
               Pas de version Pro. Pas d’options. Pas de modules.<br />
               Seule la taille de votre association fait évoluer le tarif.
             </p>
+            <p className="mt-6 max-w-prose text-xl font-medium text-ink">
+              Le premier mois est offert<span className="text-brand">.</span>
+            </p>
           </Reveal>
 
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
@@ -417,7 +420,8 @@ export default function Home() {
             Vos données sont hébergées dans l’Union européenne.
           </p>
           <p className="mono mt-3 text-[11px] leading-relaxed text-ink-soft">
-            Changez d’offre à tout moment. Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
+            Premier mois offert, sans prélèvement. Changez d’offre ou résiliez à tout moment, depuis votre cockpit.
+            Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
           </p>
         </div>
       </section>

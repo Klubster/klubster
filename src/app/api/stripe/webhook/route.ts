@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { verifyWebhook, planifierEcheances, getSubscription, bornerEcheances } from "@/lib/stripe";
+import { verifyWebhook, planifierEcheances, getSubscription, bornerEcheances, type StripeEvent } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,14 @@ export async function POST(request: NextRequest) {
       console.error("stripe_events", verrou.message);
       return NextResponse.json({ error: "Verrou d’idempotence indisponible." }, { status: 500 });
     }
+  }
+
+  /* ——— Abonnement Klubster (événements de la PLATEFORME : pas de `event.account`) ———
+     À ne surtout pas confondre avec les cotisations, qui arrivent des comptes connectés
+     des clubs. Un abonnement encaissé au profit de Klubster n'est pas un règlement d'adhérent. */
+  if (!event.account && admin) {
+    const traite = await traiterAbonnement(event, admin);
+    if (traite) return NextResponse.json({ received: true, abonnement: true });
   }
 
   if (event.type === "checkout.session.completed") {
@@ -105,4 +113,90 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+
+/**
+ * Événements de l'abonnement Klubster (compte plateforme).
+ * Renvoie true si l'événement a été traité ici — pour ne pas le laisser filer vers
+ * la logique des cotisations, qui l'interpréterait comme un règlement d'adhérent.
+ */
+async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promise<boolean> {
+  const majParSubscription = async (subscriptionId: string, champs: Record<string, unknown>) => {
+    const { error } = await admin
+      .from("organisations")
+      .update(champs)
+      .eq("abonnement_subscription_id", subscriptionId);
+    if (error) console.error("abonnement maj", error.message);
+  };
+
+  if (event.type === "checkout.session.completed") {
+    const obj = event.data.object as {
+      mode?: string;
+      subscription?: string;
+      customer?: string;
+      metadata?: { organisation_id?: string };
+    };
+    const orgId = obj.metadata?.organisation_id;
+    if (obj.mode !== "subscription" || !orgId) return false;
+
+    await admin
+      .from("organisations")
+      .update({
+        abonnement_customer_id: obj.customer ?? null,
+        abonnement_subscription_id: obj.subscription ?? null,
+        abonnement_statut: "essai",
+      })
+      .eq("id", orgId);
+    return true;
+  }
+
+  if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+    const obj = event.data.object as {
+      id?: string;
+      status?: string;
+      trial_end?: number | null;
+      current_period_end?: number | null;
+    };
+    if (!obj.id) return false;
+
+    // Vocabulaire Stripe → vocabulaire Klubster.
+    const statut =
+      event.type === "customer.subscription.deleted" || obj.status === "canceled"
+        ? "resilie"
+        : obj.status === "trialing"
+          ? "essai"
+          : obj.status === "active"
+            ? "actif"
+            : obj.status === "past_due" || obj.status === "unpaid"
+              ? "impaye"
+              : "aucun";
+
+    await majParSubscription(obj.id, {
+      abonnement_statut: statut,
+      abonnement_essai_fin: obj.trial_end ? new Date(obj.trial_end * 1000).toISOString() : null,
+      abonnement_periode_fin: obj.current_period_end
+        ? new Date(obj.current_period_end * 1000).toISOString()
+        : null,
+    });
+    return true;
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    const obj = event.data.object as { subscription?: string };
+    if (!obj.subscription) return false;
+    await majParSubscription(obj.subscription, { abonnement_statut: "impaye" });
+    return true;
+  }
+
+  if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
+    const obj = event.data.object as { subscription?: string; billing_reason?: string };
+    // Facture d'abonnement Klubster : Stripe l'envoie au club, nous notons seulement l'état.
+    if (!obj.subscription) return false;
+    await majParSubscription(obj.subscription, { abonnement_statut: "actif" });
+    return true;
+  }
+
+  return false;
 }

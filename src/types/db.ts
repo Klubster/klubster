@@ -31,6 +31,12 @@ export interface Organisation {
   /** Mensualités maximales proposées aux adhérents (1 = comptant seul, 12 = mensuel sur la saison). */
   echeances_max: number;
   abonnement_plan: PlanAbonnement | null;
+  /* Abonnement Klubster (facturé par la plateforme, distinct de Stripe Connect). */
+  abonnement_customer_id: string | null;
+  abonnement_subscription_id: string | null;
+  abonnement_statut: "aucun" | "essai" | "actif" | "impaye" | "resilie";
+  abonnement_essai_fin: string | null;
+  abonnement_periode_fin: string | null;
   publie: boolean;
   created_at: string;
   accroche: string | null;

@@ -45,6 +45,74 @@ async function call(method: "GET" | "POST", path: string, body?: Dict, stripeAcc
   return json;
 }
 
+/* ————————————————————————————————————————————————————————————————
+   ABONNEMENT KLUBSTER — facturé par la plateforme (pas par Connect).
+   Un seul produit, trois paliers selon le nombre d'adhérents.
+   Le premier mois est offert : essai de 30 jours, sans carte pré-débitée.
+   ———————————————————————————————————————————————————————————————— */
+
+export const JOURS_ESSAI = 30;
+
+export type PalierAbonnement = "starter" | "club" | "club_plus";
+
+export const PALIERS: Record<PalierAbonnement, { prixCentimes: number; libelle: string }> = {
+  starter: { prixCentimes: 900, libelle: "Jusqu’à 300 adhérents" },
+  club: { prixCentimes: 1900, libelle: "De 301 à 500 adhérents" },
+  club_plus: { prixCentimes: 2900, libelle: "Plus de 500 adhérents" },
+};
+
+export function palierPourEffectif(nbAdherents: number): PalierAbonnement {
+  if (nbAdherents <= 300) return "starter";
+  if (nbAdherents <= 500) return "club";
+  return "club_plus";
+}
+
+/**
+ * Souscription à l'abonnement Klubster : 30 jours offerts, puis prélèvement mensuel.
+ * Stripe émet et envoie la facture chaque mois ; nous n'encaissons rien nous-mêmes.
+ */
+export async function createAbonnementCheckout(opts: {
+  organisationId: string;
+  organisationNom: string;
+  palier: PalierAbonnement;
+  email: string | null;
+  customerId?: string | null;
+  successUrl: string;
+  cancelUrl: string;
+}) {
+  const p = PALIERS[opts.palier];
+  return call("POST", "/checkout/sessions", {
+    mode: "subscription",
+    success_url: opts.successUrl,
+    cancel_url: opts.cancelUrl,
+    customer: opts.customerId ?? undefined,
+    customer_email: opts.customerId ? undefined : (opts.email ?? undefined),
+    // Sans cela, Stripe ne conserve pas l'adresse pour les factures ultérieures.
+    customer_creation: opts.customerId ? undefined : "always",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: p.prixCentimes,
+          recurring: { interval: "month" },
+          product_data: { name: `Klubster — abonnement (${p.libelle})` },
+        },
+      },
+    ],
+    subscription_data: {
+      trial_period_days: JOURS_ESSAI,
+      metadata: { organisation_id: opts.organisationId, palier: opts.palier },
+    },
+    metadata: { organisation_id: opts.organisationId, palier: opts.palier },
+  });
+}
+
+/** Portail Stripe : le club consulte ses factures, change de carte, résilie seul. */
+export async function createPortalSession(customerId: string, returnUrl: string) {
+  return call("POST", "/billing_portal/sessions", { customer: customerId, return_url: returnUrl });
+}
+
 export async function createConnectedAccount(email: string | null) {
   return call("POST", "/accounts", {
     type: "express",

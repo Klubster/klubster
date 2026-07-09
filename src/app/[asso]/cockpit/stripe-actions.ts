@@ -3,7 +3,15 @@ import { redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createConnectedAccount, createAccountLink, stripeConfigured, bornerEcheances } from "@/lib/stripe";
+import {
+  createConnectedAccount,
+  createAccountLink,
+  stripeConfigured,
+  bornerEcheances,
+  createAbonnementCheckout,
+  createPortalSession,
+  palierPourEffectif,
+} from "@/lib/stripe";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -27,6 +35,66 @@ export async function definirEcheancesMax(slug: string, formData: FormData) {
     redirect(`/${slug}/cockpit?stripe=erreur`);
   }
   redirect(`/${slug}/cockpit?stripe=echeances`);
+}
+
+/**
+ * Souscrire à l'abonnement Klubster — premier mois offert.
+ * Le palier est calculé sur l'effectif réel du club : personne ne choisit son prix.
+ */
+export async function souscrireAbonnement(slug: string) {
+  const org = await getOrganisationBySlug(slug);
+  if (!org) redirect("/");
+  const profile = await getProfile();
+  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
+    redirect(`/connexion?next=/${slug}/cockpit`);
+  }
+  if (!stripeConfigured()) redirect(`/${slug}/cockpit?abonnement=nonconfig`);
+
+  const supabase = createSupabaseServerClient();
+  const { count } = await supabase
+    .from("adherents")
+    .select("id", { count: "exact", head: true })
+    .eq("organisation_id", org.id);
+
+  let url: string | null = null;
+  try {
+    const session = await createAbonnementCheckout({
+      organisationId: org.id,
+      organisationNom: org.nom,
+      palier: palierPourEffectif(count ?? 0),
+      email: profile.email ?? org.email_contact,
+      customerId: org.abonnement_customer_id,
+      successUrl: `${BASE}/${slug}/cockpit?abonnement=ok`,
+      cancelUrl: `${BASE}/${slug}/cockpit?abonnement=annule`,
+    });
+    url = (session?.url as string) ?? null;
+  } catch (e) {
+    console.error("abonnement checkout", e);
+  }
+  // redirect() lève NEXT_REDIRECT : il doit rester hors du try, sinon le catch l'avale.
+  if (!url) redirect(`/${slug}/cockpit?abonnement=erreur`);
+  redirect(url);
+}
+
+/** Portail Stripe : factures, moyen de paiement, résiliation. */
+export async function gererAbonnement(slug: string) {
+  const org = await getOrganisationBySlug(slug);
+  if (!org) redirect("/");
+  const profile = await getProfile();
+  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
+    redirect(`/connexion?next=/${slug}/cockpit`);
+  }
+  if (!org.abonnement_customer_id) redirect(`/${slug}/cockpit?abonnement=aucun`);
+
+  let url: string | null = null;
+  try {
+    const session = await createPortalSession(org.abonnement_customer_id, `${BASE}/${slug}/cockpit`);
+    url = (session?.url as string) ?? null;
+  } catch (e) {
+    console.error("portail abonnement", e);
+  }
+  if (!url) redirect(`/${slug}/cockpit?abonnement=erreur`);
+  redirect(url);
 }
 
 export async function connecterStripe(slug: string) {
