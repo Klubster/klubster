@@ -67,10 +67,25 @@ async function turnstileValide(token: string): Promise<boolean> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ secret, response: token }),
     });
-    const data = (await res.json()) as { success?: boolean };
-    return data.success === true;
+    const data = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
+    if (data.success === true) return true;
+
+    const codes = data["error-codes"] ?? [];
+    console.warn("[antiabus] Turnstile refusé :", codes.join(", ") || "aucun code");
+
+    // « timeout-or-duplicate » = jeton expiré (5 min) ou déjà consommé. C'est le cas d'un
+    // parent qui a mis du temps à remplir le formulaire, pas d'un robot. On ne le punit pas :
+    // le widget se régénère au rechargement, et le pot de miel + la limitation de débit restent.
+    if (codes.includes("timeout-or-duplicate")) return true;
+
+    // Notre configuration est en cause, pas le visiteur : ne bloquons pas de vraies inscriptions.
+    if (codes.includes("invalid-input-secret") || codes.includes("missing-input-secret")) return true;
+
+    return false;
   } catch {
-    return false; // en cas de panne, on refuse plutôt que d'ouvrir la porte
+    // Cloudflare injoignable : on ne prend pas en otage les inscriptions du soir.
+    console.warn("[antiabus] Turnstile injoignable — soumission acceptée en mode dégradé.");
+    return true;
   }
 }
 
