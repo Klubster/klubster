@@ -28,7 +28,7 @@ export default async function VitrinePage({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { edition?: string; chapitre?: string; erreur?: string };
+  searchParams: { edition?: string; chapitre?: string; erreur?: string; ok?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -270,6 +270,19 @@ export default async function VitrinePage({
               </Link>
             </div>
           </div>
+
+          {searchParams?.ok ? (
+            <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
+              <p className="mono text-[12px]" style={{ color: accent }}>
+                ✓{" "}
+                {searchParams.ok === "deplacee"
+                  ? "Section déplacée. L’ordre est enregistré."
+                  : searchParams.ok === "ajoutee"
+                    ? "Chapitre ajouté à votre page."
+                    : "Section supprimée."}
+              </p>
+            </div>
+          ) : null}
 
           {searchParams?.erreur ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">

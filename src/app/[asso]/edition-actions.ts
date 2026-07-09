@@ -17,7 +17,13 @@ async function gardeAdmin(slug: string): Promise<Organisation> {
   return org;
 }
 
-async function sauver(org: Organisation, pc: ReturnType<typeof normaliserPageConfig>, slug: string, ancre?: string) {
+async function sauver(
+  org: Organisation,
+  pc: ReturnType<typeof normaliserPageConfig>,
+  slug: string,
+  ancre?: string,
+  succes?: "deplacee" | "ajoutee" | "supprimee"
+) {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ page_config: pc }).eq("id", org.id);
   if (error) {
@@ -27,8 +33,11 @@ async function sauver(org: Organisation, pc: ReturnType<typeof normaliserPageCon
     redirect(`/${slug}?edition=1&erreur=enregistrement`);
   }
   revalidatePath(`/${slug}`);
-  // L'ancre ramène le président sur la section qu'il vient de toucher (pas en haut de page).
-  redirect(`/${slug}?edition=1${ancre ? `#${ancre}` : ""}`);
+  // Une modification silencieuse dans une page longue ressemble à un échec.
+  // On confirme explicitement, et l'ancre ramène sur la section touchée.
+  const params = new URLSearchParams({ edition: "1" });
+  if (succes) params.set("ok", succes);
+  redirect(`/${slug}?${params.toString()}${ancre ? `#${ancre}` : ""}`);
 }
 
 // Remonter (dir = -1) ou descendre (dir = 1) une section.
@@ -39,7 +48,7 @@ export async function deplacerSection(slug: string, cle: string, dir: number) {
   const j = i + (dir < 0 ? -1 : 1);
   if (i < 0 || j < 0 || j >= pc.ordre.length) redirect(`/${slug}?edition=1`);
   [pc.ordre[i], pc.ordre[j]] = [pc.ordre[j], pc.ordre[i]];
-  await sauver(org, pc, slug, cle);
+  await sauver(org, pc, slug, cle, "deplacee");
 }
 
 // Ajouter une section personnalisée depuis un template (photo obligatoire).
@@ -78,7 +87,7 @@ export async function ajouterSection(slug: string, formData: FormData) {
   const section: SectionCustom = { id: `c${Date.now()}`, type, titre, texte, texte2, image_url: imageUrl };
   pc.custom.push(section);
   pc.ordre.push(section.id);
-  await sauver(org, pc, slug, section.id); // atterrir directement sur la section créée
+  await sauver(org, pc, slug, section.id, "ajoutee"); // atterrir directement sur la section créée
 }
 
 // Upload d'une image du chapitre vers le bucket public `sections`. Renvoie l'URL publique ou null.
@@ -157,7 +166,7 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
   s.items = items;
   pc.custom.push(s);
   pc.ordre.push(s.id);
-  await sauver(org, pc, slug, s.id); // atterrir directement sur le chapitre créé
+  await sauver(org, pc, slug, s.id, "ajoutee"); // atterrir directement sur le chapitre créé
 }
 
 // Supprimer une section personnalisée.
@@ -166,5 +175,5 @@ export async function supprimerSection(slug: string, id: string) {
   const pc = normaliserPageConfig(org.page_config);
   pc.custom = pc.custom.filter((c) => c.id !== id);
   pc.ordre = pc.ordre.filter((k) => k !== id);
-  await sauver(org, pc, slug);
+  await sauver(org, pc, slug, undefined, "supprimee");
 }
