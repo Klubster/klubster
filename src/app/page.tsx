@@ -85,6 +85,7 @@ const INCLUS = [
   "Prévenez tous les parents en deux clics",
   "L’appel se fait en scannant la carte d’adhérent",
   "Aujourd’hui_ : l’état de votre club en trois secondes",
+  "L’export de vos adhérents, quand vous voulez — vos données vous appartiennent",
   "Les évolutions de Klubster, incluses dans votre abonnement",
 ];
 
@@ -410,6 +411,10 @@ export default function Home() {
 
           <p className="mt-10 max-w-prose text-lg text-ink">
             Les paiements arrivent directement sur votre compte Stripe.<br />Klubster ne prélève aucune commission.
+          </p>
+          <p className="mt-4 max-w-prose text-lg text-ink-soft">
+            Vos adhérents restent les vôtres : la liste complète s’exporte en un clic, à tout moment.
+            Vos données sont hébergées dans l’Union européenne.
           </p>
           <p className="mono mt-3 text-[11px] leading-relaxed text-ink-soft">
             Changez d’offre à tout moment. Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
