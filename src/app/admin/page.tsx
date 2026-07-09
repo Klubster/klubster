@@ -1,8 +1,15 @@
+import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Layout";
+import { getProfile } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function SuperAdmin() {
+export default async function SuperAdmin() {
+  // Réservé au super-admin. Une page inexistante pour tous les autres :
+  // on ne révèle même pas qu'elle existe.
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") notFound();
+
   return (
     <main className="min-h-screen bg-bg-alt">
       <header className="border-b border-line bg-surface">
@@ -14,8 +21,7 @@ export default function SuperAdmin() {
         <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">plateforme</p>
         <h1 className="mt-2 text-3xl font-bold">Toutes les associations</h1>
         <p className="mt-2 text-ink-soft">
-          Liste des assos, statut, activité, facturation et commission. Accès réservé au super-admin
-          (authentification : jalon suivant).
+          Liste des assos, statut, activité, facturation et commission.
         </p>
         <div className="mt-8 overflow-hidden rounded-card border border-line bg-surface shadow-sm">
           <table className="w-full text-left text-sm">

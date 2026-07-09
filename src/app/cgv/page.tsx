@@ -13,11 +13,15 @@ export default function CGV() {
       </p>
 
       <h2>2. Offres et prix</h2>
-      <p>L’abonnement est mensuel, sans commission sur les cotisations encaissées par le Club :</p>
+      <p>
+        L’abonnement est mensuel, sans commission sur les cotisations encaissées par le Club. Il n’existe
+        qu’une seule offre : toutes les fonctionnalités sont incluses, et seul le nombre d’adhérents fait
+        évoluer le tarif.
+      </p>
       <ul>
-        <li><strong>Starter</strong> — 9 €/mois — jusqu’à 100 adhérents.</li>
-        <li><strong>Club</strong> — 19 €/mois — de 101 à 300 adhérents.</li>
-        <li><strong>Club+</strong> — 29 €/mois — plus de 300 adhérents.</li>
+        <li><strong>9 €/mois</strong> — jusqu’à 300 adhérents.</li>
+        <li><strong>19 €/mois</strong> — de 301 à 500 adhérents.</li>
+        <li><strong>29 €/mois</strong> — plus de 500 adhérents.</li>
       </ul>
       <p>Prix hors taxes le cas échéant. L’éditeur peut faire évoluer ses tarifs avec un préavis raisonnable.</p>
 
