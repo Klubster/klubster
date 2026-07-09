@@ -302,6 +302,16 @@ Le seul défaut visuel réel est un **défaut technique** : les photos sont serv
 
 ### 6.3 — UI / UX : ce qui a été réellement testé
 
+> ### ⚠️ Rectificatif (8 juillet, après correctifs)
+> Le constat ci-dessous a été **partiellement infirmé**. Ma « reproduction » utilisait `window.scrollTo()`
+> injecté par outillage : dans ce contexte, les callbacks d'`IntersectionObserver` n'étaient pas délivrés,
+> ce qui produisait 13 blocs invisibles. **Avec un vrai scroll molette, l'observateur fonctionne** et la page
+> se révèle normalement. Le scénario « page avec des trous blancs » n'est **pas** confirmé.
+> Ce qui reste vrai : un bloc situé au-dessus du viewport au moment de l'hydratation (scroll restauré)
+> n'est jamais « vu entrer » et reste masqué jusqu'à ce qu'on remonte. Le correctif appliqué
+> (révélation immédiate si `rect.top < innerHeight`, plus repli si `IntersectionObserver` est absent)
+> couvre ce cas. **Sévérité réelle : faible, pas P1.** Je maintiens la correction, pas le diagnostic.
+
 #### Un bug confirmé : du contenu peut rester invisible pour toujours
 
 **PREUVE** — Le composant `Reveal` (`Reveal.tsx:28-37`) initialise un `IntersectionObserver` après hydratation et ne révèle un bloc **que s'il entre dans le viewport à ce moment ou après**. Il n'existe aucun repli.
