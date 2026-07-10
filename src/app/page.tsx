@@ -52,21 +52,8 @@ function DoublePage({
   );
 }
 
-// Le titre de la section promet « chaque association » : la liste doit tenir la promesse.
+// Le titre promet « chaque association » : la liste doit tenir la promesse.
 const DISCIPLINES = ["Sports de combat", "Danse", "Musique", "Théâtre", "Natation", "Sports collectifs", "Arts martiaux", "Loisirs créatifs"];
-
-// Notes de terrain — signature éditoriale récurrente (home, Journal, LinkedIn…).
-const NOTES: [string, string][] = [
-  ["07", "Le premier mercredi de septembre, les dossiers incomplets arrivent tous en même temps."],
-  ["12", "Les bénévoles ouvrent souvent la salle trente minutes avant tout le monde."],
-  ["18", "Les paiements arrivent rarement quand on a le temps de les vérifier."],
-];
-
-const SAISON: [string, string][] = [
-  ["SEPTEMBRE", "Les portes rouvrent. Le site du club est déjà en ligne."],
-  ["DÉCEMBRE", "Les dossiers sont complets.\nPersonne n’a couru après un papier."],
-  ["JUIN", "La saison se termine. On connaît déjà la suivante."],
-];
 
 // Un seul produit. Le prix suit la taille du club. Toutes les fonctionnalités incluses partout.
 const PALIERS: { capacite: string; prix: string }[] = [
@@ -75,18 +62,33 @@ const PALIERS: { capacite: string; prix: string }[] = [
   { capacite: "Plus de 500 adhérents", prix: "29" },
 ];
 
-// Racontées en résultats, jamais en technologie.
+// Neuf lignes, courtes. Une liste qu'on lit debout, pas une brochure.
 const INCLUS = [
-  "Le site de votre club, en ligne dès le premier soir",
-  "Les inscriptions se remplissent toutes seules — mineurs, cours, pièces : le formulaire s’adapte",
-  "Les cotisations arrivent directement sur le compte du club — 0 % de commission",
-  "Le paiement jusqu’à 12 fois — le club fixe la limite, l’adhérent choisit",
-  "Les certificats et documents arrivent directement au bon endroit",
-  "Prévenez tous les parents en deux clics",
-  "L’appel se fait en scannant la carte d’adhérent",
-  "Aujourd’hui_ : l’état de votre club en trois secondes",
-  "L’export de vos adhérents, quand vous voulez — vos données vous appartiennent",
-  "Les évolutions de Klubster, incluses dans votre abonnement",
+  "Le site internet de votre association",
+  "Les inscriptions et les dossiers en ligne",
+  "Les paiements jusqu’à 12 fois",
+  "Les documents et certificats centralisés",
+  "Les messages aux adhérents et aux parents",
+  "Le suivi des présences",
+  "Le cockpit Aujourd’hui_",
+  "L’export complet de vos données",
+  "Toutes les futures évolutions de Klubster",
+];
+
+// Les trois questions qu'un président se pose juste après avoir vu le prix.
+const OBJECTIONS: [string, string][] = [
+  [
+    "J’ai déjà mes adhérents dans un tableur.",
+    "Importez votre fichier : Klubster fait correspondre vos colonnes aux siennes, et vous montre le résultat avant d’enregistrer quoi que ce soit.",
+  ],
+  [
+    "Et si je veux partir ?",
+    "Vous exportez la liste complète de vos adhérents en un clic, et vous résiliez depuis votre cockpit. Sans engagement, sans préavis.",
+  ],
+  [
+    "Où vont les données de mes adhérents ?",
+    "Elles sont hébergées dans l’Union européenne. Elles vous appartiennent, et ne sont ni revendues ni exploitées.",
+  ],
 ];
 
 export default function Home() {
@@ -98,7 +100,6 @@ export default function Home() {
           <Link href="/" className="font-logo text-lg font-semibold text-paper drop-shadow">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
             <a href="#cockpit" className="hover:text-paper">Le cockpit</a>
-            <a href="#disciplines" className="hover:text-paper">Disciplines</a>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
           </nav>
@@ -111,7 +112,6 @@ export default function Home() {
               ton="clair"
               liens={[
                 { href: "#cockpit", label: "Le cockpit" },
-                { href: "#disciplines", label: "Disciplines" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
                 { href: "/connexion", label: "Espace président" },
@@ -121,7 +121,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO — clarté d'abord (H1), puis le slogan en émotion, puis la signature */}
+      {/* HERO — le produit, le prix et la simplicité, en dix secondes */}
       <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
         <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
@@ -132,124 +132,44 @@ export default function Home() {
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>
-            <p className="mono mt-4 text-[12px] uppercase tracking-wide text-paper/70">
-              Prêt en moins de 30 minutes<span className="text-brand">_</span>
+            <p className="mt-5 max-w-prose text-[15px] leading-relaxed text-paper/85 md:text-lg">
+              Inscriptions, paiements, communication et site web. Tout ce dont une association a besoin,
+              dans un seul outil pensé pour les bénévoles.
             </p>
+            <p className="mono mt-6 text-[13px] tracking-wide text-paper">
+              À partir de 9 €/mois <span className="text-paper/50">·</span> Premier mois offert
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-5">
+              <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+                CRÉER MON ASSOCIATION →
+              </Link>
+              <p className="mono text-[11px] uppercase tracking-label text-paper/70">
+                Prêt en moins de 30 minutes<span className="text-brand">_</span>
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Résumé descriptif — une seule phrase, puis la respiration */}
-      <section className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-6 py-10 md:px-8">
-          <p className="max-w-prose text-ink md:text-lg">
-            Inscriptions, paiements, communication, site web.<br />Tout ce dont une association a besoin, dans un seul outil pensé pour les bénévoles.
-          </p>
-        </div>
-      </section>
-
-      {/* I — POURQUOI (manifeste) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 py-24 md:px-8 md:py-36">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">I</span> — POURQUOI<Cur /></p>
-            <h2 className="mt-8 text-[32px] font-medium leading-[1.1] tracking-[-0.02em] md:text-[48px]">
-              Un club, ce n’est pas une base de données.
-            </h2>
-            <p className="mt-8 text-lg text-ink-soft">
-              C’est un gymnase qu’on ouvre le soir, des bénévoles qui restent tard, une saison qui recommence.
-              Klubster a été pensé pour disparaître derrière tout ça.
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* II — LES CLUBS (double-page) */}
-      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="II" kicker="LES CLUBS" titre="Tout repose sur quelques personnes.">
-        <p>Des bénévoles qui font vivre un lieu, une équipe, une saison. Souvent les mêmes, souvent seuls.</p>
-        <p>Klubster s’occupe de la part invisible — les dossiers, les paiements, les relances. Eux gardent le reste.</p>
+      {/* I — POURQUOI (fusion de l'ancien manifeste et de « Les clubs ») */}
+      <DoublePage src="/03-vestiaire.jpg" alt="Un vestiaire vide, lumière de fin de journée." num="I" kicker="POURQUOI" titre="Un club, ce n’est pas une base de données.">
+        <p>
+          C’est une salle qu’on ouvre le soir, des adhérents qui arrivent, et des bénévoles qui donnent déjà
+          beaucoup de leur temps.
+        </p>
+        <p>
+          Klubster s’occupe de la part invisible — les inscriptions, les paiements, les documents et les relances.
+          Vous gardez le reste.
+        </p>
       </DoublePage>
 
       <Citation lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
 
-      {/* III — SUR LE TERRAIN (double-page : texte à gauche, bassin à droite) */}
-      <section className="grid grid-cols-1 md:grid-cols-2">
-        <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
-          <div className="max-w-md">
-            <Reveal>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — SUR LE TERRAIN<Cur /></p>
-              <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
-                Avant d’être une fonctionnalité, c’est un problème rencontré un soir d’entraînement.
-              </h2>
-              <p className="mt-6 text-lg leading-relaxed text-ink">Un parent arrive sans certificat.<br />Une licence est expirée.<br />Le trésorier attend un paiement.</p>
-              <p className="mt-4 text-lg text-ink-soft">C’est comme ça que Klubster évolue.</p>
-              <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe
-              </p>
-            </Reveal>
-            <Reveal className="mt-10">
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOTES DE TERRAIN<Cur /></p>
-              <div className="mt-5 border-t border-line">
-                {NOTES.map(([num, texte]) => (
-                  <p key={num} className="border-b border-line py-4 text-[15px] text-ink-soft">{texte}</p>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </div>
-        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
-          <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.08} />
-        </div>
-      </section>
-
-      <Citation lines={["Parce que personne", "ne devient bénévole", "dans un club", "pour remplir des formulaires"]} />
-
-      {/* l’objet — le ballon */}
-      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
-
-      {/* IV — UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — UNE DEMI-HEURE<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Une demi-heure.<br />C’est tout.
-            </h2>
-            <p className="mt-6 text-lg text-ink-soft">
-              Le bureau n’a jamais une demi-journée à consacrer à un logiciel.
-              Alors tout est déjà prêt — il ne reste que l’essentiel.
-            </p>
-            <div className="mt-10 border-t border-line">
-              {[
-                ["01", "Créez votre club.", "Un nom, un design, vos couleurs."],
-                ["02", "Ajoutez vos cours.", "Créneaux et tarifs, en quelques lignes."],
-                ["03", "Ajustez votre page.", "Photos, mot du président, FAQ — des chapitres prêts à l’emploi."],
-                ["04", "Ouvrez les inscriptions.", "Votre site est en ligne. Les dossiers arrivent tout seuls."],
-              ].map(([n, titre, texte]) => (
-                <div key={n} className="grid grid-cols-[48px_1fr] gap-4 border-b border-line py-6 md:grid-cols-[64px_1fr]">
-                  <span className="mono text-[13px] text-brand">{n}</span>
-                  <div>
-                    <p className="text-xl font-medium tracking-[-0.01em] md:text-2xl">{titre}</p>
-                    <p className="mt-1.5 text-[15px] text-ink-soft">{texte}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
-              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
-            </p>
-            <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre club<span className="cur">_</span>
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* V — AUJOURD'HUI_ (le produit : une scène, pas un écran) */}
+      {/* II — LE COCKPIT (le produit, montré tôt) */}
       <section id="cockpit">
-        <div className="mx-auto max-w-6xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
+        <div className="mx-auto max-w-6xl px-6 pt-24 pb-12 md:px-8 md:pt-32 md:pb-[72px]">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — AUJOURD’HUI<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Le club ouvre dans quinze minutes.
             </h2>
@@ -258,134 +178,48 @@ export default function Home() {
               Le club est prêt.
             </p>
           </Reveal>
+
           <Reveal className="mt-14">
             <CockpitPreview />
           </Reveal>
-        </div>
-      </section>
 
-      {/* VI — LE PARCOURS (la magie du produit, en temps réel) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VI</span> — PENDANT CE TEMPS<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Une inscription, vue de votre côté.
-            </h2>
-            <div className="mt-10 border-t border-line">
+          {/* La légende : ce que le visuel ne peut pas montrer — ce qui se passe tout seul. */}
+          <Reveal className="mt-10">
+            <div className="max-w-2xl border-t border-line">
               {[
-                ["18:02", "Une nouvelle inscription arrive."],
+                ["18:02", "Une inscription arrive."],
                 ["18:04", "Le paiement est reçu — directement sur le compte du club."],
-                ["18:05", "Le questionnaire de santé est signé, la pièce est déposée."],
-                ["18:06", "L’adhérent apparaît dans son cours."],
+                ["18:06", "Le dossier est complet. L’adhérent apparaît dans son cours."],
               ].map(([h, texte]) => (
-                <div key={h} className="grid grid-cols-[64px_1fr] gap-4 border-b border-line py-5 md:grid-cols-[88px_1fr]">
-                  <span className="mono text-[13px] text-ink-faint">{h}</span>
-                  <p className="text-lg text-ink">{texte}</p>
+                <div key={h} className="grid grid-cols-[64px_1fr] gap-4 border-b border-line py-4 md:grid-cols-[88px_1fr]">
+                  <span className="mono text-[12px] text-ink-faint">{h}</span>
+                  <p className="text-[15px] text-ink">{texte}</p>
                 </div>
               ))}
             </div>
-            <p className="mono mt-10 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              Vous n’avez rien eu à faire<span className="cur">_</span>
+            <p className="mt-8 max-w-2xl text-lg text-ink-soft">
+              Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
+              est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
+            </p>
+            <p className="mono mt-8 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+              L’état de votre club,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
       </section>
 
-      {/* VII — QUAND LE CLUB OUVRE (contemplatif — une scène, pas des chiffres) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VII</span> — QUAND LE CLUB OUVRE<Cur /></p>
-            <p className="mono mt-10 max-w-[720px] text-2xl font-normal leading-[1.2] tracking-[-0.02em] text-ink md:text-[32px]">
-              Quand le club ouvre,<br />personne ne pense au logiciel.
-            </p>
-            <p className="mt-8 text-lg text-ink-soft">
-              Les bénévoles pensent aux adhérents.<br />
-              Et c’est exactement pour ça que Klubster existe<span className="cur">_</span>
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* INTERLUDE — QUI FAIT KLUBSTER (note du fondateur, photo à venir) */}
-      <section>
-        <div className="mx-auto max-w-2xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUI FAIT KLUBSTER<span className="text-brand">_</span></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Je n’ai pas inventé Klubster. J’en avais besoin.
-            </h2>
-            <p className="mt-8 text-lg leading-relaxed text-ink-soft">
-              Un mercredi soir. Deux certificats manquaient. Trois chèques attendaient encore. Le cours venait de commencer.
-            </p>
-            <p className="mt-5 text-lg leading-relaxed text-ink-soft">
-              Je me suis demandé pourquoi un bénévole passait autant de temps devant un tableur.
-            </p>
-            <p className="mt-5 text-lg leading-relaxed text-ink">
-              Klubster est né ce soir-là.
-            </p>
-            <p className="mono mt-8 text-[13px] tracking-wide text-ink">
-              Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* VII — LES DISCIPLINES */}
-      <section id="disciplines">
-        <div className="mx-auto max-w-3xl px-6 pt-12 pb-12 text-center md:px-8 md:pt-[72px] md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">VIII</span> — LES DISCIPLINES<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Chaque association fonctionne différemment.
-            </h2>
-            <p className="mx-auto mt-6 max-w-prose text-lg text-ink-soft">Klubster s’adapte à la vôtre.</p>
-            <p className="mono mt-8 text-[13px] leading-loose tracking-wide text-ink-soft">
-              {DISCIPLINES.map((d, i) => (
-                <span key={d}>
-                  {d}
-                  {i < DISCIPLINES.length - 1 ? <span className="text-brand"> · </span> : null}
-                </span>
-              ))}
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* la saison */}
-      <Chapitre src="/06-saison.jpg" alt="La lumière d’une fin de saison, à travers les baies." />
-
-      {/* VIII — UNE SAISON (apparaît d’un bloc) */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
-          <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IX</span> — UNE SAISON<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Une année, sans y penser.</h2>
-            <div className="mt-10">
-              {SAISON.map(([mois, texte]) => (
-                <div key={mois} className="grid grid-cols-1 gap-1 border-t border-line py-5 md:grid-cols-[160px_1fr] md:gap-8">
-                  <div className="mono text-[13px] tracking-wider text-ink">{mois}<span className="text-brand">_</span></div>
-                  <p className="whitespace-pre-line text-lg text-ink-soft">{texte}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* X — TARIFS : tout est déjà inclus, le prix suit la taille du club */}
+      {/* III — TARIFS : tôt, lisibles, sans astérisque */}
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">X</span> — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
-              Pas de version Pro. Pas d’options. Pas de modules.<br />
+              Pas de version Pro. Pas d’options. Pas de modules supplémentaires.<br />
               Seule la taille de votre association fait évoluer le tarif.
             </p>
-            <p className="mt-6 max-w-prose text-xl font-medium text-ink">
-              Le premier mois est offert<span className="text-brand">.</span>
+            <p className="mono mt-6 text-[12px] uppercase tracking-label text-ink">
+              Premier mois offert<span className="text-brand">_</span>
             </p>
           </Reveal>
 
@@ -401,7 +235,7 @@ export default function Home() {
           </div>
 
           <div className="-mt-px border-x border-b border-line bg-paper px-7 py-8">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">DANS TOUTES LES OFFRES<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TOUJOURS INCLUS<Cur /></p>
             <ul className="mt-6 max-w-2xl space-y-3">
               {INCLUS.map((f) => (
                 <li key={f} className="flex items-start gap-3 border-b border-line pb-3 text-[15px] last:border-b-0 last:pb-0">
@@ -412,21 +246,126 @@ export default function Home() {
             </ul>
           </div>
 
-          <p className="mt-10 max-w-prose text-lg text-ink">
-            Les paiements arrivent directement sur votre compte Stripe.<br />Klubster ne prélève aucune commission.
+          <div className="mt-10 flex flex-wrap items-center gap-5">
+            <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
+              CRÉER MON ASSOCIATION →
+            </Link>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              Premier mois offert · Sans engagement<span className="text-brand">_</span>
+            </p>
+          </div>
+
+          <p className="mono mt-12 text-[11px] uppercase tracking-label text-ink-soft">
+            0 % de commission Klubster<span className="text-brand">_</span>
           </p>
-          <p className="mt-4 max-w-prose text-lg text-ink-soft">
-            Vos adhérents restent les vôtres : la liste complète s’exporte en un clic, à tout moment.
-            Vos données sont hébergées dans l’Union européenne.
+          <p className="mt-4 max-w-prose text-lg text-ink">
+            Les cotisations arrivent directement sur le compte Stripe de votre association.
           </p>
-          <p className="mono mt-3 text-[11px] leading-relaxed text-ink-soft">
-            Premier mois offert, sans prélèvement. Changez d’offre ou résiliez à tout moment, depuis votre cockpit.
-            Aucun engagement. Les paiements Stripe (1,5 % + 0,25 €) sont facturés directement par Stripe.
+          <p className="mono mt-4 max-w-prose text-[11px] leading-relaxed text-ink-soft">
+            Klubster ne prélève aucune commission. Les frais de paiement (1,5 % + 0,25 €) sont facturés
+            directement par Stripe. Premier mois offert, sans prélèvement. Changez d’offre ou résiliez à tout
+            moment, depuis votre cockpit.
           </p>
         </div>
       </section>
 
-      <Citation topTight lines={["On ne fait jamais", "les inscriptions", "quand on a le temps"]} />
+      {/* LES TROIS QUESTIONS — juste après le prix, là où elles se posent */}
+      <section>
+        <div className="mx-auto max-w-3xl px-6 pb-24 md:px-8 md:pb-32">
+          <Reveal>
+            <div className="border-t border-line">
+              {OBJECTIONS.map(([question, reponse]) => (
+                <div key={question} className="border-b border-line py-7">
+                  <p className="text-xl font-medium tracking-[-0.01em]">{question}</p>
+                  <p className="mt-2.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{reponse}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* l’objet — le ballon */}
+      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
+
+      {/* IV — UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
+      <section>
+        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
+          <Reveal>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — UNE DEMI-HEURE<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+              Une demi-heure.<br />C’est tout.
+            </h2>
+            <p className="mt-6 text-lg text-ink-soft">
+              Le bureau d’une association n’a pas une demi-journée à consacrer à un logiciel.
+              Alors tout est déjà prêt — il ne reste que l’essentiel.
+            </p>
+            <div className="mt-10 border-t border-line">
+              {[
+                ["01", "Créez votre association.", "Un nom, votre identité, vos couleurs."],
+                ["02", "Ajoutez vos activités.", "Créneaux et tarifs, en quelques lignes."],
+                ["03", "Ajustez votre page.", "Photos, présentation, FAQ — des chapitres prêts à l’emploi."],
+                ["04", "Ouvrez les inscriptions.", "Votre site est en ligne. Les premiers dossiers peuvent arriver."],
+              ].map(([n, titre, texte]) => (
+                <div key={n} className="grid grid-cols-[48px_1fr] gap-4 border-b border-line py-6 md:grid-cols-[64px_1fr]">
+                  <span className="mono text-[13px] text-brand">{n}</span>
+                  <div>
+                    <p className="text-xl font-medium tracking-[-0.01em] md:text-2xl">{titre}</p>
+                    <p className="mt-1.5 text-[15px] text-ink-soft">{texte}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
+              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
+            </p>
+            <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+              Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre association<span className="cur">_</span>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* V — SUR LE TERRAIN (fusion : terrain + fondateur + disciplines) */}
+      <section className="grid grid-cols-1 md:grid-cols-2">
+        <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
+          <div className="max-w-md">
+            <Reveal>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — SUR LE TERRAIN<Cur /></p>
+              <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
+                Je n’ai pas inventé Klubster. J’en avais besoin.
+              </h2>
+              <p className="mt-8 text-lg leading-relaxed text-ink-soft">
+                Un mercredi soir, des documents manquaient. Des paiements attendaient encore.
+                Le cours venait de commencer.
+              </p>
+              <p className="mt-5 text-lg leading-relaxed text-ink-soft">
+                Je me suis demandé pourquoi des bénévoles passaient autant de temps devant des tableurs.
+              </p>
+              <p className="mt-5 text-lg leading-relaxed text-ink">Klubster est né de ce besoin.</p>
+              <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
+                <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe Anglaise
+              </p>
+              <p className="mono mt-4 text-[13px] tracking-wide text-ink">
+                Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
+              </p>
+            </Reveal>
+            <Reveal className="mt-12">
+              <p className="mono text-[13px] leading-loose tracking-wide text-ink-soft">
+                {DISCIPLINES.map((d, i) => (
+                  <span key={d}>
+                    {d}
+                    {i < DISCIPLINES.length - 1 ? <span className="text-brand"> · </span> : null}
+                  </span>
+                ))}
+              </p>
+            </Reveal>
+          </div>
+        </div>
+        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
+          <Parallax src="/02-silence.jpg" alt="Le bassin, immobile, avant l’ouverture." className="absolute inset-0" strength={0.08} />
+        </div>
+      </section>
 
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
@@ -436,13 +375,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA FINAL — photo plein écran */}
-      <section className="relative h-[80vh] min-h-[460px] w-full overflow-hidden">
+      {/* CTA FINAL — l'émotion, puis le geste */}
+      <section className="relative min-h-[80vh] w-full overflow-hidden">
         <Parallax src="/07-crepuscule.jpg" alt="Une salle éclairée, à la tombée du jour." className="absolute inset-0" strength={0.08} />
-        <div className="absolute inset-0 bg-ink/55" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="px-6 text-center text-paper">
-            <h2 className="text-3xl font-medium leading-tight md:text-[40px]">Ouvrez la saison avec Klubster.</h2>
+        <div className="absolute inset-0 bg-ink/60" />
+        <div className="relative flex min-h-[80vh] items-center justify-center">
+          <div className="px-6 py-24 text-center text-paper">
+            <p className="mono mx-auto max-w-[720px] text-2xl font-normal leading-[1.2] tracking-[-0.02em] md:text-[32px]">
+              Quand l’association ouvre,<br />personne ne pense au logiciel.
+            </p>
+            <p className="mx-auto mt-8 max-w-prose text-lg text-paper/80">
+              Les bénévoles pensent aux adhérents.<br />
+              Et c’est exactement pour ça que Klubster existe<span className="cur">_</span>
+            </p>
+            <h2 className="mt-16 text-3xl font-medium leading-tight md:text-[40px]">
+              Ouvrez la prochaine saison avec Klubster.
+            </h2>
             <Link href="/creer" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
