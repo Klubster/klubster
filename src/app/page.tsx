@@ -91,6 +91,7 @@ export default function Home() {
           <Link href="/" className="font-logo text-lg font-semibold text-paper drop-shadow">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
             <a href="#cockpit" className="hover:text-paper">Le cockpit</a>
+            <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
           </nav>
@@ -103,6 +104,7 @@ export default function Home() {
               ton="clair"
               liens={[
                 { href: "#cockpit", label: "Le cockpit" },
+                { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
                 { href: "/connexion", label: "Espace président" },
