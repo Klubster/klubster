@@ -127,7 +127,7 @@ export function ApercuFiche() {
             <div key={p.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
               <span className="mono text-[11px]" style={{ color: p.ok ? "#1E7A4F" : "#8A6508" }}>{p.ok ? "✓" : "○"}</span>
               <span className="flex-1 text-[12px]">{p.nom}</span>
-              <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{p.ok ? "Reçue" : "Manquante"}</span>
+              <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{p.ok ? "Reçu" : "Manquant"}</span>
             </div>
           ))}
         </div>
@@ -143,6 +143,100 @@ export function ApercuFiche() {
               <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-soft">{label}</div>
             </div>
           ))}
+        </div>
+      </div>
+    </Fenetre>
+  );
+}
+
+/* ——— IV. Les messages : à qui, quoi, envoyé ——— */
+
+const CIBLES = [
+  { nom: "Tous les adhérents", n: 312, actif: true },
+  { nom: "Boxe loisirs", n: 18 },
+  { nom: "Amateurs", n: 24 },
+  { nom: "Baby Boxe", n: 12 },
+];
+
+export function ApercuMessages() {
+  return (
+    <Fenetre url="klubster.fr/mon-asso/cockpit/messages">
+      <div className="grid grid-cols-1 md:grid-cols-[190px_1fr]">
+        <div className="border-b border-line p-4 md:border-b-0 md:border-r">
+          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">À QUI<span className="text-brand">_</span></p>
+          <div className="mt-3 space-y-1">
+            {CIBLES.map((c) => (
+              <div
+                key={c.nom}
+                className={`flex items-center justify-between px-3 py-2 text-[12px] ${c.actif ? "bg-ink text-paper" : "text-ink-soft"}`}
+              >
+                <span>{c.nom}</span>
+                <span className="mono text-[10px] opacity-70">{c.n}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4">
+          <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Objet</div>
+          <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px]">Cours de mercredi annulé</div>
+          <div className="mono mt-3 text-[9px] uppercase tracking-label text-ink-soft">Message</div>
+          <div className="mt-1 border border-line bg-paper px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
+            Bonjour, le cours de mercredi est annulé (salle indisponible). Reprise vendredi, horaires habituels. Sportivement.
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <span className="mono text-[10px] text-ink-faint">312 adhérents · en copie cachée</span>
+            <span className="mono bg-ink px-4 py-2 text-[11px] text-paper">ENVOYER →</span>
+          </div>
+        </div>
+      </div>
+    </Fenetre>
+  );
+}
+
+/* ——— V. Le site : les sections que le club range et publie lui-même ——— */
+
+const SECTIONS = [
+  { nom: "Le hero et l’actualité", note: "Photo, accroche" },
+  { nom: "Les cours et les tarifs", note: "6 cours" },
+  { nom: "La galerie", note: "8 photos" },
+  { nom: "L’équipe", note: "4 personnes" },
+  { nom: "La FAQ", note: "5 questions" },
+];
+
+export function ApercuSite() {
+  return (
+    <Fenetre url="klubster.fr/mon-asso">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_150px]">
+        <div className="border-b border-line p-4 md:border-b-0 md:border-r">
+          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
+            LES SECTIONS DE VOTRE SITE<span className="text-brand">_</span>
+          </p>
+          <div className="mt-3 border border-line">
+            {SECTIONS.map((s) => (
+              <div key={s.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
+                <span className="mono text-[11px] text-ink-faint">⋮⋮</span>
+                <span className="flex-1 text-[12px]">{s.nom}</span>
+                <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{s.note}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mono mt-3 inline-block border border-line px-3 py-1.5 text-[10px] text-ink-soft">+ AJOUTER UN CHAPITRE</div>
+        </div>
+
+        {/* miniature de la vitrine publiée */}
+        <div className="flex flex-col bg-bg-alt p-3">
+          <div className="mono text-[8px] uppercase tracking-label text-ink-soft">Aperçu</div>
+          <div className="mt-2 flex-1 overflow-hidden border border-line bg-ink">
+            <div className="h-10 bg-brand-dark" />
+            <div className="space-y-1.5 p-2">
+              <div className="h-1.5 w-3/4 bg-paper/80" />
+              <div className="h-1.5 w-1/2 bg-paper/40" />
+              <div className="mt-2 h-6 bg-paper/10" />
+              <div className="h-1.5 w-2/3 bg-paper/40" />
+            </div>
+          </div>
+          <div className="mono mt-2 text-center text-[8px] uppercase tracking-label text-brand">En ligne</div>
         </div>
       </div>
     </Fenetre>

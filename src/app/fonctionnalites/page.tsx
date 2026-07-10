@@ -3,7 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import MenuMobile from "@/components/site/MenuMobile";
-import { ApercuFormulaire, ApercuScan, ApercuFiche } from "@/components/site/Apercus";
+import { ApercuFormulaire, ApercuScan, ApercuFiche, ApercuMessages, ApercuSite } from "@/components/site/Apercus";
 
 export const metadata: Metadata = {
   title: "Fonctionnalités — Klubster",
@@ -265,8 +265,73 @@ export default function Fonctionnalites() {
         </Reveal>
       </Chapitre>
 
-      {/* V — VOS DONNÉES */}
-      <Chapitre num="V" kicker="VOS DONNÉES" titre={<>Vos adhérents restent les vôtres.</>}>
+      {/* V — LES MESSAGES */}
+      <Chapitre num="V" kicker="LES MESSAGES" titre={<>Les bonnes informations.<br />Aux bonnes personnes.</>}>
+        <Reveal>
+          <p className="mt-7 max-w-prose text-lg text-ink-soft">
+            Un cours annulé, un horaire qui change, un document qui manque. Vous écrivez une fois,
+            à qui vous voulez : les adresses sont déjà dans Klubster, reliées aux dossiers.
+          </p>
+          <Preuves
+            lignes={[
+              "Écrivez à tous vos adhérents, ou seulement à ceux d’un cours",
+              "Les emails partent depuis votre association, chacun en copie cachée",
+              "Rien à tenir à jour : une adresse qui change dans un dossier change ici aussi",
+              "Pas de logiciel d’emailing, pas de liste à recopier, pas d’adresse à retrouver",
+            ]}
+          />
+        </Reveal>
+
+        <Reveal className="mt-12">
+          <ApercuMessages />
+          <p className="mono mt-4 text-[11px] text-ink-faint">
+            Vous choisissez qui reçoit. Klubster envoie, chacun de son côté.
+          </p>
+        </Reveal>
+
+        <Reveal>
+          <Chute>Deux clics.<br />Les bonnes personnes<br />sont prévenues</Chute>
+        </Reveal>
+      </Chapitre>
+
+      {/* photo — respiration */}
+      <section className="relative h-[50vh] min-h-[320px] w-full overflow-hidden md:h-[70vh]">
+        <Parallax src="/09-atelier.jpg" alt="Une salle d’arts plastiques, prête pour l’atelier." className="absolute inset-0" strength={0.1} />
+      </section>
+
+      {/* VI — LE SITE */}
+      <Chapitre num="VI" kicker="LE SITE INTERNET" titre={<>Un site simple.<br />Et vous gardez la main.</>}>
+        <Reveal>
+          <p className="mt-7 max-w-prose text-lg text-ink-soft">
+            Votre association n’a pas besoin d’un site compliqué. Elle a besoin d’un site clair, à jour,
+            qu’elle fait évoluer seule. Il est créé en même temps que votre association, et les inscriptions
+            y sont déjà reliées.
+          </p>
+          <Preuves
+            lignes={[
+              "En ligne dès le premier soir, avec votre logo et vos couleurs",
+              "Rangez vos sections dans l’ordre que vous voulez, ajoutez vos propres chapitres",
+              "Photos, équipe, FAQ, actualités, cours et tarifs : vous les modifiez vous-même",
+              "Votre propre adresse, monclub.fr, si vous le souhaitez",
+              "Pas de développeur, pas de plugin à mettre à jour, pas de site à refaire chaque saison",
+            ]}
+          />
+        </Reveal>
+
+        <Reveal className="mt-12">
+          <ApercuSite />
+          <p className="mono mt-4 text-[11px] text-ink-faint">
+            Les sections de votre site, que vous rangez et publiez depuis votre cockpit.
+          </p>
+        </Reveal>
+
+        <Reveal>
+          <Chute>Un site simple.<br />Autonome. Évolutif</Chute>
+        </Reveal>
+      </Chapitre>
+
+      {/* VII — VOS DONNÉES */}
+      <Chapitre num="VII" kicker="VOS DONNÉES" titre={<>Vos adhérents restent les vôtres.</>}>
         <Reveal>
           <p className="mt-7 max-w-prose text-lg text-ink-soft">
             Une association n’appartient pas à son logiciel. Vous arrivez avec vos adhérents, vous repartez avec.
@@ -295,9 +360,9 @@ export default function Fonctionnalites() {
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ET AUSSI<Cur /></p>
             <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
               {[
-                ["Le site de votre association", "En ligne dès le premier soir. Photos, présentation, FAQ, équipe, actualités : vous modifiez tout vous-même."],
-                ["Les messages", "Écrivez à tous vos adhérents, ou à ceux d’un seul cours. Les adresses sont déjà là."],
                 ["Le cockpit Aujourd’hui_", "L’état de votre association en trois secondes : ce qui manque, ce qui attend, qui vient ce soir."],
+                ["Le suivi des présences", "Chaque scan garde la trace du passage. La feuille d’appel se remplit toute seule."],
+                ["Les chèques et les espèces", "Ils s’enregistrent aussi, en deux clics : toute la trésorerie au même endroit."],
                 ["Votre propre adresse", "monclub.fr plutôt que klubster.fr/monclub, si vous le souhaitez."],
               ].map(([titre, texte]) => (
                 <div key={titre} className="bg-paper px-6 py-6">
