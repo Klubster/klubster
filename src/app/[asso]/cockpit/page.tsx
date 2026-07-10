@@ -77,7 +77,9 @@ export default async function Cockpit({
   const NAV: { n: string; label: string; href: string; actif?: boolean }[] = [
     { n: "01", label: "AUJOURD'HUI", href: `/${org.slug}/cockpit`, actif: true },
     { n: "02", label: "INSCRIPTIONS", href: `/${org.slug}/cockpit/formulaire` },
-    { n: "03", label: "PRÉSENCES", href: `/${org.slug}/cockpit/scanner` },
+    // « Contrôle » et non « Présences » : le scan vérifie l'inscription, la cotisation
+    // et le dossier — la feuille d'appel n'en est qu'un des usages.
+    { n: "03", label: "CONTRÔLE", href: `/${org.slug}/cockpit/scanner` },
     { n: "04", label: "PAIEMENTS", href: `/${org.slug}/cockpit/paiements` },
     { n: "05", label: "MESSAGES", href: `/${org.slug}/cockpit/communication` },
     { n: "06", label: "ACTUALITÉ", href: `/${org.slug}/cockpit/actualite` },

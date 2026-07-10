@@ -1,4 +1,5 @@
 import Link from "next/link";
+import QRCode from "qrcode";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
@@ -37,6 +38,7 @@ export default async function EspacePage({ params }: { params: { asso: string } 
   }
 
   const a = adherent as { id: string; prenom: string; nom: string; email: string | null; telephone: string | null; infos: Record<string, string> };
+  const qrSvg = await QRCode.toString(a.id, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
   const { data: adhesion } = await supabase
     .from("adhesions").select("id, statut, montant_centimes, mode_paiement, cours_id")
     .eq("adherent_id", a.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -149,13 +151,13 @@ export default async function EspacePage({ params }: { params: { asso: string } 
       <div className="mt-12">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">CARTE DE MEMBRE<span style={{ color: accent }}>_</span></p>
         <div className="mt-4 flex flex-col items-start gap-6 border border-line bg-paper p-6 sm:flex-row sm:items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${a.id}`}
-            alt="QR de membre"
-            width={150}
-            height={150}
-            className="border border-line"
+          {/* QR généré sur notre serveur : l'identifiant de l'adhérent n'a rien à faire
+              chez un service tiers, et la carte s'affiche même sans réseau extérieur. */}
+          <div
+            className="h-[150px] w-[150px] border border-line [&>svg]:h-full [&>svg]:w-full"
+            aria-label="QR de membre"
+            role="img"
+            dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
           <div>
             <div className="text-lg font-medium">{a.prenom} {a.nom}</div>

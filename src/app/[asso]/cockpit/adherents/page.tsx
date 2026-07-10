@@ -44,12 +44,18 @@ export default async function Adherents({
   const debut = (page - 1) * PAR_PAGE;
 
   const supabase = createSupabaseServerClient();
+
+  // Le filtre par statut doit vivre dans la requête, pas en mémoire : appliqué après la
+  // pagination, il ne filtrait que les 25 lignes déjà chargées — « aucun résultat » page 1,
+  // trois résultats page 2, et un total faux. `!inner` force la jointure à filtrer.
+  const jointure = statut ? "adhesions!inner(statut, montant_centimes, cours(nom))" : "adhesions(statut, montant_centimes, cours(nom))";
+
   let requete = supabase
     .from("adherents")
-    .select("id, prenom, nom, email, telephone, created_at, adhesions(statut, montant_centimes, cours(nom))", {
-      count: "exact",
-    })
+    .select(`id, prenom, nom, email, telephone, created_at, ${jointure}`, { count: "exact" })
     .eq("organisation_id", org.id);
+
+  if (statut) requete = requete.eq("adhesions.statut", statut);
 
   if (q) {
     // Les caractères de filtre PostgREST (virgule, parenthèses) sont retirés :
@@ -62,8 +68,7 @@ export default async function Adherents({
 
   const { data, count } = await requete.order("nom", { ascending: true }).range(debut, debut + PAR_PAGE - 1);
 
-  let lignes = (data ?? []) as unknown as LigneAdherent[];
-  if (statut) lignes = lignes.filter((a) => a.adhesions?.[0]?.statut === statut);
+  const lignes = (data ?? []) as unknown as LigneAdherent[];
 
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAR_PAGE));

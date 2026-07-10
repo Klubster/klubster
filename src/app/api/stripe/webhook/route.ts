@@ -9,6 +9,7 @@ import {
   type StripeEvent,
 } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { envoyerEmail } from "@/lib/resend";
 
 export const dynamic = "force-dynamic";
 export const preferredRegion = "cdg1"; // RGPD — exécution en Europe (Paris)
@@ -127,10 +128,82 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  /* ——— Échéance rejetée (prélèvement refusé sur un compte connecté) ———
+     Sans ce bloc, un adhérent dont la carte est refusée reste « payé » dans le cockpit :
+     le club ne l'apprend jamais, et découvre le trou en fin de saison. */
+  if (event.type === "invoice.payment_failed" && event.account && admin) {
+    const obj = event.data.object as { subscription?: string; amount_due?: number };
+    if (obj.subscription) {
+      try {
+        const sub = await getSubscription(obj.subscription, event.account);
+        const adhesionId = sub.metadata?.adhesion_id as string | undefined;
+        if (adhesionId) await signalerEcheanceRejetee(adhesionId, obj.amount_due ?? 0, admin);
+      } catch (e) {
+        console.error("webhook echeance rejetee", e);
+      }
+    }
+  }
+
   return NextResponse.json({ received: true });
 }
 
 type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+
+/**
+ * Un prélèvement d'échéance a été refusé.
+ *
+ * On marque l'adhésion « en retard » et on prévient les deux personnes concernées :
+ * l'adhérent, qui peut corriger sa carte, et le club, qui doit le savoir. Un échec
+ * d'envoi d'email ne doit jamais faire échouer le webhook : Stripe rejouerait
+ * l'événement, et le statut serait réécrit en boucle.
+ */
+async function signalerEcheanceRejetee(adhesionId: string, montantCentimes: number, admin: ClientAdmin) {
+  const { data } = await admin
+    .from("adhesions")
+    .select("id, adherents(prenom, nom, email), organisations(nom, email_contact)")
+    .eq("id", adhesionId)
+    .maybeSingle();
+
+  await admin.from("adhesions").update({ statut: "en_retard" }).eq("id", adhesionId);
+
+  if (!data) return;
+  const adherent = data.adherents as unknown as { prenom: string; nom: string; email: string | null } | null;
+  const org = data.organisations as unknown as { nom: string; email_contact: string | null } | null;
+  if (!adherent || !org) return;
+
+  const montant = (montantCentimes / 100).toFixed(2).replace(".", ",");
+  const qui = `${adherent.prenom} ${adherent.nom}`;
+
+  try {
+    if (adherent.email) {
+      await envoyerEmail({
+        to: adherent.email,
+        fromNom: org.nom,
+        replyTo: org.email_contact,
+        objet: `Votre prélèvement de ${montant} € n’a pas abouti`,
+        texte:
+          `Bonjour ${adherent.prenom},\n\n` +
+          `Le prélèvement de votre cotisation (${montant} €) auprès de ${org.nom} a été refusé par votre banque.\n\n` +
+          `Il ne s’agit pas nécessairement d’une erreur de votre part : plafond atteint, carte expirée, opposition. ` +
+          `Vous pouvez mettre à jour votre moyen de paiement ou vous rapprocher de votre association.\n\n` +
+          `— ${org.nom}`,
+      });
+    }
+    if (org.email_contact) {
+      await envoyerEmail({
+        to: org.email_contact,
+        objet: `Échéance rejetée — ${qui}`,
+        texte:
+          `Le prélèvement de ${montant} € de ${qui} a été refusé.\n\n` +
+          `Son adhésion est passée en « en retard » dans votre cockpit.` +
+          (adherent.email ? ` Il a été prévenu par email.` : ` Il n’a pas d’email : prévenez-le.`) +
+          `\n\nklubster.fr`,
+      });
+    }
+  } catch (e) {
+    console.error("email echeance rejetee", e);
+  }
+}
 
 /**
  * Événements de l'abonnement Klubster (compte plateforme).
