@@ -76,22 +76,20 @@ export default function ImportAdherents({
     setEnCours(true);
     const parNom = new Map(cours.map((c) => [c.nom.trim().toLowerCase(), c.id]));
 
-    const charge = lignes
-      .map((l) => {
-        const prenom = valeur(l, "prenom");
-        const nom = valeur(l, "nom");
-        if (!prenom || !nom) return null;
-        const email = valeur(l, "email");
-        const nomCours = valeur(l, "cours").toLowerCase();
-        return {
-          prenom,
-          nom,
-          email: email && emailValide(email) ? email : null,
-          telephone: valeur(l, "telephone") || null,
-          coursId: parNom.get(nomCours) ?? coursDefaut ?? null,
-        };
-      })
-      .filter(Boolean) as Parameters<typeof importerAdherents>[1];
+    // On envoie TOUTES les lignes, y compris les incomplètes. Les filtrer ici les ferait
+    // disparaître du compte-rendu : l'utilisateur verrait « 4 importés, 1 ignoré » sur un
+    // fichier de 6 lignes, et chercherait longtemps la sixième.
+    const charge = lignes.map((l) => {
+      const email = valeur(l, "email");
+      const nomCours = valeur(l, "cours").toLowerCase();
+      return {
+        prenom: valeur(l, "prenom"),
+        nom: valeur(l, "nom"),
+        email: email && emailValide(email) ? email : null,
+        telephone: valeur(l, "telephone") || null,
+        coursId: parNom.get(nomCours) ?? coursDefaut ?? null,
+      };
+    }) as Parameters<typeof importerAdherents>[1];
 
     const r = await importerAdherents(slug, charge);
     setResultat(r);
@@ -106,8 +104,9 @@ export default function ImportAdherents({
         </p>
         {resultat.ignores > 0 ? (
           <p className="mt-2 text-[15px] text-ink-soft">
-            {resultat.ignores} ligne{resultat.ignores > 1 ? "s" : ""} ignorée{resultat.ignores > 1 ? "s" : ""} —
-            doublons ou données incomplètes. Aucune fiche existante n’a été écrasée.
+            {resultat.ignores} ligne{resultat.ignores > 1 ? "s" : ""} ignorée{resultat.ignores > 1 ? "s" : ""} sur{" "}
+            {resultat.crees + resultat.ignores} — doublons ou données incomplètes. Aucune fiche existante n’a
+            été écrasée.
           </p>
         ) : null}
         {resultat.erreurs.length > 0 ? (
