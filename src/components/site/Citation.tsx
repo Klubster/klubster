@@ -43,7 +43,9 @@ export default function Citation({
   return (
     <section>
       <div ref={ref} className={`mx-auto max-w-[720px] px-6 text-center md:px-8 ${pt} ${pb}`}>
-        <p className={`mono text-[26px] font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[40px] ${shown ? "kb-cite-in" : ""}`}>
+        {/* 20px sur téléphone : à 26px, « Pour ceux qui sont déjà là_ » mesure 430 px
+            pour 342 disponibles, et la ligne se brise au milieu du manifeste. */}
+        <p className={`mono text-[20px] font-normal leading-[1.15] tracking-[-0.02em] text-ink sm:text-[26px] md:text-[40px] ${shown ? "kb-cite-in" : ""}`}>
           {lines.map((line, i) => (
             <span key={i} className="kb-cite-line" style={{ transitionDelay: `${i * 180}ms` }}>
               {line}

@@ -121,7 +121,9 @@ export default function Home() {
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8 md:pb-20">
             <p className="mono text-[11px] uppercase tracking-label text-paper/75">KLUBSTER<Cur /></p>
-            <h1 className="mt-5 max-w-[20ch] text-4xl font-medium leading-[1.04] tracking-[-0.02em] text-paper md:text-[58px]">
+            {/* 30px sur téléphone : à 36px, « Toute votre association, » déborde de 70 px
+                et le titre part sur quatre lignes au lieu de deux. */}
+            <h1 className="mt-5 max-w-[20ch] text-[30px] font-medium leading-[1.06] tracking-[-0.02em] text-paper sm:text-4xl md:text-[58px]">
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>
@@ -196,7 +198,7 @@ export default function Home() {
       <section className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex items-start px-6 py-20 md:px-16 md:pt-32">
           <Reveal className="max-w-md">
-            <p className="mono text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+            <p className="mono text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
               L’état de votre association,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
@@ -323,7 +325,7 @@ export default function Home() {
             <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
               PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
             </p>
-            <p className="mono mt-12 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
               Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre association<span className="cur">_</span>
             </p>
           </Reveal>
@@ -385,7 +387,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-ink/60" />
         <div className="relative flex min-h-[80vh] items-center justify-center">
           <div className="px-6 py-24 text-center text-paper">
-            <p className="mono mx-auto max-w-[720px] text-2xl font-normal leading-[1.2] tracking-[-0.02em] md:text-[32px]">
+            <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl md:text-[32px]">
               Quand l’association ouvre,<br />personne ne pense au logiciel.
             </p>
             <p className="mx-auto mt-8 max-w-prose text-lg text-paper/80">
