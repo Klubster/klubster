@@ -164,7 +164,7 @@ export default async function FicheAdherent({
                     <span
                       className="mono text-[11px] uppercase tracking-wide"
                       style={{
-                        color: a.statut === "paye" ? "#1E7A4F" : a.statut === "en_retard" ? "#B23B3B" : "#B8860B",
+                        color: a.statut === "paye" ? "#1E7A4F" : a.statut === "en_retard" ? "#B23B3B" : "#8A6508",
                       }}
                     >
                       {a.statut === "paye" ? "Payé" : a.statut === "en_retard" ? "En retard" : "En attente"}
@@ -219,7 +219,7 @@ export default async function FicheAdherent({
                   <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
                     <button
                       className="mono text-[11px] uppercase tracking-wide hover:underline"
-                      style={{ color: p.statut === "recue" ? "#1E7A4F" : "#B8860B" }}
+                      style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
                     >
                       {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
                     </button>

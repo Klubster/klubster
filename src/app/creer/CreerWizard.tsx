@@ -19,7 +19,7 @@ const COULEURS = [
   // Rouges / oranges / bruns
   "#B23B3B", "#7A2E2E", "#C05A1D", "#B5651D",
   // Jaunes / kaki / neutres
-  "#B8860B", "#5C7A1D", "#444441", "#111111",
+  "#8A6508", "#5C7A1D", "#444441", "#111111",
 ];
 
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];

@@ -203,7 +203,7 @@ export default async function Cockpit({
             {stripeModeTest ? (
               <p
                 className="mono mb-6 border px-4 py-3 text-[11px] uppercase tracking-label"
-                style={{ borderColor: "#B8860B", color: "#B8860B" }}
+                style={{ borderColor: "#8A6508", color: "#8A6508" }}
               >
                 ⚠ Stripe en mode test — aucun paiement réel.
                 {!stripeCleCoherente() ? " La clé configurée ne correspond pas au mode : vérifiez les variables d’environnement." : ""}
@@ -370,7 +370,7 @@ export default async function Cockpit({
 
 /* Point d'état — vert prêt, orange attention, rouge urgent. Avec retenue. */
 function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neutre"; children: React.ReactNode }) {
-  const couleur = etat === "ok" ? "#279B65" : etat === "attention" ? "#B8860B" : etat === "urgent" ? "#B23B3B" : "#C2C2BD";
+  const couleur = etat === "ok" ? "#279B65" : etat === "attention" ? "#8A6508" : etat === "urgent" ? "#B23B3B" : "#C2C2BD";
   return (
     <div className="flex items-baseline gap-4 border-b border-line py-3 last:border-b-0">
       <span className="mono text-[13px]" style={{ color: couleur }}>{etat === "ok" ? "✓" : "●"}</span>

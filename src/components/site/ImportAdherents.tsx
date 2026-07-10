@@ -110,7 +110,7 @@ export default function ImportAdherents({
           </p>
         ) : null}
         {resultat.erreurs.length > 0 ? (
-          <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#B8860B" }}>
+          <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
             {resultat.erreurs.slice(0, 8).map((e, i) => (
               <li key={i}>{e}</li>
             ))}
@@ -242,7 +242,7 @@ export default function ImportAdherents({
             </div>
 
             {problemes.length > 0 ? (
-              <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#B8860B" }}>
+              <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
                 {problemes.map((p, i) => (
                   <li key={i}>⚠ {p}</li>
                 ))}

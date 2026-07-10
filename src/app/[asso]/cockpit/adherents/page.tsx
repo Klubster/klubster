@@ -169,7 +169,7 @@ export default async function Adherents({
                         <span
                           style={{
                             color:
-                              ad.statut === "paye" ? "#1E7A4F" : ad.statut === "en_retard" ? "#B23B3B" : "#B8860B",
+                              ad.statut === "paye" ? "#1E7A4F" : ad.statut === "en_retard" ? "#B23B3B" : "#8A6508",
                           }}
                         >
                           {ad.statut === "paye" ? "Payé" : ad.statut === "en_retard" ? "En retard" : "En attente"}

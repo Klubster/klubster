@@ -201,7 +201,7 @@ export default function FormBuilder({
               Le nombre maximal de mensualités (jusqu&apos;à 12) se règle dans le cockpit, sous la
               carte Stripe. L&apos;adhérent choisit ensuite librement dans cette limite.
             </p>
-            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#B8860B" }}>
+            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#8A6508" }}>
               ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
               transaction pour une carte européenne). Plus il y a d&apos;échéances, plus la part fixe
               est prélevée souvent : le club perçoit un peu moins qu&apos;en paiement unique.

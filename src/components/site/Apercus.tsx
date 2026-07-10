@@ -90,7 +90,7 @@ export function ApercuScan() {
           </div>
           <div className="bg-paper px-4 py-3">
             <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Dossier</div>
-            <div className="mono mt-1.5 text-[13px]" style={{ color: "#B8860B" }}>● Certificat médical manquant</div>
+            <div className="mono mt-1.5 text-[13px]" style={{ color: "#8A6508" }}>● Certificat médical manquant</div>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ export function ApercuFiche() {
       <div className="p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[22px] font-medium leading-tight tracking-[-0.01em]">Théo Nguyên</p>
-          <span className="mono text-[10px] uppercase tracking-label" style={{ color: "#B8860B" }}>En attente</span>
+          <span className="mono text-[10px] uppercase tracking-label" style={{ color: "#8A6508" }}>En attente</span>
         </div>
         <p className="mt-1 text-[13px] text-ink-soft">theo.nguyen@exemple.fr · 06 12 34 56 78</p>
 
@@ -125,7 +125,7 @@ export function ApercuFiche() {
           </div>
           {PIECES.map((p) => (
             <div key={p.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-              <span className="mono text-[11px]" style={{ color: p.ok ? "#1E7A4F" : "#B8860B" }}>{p.ok ? "✓" : "○"}</span>
+              <span className="mono text-[11px]" style={{ color: p.ok ? "#1E7A4F" : "#8A6508" }}>{p.ok ? "✓" : "○"}</span>
               <span className="flex-1 text-[12px]">{p.nom}</span>
               <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{p.ok ? "Reçue" : "Manquante"}</span>
             </div>

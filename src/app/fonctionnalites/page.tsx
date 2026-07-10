@@ -36,7 +36,7 @@ function Chapitre({
             <span className="text-brand">{num}</span> — {kicker}
             <Cur />
           </p>
-          <h2 className="mt-6 max-w-[18ch] text-[26px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-3xl md:text-[40px]">
+          <h2 className="mt-6 text-[26px] font-medium leading-[1.12] tracking-[-0.02em] sm:text-3xl md:text-[40px]">
             {titre}
           </h2>
         </Reveal>
@@ -103,7 +103,9 @@ export default function Fonctionnalites() {
       <section>
         <div className="mx-auto max-w-5xl px-6 pt-20 pb-16 md:px-8 md:pt-28 md:pb-24">
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
-          <h1 className="mt-6 max-w-[16ch] text-[30px] font-medium leading-[1.06] tracking-[-0.02em] sm:text-4xl md:text-[52px]">
+          {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
+              cassait en deux. Les retours à la ligne sont écrits, pas subis. */}
+          <h1 className="mt-6 text-[30px] font-medium leading-[1.08] tracking-[-0.02em] sm:text-4xl md:text-[52px]">
             Moins d’administration.<br />Plus de temps pour l’association.
           </h1>
           <p className="mt-7 max-w-prose text-lg leading-relaxed text-ink-soft">
@@ -150,7 +152,9 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal>
-          <Chute>Vous choisissez ce qu’il faut demander.<br />Klubster s’occupe du reste</Chute>
+          {/* Lignes courtes : en Space Mono 18px, « Vous choisissez ce qu’il faut demander. »
+              mesure 430 px pour 342 disponibles sur un téléphone, et se brise au hasard. */}
+          <Chute>Vous choisissez<br />ce qu’il faut demander.<br />Klubster s’occupe du reste</Chute>
         </Reveal>
       </Chapitre>
 
@@ -257,7 +261,7 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal>
-          <Chute>Chaque paiement est suivi.<br />Chaque incident vous est signalé</Chute>
+          <Chute>Chaque paiement est suivi.<br />Chaque incident<br />vous est signalé</Chute>
         </Reveal>
       </Chapitre>
 
@@ -280,7 +284,7 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal>
-          <Chute>Vos données vous appartiennent.<br />Aujourd’hui comme demain</Chute>
+          <Chute>Vos données<br />vous appartiennent.<br />Aujourd’hui comme demain</Chute>
         </Reveal>
       </Chapitre>
 
@@ -313,7 +317,7 @@ export default function Fonctionnalites() {
         <div className="relative flex min-h-[70vh] items-center justify-center">
           <div className="px-6 py-24 text-center text-paper">
             <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl md:text-[30px]">
-              Tout est inclus.<br />Seule la taille de votre association<br />fait évoluer le prix.
+              Tout est inclus.<br />Seule la taille<br />de votre association<br />fait évoluer le prix.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide">
               9 € <span className="text-paper/50">·</span> 19 € <span className="text-paper/50">·</span> 29 € par mois

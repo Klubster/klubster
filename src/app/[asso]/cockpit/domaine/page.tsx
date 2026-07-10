@@ -96,7 +96,7 @@ export default async function DomainePage({
                 {statut?.verifie ? (
                   <span className="mono text-[12px] text-brand">✓ ACTIF — SSL en place</span>
                 ) : (
-                  <span className="mono text-[12px]" style={{ color: "#B8860B" }}>● EN ATTENTE DES DNS</span>
+                  <span className="mono text-[12px]" style={{ color: "#8A6508" }}>● EN ATTENTE DES DNS</span>
                 )}
               </div>
             </div>
