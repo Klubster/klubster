@@ -89,8 +89,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Échéances 2 à N (prélèvements mensuels suivants).
-  if (event.type === "invoice.payment_succeeded" || event.type === "invoice.paid") {
+  /* ——— Échéances 2 à N (prélèvements mensuels suivants) ———
+     On n'écoute QUE `invoice.paid`. Stripe émet aussi `invoice.payment_succeeded` pour la
+     même facture, sous un autre identifiant d'événement : le verrou d'idempotence, qui
+     porte sur l'identifiant, ne les verrait pas comme un doublon. Traiter les deux
+     enregistrerait chaque échéance deux fois — un adhérent qui paie 30 € en verrait 60 €
+     crédités. Si la destination Stripe coche les deux par erreur, le second est ignoré ici. */
+  if (event.type === "invoice.paid") {
     const obj = event.data.object as {
       subscription?: string;
       amount_paid?: number;

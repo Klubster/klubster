@@ -27,12 +27,26 @@ export function stripeCleCoherente(): boolean {
   return stripeModeTest ? KEY.startsWith("sk_test_") : KEY.startsWith("sk_live_");
 }
 
-/** Secrets de signature du webhook : celui du mode courant, avec repli sur l'autre. */
+/**
+ * Secrets de signature des webhooks.
+ *
+ * Stripe impose une destination par périmètre : une pour les événements du compte
+ * plateforme (l'abonnement Klubster), une autre pour ceux des comptes connectés (les
+ * cotisations encaissées par les clubs). Deux destinations, donc deux secrets — et autant
+ * en production. Chaque variable accepte plusieurs secrets séparés par une virgule.
+ *
+ * On les essaie tous : une signature valide suffit. Ceux du mode courant passent en
+ * premier, pour ne pas calculer un HMAC inutile à chaque appel.
+ */
 export function webhookSecrets(): string[] {
-  const test = process.env.STRIPE_WEBHOOK_SECRET_TEST;
-  const live = process.env.STRIPE_WEBHOOK_SECRET;
-  const ordre = stripeModeTest ? [test, live] : [live, test];
-  return ordre.filter((s): s is string => !!s);
+  const decouper = (v: string | undefined) =>
+    (v ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  const test = decouper(process.env.STRIPE_WEBHOOK_SECRET_TEST);
+  const live = decouper(process.env.STRIPE_WEBHOOK_SECRET);
+  return stripeModeTest ? [...test, ...live] : [...live, ...test];
 }
 
 export function stripeConfigured(): boolean {
