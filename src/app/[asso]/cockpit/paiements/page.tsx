@@ -65,6 +65,13 @@ export default async function PaiementsPage({ params }: { params: { asso: string
           seul. Sélectionnez des lignes pour relancer ou exporter.
         </p>
 
+        <Link
+          href={`/${org.slug}/cockpit/paiements/remise`}
+          className="mono mt-6 inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+        >
+          PRÉPARER UNE REMISE DE CHÈQUES →
+        </Link>
+
         <PaiementsClient slug={org.slug} nomClub={org.nom} lignes={lignes} />
       </div>
     </main>

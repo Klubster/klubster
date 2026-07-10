@@ -45,3 +45,20 @@ export async function enregistrerReglement(
   }
   return { ok: true, soldeCentimes: Number(data ?? 0) };
 }
+
+// Marque les chèques sélectionnés comme remis en banque (bordereau imprimé).
+// La sélection est revalidée côté base : la RPC ne touche que les chèques de l'organisation.
+export async function marquerChequesRemis(
+  slug: string,
+  ids: string[]
+): Promise<{ ok: boolean; nombre?: number; error?: string }> {
+  await garde(slug);
+  if (!Array.isArray(ids) || ids.length === 0) return { ok: false, error: "Aucun chèque sélectionné." };
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("marquer_cheques_remis", { p_ids: ids });
+  if (error) {
+    console.error("marquer_cheques_remis", error.message);
+    return { ok: false, error: "Enregistrement impossible." };
+  }
+  return { ok: true, nombre: Number(data ?? 0) };
+}
