@@ -153,9 +153,9 @@ export function ApercuFiche() {
 
 const CIBLES = [
   { nom: "Tous les adhérents", n: 312, actif: true },
+  { nom: "Parents (mineurs)", n: 74 },
+  { nom: "Dossiers incomplets", n: 9 },
   { nom: "Boxe loisirs", n: 18 },
-  { nom: "Amateurs", n: 24 },
-  { nom: "Baby Boxe", n: 12 },
 ];
 
 export function ApercuMessages() {

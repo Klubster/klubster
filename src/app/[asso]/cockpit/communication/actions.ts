@@ -5,9 +5,31 @@ import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { envoyerAuxAdherents, resendConfigured, type EnvoiResultat } from "@/lib/resend";
 
+/** Un adhérent est mineur s'il est né il y a moins de 18 ans. */
+function estMineur(dateNaissance: string | null): boolean {
+  if (!dateNaissance) return false;
+  const n = new Date(dateNaissance);
+  if (Number.isNaN(n.getTime())) return false;
+  const seuil = new Date();
+  seuil.setFullYear(seuil.getFullYear() - 18);
+  return n > seuil;
+}
+
+/**
+ * Envoi d'un message à un groupe.
+ *
+ * `groupe` vaut :
+ *   "tous"       → tous les adhérents avec un email
+ *   "parents"    → les adhérents mineurs (l'email est celui du représentant légal)
+ *   "incomplet"  → ceux dont au moins une pièce du dossier n'est pas reçue
+ *   <id de cours>→ les inscrits à ce cours
+ *
+ * Le ciblage est recalculé côté serveur : on ne fait jamais confiance à la liste d'adresses
+ * envoyée par le navigateur.
+ */
 export async function envoyerMessage(
   slug: string,
-  groupe: string, // "tous" ou un id de cours
+  groupe: string,
   objet: string,
   message: string
 ): Promise<EnvoiResultat> {
@@ -25,12 +47,24 @@ export async function envoyerMessage(
   const supabase = createSupabaseServerClient();
   const { data: adherents } = await supabase
     .from("adherents")
-    .select("id, email")
+    .select("id, email, date_naissance")
     .eq("organisation_id", org.id)
     .not("email", "is", null);
 
-  let cibles = (adherents ?? []) as { id: string; email: string }[];
-  if (groupe !== "tous") {
+  let cibles = (adherents ?? []) as { id: string; email: string; date_naissance: string | null }[];
+
+  if (groupe === "parents") {
+    cibles = cibles.filter((a) => estMineur(a.date_naissance));
+  } else if (groupe === "incomplet") {
+    // Un dossier est incomplet dès qu'une pièce n'est pas « reçue ».
+    const { data: pieces } = await supabase
+      .from("pieces_adherent")
+      .select("adherent_id, statut")
+      .eq("organisation_id", org.id)
+      .neq("statut", "recue");
+    const ids = new Set((pieces ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
+    cibles = cibles.filter((a) => ids.has(a.id));
+  } else if (groupe !== "tous") {
     const { data: adhesions } = await supabase
       .from("adhesions")
       .select("adherent_id")

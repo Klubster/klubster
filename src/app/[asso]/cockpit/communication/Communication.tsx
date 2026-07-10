@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { envoyerMessage } from "./actions";
 
-type Membre = { email: string; coursIds: string[] };
+type Membre = { email: string; coursIds: string[]; mineur: boolean; incomplet: boolean };
 type Cours = { id: string; nom: string };
 
 export default function Communication({
@@ -27,7 +27,14 @@ export default function Communication({
   const [enCours, startTransition] = useTransition();
 
   const emails = useMemo(() => {
-    const list = groupe === "tous" ? membres : membres.filter((m) => m.coursIds.includes(groupe));
+    const list =
+      groupe === "tous"
+        ? membres
+        : groupe === "parents"
+          ? membres.filter((m) => m.mineur)
+          : groupe === "incomplet"
+            ? membres.filter((m) => m.incomplet)
+            : membres.filter((m) => m.coursIds.includes(groupe));
     return Array.from(new Set(list.map((m) => m.email)));
   }, [groupe, membres]);
 
@@ -76,6 +83,9 @@ export default function Communication({
           className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
         >
           <option value="tous">Tous les adhérents</option>
+          <option value="parents">Parents (adhérents mineurs)</option>
+          <option value="incomplet">Dossiers incomplets</option>
+          {cours.length > 0 ? <option disabled>──────────</option> : null}
           {cours.map((c) => (
             <option key={c.id} value={c.id}>{c.nom}</option>
           ))}

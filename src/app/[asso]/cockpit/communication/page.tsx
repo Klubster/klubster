@@ -20,13 +20,23 @@ export default async function MessageriePage({ params }: { params: { asso: strin
   }
 
   const supabase = createSupabaseServerClient();
-  const { data: adhData } = await supabase.from("adherents").select("id, email").eq("organisation_id", org.id);
+  const { data: adhData } = await supabase
+    .from("adherents")
+    .select("id, email, date_naissance")
+    .eq("organisation_id", org.id);
   const { data: insData } = await supabase.from("adhesions").select("adherent_id, cours_id").eq("organisation_id", org.id);
   const { data: coursData } = await supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
+  // Dossiers incomplets : les adhérents dont une pièce n'est pas encore reçue.
+  const { data: piecesData } = await supabase
+    .from("pieces_adherent")
+    .select("adherent_id, statut")
+    .eq("organisation_id", org.id)
+    .neq("statut", "recue");
 
-  const adherents = (adhData ?? []) as { id: string; email: string | null }[];
+  const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null }[];
   const adhesions = (insData ?? []) as { adherent_id: string; cours_id: string | null }[];
   const cours = (coursData ?? []) as { id: string; nom: string }[];
+  const incompletIds = new Set((piecesData ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
 
   const coursByAdh = new Map<string, string[]>();
   for (const r of adhesions) {
@@ -35,9 +45,19 @@ export default async function MessageriePage({ params }: { params: { asso: strin
     arr.push(r.cours_id);
     coursByAdh.set(r.adherent_id, arr);
   }
+
+  // Mineur = né il y a moins de 18 ans. Même règle que côté serveur, pour un compte cohérent.
+  const seuilMineur = new Date();
+  seuilMineur.setFullYear(seuilMineur.getFullYear() - 18);
+
   const membres = adherents
     .filter((a) => a.email)
-    .map((a) => ({ email: a.email as string, coursIds: coursByAdh.get(a.id) ?? [] }));
+    .map((a) => ({
+      email: a.email as string,
+      coursIds: coursByAdh.get(a.id) ?? [],
+      mineur: a.date_naissance ? new Date(a.date_naissance) > seuilMineur : false,
+      incomplet: incompletIds.has(a.id),
+    }));
 
   return (
     <main className="min-h-screen text-ink">

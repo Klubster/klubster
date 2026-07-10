@@ -3,6 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import MenuMobile from "@/components/site/MenuMobile";
+import CockpitPreview from "@/components/site/CockpitPreview";
 import { ApercuFormulaire, ApercuScan, ApercuFiche, ApercuMessages, ApercuSite } from "@/components/site/Apercus";
 
 export const metadata: Metadata = {
@@ -99,29 +100,36 @@ export default function Fonctionnalites() {
         </div>
       </header>
 
-      {/* HERO — sobre, sur papier. La promesse, pas la liste. */}
-      <section>
-        <div className="mx-auto max-w-5xl px-6 pt-20 pb-16 md:px-8 md:pt-28 md:pb-24">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
-          {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
-              cassait en deux. Les retours à la ligne sont écrits, pas subis. */}
-          <h1 className="mt-6 text-[30px] font-medium leading-[1.08] tracking-[-0.02em] sm:text-4xl md:text-[52px]">
-            Moins d’administration.<br />Plus de temps pour l’association.
-          </h1>
-          <p className="mt-7 max-w-prose text-lg leading-relaxed text-ink-soft">
-            Inscriptions, dossiers, adhérents, paiements, contrôle sur le terrain, messages et site internet.
-            Tout est réuni dans un seul outil, pensé pour des bénévoles qui n’ont pas le temps d’apprendre un logiciel.
-          </p>
-          <p className="mono mt-8 text-[13px] tracking-wide text-ink">
-            Toutes les fonctionnalités sont incluses <span className="text-ink-faint">·</span> À partir de 9 €/mois
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-              CRÉER MON ASSOCIATION →
-            </Link>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-              Premier mois offert<span className="text-brand">_</span>
+      {/* HERO — la promesse à gauche, le produit à droite. La page s'ouvre sur l'outil. */}
+      <section className="border-b border-line">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:grid-cols-[1fr_460px] md:gap-14 md:px-8 md:pt-24 md:pb-24">
+          <div>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
+            {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
+                cassait en deux. Les retours à la ligne sont écrits, pas subis. */}
+            <h1 className="mt-6 text-[30px] font-medium leading-[1.08] tracking-[-0.02em] sm:text-4xl md:text-[46px]">
+              Moins d’administration.<br />Plus de temps pour l’association.
+            </h1>
+            <p className="mt-7 max-w-prose text-lg leading-relaxed text-ink-soft">
+              Inscriptions, dossiers, paiements, contrôle sur le terrain, messages et site internet.
+              Tout est réuni dans un seul outil, pensé pour des bénévoles qui n’ont pas le temps d’apprendre un logiciel.
             </p>
+            <p className="mono mt-8 text-[13px] tracking-wide text-ink">
+              Toutes les fonctionnalités sont incluses <span className="text-ink-faint">·</span> À partir de 9 €/mois
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+                CRÉER MON ASSOCIATION →
+              </Link>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+                Premier mois offert<span className="text-brand">_</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Le produit, dès la première seconde. Légèrement incliné pour ne pas figer la page. */}
+          <div className="md:rotate-[1.2deg] md:transition-transform md:hover:rotate-0">
+            <CockpitPreview />
           </div>
         </div>
       </section>
@@ -172,7 +180,7 @@ export default function Fonctionnalites() {
           </p>
           <Preuves
             lignes={[
-              "Les documents sont déposés par l’adhérent, ou envoyés par email et cochés à la main",
+              "Les documents sont déposés par l’adhérent, ou ajoutés à son dossier par un bénévole",
               "Le questionnaire de santé est signé en ligne — rien à imprimer, rien à rapporter",
               "Seules les réponses utiles sont conservées : Klubster ne stocke pas le détail médical",
               "Le dossier affiche ce qui est reçu, et ce qui manque",
@@ -205,7 +213,7 @@ export default function Fonctionnalites() {
               "La carte de membre vit dans l’espace personnel de l’adhérent, avec son QR",
               "Le scan affiche le cours, l’état de la cotisation et les pièces manquantes",
               "L’appel se fait dans la foulée, d’un seul bouton",
-              "Sans caméra — ou sur un iPhone — la recherche par nom donne la même réponse",
+              "Si le scan n’est pas possible, cherchez l’adhérent par son nom : mêmes informations",
             ]}
           />
         </Reveal>
@@ -240,6 +248,7 @@ export default function Fonctionnalites() {
               "C’est le club qui fixe le maximum ; l’adhérent choisit dans cette limite",
               "Chaque échéance encaissée est inscrite dans le dossier, sans rien saisir",
               "Une échéance rejetée par la banque ? L’adhérent et le club sont prévenus le jour même",
+              "Plus de chèques à conserver ni de dates d’encaissement à noter au dos",
               "Les règlements par chèque ou en espèces s’enregistrent aussi, en deux clics",
             ]}
           />
@@ -275,9 +284,10 @@ export default function Fonctionnalites() {
           <Preuves
             lignes={[
               "Écrivez à tous vos adhérents, ou seulement à ceux d’un cours",
-              "Les emails partent depuis votre association, chacun en copie cachée",
-              "Rien à tenir à jour : une adresse qui change dans un dossier change ici aussi",
-              "Pas de logiciel d’emailing, pas de liste à recopier, pas d’adresse à retrouver",
+              "Prévenez les parents des adhérents mineurs, sans les trier à la main",
+              "Relancez d’un message ceux dont le dossier est encore incomplet",
+              "Les coordonnées sont déjà là, à jour avec les inscriptions",
+              "Pas de logiciel d’emailing, pas de liste à maintenir, chacun en copie cachée",
             ]}
           />
         </Reveal>
@@ -300,7 +310,7 @@ export default function Fonctionnalites() {
       </section>
 
       {/* VI — LE SITE */}
-      <Chapitre num="VI" kicker="LE SITE INTERNET" titre={<>Un site simple.<br />Et vous gardez la main.</>}>
+      <Chapitre num="VI" kicker="LE SITE INTERNET" titre={<>L’essentiel.<br />Et vous gardez la main.</>}>
         <Reveal>
           <p className="mt-7 max-w-prose text-lg text-ink-soft">
             Votre association n’a pas besoin d’un site compliqué. Elle a besoin d’un site clair, à jour,
