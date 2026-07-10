@@ -90,7 +90,6 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold text-paper drop-shadow">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
-            <a href="#cockpit" className="hover:text-paper">Le cockpit</a>
             <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
@@ -103,7 +102,6 @@ export default function Home() {
             <MenuMobile
               ton="clair"
               liens={[
-                { href: "#cockpit", label: "Le cockpit" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
@@ -125,7 +123,9 @@ export default function Home() {
             <p className="mono text-[11px] uppercase tracking-label text-paper/75">KLUBSTER<Cur /></p>
             {/* 30px sur téléphone : à 36px, « Toute votre association, » déborde de 70 px
                 et le titre part sur quatre lignes au lieu de deux. */}
-            <h1 className="mt-5 max-w-[20ch] text-[30px] font-medium leading-[1.06] tracking-[-0.02em] text-paper sm:text-4xl md:text-[58px]">
+            {/* leading 1.06 collait les deux lignes à 58px (les jambages de « association »
+                touchaient « au même endroit »). 1.12 les sépare sans casser le bloc. */}
+            <h1 className="mt-5 max-w-[20ch] text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-paper sm:text-4xl md:text-[58px]">
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>

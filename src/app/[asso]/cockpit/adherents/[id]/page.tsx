@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
+import AjoutReglement from "./AjoutReglement";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ type Adhesion = {
   cours: { nom: string } | null;
 };
 type Piece = { id: string; cle: string; label: string | null; statut: string | null };
-type Reglement = { id: string; montant_centimes: number; mode: string | null; note: string | null; created_at: string };
+type Reglement = { id: string; adhesion_id: string; montant_centimes: number; mode: string | null; note: string | null; created_at: string };
 type Sante = { resultat: string | null; signataire_nom: string | null; created_at: string };
 
 export default async function FicheAdherent({
@@ -75,7 +76,7 @@ export default async function FicheAdherent({
   const { data: reglements } = idsAdhesions.length
     ? await supabase
         .from("reglements")
-        .select("id, montant_centimes, mode, note, created_at")
+        .select("id, adhesion_id, montant_centimes, mode, note, created_at")
         .in("adhesion_id", idsAdhesions)
         .order("created_at", { ascending: true })
     : { data: [] };
@@ -84,6 +85,17 @@ export default async function FicheAdherent({
   const totalRegle = listeReglements.reduce((s, r) => s + r.montant_centimes, 0);
   const totalDu = listeAdhesions.reduce((s, a) => s + (a.montant_centimes ?? 0), 0);
   const reste = Math.max(totalDu - totalRegle, 0);
+
+  // Solde restant par adhésion : ce que l'ajout de règlement doit cibler.
+  const regleParAdhesion = new Map<string, number>();
+  for (const r of listeReglements) {
+    regleParAdhesion.set(r.adhesion_id, (regleParAdhesion.get(r.adhesion_id) ?? 0) + r.montant_centimes);
+  }
+  const soldes = listeAdhesions.map((a) => ({
+    id: a.id,
+    cours: a.cours?.nom ?? a.saison ?? "Adhésion",
+    resteCentimes: Math.max((a.montant_centimes ?? 0) - (regleParAdhesion.get(a.id) ?? 0), 0),
+  }));
 
   const infos = (adherent.infos ?? {}) as Record<string, string>;
   const modifier = modifierAdherent.bind(null, org.slug, adherent.id);
@@ -188,6 +200,9 @@ export default async function FicheAdherent({
               </div>
             </div>
           )}
+
+          {/* Encaisser un règlement (chèque / espèces) directement depuis la fiche. */}
+          <AjoutReglement slug={org.slug} adhesions={soldes} accent={org.couleur_primaire ?? "#111111"} />
 
           {listeReglements.length > 0 ? (
             <div className="mt-4 border border-line">
