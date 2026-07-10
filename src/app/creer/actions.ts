@@ -5,6 +5,7 @@ import { envoyerEmail } from "@/lib/resend";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 import { getTemplate, getMode } from "@/lib/themes";
+import { validerImage } from "@/lib/upload";
 
 export interface CreneauInput {
   jour: string;  // "lundi" … "dimanche"
@@ -76,16 +77,17 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
   // Logo (optionnel). Après create_club, le président est admin de l'org :
   // la politique storage logos_admin_insert (current_org_id) autorise l'upload.
   const file = logoFd?.get("logo");
-  if (file && typeof file === "object" && "size" in file) {
+  if (file && typeof file === "object" && "size" in file && (file as File).size > 0) {
     const f = file as File;
-    if (f.size > 0 && f.size <= 2 * 1024 * 1024 && (f.type ?? "").startsWith("image/")) {
+    // Validation par octets réels (2 Mo max) : ni SVG, ni fichier renommé.
+    const v = await validerImage(f, 2);
+    if (v.ok) {
       const { data: org } = await supabase.from("organisations").select("id").eq("slug", slug).single();
       if (org) {
-        const ext = (f.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
-        const path = `${org.id}/logo-${Date.now()}.${ext}`;
+        const path = `${org.id}/logo-${Date.now()}.${v.ext}`;
         const { error: upErr } = await supabase.storage
           .from("logos")
-          .upload(path, f, { upsert: true, contentType: f.type || undefined });
+          .upload(path, f, { upsert: true, contentType: v.contentType });
         if (upErr) {
           console.error("upload logo", upErr.message); // le club est créé, on n'échoue pas pour un logo
         } else {

@@ -205,50 +205,29 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
 
   if (aCreer.length === 0) return { crees: 0, ignores, erreurs };
 
-  const { data: inseres, error } = await supabase
-    .from("adherents")
-    .insert(
-      aCreer.map(({ ligne }) => ({
-        organisation_id: org.id,
-        prenom: ligne.prenom,
-        nom: ligne.nom,
-        email: ligne.email,
-        telephone: String(ligne.telephone ?? "").trim().slice(0, 30) || null,
-      }))
-    )
-    .select("id");
+  // Adhérent + adhésion créés ensemble dans une seule transaction (RPC) : un échec
+  // en cours de route annule tout, plus d'adhérents orphelins sans adhésion.
+  const rows = aCreer.map(({ ligne }) => ({
+    prenom: ligne.prenom,
+    nom: ligne.nom,
+    email: ligne.email,
+    telephone: String(ligne.telephone ?? "").trim().slice(0, 30) || null,
+    // On ne transmet le cours que s'il appartient au club (tarif re-vérifié en base).
+    cours_id: ligne.coursId && tarifs.has(ligne.coursId) ? ligne.coursId : null,
+  }));
 
-  if (error || !inseres) {
-    console.error("importerAdherents", error?.message);
+  const { data: crees, error } = await supabase.rpc("inserer_adherents_adhesions", {
+    p_org: org.id,
+    p_rows: rows,
+  });
+
+  if (error) {
+    console.error("inserer_adherents_adhesions", error.message);
     return { crees: 0, ignores, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
   }
 
-  // Adhésions, uniquement pour les lignes dont le cours appartient bien au club.
-  const adhesions = inseres
-    .map((a, i) => {
-      const coursId = aCreer[i].ligne.coursId;
-      if (!coursId || !tarifs.has(coursId)) return null;
-      return {
-        organisation_id: org.id,
-        adherent_id: a.id as string,
-        cours_id: coursId,
-        saison: "2025-2026",
-        montant_centimes: tarifs.get(coursId) as number,
-        statut: "en_attente",
-      };
-    })
-    .filter(Boolean) as Record<string, unknown>[];
-
-  if (adhesions.length > 0) {
-    const { error: errAdh } = await supabase.from("adhesions").insert(adhesions);
-    if (errAdh) {
-      console.error("importerAdherents adhesions", errAdh.message);
-      erreurs.push("Les adhérents ont été créés, mais certaines adhésions n’ont pas pu l’être.");
-    }
-  }
-
   revalidatePath(`/${slug}/cockpit/adherents`);
-  return { crees: inseres.length, ignores, erreurs };
+  return { crees: Number(crees ?? 0), ignores, erreurs };
 }
 
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */

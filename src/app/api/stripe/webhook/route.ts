@@ -136,6 +136,63 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
         await signalerEcheanceRejetee(adhesionId, obj.amount_due ?? 0, admin);
       }
     }
+    return;
+  }
+
+  // Remboursement : règlement négatif, l'adhésion rouvre son solde si elle n'est plus couverte.
+  if (event.type === "charge.refunded") {
+    const obj = event.data.object as { amount_refunded?: number; metadata?: { adhesion_id?: string } };
+    const adhesionId = obj.metadata?.adhesion_id;
+    if (adhesionId && typeof obj.amount_refunded === "number" && obj.amount_refunded > 0) {
+      await verifierCompte(admin, adhesionId, event.account!);
+      const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
+        p_adhesion_id: adhesionId,
+        p_montant_centimes: obj.amount_refunded,
+        p_ref: event.id,
+      });
+      if (error) throw new Error(`remboursement: ${error.message}`);
+    } else {
+      console.warn("charge.refunded sans adhesion_id identifiable", event.id);
+    }
+    return;
+  }
+
+  // Litige (chargeback) : on prévient le club et on remet l'adhésion « en retard ».
+  if (event.type === "charge.dispute.created") {
+    const obj = event.data.object as { metadata?: { adhesion_id?: string }; amount?: number };
+    const adhesionId = obj.metadata?.adhesion_id;
+    if (adhesionId) {
+      await verifierCompte(admin, adhesionId, event.account!);
+      await signalerLitige(adhesionId, obj.amount ?? 0, admin);
+    } else {
+      console.warn("charge.dispute.created sans adhesion_id identifiable", event.id);
+    }
+  }
+}
+
+/** Un litige (chargeback) a été ouvert : l'adhésion repasse « en retard », le club est prévenu. */
+async function signalerLitige(adhesionId: string, montantCentimes: number, admin: ClientAdmin) {
+  const { data } = await admin
+    .from("adhesions")
+    .select("adherents(prenom, nom), organisations(nom, email_contact)")
+    .eq("id", adhesionId)
+    .maybeSingle();
+  await admin.from("adhesions").update({ statut: "en_retard" }).eq("id", adhesionId);
+  if (!data) return;
+  const adherent = data.adherents as unknown as { prenom: string; nom: string } | null;
+  const org = data.organisations as unknown as { nom: string; email_contact: string | null } | null;
+  if (!org?.email_contact || !adherent) return;
+  const montant = (montantCentimes / 100).toFixed(2).replace(".", ",");
+  try {
+    await envoyerEmail({
+      to: org.email_contact,
+      objet: `Litige bancaire — ${adherent.prenom} ${adherent.nom}`,
+      texte:
+        `Un litige (contestation de paiement) de ${montant} € a été ouvert pour ${adherent.prenom} ${adherent.nom}.\n\n` +
+        `Son adhésion est repassée « en retard ». Stripe vous contactera pour répondre au litige depuis votre tableau de bord.\n\nklubster.fr`,
+    });
+  } catch (e) {
+    console.error("email litige", e);
   }
 }
 
