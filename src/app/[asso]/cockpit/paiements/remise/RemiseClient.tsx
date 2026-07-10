@@ -34,6 +34,23 @@ export default function RemiseClient({
 
   const selection = useMemo(() => cheques.filter((c) => choisis.has(c.id)), [cheques, choisis]);
   const total = useMemo(() => selection.reduce((s, c) => s + c.montantCentimes, 0), [selection]);
+  const [marqueId, setMarqueId] = useState<string | null>(null); // ligne en cours de marquage « déjà déposé »
+
+  // Marque un seul chèque « déjà déposé » (déposé à l'ancienne, sans bordereau) : il sort
+  // de la liste sans qu'on imprime quoi que ce soit.
+  function marquerUn(id: string) {
+    setErreur(null);
+    setMarqueId(id);
+    start(async () => {
+      const r = await marquerChequesRemis(slug, [id]);
+      if (!r.ok) {
+        setErreur(r.error ?? "Erreur.");
+        setMarqueId(null);
+        return;
+      }
+      router.refresh();
+    });
+  }
 
   function basculer(id: string) {
     setChoisis((s) => {
@@ -143,15 +160,29 @@ export default function RemiseClient({
 
       <div className="mt-4 divide-y divide-line border border-line bg-paper">
         {cheques.map((c) => (
-          <label key={c.id} className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-bg-alt">
-            <input type="checkbox" checked={choisis.has(c.id)} onChange={() => basculer(c.id)} />
-            <span className="min-w-[160px] flex-1 text-[15px] font-medium">
-              {c.prenom} {c.nom}
-              <span className="mono ml-2 text-[12px] font-normal text-ink-soft">{c.cours}</span>
-            </span>
-            <span className="mono text-[12px] text-ink-faint">reçu le {new Date(c.recuLe).toLocaleDateString("fr-FR")}</span>
-            <span className="mono w-24 text-right text-[14px] font-bold">{eur(c.montantCentimes)}</span>
-          </label>
+          <div key={c.id} className="flex items-center gap-3 px-4 py-3 hover:bg-bg-alt">
+            <label className="flex flex-1 cursor-pointer items-center gap-3">
+              <input type="checkbox" checked={choisis.has(c.id)} onChange={() => basculer(c.id)} />
+              <span className="min-w-[160px] flex-1 text-[15px] font-medium">
+                {c.prenom} {c.nom}
+                <span className="mono ml-2 text-[12px] font-normal text-ink-soft">{c.cours}</span>
+              </span>
+              <span className="mono hidden text-[12px] text-ink-faint sm:inline">
+                reçu le {new Date(c.recuLe).toLocaleDateString("fr-FR")}
+              </span>
+              <span className="mono w-24 text-right text-[14px] font-bold">{eur(c.montantCentimes)}</span>
+            </label>
+            {/* Sortir un chèque déposé « à l'ancienne », sans lui imprimer de bordereau. */}
+            <button
+              type="button"
+              onClick={() => marquerUn(c.id)}
+              disabled={enCours}
+              className="mono whitespace-nowrap text-[11px] text-ink-soft underline decoration-line underline-offset-2 hover:text-ink disabled:opacity-40"
+              title="Marquer ce chèque comme déjà déposé en banque, sans bordereau"
+            >
+              {marqueId === c.id ? "…" : "déjà déposé"}
+            </button>
+          </div>
         ))}
       </div>
 
@@ -164,8 +195,9 @@ export default function RemiseClient({
       >
         {enCours ? "GÉNÉRATION…" : `IMPRIMER LA REMISE (${selection.length}) →`}
       </button>
-      <p className="mono mt-3 text-[11px] text-ink-faint">
+      <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
         Décochez les chèques que vous ne déposez pas encore. À l’impression, les chèques cochés sont marqués « remis ».
+        Un chèque déjà déposé sans passer par Klubster ? « Déjà déposé » le sort de la liste, sans bordereau.
       </p>
     </div>
   );
