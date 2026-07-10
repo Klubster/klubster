@@ -181,6 +181,13 @@ export default function Home() {
           <Reveal className="mt-14">
             <CockpitPreview />
           </Reveal>
+
+          <Reveal className="mt-12">
+            <p className="max-w-2xl text-lg text-ink-soft">
+              Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
+              est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
+            </p>
+          </Reveal>
         </div>
       </section>
 
@@ -294,7 +301,7 @@ export default function Home() {
               Une demi-heure.<br />C’est tout.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
-              Le bureau d’une association n’a pas une demi-journée à consacrer à un logiciel.
+              Les bénévoles n’ont pas une demi-journée à consacrer à un nouveau logiciel.
               Alors tout est déjà prêt — il ne reste que l’essentiel.
             </p>
             <div className="mt-10 border-t border-line">
