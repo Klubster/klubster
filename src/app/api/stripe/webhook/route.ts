@@ -10,9 +10,13 @@ import {
 } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmail } from "@/lib/resend";
+import { compteConnecte } from "@/lib/stripe-org";
+import type { Organisation } from "@/types/db";
 
 export const dynamic = "force-dynamic";
 export const preferredRegion = "cdg1"; // RGPD — exécution en Europe (Paris)
+
+type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
 export async function POST(request: NextRequest) {
   const raw = await request.text();
@@ -26,30 +30,49 @@ export async function POST(request: NextRequest) {
   if (!event) return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
 
   const admin = createSupabaseAdminClient();
+  if (!admin) {
+    // Sans client admin, on ne peut rien écrire de fiable : on demande une redélivrance.
+    return NextResponse.json({ error: "Base indisponible." }, { status: 500 });
+  }
 
-  // Idempotence — Stripe redélivre les événements (au moins une fois). Sans ce verrou,
-  // une redélivrance enregistrerait le règlement en double.
-  if (admin && event.id) {
-    const { error: verrou } = await admin
-      .from("stripe_events")
-      .insert({ event_id: event.id, type: event.type });
-    if (verrou) {
-      // 23505 = violation de clé primaire → événement déjà traité, on acquitte sans rejouer.
-      if (verrou.code === "23505") return NextResponse.json({ received: true, duplicate: true });
-      // Toute autre erreur : on renvoie 500 pour que Stripe redélivre plus tard.
-      console.error("stripe_events", verrou.message);
-      return NextResponse.json({ error: "Verrou d’idempotence indisponible." }, { status: 500 });
+  /* ——— Verrou d'idempotence à état ———
+     Le piège de l'ancien modèle : on posait le verrou AVANT de traiter, puis on avalait
+     les erreurs et on répondait 200 → un événement échoué n'était jamais rejoué, le
+     règlement était perdu. Désormais on « réclame » l'événement en `en_cours`, on traite,
+     et on ne le passe `traite` qu'après succès. Un échec renvoie 500 : Stripe redélivre,
+     et le second passage voit `en_cours`/`echoue` et rejoue. Un `traite` est acquitté sans
+     rien rejouer. */
+  if (event.id) {
+    const dejaTraite = await reclamerEvenement(admin, event.id, event.type);
+    if (dejaTraite === "traite") return NextResponse.json({ received: true, duplicate: true });
+    if (dejaTraite === "erreur") return NextResponse.json({ error: "Verrou indisponible." }, { status: 500 });
+  }
+
+  try {
+    if (!event.account) {
+      // Événement de la PLATEFORME (abonnement Klubster), jamais une cotisation d'adhérent.
+      const traite = await traiterAbonnement(event, admin);
+      if (traite) {
+        await marquerTraite(admin, event.id);
+        return NextResponse.json({ received: true, abonnement: true });
+      }
+    } else {
+      await traiterCotisation(event, admin);
     }
-  }
 
-  /* ——— Abonnement Klubster (événements de la PLATEFORME : pas de `event.account`) ———
-     À ne surtout pas confondre avec les cotisations, qui arrivent des comptes connectés
-     des clubs. Un abonnement encaissé au profit de Klubster n'est pas un règlement d'adhérent. */
-  if (!event.account && admin) {
-    const traite = await traiterAbonnement(event, admin);
-    if (traite) return NextResponse.json({ received: true, abonnement: true });
+    await marquerTraite(admin, event.id);
+    return NextResponse.json({ received: true });
+  } catch (e) {
+    // On journalise l'échec ET on renvoie 500 : Stripe rejouera l'événement.
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("webhook echec", event.type, msg);
+    await marquerEchoue(admin, event.id, msg);
+    return NextResponse.json({ error: "Traitement échoué, redélivrance demandée." }, { status: 500 });
   }
+}
 
+/* ——— Cotisations d'un club (compte connecté). Toute erreur remonte pour déclencher un rejeu. ——— */
+async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promise<void> {
   if (event.type === "checkout.session.completed") {
     const obj = event.data.object as {
       mode?: string;
@@ -58,96 +81,122 @@ export async function POST(request: NextRequest) {
       metadata?: { adhesion_id?: string; echeances?: string };
     };
     const adhesionId = obj.metadata?.adhesion_id;
+    if (!adhesionId) return;
+
+    // On refuse d'écrire si le compte connecté à l'origine de l'événement n'est pas
+    // celui de l'organisation de l'adhésion : sans ce contrôle, une métadonnée forgée
+    // pourrait créditer un paiement sur le club d'un autre.
+    await verifierCompte(admin, adhesionId, event.account!);
 
     const echeances = bornerEcheances(obj.metadata?.echeances ?? 1);
 
     if (obj.mode === "subscription" && echeances > 1) {
-      // 1re échéance encaissée → on borne l'abonnement à exactement N prélèvements.
-      if (obj.subscription && event.account) {
-        try {
-          await planifierEcheances(obj.subscription, event.account, echeances);
-        } catch (e) {
-          console.error("planifierEcheances", e);
-        }
-      }
-      if (adhesionId && admin && typeof obj.amount_total === "number" && obj.amount_total > 0) {
-        await admin.rpc("enregistrer_reglement_webhook", {
-          p_adhesion_id: adhesionId,
-          p_montant_centimes: obj.amount_total,
-          p_note: `Échéance 1/${echeances} (Stripe)`,
-        });
-      }
-    } else if (adhesionId && admin) {
-      // Paiement en 1 fois : soldé.
+      if (obj.subscription) await planifierEcheances(obj.subscription, event.account!, echeances);
       if (typeof obj.amount_total === "number" && obj.amount_total > 0) {
-        await admin.rpc("enregistrer_reglement_webhook", {
-          p_adhesion_id: adhesionId,
-          p_montant_centimes: obj.amount_total,
-          p_note: "Paiement en ligne (Stripe)",
-        });
+        await appelerRpc(admin, adhesionId, obj.amount_total, `Échéance 1/${echeances} (Stripe)`, event.id);
       }
-      await admin.from("adhesions").update({ statut: "paye" }).eq("id", adhesionId);
+    } else if (typeof obj.amount_total === "number" && obj.amount_total > 0) {
+      // Paiement en une fois : la RPC enregistre le règlement ET passe l'adhésion « payé »
+      // seulement si le total réglé couvre le montant dû. Plus de statut forcé à l'aveugle.
+      await appelerRpc(admin, adhesionId, obj.amount_total, "Paiement en ligne (Stripe)", event.id);
     }
+    return;
   }
 
-  /* ——— Échéances 2 à N (prélèvements mensuels suivants) ———
-     On n'écoute QUE `invoice.paid`. Stripe émet aussi `invoice.payment_succeeded` pour la
-     même facture, sous un autre identifiant d'événement : le verrou d'idempotence, qui
-     porte sur l'identifiant, ne les verrait pas comme un doublon. Traiter les deux
-     enregistrerait chaque échéance deux fois — un adhérent qui paie 30 € en verrait 60 €
-     crédités. Si la destination Stripe coche les deux par erreur, le second est ignoré ici. */
+  /* Échéances 2 à N. On n'écoute QUE `invoice.paid` (pas `invoice.payment_succeeded`,
+     que Stripe émet aussi sous un autre id d'événement → double comptage). */
   if (event.type === "invoice.paid") {
-    const obj = event.data.object as {
-      subscription?: string;
-      amount_paid?: number;
-      billing_reason?: string;
-    };
-    // La 1re facture est déjà comptée via checkout.session.completed.
-    if (obj.billing_reason === "subscription_cycle" && obj.subscription && event.account && admin) {
-      try {
-        const sub = await getSubscription(obj.subscription, event.account);
-        const adhesionId = sub.metadata?.adhesion_id;
-        const total = bornerEcheances(sub.metadata?.echeances ?? 1);
-        if (adhesionId && typeof obj.amount_paid === "number" && obj.amount_paid > 0) {
-          // Le rang de l'échéance = nombre de règlements déjà enregistrés + 1.
-          const { count } = await admin
-            .from("reglements")
-            .select("id", { count: "exact", head: true })
-            .eq("adhesion_id", adhesionId);
-          const rang = (count ?? 0) + 1;
-
-          await admin.rpc("enregistrer_reglement_webhook", {
-            p_adhesion_id: adhesionId,
-            p_montant_centimes: obj.amount_paid,
-            p_note: `Échéance ${rang}/${total} (Stripe)`,
-          });
-        }
-      } catch (e) {
-        console.error("webhook invoice", e);
+    const obj = event.data.object as { subscription?: string; amount_paid?: number; billing_reason?: string };
+    if (obj.billing_reason === "subscription_cycle" && obj.subscription) {
+      const sub = await getSubscription(obj.subscription, event.account!);
+      const adhesionId = sub.metadata?.adhesion_id as string | undefined;
+      const total = bornerEcheances(sub.metadata?.echeances ?? 1);
+      if (adhesionId && typeof obj.amount_paid === "number" && obj.amount_paid > 0) {
+        await verifierCompte(admin, adhesionId, event.account!);
+        const { count } = await admin
+          .from("reglements")
+          .select("id", { count: "exact", head: true })
+          .eq("adhesion_id", adhesionId);
+        const rang = (count ?? 0) + 1;
+        await appelerRpc(admin, adhesionId, obj.amount_paid, `Échéance ${rang}/${total} (Stripe)`, event.id);
       }
     }
+    return;
   }
 
-  /* ——— Échéance rejetée (prélèvement refusé sur un compte connecté) ———
-     Sans ce bloc, un adhérent dont la carte est refusée reste « payé » dans le cockpit :
-     le club ne l'apprend jamais, et découvre le trou en fin de saison. */
-  if (event.type === "invoice.payment_failed" && event.account && admin) {
+  // Échéance rejetée : adhésion « en retard » + emails. L'échec d'email ne fait pas
+  // échouer le webhook (sinon rejeu en boucle) : il est isolé dans signalerEcheanceRejetee.
+  if (event.type === "invoice.payment_failed") {
     const obj = event.data.object as { subscription?: string; amount_due?: number };
     if (obj.subscription) {
-      try {
-        const sub = await getSubscription(obj.subscription, event.account);
-        const adhesionId = sub.metadata?.adhesion_id as string | undefined;
-        if (adhesionId) await signalerEcheanceRejetee(adhesionId, obj.amount_due ?? 0, admin);
-      } catch (e) {
-        console.error("webhook echeance rejetee", e);
+      const sub = await getSubscription(obj.subscription, event.account!);
+      const adhesionId = sub.metadata?.adhesion_id as string | undefined;
+      if (adhesionId) {
+        await verifierCompte(admin, adhesionId, event.account!);
+        await signalerEcheanceRejetee(adhesionId, obj.amount_due ?? 0, admin);
       }
     }
   }
-
-  return NextResponse.json({ received: true });
 }
 
-type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+/** Vérifie que le compte Stripe de l'événement est bien celui de l'organisation de l'adhésion. */
+async function verifierCompte(admin: ClientAdmin, adhesionId: string, account: string): Promise<void> {
+  const { data } = await admin
+    .from("adhesions")
+    .select("organisations(id, stripe_account_id, stripe_test)")
+    .eq("id", adhesionId)
+    .maybeSingle();
+  const org = data?.organisations as unknown as Organisation | null;
+  if (!org) throw new Error(`adhesion ${adhesionId} sans organisation`);
+  const attendu = compteConnecte(org);
+  if (!attendu || attendu !== account) {
+    throw new Error(`compte Stripe ${account} != compte de l'organisation (${attendu ?? "aucun"})`);
+  }
+}
+
+/** Appelle la RPC d'enregistrement (idempotente par `p_ref`) et remonte l'erreur pour rejeu. */
+async function appelerRpc(admin: ClientAdmin, adhesionId: string, montant: number, note: string, ref?: string): Promise<void> {
+  const { error } = await admin.rpc("enregistrer_reglement_webhook", {
+    p_adhesion_id: adhesionId,
+    p_montant_centimes: montant,
+    p_note: note,
+    p_ref: ref ?? null,
+  });
+  if (error) throw new Error(`enregistrer_reglement_webhook: ${error.message}`);
+}
+
+/* ——— Verrou d'idempotence : primitives ——— */
+
+async function reclamerEvenement(
+  admin: ClientAdmin,
+  eventId: string,
+  type: string | undefined
+): Promise<"nouveau" | "traite" | "erreur"> {
+  const { error } = await admin.from("stripe_events").insert({ event_id: eventId, type, statut: "en_cours" });
+  if (!error) return "nouveau";
+  if (error.code !== "23505") {
+    console.error("stripe_events insert", error.message);
+    return "erreur";
+  }
+  // Déjà présent : traité (on acquitte) ou en cours/échoué (on rejoue).
+  const { data } = await admin.from("stripe_events").select("statut, tentatives").eq("event_id", eventId).maybeSingle();
+  if (data?.statut === "traite") return "traite";
+  await admin
+    .from("stripe_events")
+    .update({ statut: "en_cours", tentatives: (data?.tentatives ?? 1) + 1 })
+    .eq("event_id", eventId);
+  return "nouveau";
+}
+
+async function marquerTraite(admin: ClientAdmin, eventId: string | undefined): Promise<void> {
+  if (!eventId) return;
+  await admin.from("stripe_events").update({ statut: "traite", traite_le: new Date().toISOString() }).eq("event_id", eventId);
+}
+
+async function marquerEchoue(admin: ClientAdmin, eventId: string | undefined, erreur: string): Promise<void> {
+  if (!eventId) return;
+  await admin.from("stripe_events").update({ statut: "echoue", derniere_erreur: erreur.slice(0, 500) }).eq("event_id", eventId);
+}
 
 /**
  * Un prélèvement d'échéance a été refusé.
