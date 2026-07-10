@@ -121,7 +121,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO — le produit, le prix et la simplicité, en dix secondes */}
+      {/* HERO — l'image et la promesse. Rien à lire par-dessus une photo. */}
       <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
         <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
@@ -132,21 +132,27 @@ export default function Home() {
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>
-            <p className="mt-5 max-w-prose text-[15px] leading-relaxed text-paper/85 md:text-lg">
-              Inscriptions, paiements, communication et site web. Tout ce dont une association a besoin,
-              dans un seul outil pensé pour les bénévoles.
+          </div>
+        </div>
+      </section>
+
+      {/* L'OFFRE — sur fond blanc, sous la photo : ce qu'on lit, on le lit sur du papier. */}
+      <section>
+        <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
+          <p className="max-w-prose text-lg leading-relaxed text-ink md:text-xl">
+            Inscriptions, paiements, communication et site web. Tout ce dont une association a besoin,
+            réuni dans un seul outil pensé pour les bénévoles.
+          </p>
+          <p className="mono mt-8 text-[13px] tracking-wide text-ink">
+            À partir de 9 €/mois <span className="text-ink-faint">·</span> Premier mois offert
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-5">
+            <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+              CRÉER MON ASSOCIATION →
+            </Link>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              Prêt en moins de 30 minutes<span className="text-brand">_</span>
             </p>
-            <p className="mono mt-6 text-[13px] tracking-wide text-paper">
-              À partir de 9 €/mois <span className="text-paper/50">·</span> Premier mois offert
-            </p>
-            <div className="mt-7 flex flex-wrap items-center gap-5">
-              <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-                CRÉER MON ASSOCIATION →
-              </Link>
-              <p className="mono text-[11px] uppercase tracking-label text-paper/70">
-                Prêt en moins de 30 minutes<span className="text-brand">_</span>
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -163,7 +169,7 @@ export default function Home() {
         </p>
       </DoublePage>
 
-      <Citation lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
+      <Citation serre lines={["Avant les adhérents.", "Avant le bruit.", "Pour ceux qui sont déjà là"]} />
 
       {/* II — LE COCKPIT (le produit, montré tôt) */}
       <section id="cockpit">
@@ -182,22 +188,16 @@ export default function Home() {
           <Reveal className="mt-14">
             <CockpitPreview />
           </Reveal>
+        </div>
+      </section>
 
-          {/* La légende : ce que le visuel ne peut pas montrer — ce qui se passe tout seul. */}
-          <Reveal className="mt-10">
-            <div className="max-w-2xl border-t border-line">
-              {[
-                ["18:02", "Une inscription arrive."],
-                ["18:04", "Le paiement est reçu — directement sur le compte du club."],
-                ["18:06", "Le dossier est complet. L’adhérent apparaît dans son cours."],
-              ].map(([h, texte]) => (
-                <div key={h} className="grid grid-cols-[64px_1fr] gap-4 border-b border-line py-4 md:grid-cols-[88px_1fr]">
-                  <span className="mono text-[12px] text-ink-faint">{h}</span>
-                  <p className="text-[15px] text-ink">{texte}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-8 max-w-2xl text-lg text-ink-soft">
+      {/* la salle — respiration entre l'écran et la phrase qui le conclut */}
+      <Chapitre src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." h="h-[60vh] md:h-[80vh]" />
+
+      <section>
+        <div className="mx-auto max-w-6xl px-6 pt-20 pb-12 md:px-8 md:pt-28 md:pb-[72px]">
+          <Reveal>
+            <p className="max-w-2xl text-lg text-ink-soft">
               Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
               est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
             </p>
