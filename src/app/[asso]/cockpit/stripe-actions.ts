@@ -109,14 +109,27 @@ export async function connecterStripe(slug: string) {
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?stripe=nonconfig`);
 
   const supabase = createSupabaseServerClient();
-  let acct = compteConnecte(org);
-  if (!acct) {
-    const account = await createConnectedAccount(org.email_contact);
-    acct = account.id as string;
-    // Écrit dans le compartiment du mode courant : un compte de test ne doit
-    // jamais apparaître comme un compte de production.
-    await supabase.from("organisations").update(champsCompteConnecte(org, acct)).eq("id", org.id);
+  let url: string | null = null;
+
+  // Stripe refuse la création de compte tant que Connect n'est pas activé sur la
+  // plateforme. Sans ce filet, le président voit « Application error » : un écran
+  // qui ne lui apprend rien et qu'il ne peut pas corriger.
+  try {
+    let acct = compteConnecte(org);
+    if (!acct) {
+      const account = await createConnectedAccount(org.email_contact);
+      acct = account.id as string;
+      // Écrit dans le compartiment du mode courant : un compte de test ne doit
+      // jamais apparaître comme un compte de production.
+      await supabase.from("organisations").update(champsCompteConnecte(org, acct)).eq("id", org.id);
+    }
+    const link = await createAccountLink(acct, `${BASE}/${slug}/cockpit`, `${BASE}/${slug}/cockpit?stripe=ok`);
+    url = (link.url as string) ?? null;
+  } catch (e) {
+    console.error("connecterStripe", e);
   }
-  const link = await createAccountLink(acct, `${BASE}/${slug}/cockpit`, `${BASE}/${slug}/cockpit?stripe=ok`);
-  redirect(link.url as string);
+
+  // redirect() lève NEXT_REDIRECT : il doit rester hors du try, sinon le catch l'avale.
+  if (!url) redirect(`/${slug}/cockpit?stripe=erreur`);
+  redirect(url);
 }

@@ -312,6 +312,11 @@ export default async function Cockpit({
                 Stripe n&apos;est pas encore configuré côté plateforme (clé API manquante).
               </p>
             ) : null}
+            {searchParams?.stripe === "erreur" ? (
+              <p className="mono mt-3 text-[11px]" style={{ color: "#B23B3B" }}>
+                La connexion à Stripe a échoué. Réessayez dans un instant ; si cela persiste, écrivez-nous.
+              </p>
+            ) : null}
           </div>
 
           {/* ACTIONS RAPIDES — des gestes, pas des raccourcis */}
