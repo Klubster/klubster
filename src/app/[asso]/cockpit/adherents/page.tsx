@@ -92,12 +92,20 @@ export default async function Adherents({
           <h1 className="text-3xl font-medium tracking-[-0.01em]">
             {total} adhérent{total > 1 ? "s" : ""}
           </h1>
-          <Link
-            href={`/${org.slug}/cockpit/adherents/nouveau`}
-            className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
-          >
-            AJOUTER UN ADHÉRENT →
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/${org.slug}/cockpit/adherents/import`}
+              className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+            >
+              IMPORTER UN FICHIER
+            </Link>
+            <Link
+              href={`/${org.slug}/cockpit/adherents/nouveau`}
+              className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+            >
+              AJOUTER UN ADHÉRENT →
+            </Link>
+          </div>
         </div>
 
         <form className="mt-8 flex flex-wrap items-center gap-3">

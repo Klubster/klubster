@@ -116,6 +116,141 @@ export async function ajouterAdherent(slug: string, formData: FormData) {
   redirect(`/${slug}/cockpit/adherents/${adherent.id}?ok=1`);
 }
 
+export interface LigneImport {
+  prenom: string;
+  nom: string;
+  email?: string | null;
+  telephone?: string | null;
+  coursId?: string | null;
+}
+
+export interface ResultatImport {
+  crees: number;
+  ignores: number;
+  erreurs: string[];
+}
+
+const MAX_LIGNES = 2000;
+
+/**
+ * Import d'adhérents depuis un CSV.
+ *
+ * Le CSV est lu et mis en correspondance dans le navigateur ; le serveur ne reçoit que des
+ * lignes déjà structurées, qu'il revalide entièrement. On ne fait pas confiance au client :
+ * ni au `coursId` (vérifié contre l'organisation), ni au nombre de lignes, ni aux doublons.
+ *
+ * Les doublons sont ignorés, jamais écrasés. Écraser une fiche existante à l'import, c'est
+ * effacer un numéro de téléphone corrigé à la main sans que personne ne le sache.
+ */
+export async function importerAdherents(slug: string, lignes: LigneImport[]): Promise<ResultatImport> {
+  const org = await garde(slug);
+  const erreurs: string[] = [];
+
+  if (!Array.isArray(lignes) || lignes.length === 0) {
+    return { crees: 0, ignores: 0, erreurs: ["Aucune ligne à importer."] };
+  }
+  if (lignes.length > MAX_LIGNES) {
+    return { crees: 0, ignores: 0, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  // Les cours autorisés — un identifiant venu du client ne suffit pas.
+  const { data: coursOrg } = await supabase
+    .from("cours")
+    .select("id, tarif_centimes")
+    .eq("organisation_id", org.id);
+  const tarifs = new Map((coursOrg ?? []).map((c) => [c.id as string, c.tarif_centimes as number]));
+
+  // Adhérents déjà présents : on compare sur l'email, puis sur prénom+nom.
+  const { data: existants } = await supabase
+    .from("adherents")
+    .select("email, prenom, nom")
+    .eq("organisation_id", org.id);
+
+  const cle = (p: string, n: string) => `${p.trim().toLowerCase()}|${n.trim().toLowerCase()}`;
+  const emailsPris = new Set(
+    (existants ?? []).map((a) => (a.email ?? "").trim().toLowerCase()).filter(Boolean)
+  );
+  const nomsPris = new Set((existants ?? []).map((a) => cle(a.prenom ?? "", a.nom ?? "")));
+
+  const aCreer: Array<{ ligne: LigneImport; index: number }> = [];
+  let ignores = 0;
+
+  lignes.forEach((l, i) => {
+    const prenom = String(l.prenom ?? "").trim().slice(0, 80);
+    const nom = String(l.nom ?? "").trim().slice(0, 80);
+    if (!prenom || !nom) {
+      erreurs.push(`Ligne ${i + 2} : prénom ou nom manquant — ignorée.`);
+      ignores++;
+      return;
+    }
+
+    const email = String(l.email ?? "").trim().toLowerCase().slice(0, 160);
+    if (email && emailsPris.has(email)) {
+      ignores++;
+      return;
+    }
+    if (!email && nomsPris.has(cle(prenom, nom))) {
+      ignores++;
+      return;
+    }
+
+    // Doublons à l'intérieur du fichier lui-même.
+    if (email) emailsPris.add(email);
+    nomsPris.add(cle(prenom, nom));
+
+    aCreer.push({ ligne: { ...l, prenom, nom, email: email || null }, index: i });
+  });
+
+  if (aCreer.length === 0) return { crees: 0, ignores, erreurs };
+
+  const { data: inseres, error } = await supabase
+    .from("adherents")
+    .insert(
+      aCreer.map(({ ligne }) => ({
+        organisation_id: org.id,
+        prenom: ligne.prenom,
+        nom: ligne.nom,
+        email: ligne.email,
+        telephone: String(ligne.telephone ?? "").trim().slice(0, 30) || null,
+      }))
+    )
+    .select("id");
+
+  if (error || !inseres) {
+    console.error("importerAdherents", error?.message);
+    return { crees: 0, ignores, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
+  }
+
+  // Adhésions, uniquement pour les lignes dont le cours appartient bien au club.
+  const adhesions = inseres
+    .map((a, i) => {
+      const coursId = aCreer[i].ligne.coursId;
+      if (!coursId || !tarifs.has(coursId)) return null;
+      return {
+        organisation_id: org.id,
+        adherent_id: a.id as string,
+        cours_id: coursId,
+        saison: "2025-2026",
+        montant_centimes: tarifs.get(coursId) as number,
+        statut: "en_attente",
+      };
+    })
+    .filter(Boolean) as Record<string, unknown>[];
+
+  if (adhesions.length > 0) {
+    const { error: errAdh } = await supabase.from("adhesions").insert(adhesions);
+    if (errAdh) {
+      console.error("importerAdherents adhesions", errAdh.message);
+      erreurs.push("Les adhérents ont été créés, mais certaines adhésions n’ont pas pu l’être.");
+    }
+  }
+
+  revalidatePath(`/${slug}/cockpit/adherents`);
+  return { crees: inseres.length, ignores, erreurs };
+}
+
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
