@@ -1,5 +1,5 @@
 // Aperçu fidèle du vrai « Aujourd'hui_ » (données de démonstration, lexique et layout réels).
-const NAV = ["AUJOURD’HUI", "INSCRIPTIONS", "PRÉSENCES", "PAIEMENTS", "MESSAGES", "ACTUALITÉ", "SITE"];
+const NAV = ["AUJOURD’HUI", "INSCRIPTIONS", "CONTRÔLE", "PAIEMENTS", "MESSAGES", "ACTUALITÉ", "SITE"];
 
 const POINTS: { ok?: boolean; texte: string }[] = [
   { ok: true, texte: "3 nouvelles inscriptions cette semaine" },

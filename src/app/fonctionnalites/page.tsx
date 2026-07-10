@@ -102,7 +102,7 @@ export default function Fonctionnalites() {
 
       {/* HERO — la promesse à gauche, le produit à droite. La page s'ouvre sur l'outil. */}
       <section className="border-b border-line">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:grid-cols-[1fr_460px] md:gap-14 md:px-8 md:pt-24 md:pb-24">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:grid-cols-[1fr_420px] md:gap-16 md:px-8 md:pt-24 md:pb-24">
           <div>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
             {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
@@ -112,22 +112,24 @@ export default function Fonctionnalites() {
             </h1>
             <p className="mt-7 max-w-prose text-lg leading-relaxed text-ink-soft">
               Inscriptions, dossiers, paiements, contrôle sur le terrain, messages et site internet.
-              Tout est réuni dans un seul outil, pensé pour des bénévoles qui n’ont pas le temps d’apprendre un logiciel.
+              Tout est réuni dans un seul outil pensé pour les bénévoles.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide text-ink">
               Toutes les fonctionnalités sont incluses <span className="text-ink-faint">·</span> À partir de 9 €/mois
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-5">
-              <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+            {/* CTA et réassurance collés : un seul bloc, pas deux éléments qui flottent. */}
+            <div className="mt-8">
+              <Link href="/creer" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
                 CRÉER MON ASSOCIATION →
               </Link>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-                Premier mois offert<span className="text-brand">_</span>
+              <p className="mono mt-3 text-[11px] uppercase tracking-label text-ink-soft">
+                Premier mois offert · Sans engagement<span className="text-brand">_</span>
               </p>
             </div>
           </div>
 
-          {/* Le produit, dès la première seconde. Légèrement incliné pour ne pas figer la page. */}
+          {/* Le produit, dès la première seconde. Légèrement incliné pour ne pas figer la page.
+              Colonne un peu plus étroite (420 au lieu de 460) : le titre reste l'entrée. */}
           <div className="md:rotate-[1.2deg] md:transition-transform md:hover:rotate-0">
             <CockpitPreview />
           </div>
