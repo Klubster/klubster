@@ -6,6 +6,7 @@ import { stripeConfigured, createCheckoutForClub, createCheckoutEcheancesForClub
 import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { compteConnecte } from "@/lib/stripe-org";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -173,11 +174,12 @@ export async function inscrireAdherent(formData: FormData) {
 
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
   const enLigne = mode === "en_ligne" || mode === "en_ligne_echeances";
-  if (enLigne && org.stripe_account_id && stripeConfigured()) {
+  const compteClub = compteConnecte(org);
+  if (enLigne && compteClub && stripeConfigured()) {
     const cours = coursChoisi;
     if (cours) {
       const optsCommunes = {
-        clubAccount: org.stripe_account_id,
+        clubAccount: compteClub,
         coursNom: (cours as { nom: string }).nom,
         montantCentimes: (cours as { tarif_centimes: number }).tarif_centimes,
         successUrl: `${BASE}/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paye=1`,

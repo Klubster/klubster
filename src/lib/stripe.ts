@@ -2,7 +2,38 @@ import crypto from "crypto";
 
 // Intégration Stripe via l'API REST (sans SDK) — Connect, charges directes (0 % Klubster).
 const API = "https://api.stripe.com/v1";
-const KEY = process.env.STRIPE_SECRET_KEY;
+
+/**
+ * Mode test / production.
+ *
+ * Règle : on est en TEST dès qu'une clé de test existe, SAUF si `STRIPE_MODE=live`.
+ * Ce choix est délibéré : l'erreur coûteuse n'est pas de tester en croyant être en prod,
+ * c'est de facturer de vraies cartes en croyant tester. Le doute penche donc vers le test.
+ *
+ * Pour passer en production : poser `STRIPE_MODE=live` (et les clés live). Rien d'autre.
+ */
+const CLE_TEST = process.env.STRIPE_SECRET_KEY_TEST;
+const CLE_LIVE = process.env.STRIPE_SECRET_KEY;
+const MODE_FORCE = process.env.STRIPE_MODE; // "test" | "live" | undefined
+
+export const stripeModeTest: boolean =
+  MODE_FORCE === "test" ? true : MODE_FORCE === "live" ? false : !!CLE_TEST;
+
+const KEY = stripeModeTest ? CLE_TEST : CLE_LIVE;
+
+/** Une clé live employée en mode test (ou l'inverse) ferait des dégâts silencieux. */
+export function stripeCleCoherente(): boolean {
+  if (!KEY) return false;
+  return stripeModeTest ? KEY.startsWith("sk_test_") : KEY.startsWith("sk_live_");
+}
+
+/** Secrets de signature du webhook : celui du mode courant, avec repli sur l'autre. */
+export function webhookSecrets(): string[] {
+  const test = process.env.STRIPE_WEBHOOK_SECRET_TEST;
+  const live = process.env.STRIPE_WEBHOOK_SECRET;
+  const ordre = stripeModeTest ? [test, live] : [live, test];
+  return ordre.filter((s): s is string => !!s);
+}
 
 export function stripeConfigured(): boolean {
   return !!KEY;
@@ -327,4 +358,17 @@ export function verifyWebhook(rawBody: string, sigHeader: string | null, secret:
     return null;
   }
   return JSON.parse(rawBody);
+}
+
+/**
+ * Vérifie la signature contre chacun des secrets connus (test et live).
+ * Un seul endpoint sert les deux modes : sans cela, basculer en production
+ * exigerait de reconfigurer Stripe, et on oublierait.
+ */
+export function verifyWebhookMulti(rawBody: string, sigHeader: string | null): StripeEvent | null {
+  for (const secret of webhookSecrets()) {
+    const event = verifyWebhook(rawBody, sigHeader, secret);
+    if (event) return event;
+  }
+  return null;
 }

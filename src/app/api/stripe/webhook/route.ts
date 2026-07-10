@@ -1,5 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { verifyWebhook, planifierEcheances, getSubscription, bornerEcheances, type StripeEvent } from "@/lib/stripe";
+import {
+  verifyWebhookMulti,
+  webhookSecrets,
+  planifierEcheances,
+  getSubscription,
+  bornerEcheances,
+  stripeModeTest,
+  type StripeEvent,
+} from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -8,10 +16,12 @@ export const preferredRegion = "cdg1"; // RGPD — exécution en Europe (Paris)
 export async function POST(request: NextRequest) {
   const raw = await request.text();
   const sig = request.headers.get("stripe-signature");
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) return NextResponse.json({ error: "Webhook non configuré." }, { status: 400 });
+  if (webhookSecrets().length === 0) {
+    return NextResponse.json({ error: "Webhook non configuré." }, { status: 400 });
+  }
 
-  const event = verifyWebhook(raw, sig, secret);
+  // Un même endpoint sert le mode test et le mode production.
+  const event = verifyWebhookMulti(raw, sig);
   if (!event) return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
 
   const admin = createSupabaseAdminClient();
@@ -123,7 +133,24 @@ type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
  * la logique des cotisations, qui l'interpréterait comme un règlement d'adhérent.
  */
 async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promise<boolean> {
+  // En mode test, tout vit dans `stripe_test` : un abonnement de test ne doit jamais
+  // faire croire, en production, qu'un club est à jour de ses paiements.
   const majParSubscription = async (subscriptionId: string, champs: Record<string, unknown>) => {
+    if (stripeModeTest) {
+      const { data } = await admin
+        .from("organisations")
+        .select("id, stripe_test")
+        .eq("stripe_test->>subscription_id", subscriptionId)
+        .maybeSingle();
+      if (!data) return;
+      const actuel = (data.stripe_test as Record<string, unknown>) ?? {};
+      const { error } = await admin
+        .from("organisations")
+        .update({ stripe_test: { ...actuel, ...champs } })
+        .eq("id", data.id);
+      if (error) console.error("abonnement test maj", error.message);
+      return;
+    }
     const { error } = await admin
       .from("organisations")
       .update(champs)
@@ -140,6 +167,23 @@ async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promis
     };
     const orgId = obj.metadata?.organisation_id;
     if (obj.mode !== "subscription" || !orgId) return false;
+
+    if (stripeModeTest) {
+      const { data } = await admin.from("organisations").select("stripe_test").eq("id", orgId).maybeSingle();
+      const actuel = (data?.stripe_test as Record<string, unknown>) ?? {};
+      await admin
+        .from("organisations")
+        .update({
+          stripe_test: {
+            ...actuel,
+            customer_id: obj.customer ?? null,
+            subscription_id: obj.subscription ?? null,
+            statut: "essai",
+          },
+        })
+        .eq("id", orgId);
+      return true;
+    }
 
     await admin
       .from("organisations")
@@ -173,20 +217,25 @@ async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promis
               ? "impaye"
               : "aucun";
 
-    await majParSubscription(obj.id, {
-      abonnement_statut: statut,
-      abonnement_essai_fin: obj.trial_end ? new Date(obj.trial_end * 1000).toISOString() : null,
-      abonnement_periode_fin: obj.current_period_end
-        ? new Date(obj.current_period_end * 1000).toISOString()
-        : null,
-    });
+    await majParSubscription(
+      obj.id,
+      stripeModeTest
+        ? { statut }
+        : {
+            abonnement_statut: statut,
+            abonnement_essai_fin: obj.trial_end ? new Date(obj.trial_end * 1000).toISOString() : null,
+            abonnement_periode_fin: obj.current_period_end
+              ? new Date(obj.current_period_end * 1000).toISOString()
+              : null,
+          }
+    );
     return true;
   }
 
   if (event.type === "invoice.payment_failed") {
     const obj = event.data.object as { subscription?: string };
     if (!obj.subscription) return false;
-    await majParSubscription(obj.subscription, { abonnement_statut: "impaye" });
+    await majParSubscription(obj.subscription, stripeModeTest ? { statut: "impaye" } : { abonnement_statut: "impaye" });
     return true;
   }
 
@@ -194,7 +243,7 @@ async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promis
     const obj = event.data.object as { subscription?: string; billing_reason?: string };
     // Facture d'abonnement Klubster : Stripe l'envoie au club, nous notons seulement l'état.
     if (!obj.subscription) return false;
-    await majParSubscription(obj.subscription, { abonnement_statut: "actif" });
+    await majParSubscription(obj.subscription, stripeModeTest ? { statut: "actif" } : { abonnement_statut: "actif" });
     return true;
   }
 

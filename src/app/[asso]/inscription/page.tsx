@@ -8,6 +8,7 @@ import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import ChoixEcheances from "@/components/site/ChoixEcheances";
+import { compteConnecte } from "@/lib/stripe-org";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -156,7 +157,7 @@ export default async function InscriptionPage({
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
               {/* Le paiement en ligne n'est proposé que si le club a connecté Stripe. */}
-              {org.stripe_account_id ? (
+              {compteConnecte(org) ? (
                 <>
                   <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
                   <ChoixEcheances

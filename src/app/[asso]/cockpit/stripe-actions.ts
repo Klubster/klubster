@@ -12,6 +12,7 @@ import {
   createPortalSession,
   palierPourEffectif,
 } from "@/lib/stripe";
+import { compteConnecte, champsCompteConnecte, clientAbonnement } from "@/lib/stripe-org";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
 
@@ -63,7 +64,7 @@ export async function souscrireAbonnement(slug: string) {
       organisationNom: org.nom,
       palier: palierPourEffectif(count ?? 0),
       email: profile.email ?? org.email_contact,
-      customerId: org.abonnement_customer_id,
+      customerId: clientAbonnement(org),
       successUrl: `${BASE}/${slug}/cockpit?abonnement=ok`,
       cancelUrl: `${BASE}/${slug}/cockpit?abonnement=annule`,
     });
@@ -84,11 +85,12 @@ export async function gererAbonnement(slug: string) {
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${slug}/cockpit`);
   }
-  if (!org.abonnement_customer_id) redirect(`/${slug}/cockpit?abonnement=aucun`);
+  const client = clientAbonnement(org);
+  if (!client) redirect(`/${slug}/cockpit?abonnement=aucun`);
 
   let url: string | null = null;
   try {
-    const session = await createPortalSession(org.abonnement_customer_id, `${BASE}/${slug}/cockpit`);
+    const session = await createPortalSession(client, `${BASE}/${slug}/cockpit`);
     url = (session?.url as string) ?? null;
   } catch (e) {
     console.error("portail abonnement", e);
@@ -107,11 +109,13 @@ export async function connecterStripe(slug: string) {
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?stripe=nonconfig`);
 
   const supabase = createSupabaseServerClient();
-  let acct = org.stripe_account_id;
+  let acct = compteConnecte(org);
   if (!acct) {
     const account = await createConnectedAccount(org.email_contact);
     acct = account.id as string;
-    await supabase.from("organisations").update({ stripe_account_id: acct }).eq("id", org.id);
+    // Écrit dans le compartiment du mode courant : un compte de test ne doit
+    // jamais apparaître comme un compte de production.
+    await supabase.from("organisations").update(champsCompteConnecte(org, acct)).eq("id", org.id);
   }
   const link = await createAccountLink(acct, `${BASE}/${slug}/cockpit`, `${BASE}/${slug}/cockpit?stripe=ok`);
   redirect(link.url as string);

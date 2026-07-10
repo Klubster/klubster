@@ -4,7 +4,8 @@ import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujo
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
 import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement } from "./stripe-actions";
-import { palierPourEffectif, PALIERS, JOURS_ESSAI } from "@/lib/stripe";
+import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente } from "@/lib/stripe";
+import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -34,14 +35,14 @@ export default async function Cockpit({
   ]);
 
   const prenom = profile?.prenom?.trim();
-  const stripeConnecte = !!org.stripe_account_id;
+  const stripeConnecte = !!compteConnecte(org);
   const connecterAvecSlug = connecterStripe.bind(null, org.slug);
   const definirEcheancesAvecSlug = definirEcheancesMax.bind(null, org.slug);
   const souscrireAvecSlug = souscrireAbonnement.bind(null, org.slug);
   const gererAvecSlug = gererAbonnement.bind(null, org.slug);
 
   // Abonnement Klubster — état lisible pour un bénévole, pas du vocabulaire Stripe.
-  const abo = org.abonnement_statut ?? "aucun";
+  const abo = statutAbonnement(org);
   const palier = palierPourEffectif(s.equipage);
   const prixMensuel = PALIERS[palier];
   const finEssai = org.abonnement_essai_fin
@@ -195,6 +196,18 @@ export default async function Cockpit({
           {/* PAIEMENTS / STRIPE */}
           <div className="border-b border-line px-6 py-7 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
+            {/* Aucun euro réel ne circule en mode test : il faut le dire, gros, avant que
+                quelqu'un croie avoir encaissé une cotisation. */}
+            {stripeModeTest ? (
+              <p
+                className="mono mb-6 border px-4 py-3 text-[11px] uppercase tracking-label"
+                style={{ borderColor: "#B8860B", color: "#B8860B" }}
+              >
+                ⚠ Stripe en mode test — aucun paiement réel.
+                {!stripeCleCoherente() ? " La clé configurée ne correspond pas au mode : vérifiez les variables d’environnement." : ""}
+              </p>
+            ) : null}
+
             {/* ABONNEMENT KLUBSTER — distinct des cotisations. Un bénévole confond vite les deux. */}
             <div className="mb-8 border-b border-line pb-8">
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
