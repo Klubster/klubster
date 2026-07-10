@@ -9,15 +9,6 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-// Photo-chapitre : plein cadre, sans bandeau, sans légende. L'image vit seule.
-function Chapitre({ src, alt, h = "h-[72vh] md:h-screen" }: { src: string; alt: string; h?: string }) {
-  return (
-    <section className={`relative w-full overflow-hidden ${h}`}>
-      <Parallax src={src} alt={alt} className="absolute inset-0" strength={0.12} />
-    </section>
-  );
-}
-
 // Double-page magazine : une photo plein bord, un texte en regard.
 function DoublePage({
   src,
@@ -191,13 +182,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* la salle — respiration entre l'écran et la phrase qui le conclut */}
-      <Chapitre src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." h="h-[60vh] md:h-[80vh]" />
-
-      <section>
-        <div className="mx-auto max-w-6xl px-6 pt-20 pb-12 md:px-8 md:pt-28 md:pb-[72px]">
-          <Reveal>
-            <p className="max-w-2xl text-lg text-ink-soft">
+      {/* La conclusion du cockpit — texte à gauche, le studio à droite. */}
+      <section className="grid grid-cols-1 md:grid-cols-2">
+        <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
+          <Reveal className="max-w-md">
+            <p className="text-lg text-ink-soft">
               Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
               est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
             </p>
@@ -205,6 +194,9 @@ export default function Home() {
               L’état de votre club,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
+        </div>
+        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
+          <Parallax src="/08-studio.jpg" alt="Un studio de yoga, tapis déroulés, au soleil couchant." className="absolute inset-0" strength={0.08} />
         </div>
       </section>
 
@@ -269,24 +261,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LES TROIS QUESTIONS — juste après le prix, là où elles se posent */}
-      <section>
-        <div className="mx-auto max-w-3xl px-6 pb-24 md:px-8 md:pb-32">
-          <Reveal>
+      {/* LES TROIS QUESTIONS — juste après le prix, là où elles se posent.
+          L'atelier à gauche : Klubster n'est pas qu'une affaire de gymnases. */}
+      <section className="grid grid-cols-1 md:grid-cols-2">
+        <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
+          <Parallax src="/09-atelier.jpg" alt="Une salle d’arts plastiques, tables et tabourets, lumière du matin." className="absolute inset-0" strength={0.08} />
+        </div>
+        <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
+          <Reveal className="max-w-md">
             <div className="border-t border-line">
               {OBJECTIONS.map(([question, reponse]) => (
                 <div key={question} className="border-b border-line py-7">
                   <p className="text-xl font-medium tracking-[-0.01em]">{question}</p>
-                  <p className="mt-2.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{reponse}</p>
+                  <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{reponse}</p>
                 </div>
               ))}
             </div>
           </Reveal>
         </div>
       </section>
-
-      {/* l’objet — le ballon */}
-      <Chapitre src="/04-objet.jpg" alt="Un ballon posé sur le parquet." h="h-[60vh] md:h-[80vh]" />
 
       {/* IV — UNE DEMI-HEURE (la promesse, racontée comme une expérience) */}
       <section>
