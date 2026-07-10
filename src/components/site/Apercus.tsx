@@ -149,6 +149,47 @@ export function ApercuFiche() {
   );
 }
 
+/* ——— Le bordereau de remise de chèques : la trésorerie à la française ——— */
+
+const CHEQUES_REMISE = [
+  { nom: "Camille Fontaine", montant: "210,00 €" },
+  { nom: "Sofia Benali", montant: "160,00 €" },
+  { nom: "Jean-Luc Dupont", montant: "210,00 €" },
+];
+
+export function ApercuRemise() {
+  return (
+    <div className="mx-auto max-w-md border border-line bg-paper p-6 shadow-[6px_6px_0_0_var(--tw-shadow-color)] shadow-line">
+      <div className="flex items-start justify-between border-b border-line pb-4">
+        <div>
+          <p className="text-[15px] font-medium">USM Boxe Anglaise</p>
+          <p className="mono mt-0.5 text-[11px] text-ink-soft">Bordereau de remise de chèques</p>
+        </div>
+        <p className="mono text-[11px] text-ink-soft">Le 10/09</p>
+      </div>
+      <table className="mt-4 w-full text-left text-[12px]">
+        <tbody>
+          {CHEQUES_REMISE.map((c, i) => (
+            <tr key={c.nom} className="border-b border-line">
+              <td className="py-2 pr-2 text-ink-soft">{i + 1}</td>
+              <td className="py-2">{c.nom}</td>
+              <td className="mono py-2 text-right">{c.montant}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={2} className="mono py-3 text-right text-[10px] uppercase tracking-label text-ink-soft">
+              3 chèques · Total
+            </td>
+            <td className="mono py-3 text-right text-[15px] font-bold">580,00 €</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
 /* ——— IV. Les messages : à qui, quoi, envoyé ——— */
 
 const CIBLES = [

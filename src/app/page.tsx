@@ -57,7 +57,8 @@ const PALIERS: { capacite: string; prix: string }[] = [
 const INCLUS = [
   "Le site internet de votre association",
   "Les inscriptions et les dossiers en ligne",
-  "Les paiements jusqu’à 12 fois",
+  "Les paiements en ligne jusqu’à 12 fois",
+  "Les chèques et espèces, jusqu’à la remise en banque",
   "Les documents et certificats centralisés",
   "Les messages aux adhérents et aux parents",
   "Le suivi des présences",

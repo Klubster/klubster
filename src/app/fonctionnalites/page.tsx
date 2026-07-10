@@ -4,7 +4,7 @@ import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import MenuMobile from "@/components/site/MenuMobile";
 import CockpitPreview from "@/components/site/CockpitPreview";
-import { ApercuFormulaire, ApercuScan, ApercuFiche, ApercuMessages, ApercuSite } from "@/components/site/Apercus";
+import { ApercuFormulaire, ApercuScan, ApercuFiche, ApercuMessages, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
 
 export const metadata: Metadata = {
   title: "Fonctionnalités — Klubster",
@@ -250,10 +250,17 @@ export default function Fonctionnalites() {
               "C’est le club qui fixe le maximum ; l’adhérent choisit dans cette limite",
               "Chaque échéance encaissée est inscrite dans le dossier, sans rien saisir",
               "Une échéance rejetée par la banque ? L’adhérent et le club sont prévenus le jour même",
-              "Plus de chèques à conserver ni de dates d’encaissement à noter au dos",
-              "Les règlements par chèque ou en espèces s’enregistrent aussi, en deux clics",
+              "Un chèque, des espèces ? Vous l’enregistrez depuis la fiche, en deux clics",
+              "Préparez votre remise et imprimez le bordereau à joindre au dépôt en banque",
             ]}
           />
+        </Reveal>
+
+        <Reveal className="mt-12">
+          <ApercuRemise />
+          <p className="mono mt-4 text-center text-[11px] text-ink-faint">
+            Le bordereau de remise : cochez les chèques, imprimez, déposez. Klubster tient le compte.
+          </p>
         </Reveal>
 
         <Reveal className="mt-12">
