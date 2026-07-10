@@ -88,9 +88,17 @@ export default async function Adherents({
       </header>
 
       <div className="mx-auto max-w-5xl px-6 py-12 md:px-8">
-        <h1 className="text-3xl font-medium tracking-[-0.01em]">
-          {total} adhérent{total > 1 ? "s" : ""}
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-medium tracking-[-0.01em]">
+            {total} adhérent{total > 1 ? "s" : ""}
+          </h1>
+          <Link
+            href={`/${org.slug}/cockpit/adherents/nouveau`}
+            className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+          >
+            AJOUTER UN ADHÉRENT →
+          </Link>
+        </div>
 
         <form className="mt-8 flex flex-wrap items-center gap-3">
           <input
