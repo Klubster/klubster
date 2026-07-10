@@ -261,6 +261,7 @@ export async function basculerPiece(slug: string, adherentId: string, pieceId: s
     .from("pieces_adherent")
     .update({ statut: nouveau })
     .eq("id", pieceId)
+    .eq("adherent_id", adherentId) // sinon un id de pièce d'un autre adhérent (même club) passerait
     .eq("organisation_id", org.id);
 
   if (error) console.error("basculerPiece", error.message);
