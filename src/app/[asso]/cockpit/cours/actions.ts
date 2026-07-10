@@ -32,7 +32,15 @@ function creneauxPropres(brut: unknown): Creneau[] {
         HEURE.test((k as Creneau).fin)
     )
     .slice(0, 10)
-    .map((k) => ({ jour: k.jour, debut: k.debut, fin: k.fin }));
+    // La note (« 8-12 ans ») est saisie ailleurs mais vit dans le créneau : la jeter ici
+    // effacerait, à chaque changement de tarif, une information que personne ne pourrait
+    // remettre depuis cette page.
+    .map((k) => ({
+      jour: k.jour,
+      debut: k.debut,
+      fin: k.fin,
+      ...(k.note ? { note: String(k.note).slice(0, 60) } : {}),
+    }));
 }
 
 /** Un tarif se saisit en euros et se stocke en centimes. « 12,50 » comme « 12.50 ». */

@@ -126,6 +126,12 @@ export default function CoursEditeur({
               onChange={(e) => majCreneau(i, "fin", e.target.value)}
               className="border border-line bg-paper px-3 py-2 outline-none focus:border-ink"
             />
+            <input
+              value={c.note ?? ""}
+              onChange={(e) => majCreneau(i, "note", e.target.value)}
+              placeholder="précision (8-12 ans…)"
+              className="min-w-[150px] flex-1 border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
+            />
             <button
               onClick={() => setCreneaux((cs) => cs.filter((_, j) => j !== i))}
               className="mono px-2 py-2 text-[12px] text-ink-soft hover:text-ink"
