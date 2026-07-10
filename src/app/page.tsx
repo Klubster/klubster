@@ -112,8 +112,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* HERO — l'image et la promesse. Rien à lire par-dessus une photo. */}
-      <section className="relative h-screen min-h-[600px] w-full overflow-hidden">
+      {/* HERO — l'image et la promesse. Rien à lire par-dessus une photo.
+          85vh, pas 100 : le bloc blanc doit affleurer, sinon rien n'appelle le scroll
+          et le visiteur ne voit ni le prix ni le bouton. */}
+      <section className="relative h-[85vh] min-h-[560px] w-full overflow-hidden">
         <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
         <div className="absolute inset-x-0 bottom-0">
@@ -168,11 +170,11 @@ export default function Home() {
           <Reveal className="max-w-2xl">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
-              Le club ouvre dans quinze minutes.
+              La salle ouvre dans quinze minutes.
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               Vous ouvrez Klubster.<br />
-              Le club est prêt.
+              Tout est prêt.
             </p>
           </Reveal>
 
@@ -182,16 +184,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* La conclusion du cockpit — texte à gauche, le studio à droite. */}
+      {/* La conclusion du cockpit — une seule phrase, à gauche, le studio à droite.
+          Alignée haut : centrée, elle flottait au milieu d'une colonne de 88vh. */}
       <section className="grid grid-cols-1 md:grid-cols-2">
-        <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
+        <div className="flex items-start px-6 py-20 md:px-16 md:pt-32">
           <Reveal className="max-w-md">
-            <p className="text-lg text-ink-soft">
-              Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
-              est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
-            </p>
-            <p className="mono mt-8 text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
-              L’état de votre club,<br />en trois secondes<span className="cur">_</span>
+            <p className="mono text-2xl font-normal leading-[1.15] tracking-[-0.02em] text-ink md:text-[32px]">
+              L’état de votre association,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
@@ -222,11 +221,25 @@ export default function Home() {
                 <div className="mono mt-5 text-[36px] font-bold tracking-tight text-brand">
                   {p.prix}<span className="text-[13px] font-normal text-ink-soft"> €/mois</span>
                 </div>
+                {/* Referme la carte : sans cette ligne, le prix flotte au-dessus d'un vide. */}
+                <div className="mono mt-5 text-[11px] uppercase tracking-label text-ink-faint">
+                  Premier mois offert
+                </div>
               </div>
             ))}
           </div>
 
-          <div className="-mt-px border-x border-b border-line bg-paper px-7 py-8">
+          {/* Le geste touche le prix : c'est là qu'on décide. */}
+          <div className="mt-10 flex flex-wrap items-center gap-5">
+            <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
+              CRÉER MON ASSOCIATION →
+            </Link>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              Premier mois offert · Sans engagement<span className="text-brand">_</span>
+            </p>
+          </div>
+
+          <div className="mt-12 border border-line bg-paper px-7 py-8">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TOUJOURS INCLUS<Cur /></p>
             <ul className="mt-6 max-w-2xl space-y-3">
               {INCLUS.map((f) => (
@@ -236,15 +249,6 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
-              CRÉER MON ASSOCIATION →
-            </Link>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-              Premier mois offert · Sans engagement<span className="text-brand">_</span>
-            </p>
           </div>
 
           <p className="mono mt-12 text-[11px] uppercase tracking-label text-ink-soft">
