@@ -43,6 +43,19 @@ export default async function PaiementsPage({ params }: { params: { asso: string
   }
   const totalGeneral = [...totaux.values()].reduce((s, v) => s + v, 0);
   const saisonAvecSlug = definirSaison.bind(null, org.slug);
+
+  // Litiges bancaires (chargebacks) ouverts : à traiter en priorité, on les remonte en tête.
+  const { data: litigesData } = await supabase
+    .from("adhesions")
+    .select("adherent_id, litige_le, adherents(prenom, nom)")
+    .eq("organisation_id", org.id)
+    .not("litige_le", "is", null)
+    .order("litige_le", { ascending: false });
+  const litiges = (litigesData ?? []) as unknown as Array<{
+    adherent_id: string;
+    litige_le: string;
+    adherents: { prenom: string; nom: string } | null;
+  }>;
   const { data } = await supabase
     .from("adhesions")
     .select("id, montant_centimes, mode_paiement, statut, created_at, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
@@ -96,6 +109,27 @@ export default async function PaiementsPage({ params }: { params: { asso: string
         >
           PRÉPARER UNE REMISE DE CHÈQUES →
         </Link>
+
+        {litiges.length > 0 ? (
+          <div className="mt-8 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
+            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+              {litiges.length} LITIGE{litiges.length > 1 ? "S" : ""} BANCAIRE{litiges.length > 1 ? "S" : ""} À TRAITER<Cur />
+            </p>
+            <p className="mt-1.5 text-[14px]">
+              Ces paiements sont contestés (opposition bancaire). Répondez depuis votre tableau de bord Stripe.
+            </p>
+            <ul className="mt-3 space-y-1">
+              {litiges.map((l) => (
+                <li key={l.adherent_id} className="text-[14px]">
+                  <Link href={`/${org.slug}/cockpit/adherents/${l.adherent_id}`} className="underline underline-offset-2 hover:text-ink">
+                    {l.adherents?.prenom} {l.adherents?.nom}
+                  </Link>
+                  <span className="mono text-[12px] text-ink-soft"> — depuis le {new Date(l.litige_le).toLocaleDateString("fr-FR")}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {/* CONTRÔLE — total par moyen de paiement, sur la saison. */}
         <section className="mt-12 border border-line">

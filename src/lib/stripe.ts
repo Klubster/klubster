@@ -219,6 +219,18 @@ export async function createCheckoutForClub(opts: {
   );
 }
 
+/**
+ * Rembourse un paiement en ligne (charge directe) sur le compte connecté du club.
+ * Sans `montantCentimes` : remboursement total. On n'écrit rien en base ici — c'est
+ * l'événement `charge.refunded` qui suit qui enregistre l'écriture, une seule fois,
+ * qu'on rembourse depuis Klubster ou depuis le tableau de bord Stripe.
+ */
+export async function rembourser(paymentIntent: string, clubAccount: string, montantCentimes?: number) {
+  const body: Dict = { payment_intent: paymentIntent };
+  if (typeof montantCentimes === "number" && montantCentimes > 0) body.amount = montantCentimes;
+  return call("POST", "/refunds", body, clubAccount);
+}
+
 /** Plafond produit : 12 mensualités = un prélèvement par mois sur toute la saison. */
 export const ECHEANCES_MAX = 12;
 

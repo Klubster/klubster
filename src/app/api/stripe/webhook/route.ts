@@ -77,6 +77,7 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
     const obj = event.data.object as {
       mode?: string;
       subscription?: string;
+      payment_intent?: string;
       amount_total?: number;
       metadata?: { adhesion_id?: string; echeances?: string };
     };
@@ -99,6 +100,11 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       // Paiement en une fois : la RPC enregistre le règlement ET passe l'adhésion « payé »
       // seulement si le total réglé couvre le montant dû. Plus de statut forcé à l'aveugle.
       await appelerRpc(admin, adhesionId, obj.amount_total, "Paiement en ligne (Stripe)", event.id);
+      // On mémorise le paiement : c'est lui qu'un remboursement depuis le cockpit ciblera,
+      // et c'est par lui qu'on rattache un futur remboursement ou litige à l'adhésion.
+      if (obj.payment_intent) {
+        await admin.from("adhesions").update({ stripe_payment_intent: obj.payment_intent }).eq("id", adhesionId);
+      }
     }
     return;
   }
@@ -140,15 +146,27 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
   }
 
   // Remboursement : règlement négatif, l'adhésion rouvre son solde si elle n'est plus couverte.
+  // Le remboursement peut venir du cockpit Klubster OU du tableau de bord Stripe : le webhook
+  // reste la seule source qui écrit l'écriture, pour ne jamais compter deux fois.
   if (event.type === "charge.refunded") {
-    const obj = event.data.object as { amount_refunded?: number; metadata?: { adhesion_id?: string } };
-    const adhesionId = obj.metadata?.adhesion_id;
-    if (adhesionId && typeof obj.amount_refunded === "number" && obj.amount_refunded > 0) {
+    const obj = event.data.object as {
+      amount_refunded?: number;
+      payment_intent?: string;
+      metadata?: { adhesion_id?: string };
+      refunds?: { data?: Array<{ id?: string; amount?: number }> };
+    };
+    const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
+    // On enregistre le DERNIER remboursement (delta), identifié par son propre id : plusieurs
+    // remboursements partiels sur une même charge ne sont donc pas additionnés à tort.
+    const dernier = obj.refunds?.data?.[0];
+    const montant = dernier?.amount ?? obj.amount_refunded ?? 0;
+    const ref = dernier?.id ?? event.id;
+    if (adhesionId && montant > 0) {
       await verifierCompte(admin, adhesionId, event.account!);
       const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
         p_adhesion_id: adhesionId,
-        p_montant_centimes: obj.amount_refunded,
-        p_ref: event.id,
+        p_montant_centimes: montant,
+        p_ref: ref,
       });
       if (error) throw new Error(`remboursement: ${error.message}`);
     } else {
@@ -157,17 +175,51 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
     return;
   }
 
-  // Litige (chargeback) : on prévient le club et on remet l'adhésion « en retard ».
+  // Litige (chargeback) ouvert : on prévient le club, on remet l'adhésion « en retard » et on
+  // l'horodate comme litige — c'est ce qui la distingue d'un simple impayé dans le cockpit.
   if (event.type === "charge.dispute.created") {
-    const obj = event.data.object as { metadata?: { adhesion_id?: string }; amount?: number };
-    const adhesionId = obj.metadata?.adhesion_id;
+    const obj = event.data.object as { metadata?: { adhesion_id?: string }; amount?: number; payment_intent?: string };
+    const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
     if (adhesionId) {
       await verifierCompte(admin, adhesionId, event.account!);
       await signalerLitige(adhesionId, obj.amount ?? 0, admin);
     } else {
       console.warn("charge.dispute.created sans adhesion_id identifiable", event.id);
     }
+    return;
   }
+
+  // Litige clôturé (gagné ou perdu) : le litige n'est plus « en cours ». On lève le drapeau ;
+  // le statut de paiement, lui, ne change pas ici (une perte reste un impayé à traiter).
+  if (event.type === "charge.dispute.closed") {
+    const obj = event.data.object as { metadata?: { adhesion_id?: string }; payment_intent?: string };
+    const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
+    if (adhesionId) {
+      await verifierCompte(admin, adhesionId, event.account!);
+      await admin.from("adhesions").update({ litige_le: null }).eq("id", adhesionId);
+    }
+  }
+}
+
+/**
+ * Retrouve l'adhésion visée par un événement de charge (remboursement, litige).
+ * D'abord par la métadonnée `adhesion_id` si Stripe la porte, sinon par le
+ * `payment_intent` qu'on a mémorisé à l'encaissement — le chemin fiable, car les
+ * objets Charge/Dispute ne recopient pas toujours nos métadonnées.
+ */
+async function resoudreAdhesion(
+  admin: ClientAdmin,
+  adhesionId: string | undefined,
+  paymentIntent: string | undefined
+): Promise<string | null> {
+  if (adhesionId) return adhesionId;
+  if (!paymentIntent) return null;
+  const { data } = await admin
+    .from("adhesions")
+    .select("id")
+    .eq("stripe_payment_intent", paymentIntent)
+    .maybeSingle();
+  return (data?.id as string | undefined) ?? null;
 }
 
 /** Un litige (chargeback) a été ouvert : l'adhésion repasse « en retard », le club est prévenu. */
@@ -177,7 +229,7 @@ async function signalerLitige(adhesionId: string, montantCentimes: number, admin
     .select("adherents(prenom, nom), organisations(nom, email_contact)")
     .eq("id", adhesionId)
     .maybeSingle();
-  await admin.from("adhesions").update({ statut: "en_retard" }).eq("id", adhesionId);
+  await admin.from("adhesions").update({ statut: "en_retard", litige_le: new Date().toISOString() }).eq("id", adhesionId);
   if (!data) return;
   const adherent = data.adherents as unknown as { prenom: string; nom: string } | null;
   const org = data.organisations as unknown as { nom: string; email_contact: string | null } | null;

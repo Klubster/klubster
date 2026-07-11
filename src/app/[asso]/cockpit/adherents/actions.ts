@@ -5,6 +5,9 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
+import { peut } from "@/lib/roles";
+import { rembourser } from "@/lib/stripe";
+import { compteConnecte } from "@/lib/stripe-org";
 import type { Organisation } from "@/types/db";
 
 async function garde(slug: string): Promise<Organisation> {
@@ -263,6 +266,56 @@ export async function anonymiserAdherent(slug: string, adherentId: string) {
   revalidatePath(`/${slug}/cockpit/adherents`);
   redirect(`/${slug}/cockpit/adherents?anonymise=1`);
   void org;
+}
+
+/**
+ * Rembourser un paiement en ligne depuis le cockpit (président ou trésorier).
+ *
+ * On ne fait qu'ordonner le remboursement à Stripe, sur le compte connecté du club et pour
+ * le paiement mémorisé à l'encaissement. L'écriture comptable n'est pas posée ici : c'est le
+ * webhook `charge.refunded` qui l'enregistre, une seule fois — que le remboursement parte
+ * d'ici ou du tableau de bord Stripe. Le montant est plafonné au montant de l'adhésion.
+ */
+export async function rembourserEnLigne(slug: string, adherentId: string, adhesionId: string, formData: FormData) {
+  const org = await garde(slug);
+  const p = await getProfile();
+  if (!p || !peut(p.role, "paiements")) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=acces`);
+
+  const supabase = createSupabaseServerClient();
+  const { data: adh } = await supabase
+    .from("adhesions")
+    .select("id, stripe_payment_intent, montant_centimes")
+    .eq("id", adhesionId)
+    .eq("organisation_id", org.id)
+    .maybeSingle();
+
+  const pi = adh?.stripe_payment_intent as string | null | undefined;
+  if (!pi) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement_impossible`);
+
+  const account = compteConnecte(org);
+  if (!account) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement_impossible`);
+
+  // Montant vide → remboursement total ; sinon on borne au montant de l'adhésion.
+  const brut = String(formData.get("montant") ?? "").replace(",", ".").trim();
+  let montantCentimes: number | undefined;
+  if (brut) {
+    const n = Math.round(parseFloat(brut) * 100);
+    const max = (adh?.montant_centimes as number | null) ?? 0;
+    if (!Number.isFinite(n) || n <= 0 || (max > 0 && n > max)) {
+      redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=montant`);
+    }
+    montantCentimes = n;
+  }
+
+  try {
+    await rembourser(pi, account, montantCentimes);
+  } catch (e) {
+    console.error("rembourserEnLigne", e instanceof Error ? e.message : e);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement`);
+  }
+
+  revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?rembourse=1`);
 }
 
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */

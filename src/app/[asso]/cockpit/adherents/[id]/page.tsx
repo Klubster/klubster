@@ -7,6 +7,7 @@ import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
+import Remboursement from "./Remboursement";
 import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,8 @@ type Adhesion = {
   montant_centimes: number | null;
   mode_paiement: string | null;
   created_at: string;
+  stripe_payment_intent: string | null;
+  litige_le: string | null;
   cours: { nom: string } | null;
 };
 type Piece = { id: string; cle: string; label: string | null; statut: string | null };
@@ -35,7 +38,7 @@ export default async function FicheAdherent({
   searchParams,
 }: {
   params: { asso: string; id: string };
-  searchParams: { ok?: string; erreur?: string };
+  searchParams: { ok?: string; erreur?: string; rembourse?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -58,7 +61,7 @@ export default async function FicheAdherent({
   const [{ data: adhesions }, { data: pieces }, { data: sante }] = await Promise.all([
     supabase
       .from("adhesions")
-      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, cours(nom)")
+      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, stripe_payment_intent, litige_le, cours(nom)")
       .eq("adherent_id", params.id)
       .order("created_at", { ascending: false }),
     supabase.from("pieces_adherent").select("id, cle, label, statut").eq("adherent_id", params.id),
@@ -101,6 +104,7 @@ export default async function FicheAdherent({
 
   const infos = (adherent.infos ?? {}) as Record<string, string>;
   const modifier = modifierAdherent.bind(null, org.slug, adherent.id);
+  const litige = listeAdhesions.find((a) => a.litige_le);
 
   return (
     <main className="min-h-screen text-ink">
@@ -126,12 +130,38 @@ export default async function FicheAdherent({
             ✓ Fiche enregistrée.
           </p>
         ) : null}
+        {searchParams.rembourse ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+            ✓ Remboursement demandé à Stripe. L’écriture apparaîtra une fois confirmé.
+          </p>
+        ) : null}
         {searchParams.erreur ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
             {searchParams.erreur === "nom"
               ? "Le prénom et le nom sont obligatoires."
-              : "L’enregistrement a échoué. Réessayez."}
+              : searchParams.erreur === "acces"
+                ? "Cette action est réservée au président et au trésorier."
+                : searchParams.erreur === "montant"
+                  ? "Montant de remboursement invalide (supérieur au paiement ?)."
+                  : searchParams.erreur === "remboursement_impossible"
+                    ? "Aucun paiement en ligne remboursable pour cette adhésion."
+                    : searchParams.erreur === "remboursement"
+                      ? "Le remboursement a échoué côté Stripe. Réessayez ou passez par votre tableau de bord."
+                      : "L’enregistrement a échoué. Réessayez."}
           </p>
+        ) : null}
+
+        {litige ? (
+          <div className="mt-6 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
+            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+              LITIGE BANCAIRE<Cur />
+            </p>
+            <p className="mt-1.5 text-[15px]">
+              Un paiement de cet adhérent est contesté (opposition bancaire) depuis le{" "}
+              {new Date(litige.litige_le as string).toLocaleDateString("fr-FR")}. Répondez depuis votre
+              tableau de bord Stripe — l’adhésion est repassée « en retard » en attendant.
+            </p>
+          </div>
         ) : null}
 
         {/* ——— COORDONNÉES (modifiables) ——— */}
@@ -187,7 +217,16 @@ export default async function FicheAdherent({
                   <p className="mono mt-1 text-[12px] text-ink-soft">
                     Saison {a.saison ?? "—"} · {formatPrix(a.montant_centimes ?? 0)}
                     {a.mode_paiement ? ` · ${a.mode_paiement}` : ""}
+                    {a.litige_le ? <span style={{ color: "#B23B3B" }}> · litige en cours</span> : null}
                   </p>
+                  {peut(profile.role, "paiements") && a.stripe_payment_intent ? (
+                    <Remboursement
+                      slug={org.slug}
+                      adherentId={adherent.id}
+                      adhesionId={a.id}
+                      montantCentimes={a.montant_centimes ?? 0}
+                    />
+                  ) : null}
                 </div>
               ))}
               <div className="bg-bg-alt px-5 py-4">
@@ -289,8 +328,8 @@ export default async function FicheAdherent({
         {peut(profile.role, "adherents_ecriture") ? (
           <Rgpd
             slug={org.slug}
-            adherentId={a.id}
-            nom={`${a.prenom} ${a.nom}`}
+            adherentId={adherent.id}
+            nom={`${adherent.prenom} ${adherent.nom}`}
             estPresident={profile.role === "admin_asso" || profile.role === "super_admin"}
           />
         ) : null}
