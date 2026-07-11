@@ -13,6 +13,9 @@ export interface CoursLigne {
   tarif_centimes: number;
   creneaux: Creneau[];
   adherents: number;
+  places_max: number | null;
+  actifs?: number;
+  attente?: number;
 }
 
 const euros = (centimes: number) => (centimes / 100).toFixed(2).replace(".", ",");
@@ -29,6 +32,7 @@ export default function CoursEditeur({
   const [nom, setNom] = useState(cours.nom);
   const [cible, setCible] = useState(cours.public_cible ?? "");
   const [tarif, setTarif] = useState(euros(cours.tarif_centimes));
+  const [places, setPlaces] = useState(cours.places_max != null ? String(cours.places_max) : "");
   const [creneaux, setCreneaux] = useState<Creneau[]>(cours.creneaux ?? []);
   const [etat, setEtat] = useState<"repos" | "envoi" | "ok">("repos");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -45,6 +49,7 @@ export default function CoursEditeur({
       public_cible: cible,
       tarif_centimes: Math.round(Number(tarif.replace(",", ".")) * 100) || 0,
       creneaux,
+      places_max: places.trim() === "" ? null : Math.round(Number(places.replace(",", "."))) || null,
     });
     if (r?.erreur) {
       setErreur(r.erreur);
@@ -93,6 +98,29 @@ export default function CoursEditeur({
             className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
           />
         </label>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-end gap-4">
+        <label className="block w-[160px]">
+          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">Places (jauge)</span>
+          <input
+            value={places}
+            onChange={(e) => setPlaces(e.target.value)}
+            inputMode="numeric"
+            placeholder="illimité"
+            className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+          />
+        </label>
+        {cours.places_max != null ? (
+          <p className="mono pb-2.5 text-[12px] text-ink-soft">
+            {cours.actifs ?? 0}/{cours.places_max} inscrits
+            {(cours.attente ?? 0) > 0 ? ` · ${cours.attente} en liste d’attente` : ""}
+          </p>
+        ) : (
+          <p className="mono pb-2.5 text-[12px] text-ink-faint">
+            Sans limite. Indiquez un nombre pour activer la liste d’attente quand c’est complet.
+          </p>
+        )}
       </div>
 
       <p className="mono mt-6 text-[11px] uppercase tracking-label text-ink-soft">Créneaux</p>

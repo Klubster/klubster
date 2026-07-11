@@ -159,6 +159,7 @@ export default async function Adherents({
             <option value="paye">Payés</option>
             <option value="en_attente">En attente</option>
             <option value="en_retard">En retard</option>
+            <option value="liste_attente">Liste d’attente</option>
           </select>
           <button className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
             CHERCHER
@@ -199,10 +200,16 @@ export default async function Adherents({
                         <span
                           style={{
                             color:
-                              ad.statut === "paye" ? "#1E7A4F" : ad.statut === "en_retard" ? "#B23B3B" : "#8A6508",
+                              ad.statut === "paye" ? "#1E7A4F"
+                              : ad.statut === "en_retard" ? "#B23B3B"
+                              : ad.statut === "liste_attente" ? "#6f6f6b"
+                              : "#8A6508",
                           }}
                         >
-                          {ad.statut === "paye" ? "Payé" : ad.statut === "en_retard" ? "En retard" : "En attente"}
+                          {ad.statut === "paye" ? "Payé"
+                            : ad.statut === "en_retard" ? "En retard"
+                            : ad.statut === "liste_attente" ? "Liste d’attente"
+                            : "En attente"}
                         </span>
                         {typeof ad.montant_centimes === "number" ? (
                           <span className="ml-2 text-ink-soft">{formatPrix(ad.montant_centimes)}</span>

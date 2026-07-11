@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { envoyerEmail } from "@/lib/resend";
 import type { Organisation, Creneau } from "@/types/db";
 
 async function garde(slug: string): Promise<Organisation> {
@@ -55,6 +56,7 @@ export interface CoursForm {
   public_cible: string | null;
   tarif_centimes: number;
   creneaux: Creneau[];
+  places_max?: number | null;
 }
 
 export async function enregistrerCours(slug: string, coursId: string | null, form: CoursForm) {
@@ -63,11 +65,18 @@ export async function enregistrerCours(slug: string, coursId: string | null, for
   const nom = String(form.nom ?? "").trim().slice(0, 120);
   if (!nom) return { erreur: "Le nom du cours est obligatoire." };
 
+  // Jauge : 0 ou vide = pas de limite (null). Sinon un entier positif borné (garde-fou).
+  const places =
+    form.places_max && Number.isFinite(form.places_max) && form.places_max > 0
+      ? Math.min(Math.round(form.places_max), 100000)
+      : null;
+
   const ligne = {
     nom,
     public_cible: String(form.public_cible ?? "").trim().slice(0, 120) || null,
     tarif_centimes: Math.max(0, Math.round(form.tarif_centimes ?? 0)),
     creneaux: creneauxPropres(form.creneaux),
+    places_max: places,
   };
 
   const supabase = createSupabaseServerClient();
@@ -120,6 +129,48 @@ export async function supprimerCours(slug: string, coursId: string) {
   revalidatePath(`/${slug}/cockpit/cours`);
   revalidatePath(`/${slug}`);
   return { ok: true };
+}
+
+/**
+ * Donner une place à quelqu'un de la liste d'attente. La RPC vérifie le rôle (président ou
+ * secrétaire) et ne promeut que si la personne est bien en attente. On la prévient par email.
+ */
+export async function promouvoirAttente(slug: string, adhesionId: string) {
+  const org = await garde(slug);
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("promouvoir_liste_attente", { p_adhesion_id: adhesionId });
+  if (error) {
+    console.error("promouvoir_liste_attente", error.message);
+    redirect(`/${slug}/cockpit/cours?erreur=promo`);
+  }
+
+  if (data === true) {
+    const { data: adh } = await supabase
+      .from("adhesions")
+      .select("adherent:adherents(prenom, email), cours:cours(nom)")
+      .eq("id", adhesionId)
+      .eq("organisation_id", org.id)
+      .maybeSingle();
+    const a = adh as unknown as { adherent: { prenom: string; email: string | null } | null; cours: { nom: string } | null } | null;
+    if (a?.adherent?.email) {
+      await envoyerEmail({
+        to: a.adherent.email,
+        fromNom: `${org.nom} via Klubster`,
+        replyTo: org.email_contact,
+        objet: `Une place s'est libérée — ${org.nom}`,
+        texte:
+          `Bonjour ${a.adherent.prenom},\n\n` +
+          `Une place vient de se libérer pour « ${a.cours?.nom ?? "votre cours"} » au ${org.nom} : ` +
+          `vous n'êtes plus sur la liste d'attente, votre inscription est confirmée.\n\n` +
+          `Connectez-vous à votre espace pour finaliser (paiement, pièces) :\n` +
+          `https://klubster.fr/${slug}/espace\n\n` +
+          `Sportivement,\n${org.nom}`,
+      });
+    }
+  }
+
+  revalidatePath(`/${slug}/cockpit/cours`);
+  redirect(`/${slug}/cockpit/cours?promo=${data === true ? "1" : "0"}`);
 }
 
 /** Utilisé par le formulaire d'ajout rapide (une seule ligne, sans créneau). */

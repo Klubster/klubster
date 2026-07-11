@@ -91,6 +91,11 @@ export async function inscrireAdherent(formData: FormData) {
     redirect(`/${slug}/inscription?erreur=1`);
   }
 
+  // La jauge a pu placer l'adhésion en liste d'attente (cours complet) : dans ce cas, on ne
+  // demande aucun paiement — la personne n'a pas encore de place — et on la prévient.
+  const { data: adhLigne } = await admin.from("adhesions").select("statut").eq("id", String(adhesionId)).maybeSingle();
+  const enListeAttente = (adhLigne as { statut: string } | null)?.statut === "liste_attente";
+
   // Questionnaire de santé (remplace le certificat médical) + signature
   const qType = String(formData.get("qsante_type") ?? "adulte");
   const qResultat = String(formData.get("qsante_resultat") ?? "atteste_negatif");
@@ -142,34 +147,45 @@ export async function inscrireAdherent(formData: FormData) {
         to: email,
         fromNom: `${org.nom} via Klubster`,
         replyTo: org.email_contact,
-        objet: `Votre inscription — ${org.nom}`,
-        texte:
-          `Bonjour ${prenom},\n\n` +
-          `Votre inscription au ${org.nom} est bien enregistrée.\n\n` +
-          `Cours : ${coursNom}\n` +
-          `Cotisation : ${(tarifCentimes / 100).toLocaleString("fr-FR")} € / an\n` +
-          `Règlement : ${libelleMode}\n\n` +
-          `Votre espace adhérent (dossier, pièces à déposer, carte de membre) :\n` +
-          `${BASE}/${slug}/espace\n\n` +
-          `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).\n\n` +
-          `Sportivement,\n${org.nom}`,
+        objet: enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`,
+        texte: enListeAttente
+          ? `Bonjour ${prenom},\n\n` +
+            `Le cours « ${coursNom} » est complet pour le moment : vous êtes inscrit(e) sur la liste d'attente.\n\n` +
+            `Aucun paiement ne vous est demandé pour l'instant. Nous vous préviendrons dès qu'une place se libère.\n\n` +
+            `Sportivement,\n${org.nom}`
+          : `Bonjour ${prenom},\n\n` +
+            `Votre inscription au ${org.nom} est bien enregistrée.\n\n` +
+            `Cours : ${coursNom}\n` +
+            `Cotisation : ${(tarifCentimes / 100).toLocaleString("fr-FR")} € / an\n` +
+            `Règlement : ${libelleMode}\n\n` +
+            `Votre espace adhérent (dossier, pièces à déposer, carte de membre) :\n` +
+            `${BASE}/${slug}/espace\n\n` +
+            `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).\n\n` +
+            `Sportivement,\n${org.nom}`,
       });
     }
     if (org.email_contact) {
       await envoyerEmail({
         to: org.email_contact,
-        objet: `Nouvelle inscription — ${prenom} ${nom}`,
+        objet: enListeAttente ? `Liste d'attente — ${prenom} ${nom}` : `Nouvelle inscription — ${prenom} ${nom}`,
         texte:
-          `Une nouvelle inscription vient d'arriver au ${org.nom} :\n\n` +
+          (enListeAttente
+            ? `Le cours « ${coursNom} » étant complet, cette personne a été placée en liste d'attente :\n\n`
+            : `Une nouvelle inscription vient d'arriver au ${org.nom} :\n\n`) +
           `${prenom} ${nom}\n` +
           `Cours : ${coursNom}\n` +
-          `Règlement : ${libelleMode}\n\n` +
-          `À retrouver dans votre cockpit :\n${BASE}/${slug}/cockpit\n\n` +
+          (enListeAttente ? `` : `Règlement : ${libelleMode}\n`) +
+          `\nÀ retrouver dans votre cockpit :\n${BASE}/${slug}/cockpit\n\n` +
           `— Klubster`,
       });
     }
   } catch (e) {
     console.error("emails inscription", e);
+  }
+
+  // Sur liste d'attente : on ne facture pas, la personne n'a pas encore de place.
+  if (enListeAttente) {
+    redirect(`/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&attente=1`);
   }
 
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)

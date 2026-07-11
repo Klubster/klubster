@@ -10,13 +10,14 @@ export default async function MerciPage({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { prenom?: string; mode?: string; paye?: string };
+  searchParams: { prenom?: string; mode?: string; paye?: string; attente?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";
   const prenom = searchParams?.prenom?.trim();
   const paye = searchParams?.paye === "1";
+  const attente = searchParams?.attente === "1";
   const mode = searchParams?.mode;
   const reglement =
     mode === "cheque" ? "Règlement par chèque : à remettre au club."
@@ -33,17 +34,35 @@ export default async function MerciPage({
       </header>
 
       <div className="mx-auto max-w-2xl px-6 py-20 md:px-8">
-        <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>C&apos;EST FAIT<span style={{ color: accent }}>_</span></p>
-        <h1 className="mt-6 text-3xl font-medium md:text-4xl">{prenom ? `Bienvenue, ${prenom}.` : "Bienvenue."}</h1>
+        <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
+          {attente ? "LISTE D'ATTENTE" : "C'EST FAIT"}<span style={{ color: accent }}>_</span>
+        </p>
+        <h1 className="mt-6 text-3xl font-medium md:text-4xl">
+          {attente
+            ? prenom ? `Vous êtes sur la liste, ${prenom}.` : "Vous êtes sur la liste."
+            : prenom ? `Bienvenue, ${prenom}.` : "Bienvenue."}
+        </h1>
         <p className="mt-4 max-w-prose text-lg text-ink-soft">
-          Votre inscription à {org.nom} est enregistrée et votre compte adhérent est créé.
+          {attente
+            ? `Ce cours est complet pour le moment. Votre compte est créé et vous êtes inscrit(e) sur la liste d'attente : le club vous préviendra dès qu'une place se libère. Aucun paiement ne vous est demandé pour l'instant.`
+            : `Votre inscription à ${org.nom} est enregistrée et votre compte adhérent est créé.`}
         </p>
 
         <div className="mt-12 border border-line bg-paper">
-          <Etape ok>{paye ? "Paiement reçu" : "Inscription reçue par le club"}</Etape>
-          <Etape>Confirmez votre email pour activer votre espace</Etape>
-          {reglement ? <Etape>{reglement}</Etape> : null}
-          <Etape>Déposez vos pièces dans votre espace adhérent</Etape>
+          {attente ? (
+            <>
+              <Etape ok>Vous êtes sur la liste d&apos;attente</Etape>
+              <Etape>Confirmez votre email pour activer votre espace</Etape>
+              <Etape>Le club vous préviendra dès qu&apos;une place se libère</Etape>
+            </>
+          ) : (
+            <>
+              <Etape ok>{paye ? "Paiement reçu" : "Inscription reçue par le club"}</Etape>
+              <Etape>Confirmez votre email pour activer votre espace</Etape>
+              {reglement ? <Etape>{reglement}</Etape> : null}
+              <Etape>Déposez vos pièces dans votre espace adhérent</Etape>
+            </>
+          )}
         </div>
 
         <div className="mt-10 flex flex-wrap gap-3">

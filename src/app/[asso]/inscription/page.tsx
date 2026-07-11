@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { saisonCourante } from "@/lib/saison";
 import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
@@ -23,6 +25,26 @@ export default async function InscriptionPage({
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);
+
+  // Jauge : un cours dont la capacité est atteinte est signalé « complet » (→ liste d'attente).
+  const supabase = createSupabaseServerClient();
+  const saisonAct = saisonCourante(org);
+  const [{ data: placesRows }, { data: adhCount }] = await Promise.all([
+    supabase.from("cours").select("id, places_max").eq("organisation_id", org.id),
+    supabase.from("adhesions").select("cours_id, statut, saison").eq("organisation_id", org.id),
+  ]);
+  const placesMax = new Map((placesRows ?? []).map((r) => [r.id as string, r.places_max as number | null]));
+  const actifs = new Map<string, number>();
+  for (const a of (adhCount ?? []) as { cours_id: string | null; statut: string | null; saison: string | null }[]) {
+    if (a.cours_id && a.saison === saisonAct && ["en_attente", "en_retard", "paye"].includes(a.statut ?? "")) {
+      actifs.set(a.cours_id, (actifs.get(a.cours_id) ?? 0) + 1);
+    }
+  }
+  const estComplet = (id: string) => {
+    const pm = placesMax.get(id);
+    return pm != null && pm > 0 && (actifs.get(id) ?? 0) >= pm;
+  };
+
   const accent = org.couleur_primaire ?? "#111111";
   const pages = org.form_config?.pages ?? [];
   const pieces = org.form_config?.pieces ?? [];
@@ -92,7 +114,7 @@ export default async function InscriptionPage({
                 {cours.map((c) => (
                   // data-tarif : lu par le sélecteur de mensualités pour afficher le vrai montant.
                   <option key={c.id} value={c.id} data-tarif={c.tarif_centimes}>
-                    {c.nom} — {formatPrix(c.tarif_centimes)} / an
+                    {c.nom} — {formatPrix(c.tarif_centimes)} / an{estComplet(c.id) ? " · COMPLET (liste d’attente)" : ""}
                   </option>
                 ))}
               </select>

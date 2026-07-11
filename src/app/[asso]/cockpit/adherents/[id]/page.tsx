@@ -208,10 +208,17 @@ export default async function FicheAdherent({
                     <span
                       className="mono text-[11px] uppercase tracking-wide"
                       style={{
-                        color: a.statut === "paye" ? "#1E7A4F" : a.statut === "en_retard" ? "#B23B3B" : "#8A6508",
+                        color:
+                          a.statut === "paye" ? "#1E7A4F"
+                          : a.statut === "en_retard" ? "#B23B3B"
+                          : a.statut === "liste_attente" ? "#6f6f6b"
+                          : "#8A6508",
                       }}
                     >
-                      {a.statut === "paye" ? "Payé" : a.statut === "en_retard" ? "En retard" : "En attente"}
+                      {a.statut === "paye" ? "Payé"
+                        : a.statut === "en_retard" ? "En retard"
+                        : a.statut === "liste_attente" ? "Liste d’attente"
+                        : "En attente"}
                     </span>
                   </div>
                   <p className="mono mt-1 text-[12px] text-ink-soft">
