@@ -41,6 +41,48 @@ export async function envoyerEmail(opts: {
   }
 }
 
+// Envoie un message DIFFÉRENT à chaque destinataire (relances : chacun voit son propre
+// montant restant). Un email individuel par personne ; batch de 100 max par appel Resend.
+export async function envoyerLotPersonnalise(opts: {
+  nomClub: string;
+  replyTo: string | null;
+  messages: Array<{ to: string; objet: string; texte: string }>;
+}): Promise<EnvoiResultat> {
+  if (!KEY) return { ok: false, envoyes: 0, erreur: "Envoi non configuré (RESEND_API_KEY manquante)." };
+
+  const from = `${opts.nomClub.replace(/["<>]/g, "").slice(0, 60)} via Klubster <clubs@klubster.fr>`;
+  const pied = `\n\n—\n${opts.nomClub} · envoyé avec Klubster (klubster.fr)`;
+  let envoyes = 0;
+
+  for (let i = 0; i < opts.messages.length; i += 100) {
+    const lot = opts.messages.slice(i, i + 100).map((m) => ({
+      from,
+      to: [m.to],
+      subject: m.objet,
+      text: m.texte + pied,
+      ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+    }));
+
+    const res = await fetch(`${API}/emails/batch`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify(lot),
+    });
+
+    if (!res.ok) {
+      const detail = (await res.json().catch(() => null)) as { message?: string } | null;
+      const msg =
+        res.status === 429
+          ? "Limite d'envoi atteinte (plan gratuit : 100 emails/jour). Réessayez demain."
+          : detail?.message ?? `Erreur d'envoi (${res.status}).`;
+      return { ok: envoyes > 0, envoyes, erreur: msg };
+    }
+    envoyes += lot.length;
+  }
+
+  return { ok: true, envoyes };
+}
+
 // Envoie le même message à chaque destinataire (un email individuel par adhérent,
 // personne ne voit les autres). Batch API : 100 emails max par appel.
 export async function envoyerAuxAdherents(opts: {

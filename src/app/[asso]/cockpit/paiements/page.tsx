@@ -103,12 +103,20 @@ export default async function PaiementsPage({ params }: { params: { asso: string
           seul. Sélectionnez des lignes pour relancer ou exporter.
         </p>
 
-        <Link
-          href={`/${org.slug}/cockpit/paiements/remise`}
-          className="mono mt-6 inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
-        >
-          PRÉPARER UNE REMISE DE CHÈQUES →
-        </Link>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/${org.slug}/cockpit/paiements/remise`}
+            className="mono inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          >
+            PRÉPARER UNE REMISE DE CHÈQUES →
+          </Link>
+          <Link
+            href={`/${org.slug}/cockpit/paiements/relances`}
+            className="mono inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          >
+            RELANCER LES IMPAYÉS →
+          </Link>
+        </div>
 
         {litiges.length > 0 ? (
           <div className="mt-8 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
