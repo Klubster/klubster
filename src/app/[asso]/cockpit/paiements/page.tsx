@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import PaiementsClient, { type LignePaiement } from "./PaiementsClient";
 import { definirSaison } from "./actions";
+import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export default async function PaiementsPage({ params }: { params: { asso: string
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${org.slug}/cockpit/paiements`);
   }
+  // Trésorerie réservée au président et au trésorier.
+  if (!peut(profile.role, "paiements")) redirect(`/${org.slug}/cockpit?acces=refuse`);
 
   const supabase = createSupabaseServerClient();
 

@@ -335,6 +335,9 @@ export default async function Cockpit({
               <Geste titre="Formulaire d'inscription" desc="Champs, pièces demandées, questionnaire." href={`/${org.slug}/cockpit/formulaire`} action="CONFIGURER" />
               <Geste titre="Votre domaine" desc="Votre site sur votre propre adresse." href={`/${org.slug}/cockpit/domaine`} action="CONNECTER" />
               <Geste titre="Exporter vos adhérents" desc="La liste complète, en CSV. Vos données restent les vôtres." href={`/${org.slug}/cockpit/export`} action="EXPORTER" />
+              {profile?.role === "admin_asso" || profile?.role === "super_admin" ? (
+                <Geste titre="Votre équipe" desc="Trésorier, secrétaire, encadrant : le juste accès pour chacun." href={`/${org.slug}/cockpit/equipe`} action="GÉRER" />
+              ) : null}
             </div>
           </div>
 

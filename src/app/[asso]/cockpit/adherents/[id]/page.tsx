@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
 import AjoutReglement from "./AjoutReglement";
+import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -201,8 +202,10 @@ export default async function FicheAdherent({
             </div>
           )}
 
-          {/* Encaisser un règlement (chèque / espèces) directement depuis la fiche. */}
-          <AjoutReglement slug={org.slug} adhesions={soldes} accent={org.couleur_primaire ?? "#111111"} />
+          {/* Encaisser un règlement : président et trésorier seulement. */}
+          {peut(profile.role, "paiements") ? (
+            <AjoutReglement slug={org.slug} adhesions={soldes} accent={org.couleur_primaire ?? "#111111"} />
+          ) : null}
 
           {listeReglements.length > 0 ? (
             <div className="mt-4 border border-line">
@@ -245,8 +248,8 @@ export default async function FicheAdherent({
           )}
         </section>
 
-        {/* ——— SANTÉ (jamais le détail des réponses) ——— */}
-        {questionnaire ? (
+        {/* ——— SANTÉ (jamais le détail des réponses ; visible président + secrétaire) ——— */}
+        {questionnaire && peut(profile.role, "sante") ? (
           <section className="mt-14">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               QUESTIONNAIRE DE SANTÉ<Cur />
