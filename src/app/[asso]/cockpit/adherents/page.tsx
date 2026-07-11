@@ -4,6 +4,8 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix } from "@/lib/format";
+import { peut } from "@/lib/roles";
+import { renouvelerSaison } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,7 @@ export default async function Adherents({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { q?: string; page?: string; statut?: string };
+  searchParams: { q?: string; page?: string; statut?: string; renouvelees?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -81,6 +83,8 @@ export default async function Adherents({
     return `/${org.slug}/cockpit/adherents${qs ? `?${qs}` : ""}`;
   };
 
+  const renouveler = renouvelerSaison.bind(null, org.slug);
+
   return (
     <main className="min-h-screen text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-4 md:px-8">
@@ -112,6 +116,29 @@ export default async function Adherents({
             </Link>
           </div>
         </div>
+
+        {searchParams?.renouvelees !== undefined ? (
+          <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>
+            {searchParams.renouvelees === "0"
+              ? "Tout le monde a déjà une adhésion pour la saison en cours."
+              : `${searchParams.renouvelees} adhésion(s) créée(s) pour la nouvelle saison, en attente de règlement.`}
+          </p>
+        ) : null}
+
+        {/* Renouvellement de saison — président et secrétaire. */}
+        {peut(profile.role, "adherents_ecriture") ? (
+          <form action={renouveler} className="mt-6 flex flex-wrap items-center gap-3 border border-line bg-bg-alt px-5 py-4">
+            <div className="flex-1">
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">NOUVELLE SAISON<span className="cur">_</span></p>
+              <p className="mt-1 text-[13px] text-ink-soft">
+                Recrée une adhésion « en attente » pour chaque adhérent qui n’en a pas encore cette saison, avec son dernier cours.
+              </p>
+            </div>
+            <button className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
+              RENOUVELER LA SAISON →
+            </button>
+          </form>
+        ) : null}
 
         <form className="mt-8 flex flex-wrap items-center gap-3">
           <input

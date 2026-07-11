@@ -231,6 +231,23 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
   return { crees: Number(crees ?? 0), ignores, erreurs };
 }
 
+/**
+ * Renouveler la saison : crée une adhésion pour la saison courante à chaque adhérent qui
+ * n'en a pas encore, en reprenant son dernier cours. Les adhérents ne sont pas recréés,
+ * l'historique reste. Idempotent : relancer ne crée pas de doublon.
+ */
+export async function renouvelerSaison(slug: string) {
+  const org = await garde(slug);
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("renouveler_saison", { p_org: org.id });
+  if (error) {
+    console.error("renouvelerSaison", error.message);
+    redirect(`/${slug}/cockpit/adherents?erreur=renouvellement`);
+  }
+  revalidatePath(`/${slug}/cockpit/adherents`);
+  redirect(`/${slug}/cockpit/adherents?renouvelees=${Number(data ?? 0)}`);
+}
+
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
