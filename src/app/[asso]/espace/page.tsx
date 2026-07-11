@@ -1,5 +1,6 @@
 import Link from "next/link";
 import QRCode from "qrcode";
+import { saisonCourante } from "@/lib/saison";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
@@ -161,7 +162,7 @@ export default async function EspacePage({ params }: { params: { asso: string } 
           />
           <div>
             <div className="text-lg font-medium">{a.prenom} {a.nom}</div>
-            <div className="text-ink-soft">{org.nom} · Saison 2025-2026</div>
+            <div className="text-ink-soft">{org.nom} · Saison {saisonCourante(org)}</div>
             <p className="mono mt-3 text-[11px] text-ink-faint">Présentez ce code à l&apos;accueil pour l&apos;appel.</p>
             <Link href={`/${org.slug}/espace/facture`} className="mono mt-4 inline-block border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">VOIR MA FACTURE →</Link>
           </div>

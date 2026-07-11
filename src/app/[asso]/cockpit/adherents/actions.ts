@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { saisonCourante } from "@/lib/saison";
 import type { Organisation } from "@/types/db";
 
 async function garde(slug: string): Promise<Organisation> {
@@ -104,7 +105,7 @@ export async function ajouterAdherent(slug: string, formData: FormData) {
         organisation_id: org.id,
         adherent_id: adherent.id,
         cours_id: coursId,
-        saison: "2025-2026",
+        saison: saisonCourante(org),
         montant_centimes: (cours as { tarif_centimes: number }).tarif_centimes,
         statut: "en_attente",
         mode_paiement: texte(formData, "mode", 20),

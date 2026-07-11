@@ -4,6 +4,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix } from "@/lib/format";
+import { saisonCourante } from "@/lib/saison";
 import PrintButton from "./PrintButton";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,7 @@ export default async function FacturePage({ params }: { params: { asso: string }
             </thead>
             <tbody>
               <tr className="border-b border-line">
-                <td className="py-4">Cotisation annuelle — {coursNom}<div className="text-[12px] text-ink-soft">Saison 2025-2026</div></td>
+                <td className="py-4">Cotisation annuelle — {coursNom}<div className="text-[12px] text-ink-soft">Saison {saisonCourante(org)}</div></td>
                 <td className="mono py-4 text-right">{formatPrix(adhesion.montant_centimes)}</td>
               </tr>
             </tbody>
