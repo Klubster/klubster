@@ -175,13 +175,16 @@ export default function ConnexionPage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Field({ label, value, onChange, type = "text", autoComplete }: { label: string; value: string; onChange: (v: string) => void; type?: string; autoComplete?: string }) {
+  const id = "champ-" + label.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   return (
     <div>
-      <label className="mono block text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
+      <label htmlFor={id} className="mono block text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
       <input
+        id={id}
         type={type}
         value={value}
+        autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
         className="mt-2 w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
       />

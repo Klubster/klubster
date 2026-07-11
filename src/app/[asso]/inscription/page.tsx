@@ -87,8 +87,8 @@ export default async function InscriptionPage({
           <fieldset>
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">COURS<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 border border-line bg-paper px-5 py-4">
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
-              <select name="cours" required className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
+              <label htmlFor="cours" className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
+              <select id="cours" name="cours" required className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
                 {cours.map((c) => (
                   // data-tarif : lu par le sélecteur de mensualités pour afficher le vrai montant.
                   <option key={c.id} value={c.id} data-tarif={c.tarif_centimes}>
@@ -146,8 +146,8 @@ export default async function InscriptionPage({
           <fieldset>
             <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">VOTRE COMPTE<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 border border-line bg-paper px-5 py-4">
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">MOT DE PASSE *</label>
-              <input name="password" type="password" required minLength={LONGUEUR_MIN_MDP} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+              <label htmlFor="password" className="mono text-[10px] uppercase tracking-label text-ink-soft">MOT DE PASSE *</label>
+              <input id="password" name="password" type="password" required minLength={LONGUEUR_MIN_MDP} autoComplete="new-password" className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
               <p className="mono mt-2 text-[11px] text-ink-soft">{LONGUEUR_MIN_MDP} caractères minimum. Pour accéder à votre espace adhérent.</p>
             </div>
           </fieldset>
@@ -187,8 +187,8 @@ export default async function InscriptionPage({
 function Field({ label, name, type = "text", required, autoComplete }: { label: string; name: string; type?: string; required?: boolean; autoComplete?: string }) {
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
-      <input name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+      <label htmlFor={name} className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
+      <input id={name} name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
     </div>
   );
 }
@@ -198,18 +198,19 @@ function ChampInput({ champ }: { champ: Champ }) {
   const base = "mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink";
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{champ.label || "Champ"}{champ.obligatoire ? " *" : ""}</label>
+      <label htmlFor={name} className="mono text-[10px] uppercase tracking-label text-ink-soft">{champ.label || "Champ"}{champ.obligatoire ? " *" : ""}</label>
       {champ.type === "zone" ? (
-        <textarea name={name} required={champ.obligatoire} rows={3} className={base} />
+        <textarea id={name} name={name} required={champ.obligatoire} rows={3} className={base} />
       ) : champ.type === "choix" ? (
-        <select name={name} required={champ.obligatoire} className={base}>
+        <select id={name} name={name} required={champ.obligatoire} className={base}>
           <option value="">—</option>
           {(champ.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : champ.type === "case" ? (
-        <div className="mt-2"><input name={name} type="checkbox" value="oui" /></div>
+        <div className="mt-2"><input id={name} name={name} type="checkbox" value="oui" /></div>
       ) : (
         <input
+          id={name}
           name={name}
           required={champ.obligatoire}
           type={champ.type === "date" ? "date" : champ.type === "tel" ? "tel" : champ.type === "nombre" ? "number" : "text"}

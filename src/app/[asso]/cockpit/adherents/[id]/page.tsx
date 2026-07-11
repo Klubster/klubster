@@ -171,20 +171,20 @@ export default async function FicheAdherent({
           </p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">PRÉNOM *</label>
-              <input name="prenom" defaultValue={adherent.prenom} required className={CHAMP} />
+              <label htmlFor="f-prenom" className="mono text-[10px] uppercase tracking-label text-ink-soft">PRÉNOM *</label>
+              <input id="f-prenom" name="prenom" defaultValue={adherent.prenom} required autoComplete="given-name" className={CHAMP} />
             </div>
             <div>
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">NOM *</label>
-              <input name="nom" defaultValue={adherent.nom} required className={CHAMP} />
+              <label htmlFor="f-nom" className="mono text-[10px] uppercase tracking-label text-ink-soft">NOM *</label>
+              <input id="f-nom" name="nom" defaultValue={adherent.nom} required autoComplete="family-name" className={CHAMP} />
             </div>
             <div>
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">EMAIL</label>
-              <input name="email" type="email" defaultValue={adherent.email ?? ""} className={CHAMP} />
+              <label htmlFor="f-email" className="mono text-[10px] uppercase tracking-label text-ink-soft">EMAIL</label>
+              <input id="f-email" name="email" type="email" defaultValue={adherent.email ?? ""} autoComplete="email" className={CHAMP} />
             </div>
             <div>
-              <label className="mono text-[10px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</label>
-              <input name="telephone" defaultValue={adherent.telephone ?? ""} className={CHAMP} />
+              <label htmlFor="f-tel" className="mono text-[10px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</label>
+              <input id="f-tel" name="telephone" type="tel" defaultValue={adherent.telephone ?? ""} autoComplete="tel" className={CHAMP} />
             </div>
           </div>
           <button className="mono mt-6 bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90">

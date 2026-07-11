@@ -143,12 +143,15 @@ export default async function Adherents({
         <form className="mt-8 flex flex-wrap items-center gap-3">
           <input
             name="q"
+            type="search"
+            aria-label="Rechercher un adhérent par nom, prénom ou email"
             defaultValue={q}
             placeholder="Rechercher un nom, un prénom, un email…"
             className="min-w-[260px] flex-1 border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
           />
           <select
             name="statut"
+            aria-label="Filtrer par statut de paiement"
             defaultValue={statut}
             className="border border-line bg-paper px-3 py-3 outline-none focus:border-ink"
           >
