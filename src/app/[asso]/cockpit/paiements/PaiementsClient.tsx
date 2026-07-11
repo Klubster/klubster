@@ -24,8 +24,13 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
   const router = useRouter();
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [saisie, setSaisie] = useState<Record<string, string>>({});
+  const [modeLigne, setModeLigne] = useState<Record<string, "especes" | "cheque" | "autre">>({});
   const [enCours, startTransition] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
+
+  // Mode par défaut d'une ligne : celui déclaré à l'inscription, sinon espèces.
+  const modeDe = (l: LignePaiement): "especes" | "cheque" | "autre" =>
+    modeLigne[l.id] ?? (l.mode === "cheque" ? "cheque" : l.mode === "autre" ? "autre" : "especes");
 
   const soldeDe = (l: LignePaiement) => Math.max(l.montantCentimes - l.regleCentimes, 0);
   const totalSolde = useMemo(() => lignes.reduce((s, l) => s + soldeDe(l), 0), [lignes]);
@@ -40,7 +45,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
     });
   }
 
-  function encaisser(l: LignePaiement, montantCentimes: number, mode: "cheque" | "especes") {
+  function encaisser(l: LignePaiement, montantCentimes: number, mode: "cheque" | "especes" | "autre") {
     setErreur(null);
     startTransition(async () => {
       const res = await enregistrerReglement(slug, l.id, montantCentimes, mode);
@@ -150,12 +155,22 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                   className="mono w-20 border border-line bg-paper px-2 py-2 text-right text-[13px] outline-none focus:border-ink"
                   title="Montant reçu (acompte possible)"
                 />
+                <select
+                  value={modeDe(l)}
+                  onChange={(e) => setModeLigne((m) => ({ ...m, [l.id]: e.target.value as "especes" | "cheque" | "autre" }))}
+                  className="border border-line bg-paper px-2 py-2 text-[12px] outline-none focus:border-ink"
+                  title="Moyen de paiement"
+                >
+                  <option value="especes">Espèces</option>
+                  <option value="cheque">Chèque</option>
+                  <option value="autre">Autre</option>
+                </select>
                 <button
                   disabled={enCours}
                   onClick={() => {
                     const euros = parseFloat((saisie[l.id] ?? "").replace(",", "."));
                     const centimes = Number.isFinite(euros) && euros > 0 ? Math.round(euros * 100) : solde;
-                    encaisser(l, centimes, l.mode === "especes" ? "especes" : "cheque");
+                    encaisser(l, centimes, modeDe(l));
                   }}
                   className="mono border border-ink px-3 py-2 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-40"
                   title="Sans montant saisi : encaisse le solde complet"

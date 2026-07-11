@@ -30,7 +30,8 @@ export default function AjoutReglement({
   const [adhesionId, setAdhesionId] = useState(dues[0]?.id ?? "");
   const active = dues.find((a) => a.id === adhesionId) ?? dues[0];
   const [montant, setMontant] = useState(active ? euros(active.resteCentimes) : "");
-  const [mode, setMode] = useState<"especes" | "cheque">("especes");
+  const [mode, setMode] = useState<"especes" | "cheque" | "autre">("especes");
+  const [libelle, setLibelle] = useState(""); // pour « autre » : chèque vacances, aide CAF…
   const [etat, setEtat] = useState<"repos" | "ok">("repos");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, start] = useTransition();
@@ -51,8 +52,10 @@ export default function AjoutReglement({
       setErreur("Indiquez un montant.");
       return;
     }
+    // Pour « autre », le libellé (chèque vacances, aide…) est conservé en note.
+    const note = mode === "autre" ? libelle.trim() || "Autre" : null;
     start(async () => {
-      const r = await enregistrerReglement(slug, adhesionId, centimes, mode);
+      const r = await enregistrerReglement(slug, adhesionId, centimes, mode, note);
       if (!r.ok) {
         setErreur(r.error ?? "Enregistrement impossible.");
         return;
@@ -100,18 +103,30 @@ export default function AjoutReglement({
         <div>
           <span className="mono block text-[10px] uppercase tracking-label text-ink-soft">Reçu en</span>
           <div className="mt-1.5 flex border border-line">
-            {(["especes", "cheque"] as const).map((m) => (
+            {(["especes", "cheque", "autre"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
                 className={`mono px-4 py-2.5 text-[12px] ${mode === m ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
               >
-                {m === "especes" ? "Espèces" : "Chèque"}
+                {m === "especes" ? "Espèces" : m === "cheque" ? "Chèque" : "Autre"}
               </button>
             ))}
           </div>
         </div>
+
+        {mode === "autre" ? (
+          <label className="block">
+            <span className="mono text-[10px] uppercase tracking-label text-ink-soft">Nature</span>
+            <input
+              value={libelle}
+              onChange={(e) => setLibelle(e.target.value)}
+              placeholder="Chèque vacances, aide CAF…"
+              className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 text-[14px] outline-none focus:border-ink"
+            />
+          </label>
+        ) : null}
 
         <button
           onClick={enregistrer}

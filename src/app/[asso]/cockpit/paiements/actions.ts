@@ -13,6 +13,20 @@ async function garde(slug: string) {
   return org;
 }
 
+// Dates de début et de fin de saison : bornent les totaux de trésorerie.
+export async function definirSaison(slug: string, formData: FormData) {
+  const org = await garde(slug);
+  const debut = String(formData.get("debut") ?? "").trim() || null;
+  const fin = String(formData.get("fin") ?? "").trim() || null;
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("organisations")
+    .update({ saison_debut: debut, saison_fin: fin })
+    .eq("id", org.id);
+  if (error) console.error("definirSaison", error.message);
+  redirect(`/${slug}/cockpit/paiements${error ? "?erreur=saison" : "?saison=1"}`);
+}
+
 // Marque le solde complet comme encaissé.
 export async function marquerEncaisse(slug: string, adhesionId: string) {
   await garde(slug);
@@ -26,7 +40,8 @@ export async function enregistrerReglement(
   slug: string,
   adhesionId: string,
   montantCentimes: number,
-  mode: "cheque" | "especes"
+  mode: "cheque" | "especes" | "autre",
+  note?: string | null
 ): Promise<{ ok: boolean; soldeCentimes?: number; error?: string }> {
   await garde(slug);
   if (!Number.isFinite(montantCentimes) || montantCentimes <= 0) {
@@ -37,7 +52,7 @@ export async function enregistrerReglement(
     p_adhesion_id: adhesionId,
     p_montant_centimes: Math.round(montantCentimes),
     p_mode: mode,
-    p_note: null,
+    p_note: note ? note.trim().slice(0, 120) || null : null,
   });
   if (error) {
     console.error("enregistrer_reglement", error.message);

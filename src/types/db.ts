@@ -30,6 +30,9 @@ export interface Organisation {
   stripe_account_id: string | null;
   /** Mensualités maximales proposées aux adhérents (1 = comptant seul, 12 = mensuel sur la saison). */
   echeances_max: number;
+  /** Dates de saison configurables : bornent les totaux de trésorerie. NULL = non configuré. */
+  saison_debut: string | null;
+  saison_fin: string | null;
   abonnement_plan: PlanAbonnement | null;
   /* Abonnement Klubster (facturé par la plateforme, distinct de Stripe Connect). */
   abonnement_customer_id: string | null;
