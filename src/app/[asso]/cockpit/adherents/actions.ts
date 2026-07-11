@@ -248,6 +248,23 @@ export async function renouvelerSaison(slug: string) {
   redirect(`/${slug}/cockpit/adherents?renouvelees=${Number(data ?? 0)}`);
 }
 
+/**
+ * Droit à l'effacement : anonymise l'adhérent (données personnelles et de santé supprimées),
+ * en conservant les écritures comptables. Réservé au président.
+ */
+export async function anonymiserAdherent(slug: string, adherentId: string) {
+  const org = await garde(slug);
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc("anonymiser_adherent", { p_adherent_id: adherentId });
+  if (error) {
+    console.error("anonymiserAdherent", error.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=anonymisation`);
+  }
+  revalidatePath(`/${slug}/cockpit/adherents`);
+  redirect(`/${slug}/cockpit/adherents?anonymise=1`);
+  void org;
+}
+
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);

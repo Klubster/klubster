@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
 import AjoutReglement from "./AjoutReglement";
+import Rgpd from "./Rgpd";
 import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -282,6 +283,16 @@ export default async function FicheAdherent({
               ))}
             </div>
           </section>
+        ) : null}
+
+        {/* ——— RGPD : export et effacement (président + secrétaire) ——— */}
+        {peut(profile.role, "adherents_ecriture") ? (
+          <Rgpd
+            slug={org.slug}
+            adherentId={a.id}
+            nom={`${a.prenom} ${a.nom}`}
+            estPresident={profile.role === "admin_asso" || profile.role === "super_admin"}
+          />
         ) : null}
       </div>
     </main>
