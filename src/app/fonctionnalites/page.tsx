@@ -380,6 +380,9 @@ export default function Fonctionnalites() {
             <div className="mt-8 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
               {[
                 ["Le cockpit Aujourd’hui_", "L’état de votre association en trois secondes : ce qui manque, ce qui attend, qui vient ce soir."],
+                ["Les relances d’impayés", "Qui doit encore ? Un rappel par email avec le montant de chacun — une personne, ou tout le monde d’un coup."],
+                ["Les remboursements et les litiges", "Un paiement remboursé ou contesté se suit depuis le cockpit, sans jamais être compté deux fois."],
+                ["La jauge et la liste d’attente", "Un cours complet bascule les inscriptions en liste d’attente. Vous donnez la place dès qu’elle se libère."],
                 ["Le suivi des présences", "Chaque scan garde la trace du passage. La feuille d’appel se remplit toute seule."],
                 ["Les chèques et les espèces", "Ils s’enregistrent aussi, en deux clics : toute la trésorerie au même endroit."],
                 ["Votre propre adresse", "monclub.fr plutôt que klubster.fr/monclub, si vous le souhaitez."],
