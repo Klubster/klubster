@@ -201,7 +201,28 @@ export default function Home() {
       <section className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex items-start px-6 py-20 md:px-16 md:pt-32">
           <Reveal className="max-w-md">
-            <p className="mono text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">DÉSORMAIS AUSSI<Cur /></p>
+            <ul className="mt-7 space-y-6">
+              <li>
+                <p className="text-[17px] font-medium leading-snug">Les impayés, relancés en un clic.</p>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+                  Chacun reçoit un rappel avec son propre montant restant — ou tout le monde d’un coup.
+                </p>
+              </li>
+              <li>
+                <p className="text-[17px] font-medium leading-snug">Les remboursements et les litiges, sous contrôle.</p>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+                  Un paiement remboursé ou contesté se suit directement depuis le cockpit.
+                </p>
+              </li>
+              <li>
+                <p className="text-[17px] font-medium leading-snug">Les cours complets gèrent leur liste d’attente.</p>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+                  Plus de place ? L’inscription bascule en attente. Vous donnez la place dès qu’elle se libère.
+                </p>
+              </li>
+            </ul>
+            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
               L’état de votre association,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
