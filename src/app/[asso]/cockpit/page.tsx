@@ -333,6 +333,7 @@ export default async function Cockpit({
               <Geste titre="Publier une actualité" desc="À la une du site du club." href={`/${org.slug}/cockpit/actualite`} action="PUBLIER" />
               <Geste titre="Modifier le site" desc="Sections, photos, textes de la vitrine." href={`/${org.slug}?edition=1`} action="ÉDITER" />
               <Geste titre="Formulaire d'inscription" desc="Champs, pièces demandées, questionnaire." href={`/${org.slug}/cockpit/formulaire`} action="CONFIGURER" />
+              <Geste titre="Logo &amp; couleur" desc="Le visage du club, modifiable quand vous voulez." href={`/${org.slug}/cockpit/identite`} action="AJUSTER" />
               <Geste titre="Votre domaine" desc="Votre site sur votre propre adresse." href={`/${org.slug}/cockpit/domaine`} action="CONNECTER" />
               <Geste titre="Exporter vos adhérents" desc="La liste complète, en CSV. Vos données restent les vôtres." href={`/${org.slug}/cockpit/export`} action="EXPORTER" />
               {profile?.role === "admin_asso" || profile?.role === "super_admin" ? (
