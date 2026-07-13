@@ -79,6 +79,24 @@ export default function Parallax({
           quality={75}
           priority={priority}
           className={`object-cover ${priority ? "" : "kb-breathe"}`}
+          onLoad={
+            priority
+              ? (e) => {
+                  // Le hero pouvait rester non peint au premier rendu (dégradé gris à la
+                  // place de la photo) : le décodage arrivait après la composition de la
+                  // layer et rien ne l'invalidait ensuite. Vérifié en prod le 13/07/2026 :
+                  // n'importe quelle mutation de style (resize, transform…) faisait
+                  // apparaître l'image. On force donc une invalidation après le décodage.
+                  const el = e.currentTarget;
+                  requestAnimationFrame(() => {
+                    el.style.transform = "translateZ(0)";
+                    requestAnimationFrame(() => {
+                      el.style.transform = "";
+                    });
+                  });
+                }
+              : undefined
+          }
         />
       </div>
     </div>
