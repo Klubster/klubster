@@ -23,14 +23,12 @@ export default function Parallax({
   const wrap = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
 
-  // Réparation du hero non peint (dégradé gris à la place de la photo, vu en prod
-  // le 13/07/2026) : l'image prioritaire terminait son chargement (complete=true,
-  // naturalWidth correct) mais son bitmap n'était jamais décodé pour la peinture —
-  // decoding="async" + layer composée avant la fin du décodage, et plus aucune
-  // invalidation ensuite. Diagnostic vérifié en prod : un `await img.decode()` en
-  // console faisait apparaître la photo instantanément (là où un nudge de transform
-  // transitoire ne suffisait pas). On force donc le décodage après l'hydratation.
-  // decode() sur une image déjà décodée est un no-op quasi gratuit.
+  // Décodage forcé de l'image prioritaire après l'hydratation. Bonne pratique LCP :
+  // avec decoding="async", le bitmap peut n'être décodé qu'à la première peinture
+  // effective ; decode() garantit qu'il est prêt (et c'est un no-op s'il l'est déjà).
+  // Note du 13/07/2026 : un audit avait cru le hero invisible en prod — c'était un
+  // artefact de l'outil de capture d'écran (layer GPU non rasterisée dans la capture),
+  // pas un bug visible par les visiteurs. On garde decode(), inoffensif et utile.
   useEffect(() => {
     if (!priority) return;
     const img = inner.current?.querySelector("img");
@@ -50,11 +48,6 @@ export default function Parallax({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Pas de parallaxe sur l'image prioritaire (le hero, élément LCP) : le transform
-    // JS appliqué en continu participait au problème de composition ci-dessus, et
-    // l'effet était de toute façon imperceptible en haut de page (~7 px).
-    // Les photos suivantes gardent le leur.
-    if (priority) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (window.matchMedia("(max-width: 768px)").matches) return; // pas de parallaxe sur mobile
 
@@ -84,17 +77,9 @@ export default function Parallax({
 
   return (
     <div ref={wrap} className={`overflow-hidden ${className}`}>
-      {/* Pas de will-change-transform ici : combiné à l'animation de scale kb-breathe
-          sur une image `fill` plus large que le viewport, il faisait échouer la
-          composition GPU du hero en prod — l'image chargeait (200) mais n'était
-          jamais peinte, le visiteur voyait le dégradé seul. Vérifié le 13/07/2026 :
-          retirer will-change + breathe fait apparaître la photo instantanément.
-          Le transform inline appliqué en continu suffit à Chrome pour promouvoir la layer. */}
-      <div ref={inner} className="absolute inset-0">
+      <div ref={inner} className="absolute inset-0 will-change-transform">
         {/* next/image : conversion AVIF/WebP + srcset responsive. Les JPEG sources font
             ~400 Ko chacun ; servis tels quels, ils plombaient le LCP. */}
-        {/* La respiration (kb-breathe) est réservée aux photos non-prioritaires :
-            sur l'image LCP, l'animation de scale participait au bug de composition. */}
         <Image
           src={src}
           alt={alt}
@@ -102,7 +87,7 @@ export default function Parallax({
           sizes="100vw"
           quality={75}
           priority={priority}
-          className={`object-cover ${priority ? "" : "kb-breathe"}`}
+          className="kb-breathe object-cover"
         />
       </div>
     </div>

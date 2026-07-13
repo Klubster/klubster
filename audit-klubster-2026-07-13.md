@@ -23,12 +23,11 @@
 
 ## P0 — Bloquants (à corriger avant toute action marketing)
 
-### P0-1 · La photo du hero ne s'affiche pas : le visiteur voit un dégradé gris vide
-- **Constat live** : sur la home en prod, le hero est un aplat gris clair → noir. L'image `/01-hero.jpg` (gymnase au lever du soleil, superbe) **charge bien (HTTP 200, naturalWidth 1521, opacity 1)** mais **n'est pas peinte** par le compositeur.
-- **Cause vérifiée** : en retirant `will-change-transform` (conteneur Parallax) et l'animation `kb-breathe` (scale 1.08→1.14 en boucle) via la console, **l'image apparaît instantanément**. Le combo « layer promue par will-change + image `fill` surdimensionnée (2190×905) + animation de scale infinie » fait échouer la composition GPU. Les photos suivantes (mêmes classes) s'affichent, le hero `priority` non.
-- **Impact** : la première impression — celle qui porte toute la promesse émotionnelle « salle vide au lever du jour » — est un rectangle gris. Le texte blanc reste lisible par chance (le dégradé `from-ink/90` le sauve), mais la page a l'air cassée. C'est aussi votre LCP.
-- **Fix** : dans `Parallax.tsx`, supprimer `will-change-transform` (inutile : le transform est déjà appliqué en continu, Chrome promeut la layer tout seul) et/ou réserver `kb-breathe` aux images non-prioritaires. Tester ensuite sur la vraie prod, pas seulement en local.
-- Commande : `/impeccable optimize hero`
+### ~~P0-1 · La photo du hero ne s'affiche pas~~ — FAUSSE ALERTE (corrigée le 13/07 au soir)
+- **Constat initial** : les captures d'écran de l'audit montraient un hero gris, image chargée (HTTP 200) mais apparemment non peinte.
+- **Réalité, confirmée par Mathieu** : la photo s'affiche normalement à l'écran. Le gris était un **artefact de l'outil de capture** (la layer GPU de l'image prioritaire n'était pas rasterisée dans les captures de l'extension). Le test canvas (pixels chauds présents) le suggérait déjà ; l'écran réel tranche.
+- **Ce qui reste de l'épisode** : un `img.decode()` forcé après hydratation sur l'image prioritaire (bonne pratique LCP, no-op si déjà décodée), conservé dans `Parallax.tsx`. La respiration `kb-breathe`, le parallaxe et `will-change-transform` du hero ont été **restaurés à l'identique** — la DA n'a pas bougé.
+- **Leçon de méthode** : un constat visuel issu d'un outil d'instrumentation doit être contre-vérifié sur un écran réel avant d'être classé P0.
 
 ### P0-2 · Les deux lignes du H1 se chevauchent (desktop)
 - **Constat live** : « au même endroit. » monte dans les jambages de « Toute votre association, ». Mesuré au DOM : `font-size: 58px`, `line-height: 40px` (!).
@@ -114,9 +113,9 @@ Détail mesuré : depuis les pages `/fonctionnalites` ou `/combat`, il n'y a pas
 - La vitrine USM Boxe sert de démo réelle — « Un club » dans la nav est une excellente idée ; renommer éventuellement « Voir un club réel » pour expliciter la preuve.
 
 ## Plan d'action recommandé
-1. **P0-1** hero qui ne se peint pas (`/impeccable optimize`) — 1 h, impact maximal.
-2. **P0-2** interligne h1 (`/impeccable typeset`) — 15 min.
-3. **P0-3** hydratation (`/impeccable harden`) — investigation en dev.
+1. ~~P0-1 hero~~ — fausse alerte (artefact de capture), voir ci-dessus.
+2. **P0-2** interligne h1 (`/impeccable typeset`) — 15 min. ✅ corrigé et déployé le 13/07.
+3. **P0-3** hydratation — non reproduit sur chargements propres (artefact d'instrumentation également). ✅ clos.
 4. **P1-2** déplacer la porte de connexion après l'étape « nom du club » du wizard — le gain CRO le plus important du funnel.
 5. **P1-3 + copy** : chiffres USM Boxe + 1 témoignage réel près des tarifs.
 6. **P1-4** : title SEO catégorisé, /combat dans le sitemap + liens internes, FAQ en JSON-LD.
