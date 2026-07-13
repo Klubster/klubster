@@ -24,42 +24,28 @@ export default function Parallax({
   const inner = useRef<HTMLDivElement>(null);
 
   // Réparation du hero non peint (dégradé gris à la place de la photo, vu en prod
-  // le 13/07/2026) : la layer de l'image se composait avant la fin du décodage et
-  // rien ne l'invalidait ensuite. N'importe quelle mutation de style du conteneur
-  // (resize, transform…) faisait apparaître la photo. On force donc, après
-  // l'hydratation ET après le chargement effectif de l'image, une invalidation
-  // éphémère du conteneur. Sans effet visible quand tout va bien.
+  // le 13/07/2026) : l'image prioritaire terminait son chargement (complete=true,
+  // naturalWidth correct) mais son bitmap n'était jamais décodé pour la peinture —
+  // decoding="async" + layer composée avant la fin du décodage, et plus aucune
+  // invalidation ensuite. Diagnostic vérifié en prod : un `await img.decode()` en
+  // console faisait apparaître la photo instantanément (là où un nudge de transform
+  // transitoire ne suffisait pas). On force donc le décodage après l'hydratation.
+  // decode() sur une image déjà décodée est un no-op quasi gratuit.
   useEffect(() => {
     if (!priority) return;
-    const el = inner.current;
-    if (!el) return;
-    const img = el.querySelector("img");
-
-    let raf1 = 0;
-    let raf2 = 0;
-    const nudge = () => {
-      raf1 = requestAnimationFrame(() => {
-        el.style.transform = "translateZ(0)";
-        raf2 = requestAnimationFrame(() => {
-          el.style.transform = "";
-        });
+    const img = inner.current?.querySelector("img");
+    if (!img) return;
+    const forcerDecodage = () => {
+      img.decode().catch(() => {
+        /* décodage impossible (réseau, format) : le navigateur suivra son cours normal */
       });
     };
-
-    if (!img || img.complete) {
-      // Image déjà en cache : le load a eu lieu avant l'hydratation.
-      nudge();
-      return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
-      };
+    if (img.complete) {
+      forcerDecodage();
+      return;
     }
-    img.addEventListener("load", nudge, { once: true });
-    return () => {
-      img.removeEventListener("load", nudge);
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-    };
+    img.addEventListener("load", forcerDecodage, { once: true });
+    return () => img.removeEventListener("load", forcerDecodage);
   }, [priority]);
 
   useEffect(() => {
