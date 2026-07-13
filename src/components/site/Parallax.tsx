@@ -25,6 +25,12 @@ export default function Parallax({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Pas de parallaxe sur l'image prioritaire (le hero, élément LCP) : le transform
+    // JS appliqué au conteneur empêchait la composition de l'image sur certains GPU —
+    // vérifié en prod le 13/07/2026 : transform présent = dégradé gris, transform
+    // retiré = la photo apparaît. Le hero est en haut de page, l'effet y était
+    // de toute façon imperceptible (~7 px). Les photos suivantes gardent le leur.
+    if (priority) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (window.matchMedia("(max-width: 768px)").matches) return; // pas de parallaxe sur mobile
 
@@ -50,7 +56,7 @@ export default function Parallax({
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [strength]);
+  }, [strength, priority]);
 
   return (
     <div ref={wrap} className={`overflow-hidden ${className}`}>
