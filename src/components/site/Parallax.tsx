@@ -23,13 +23,51 @@ export default function Parallax({
   const wrap = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
 
+  // Réparation du hero non peint (dégradé gris à la place de la photo, vu en prod
+  // le 13/07/2026) : la layer de l'image se composait avant la fin du décodage et
+  // rien ne l'invalidait ensuite. N'importe quelle mutation de style du conteneur
+  // (resize, transform…) faisait apparaître la photo. On force donc, après
+  // l'hydratation ET après le chargement effectif de l'image, une invalidation
+  // éphémère du conteneur. Sans effet visible quand tout va bien.
+  useEffect(() => {
+    if (!priority) return;
+    const el = inner.current;
+    if (!el) return;
+    const img = el.querySelector("img");
+
+    let raf1 = 0;
+    let raf2 = 0;
+    const nudge = () => {
+      raf1 = requestAnimationFrame(() => {
+        el.style.transform = "translateZ(0)";
+        raf2 = requestAnimationFrame(() => {
+          el.style.transform = "";
+        });
+      });
+    };
+
+    if (!img || img.complete) {
+      // Image déjà en cache : le load a eu lieu avant l'hydratation.
+      nudge();
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    img.addEventListener("load", nudge, { once: true });
+    return () => {
+      img.removeEventListener("load", nudge);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [priority]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     // Pas de parallaxe sur l'image prioritaire (le hero, élément LCP) : le transform
-    // JS appliqué au conteneur empêchait la composition de l'image sur certains GPU —
-    // vérifié en prod le 13/07/2026 : transform présent = dégradé gris, transform
-    // retiré = la photo apparaît. Le hero est en haut de page, l'effet y était
-    // de toute façon imperceptible (~7 px). Les photos suivantes gardent le leur.
+    // JS appliqué en continu participait au problème de composition ci-dessus, et
+    // l'effet était de toute façon imperceptible en haut de page (~7 px).
+    // Les photos suivantes gardent le leur.
     if (priority) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (window.matchMedia("(max-width: 768px)").matches) return; // pas de parallaxe sur mobile
@@ -79,24 +117,6 @@ export default function Parallax({
           quality={75}
           priority={priority}
           className={`object-cover ${priority ? "" : "kb-breathe"}`}
-          onLoad={
-            priority
-              ? (e) => {
-                  // Le hero pouvait rester non peint au premier rendu (dégradé gris à la
-                  // place de la photo) : le décodage arrivait après la composition de la
-                  // layer et rien ne l'invalidait ensuite. Vérifié en prod le 13/07/2026 :
-                  // n'importe quelle mutation de style (resize, transform…) faisait
-                  // apparaître l'image. On force donc une invalidation après le décodage.
-                  const el = e.currentTarget;
-                  requestAnimationFrame(() => {
-                    el.style.transform = "translateZ(0)";
-                    requestAnimationFrame(() => {
-                      el.style.transform = "";
-                    });
-                  });
-                }
-              : undefined
-          }
         />
       </div>
     </div>
