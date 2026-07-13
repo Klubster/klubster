@@ -1,14 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { THEME_TEMPLATES, THEME_MODES, fontsHrefAll, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
-import { creerClub, type CoursInput, type CreneauInput } from "./actions";
+import { creerClub, creerCompteWizard, connexionWizard, type CoursInput, type CreneauInput } from "./actions";
 
 function Cur() {
   return <span className="cur">_</span>;
 }
 
-const ETAPES = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
+// Sans compte, une étape COMPTE s'insère juste avant PUBLIER : le visiteur construit
+// d'abord son club (il investit), le compte n'arrive qu'au moment où il devient
+// nécessaire. Connecté, le parcours reste identique à avant.
+const ETAPES_BASE = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
+const ETAPES_AVEC_COMPTE = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "COMPTE", "PUBLIER"];
+
+// Brouillon du wizard (localStorage) : si Supabase exige la confirmation d'email,
+// le visiteur part cliquer le lien et revient sur /creer — sans ça, tout son travail
+// (template, nom, cours…) serait perdu. Le logo (File) n'est pas persistable : re-choisi.
+const CLE_BROUILLON = "klubster-creer-brouillon-v1";
 const COULEURS = [
   // Verts / bleus-verts
   "#189460", "#1E7A4F", "#2E7A56", "#1E7A7A",
@@ -39,7 +48,8 @@ interface CoursRow {
 
 const ROW_VIDE: CoursRow = { nom: "", public_cible: "", tarif: "", creneaux: [] };
 
-export default function CreerWizard() {
+export default function CreerWizard({ connecte: connecteInitial = true }: { connecte?: boolean }) {
+  const [connecte, setConnecte] = useState(connecteInitial);
   const [etape, setEtape] = useState(0);
   const [template, setTemplate] = useState<ThemeTemplateId | null>(null);
   const [mode, setMode] = useState<ThemeMode>("blanc");
@@ -57,11 +67,93 @@ export default function CreerWizard() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Étape COMPTE (visiteurs non connectés uniquement).
+  const [compteMode, setCompteMode] = useState<"signup" | "login">("signup");
+  const [cPrenom, setCPrenom] = useState("");
+  const [cNom, setCNom] = useState("");
+  const [cEmail, setCEmail] = useState("");
+  const [cMdp, setCMdp] = useState("");
+  const [compteMsg, setCompteMsg] = useState<string | null>(null);
+
+  const ETAPES = connecte ? ETAPES_BASE : ETAPES_AVEC_COMPTE;
+  const etapeCompte = connecte ? -1 : ETAPES_AVEC_COMPTE.indexOf("COMPTE");
+
+  // Restauration du brouillon (client uniquement : pas de mismatch d'hydratation).
+  useEffect(() => {
+    try {
+      const brut = localStorage.getItem(CLE_BROUILLON);
+      if (!brut) return;
+      const b = JSON.parse(brut);
+      if (typeof b !== "object" || !b) return;
+      if (b.template) setTemplate(b.template);
+      if (b.mode) setMode(b.mode);
+      if (b.couleur) setCouleur(b.couleur);
+      if (b.nom) setNom(b.nom);
+      if (b.adresse) setAdresse(b.adresse);
+      if (b.email) setEmail(b.email);
+      if (b.tel) setTel(b.tel);
+      if (Array.isArray(b.cours) && b.cours.length) setCours(b.cours);
+      if (typeof b.etape === "number") setEtape(Math.min(b.etape, ETAPES.length - 1));
+    } catch {
+      /* brouillon illisible : on repart de zéro */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sauvegarde continue du brouillon (sans le logo ni le mot de passe).
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        CLE_BROUILLON,
+        JSON.stringify({ template, mode, couleur, nom, adresse, email, tel, cours, etape })
+      );
+    } catch {
+      /* stockage plein ou bloqué : tant pis, le wizard reste utilisable */
+    }
+  }, [template, mode, couleur, nom, adresse, email, tel, cours, etape]);
+
   const slug = nom ? nom.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "") : "monclub";
   const suivant = () => setEtape((e) => Math.min(e + 1, ETAPES.length - 1));
   const precedent = () => setEtape((e) => Math.max(e - 1, 0));
   const dernier = etape === ETAPES.length - 1;
-  const peutContinuer = (etape === 0 && !template) || (etape === 1 && !nom.trim()) ? false : true;
+  const surCompte = etape === etapeCompte;
+  const peutContinuer =
+    (etape === 0 && !template) ||
+    (etape === 1 && !nom.trim()) ||
+    (surCompte && (!cEmail.trim() || !cMdp || (compteMode === "signup" && !cPrenom.trim())))
+      ? false
+      : true;
+
+  // Étape COMPTE : crée le compte (ou connecte) puis avance. Sans redirection :
+  // le wizard garde tout son état en mémoire.
+  async function validerCompte() {
+    setErr(null);
+    setCompteMsg(null);
+    setLoading(true);
+    try {
+      if (compteMode === "signup") {
+        const r = await creerCompteWizard({ email: cEmail.trim(), password: cMdp, prenom: cPrenom.trim(), nom: cNom.trim() });
+        if (r.error) { setErr(r.error); return; }
+        if (r.confirmation) {
+          setCompteMsg(
+            "Compte créé. Confirmez votre adresse via l'email que nous venons d'envoyer : " +
+            "le lien vous ramène ici, votre brouillon est conservé."
+          );
+          return;
+        }
+      } else {
+        const r = await connexionWizard({ email: cEmail.trim(), password: cMdp });
+        if (r.error) { setErr(r.error); return; }
+      }
+      setConnecte(true);
+      // Les index de PUBLIER coïncident : COMPTE disparaît, PUBLIER prend sa place.
+      setEtape(ETAPES_BASE.length - 1);
+    } catch {
+      setErr("Une erreur est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function majCours(i: number, patch: Partial<CoursRow>) {
     setCours((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
@@ -148,7 +240,11 @@ export default function CreerWizard() {
       );
     } catch (e: unknown) {
       const digest = (e as { digest?: string })?.digest;
-      if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw e;
+      if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) {
+        // Club créé : le brouillon a rempli son office.
+        try { localStorage.removeItem(CLE_BROUILLON); } catch { /* sans conséquence */ }
+        throw e;
+      }
       setErr(e instanceof Error ? e.message : "Création impossible.");
       setLoading(false);
     }
@@ -161,12 +257,15 @@ export default function CreerWizard() {
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
-          ÉTAPE {String(etape + 1).padStart(2, "0")}/06 — {ETAPES[etape]}<Cur />
+          ÉTAPE {String(etape + 1).padStart(2, "0")}/{String(ETAPES.length).padStart(2, "0")} — {ETAPES[etape]}<Cur />
         </span>
       </header>
 
       <div className="mx-auto max-w-3xl px-6 py-12 md:px-8 md:py-16">
-        <div className="mb-12 grid grid-cols-6 gap-px border border-line bg-line">
+        <div
+          className="mb-12 grid gap-px border border-line bg-line"
+          style={{ gridTemplateColumns: `repeat(${ETAPES.length}, minmax(0, 1fr))` }}
+        >
           {ETAPES.map((label, i) => (
             <button
               key={label}
@@ -451,9 +550,59 @@ export default function CreerWizard() {
             </div>
           )}
 
+          {surCompte && (
+            <div>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+                SECTION {String(etapeCompte + 1).padStart(2, "0")} — COMPTE<Cur />
+              </p>
+              <h1 className="mt-6 text-2xl font-medium md:text-3xl">Dernière chose : votre compte.</h1>
+              <p className="mt-3 max-w-prose text-ink-soft">
+                Pour publier <span className="text-ink">{nom.trim() || "votre club"}</span> et vous en donner les clés.
+                Gratuit, sans engagement — votre brouillon est conservé.
+              </p>
+
+              <div className="mt-8 grid grid-cols-2 gap-px border border-line bg-line">
+                <button
+                  type="button"
+                  onClick={() => { setCompteMode("signup"); setErr(null); setCompteMsg(null); }}
+                  className={`mono bg-paper py-3 text-[12px] tracking-wide ${compteMode === "signup" ? "font-bold text-ink" : "text-ink-soft"}`}
+                >
+                  CRÉER UN COMPTE{compteMode === "signup" ? <Cur /> : null}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCompteMode("login"); setErr(null); setCompteMsg(null); }}
+                  className={`mono bg-paper py-3 text-[12px] tracking-wide ${compteMode === "login" ? "font-bold text-ink" : "text-ink-soft"}`}
+                >
+                  J&apos;AI DÉJÀ UN COMPTE{compteMode === "login" ? <Cur /> : null}
+                </button>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                {compteMode === "signup" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <ChampCompte label="PRÉNOM" value={cPrenom} onChange={setCPrenom} autoComplete="given-name" />
+                    <ChampCompte label="NOM" value={cNom} onChange={setCNom} autoComplete="family-name" />
+                  </div>
+                )}
+                <ChampCompte label="EMAIL" type="email" value={cEmail} onChange={setCEmail} autoComplete="email" />
+                <ChampCompte
+                  label="MOT DE PASSE"
+                  type="password"
+                  value={cMdp}
+                  onChange={setCMdp}
+                  autoComplete={compteMode === "signup" ? "new-password" : "current-password"}
+                />
+              </div>
+
+              {compteMsg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{compteMsg}</p> : null}
+              {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
+            </div>
+          )}
+
           {dernier && (
             <div>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 06 — PUBLIER<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION {String(ETAPES.length).padStart(2, "0")} — PUBLIER<Cur /></p>
               <h1 className="mt-6 text-2xl font-medium md:text-3xl">Prêt à publier.</h1>
               <p className="mt-3 max-w-prose text-ink-soft">
                 On crée votre club et on l&apos;envoie en ligne sur{" "}
@@ -477,11 +626,11 @@ export default function CreerWizard() {
             </button>
             {!dernier ? (
               <button
-                onClick={suivant}
-                disabled={!peutContinuer}
+                onClick={surCompte ? validerCompte : suivant}
+                disabled={!peutContinuer || loading}
                 className="mono bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 disabled:opacity-30"
               >
-                CONTINUER →
+                {surCompte ? (loading ? "…" : compteMode === "signup" ? "CRÉER MON COMPTE →" : "SE CONNECTER →") : "CONTINUER →"}
               </button>
             ) : (
               <button
@@ -497,6 +646,36 @@ export default function CreerWizard() {
         </div>
       </div>
     </main>
+  );
+}
+
+/** Champ de l'étape COMPTE : label associé (a11y) + autocomplete natif. */
+function ChampCompte({
+  label,
+  value,
+  onChange,
+  type = "text",
+  autoComplete,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  autoComplete?: string;
+}) {
+  const id = "compte-" + label.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return (
+    <div>
+      <label htmlFor={id} className="mono block text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        autoComplete={autoComplete}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-2 w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
+      />
+    </div>
   );
 }
 

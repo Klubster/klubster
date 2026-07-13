@@ -37,7 +37,7 @@ function Chapitre({
             <span className="text-brand">{num}</span> — {kicker}
             <Cur />
           </p>
-          <h2 className="mt-6 text-[26px] font-medium leading-[1.12] tracking-[-0.02em] sm:text-3xl md:text-[40px]">
+          <h2 className="mt-6 text-[26px] font-medium leading-[1.12] tracking-[-0.02em] sm:text-3xl sm:leading-[1.12] md:text-[40px] md:leading-[1.12]">
             {titre}
           </h2>
         </Reveal>
@@ -63,7 +63,7 @@ function Preuves({ lignes }: { lignes: string[] }) {
 
 function Chute({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mono mt-10 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[30px]">
+    <p className="mono mt-10 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[30px] md:leading-[1.2]">
       {children}
       <span className="cur">_</span>
     </p>
@@ -107,7 +107,7 @@ export default function Fonctionnalites() {
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
             {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
                 cassait en deux. Les retours à la ligne sont écrits, pas subis. */}
-            <h1 className="mt-6 text-[30px] font-medium leading-[1.08] tracking-[-0.02em] sm:text-4xl md:text-[46px]">
+            <h1 className="mt-6 text-[30px] font-medium leading-[1.08] tracking-[-0.02em] sm:text-4xl sm:leading-[1.08] md:text-[46px] md:leading-[1.08]">
               Moins d’administration.<br />Plus de temps pour l’association.
             </h1>
             <p className="mt-7 max-w-prose text-lg leading-relaxed text-ink-soft">
@@ -403,7 +403,7 @@ export default function Fonctionnalites() {
         <div className="absolute inset-0 bg-ink/60" />
         <div className="relative flex min-h-[70vh] items-center justify-center">
           <div className="px-6 py-24 text-center text-paper">
-            <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl md:text-[30px]">
+            <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl sm:leading-[1.2] md:text-[30px] md:leading-[1.2]">
               Tout est inclus.<br />Seule la taille<br />de votre association<br />fait évoluer le prix.
             </p>
             <p className="mono mt-8 text-[13px] tracking-wide">

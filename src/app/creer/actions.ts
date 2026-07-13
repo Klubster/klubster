@@ -6,6 +6,7 @@ import { envoyerEmail } from "@/lib/resend";
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 import { getTemplate, getMode } from "@/lib/themes";
 import { validerImage } from "@/lib/upload";
+import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 
 export interface CreneauInput {
   jour: string;  // "lundi" … "dimanche"
@@ -34,6 +35,51 @@ export interface CreerInput {
 
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
 const HEURE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Compte créé DEPUIS le wizard (étape COMPTE, juste avant PUBLIER) — sans redirection :
+ * le wizard garde la main et enchaîne sur la publication. Les actions de /connexion
+ * redirigent, elles ; celles-ci rendent la main au client.
+ */
+export async function creerCompteWizard(input: {
+  email: string;
+  password: string;
+  prenom: string;
+  nom: string;
+}): Promise<{ ok?: boolean; confirmation?: boolean; error?: string }> {
+  if (input.password.length < LONGUEUR_MIN_MDP) {
+    return { error: `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.` };
+  }
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: {
+      data: { prenom: input.prenom, nom: input.nom, role: "admin_asso" },
+      // Le callback ramène sur /creer : le brouillon du wizard (localStorage) est restauré.
+      emailRedirectTo: `${BASE}/auth/callback?next=/creer`,
+    },
+  });
+  if (error) {
+    if (/already registered/i.test(error.message)) return { error: "Un compte existe déjà avec cet email. Connectez-vous ci-dessous." };
+    if (/Password should be at least/i.test(error.message)) return { error: "Mot de passe trop court." };
+    return { error: error.message };
+  }
+  // Confirmation d'email exigée par Supabase : pas de session tout de suite.
+  if (!data.session) return { confirmation: true };
+  return { ok: true };
+}
+
+/** Connexion depuis le wizard (le président a déjà un compte) — sans redirection. */
+export async function connexionWizard(input: { email: string; password: string }): Promise<{ ok?: boolean; error?: string }> {
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
+  if (error) {
+    if (/Invalid login credentials/i.test(error.message)) return { error: "Email ou mot de passe incorrect." };
+    return { error: error.message };
+  }
+  return { ok: true };
+}
 
 export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
   const nom = (input.nom ?? "").trim();

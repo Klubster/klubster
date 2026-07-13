@@ -1,9 +1,53 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import CockpitPreview from "@/components/site/CockpitPreview";
 import Citation from "@/components/site/Citation";
 import MenuMobile from "@/components/site/MenuMobile";
+
+// SEO : le title du layout portait la voix (« Toute votre association, au même endroit »)
+// mais aucune requête réelle. Un président tape « logiciel gestion association » ou
+// « logiciel club sportif » — la catégorie doit être dans le title. La voix reste
+// dans le H1 et l'OG (partages sociaux), qui ne sont pas des surfaces de requête.
+export const metadata: Metadata = {
+  title: "Klubster — Logiciel de gestion d'association : inscriptions, paiements, site web",
+  description:
+    "Le logiciel de gestion pour associations et clubs sportifs : inscriptions en ligne, paiements sans commission, relances, site web du club. Pensé pour les bénévoles, prêt en moins de 30 minutes. À partir de 9 €/mois, premier mois offert.",
+};
+
+// Les trois objections de la page sont une vraie FAQ : annotées en FAQPage,
+// elles peuvent sortir en résultats enrichis sur les requêtes correspondantes.
+const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "J'ai déjà mes adhérents dans un tableur.",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Importez votre fichier : Klubster fait correspondre vos colonnes aux siennes, et vous montre le résultat avant d'enregistrer quoi que ce soit.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Et si je veux partir ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Vous exportez la liste complète de vos adhérents en un clic, et vous résiliez depuis votre cockpit. Sans engagement, sans préavis.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Où vont les données de mes adhérents ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Elles sont hébergées dans l'Union européenne. Elles vous appartiennent, et ne sont ni revendues ni exploitées.",
+      },
+    },
+  ],
+};
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -86,6 +130,7 @@ const OBJECTIONS: [string, string][] = [
 export default function Home() {
   return (
     <main className="text-ink">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }} />
       {/* NAV */}
       <header className="absolute inset-x-0 top-0 z-40">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
@@ -114,9 +159,11 @@ export default function Home() {
       </header>
 
       {/* HERO — l'image et la promesse. Rien à lire par-dessus une photo.
-          85vh, pas 100 : le bloc blanc doit affleurer, sinon rien n'appelle le scroll
-          et le visiteur ne voit ni le prix ni le bouton. */}
-      <section className="relative h-[85vh] min-h-[560px] w-full overflow-hidden">
+          80vh, pas 100 : le bloc blanc doit affleurer, sinon rien n'appelle le scroll
+          et le visiteur ne voit ni le prix ni le bouton. (85 → 80 : à 85, sur un
+          écran de 900 px, la ligne prix + CTA commençait ~20 px sous le fold ;
+          à 80, elle affleure vraiment — le hero garde sa respiration.) */}
+      <section className="relative h-[80vh] min-h-[560px] w-full overflow-hidden">
         <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
         <div className="absolute inset-x-0 bottom-0">
@@ -125,8 +172,12 @@ export default function Home() {
             {/* 30px sur téléphone : à 36px, « Toute votre association, » déborde de 70 px
                 et le titre part sur quatre lignes au lieu de deux. */}
             {/* leading 1.06 collait les deux lignes à 58px (les jambages de « association »
-                touchaient « au même endroit »). 1.12 les sépare sans casser le bloc. */}
-            <h1 className="mt-5 max-w-[20ch] text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-paper sm:text-4xl md:text-[58px]">
+                touchaient « au même endroit »). 1.12 les sépare sans casser le bloc.
+                ATTENTION cascade Tailwind : sm:text-4xl définit AUSSI line-height: 2.5rem
+                et écrasait leading-[1.12] dès 640px (mesuré en prod : 58px de corps sur
+                40px d'interligne → lignes superposées). Le leading doit être répété
+                sur chaque breakpoint qui passe par une classe de taille non-arbitraire. */}
+            <h1 className="mt-5 max-w-[20ch] text-[30px] font-medium leading-[1.12] tracking-[-0.02em] text-paper sm:text-4xl sm:leading-[1.12] md:text-[58px] md:leading-[1.12]">
               Toute votre association,<br />au même endroit.
             </h1>
             <p className="mt-6 max-w-prose text-xl font-medium text-paper md:text-2xl">Les associations méritent mieux qu’un tableur.</p>
@@ -222,7 +273,7 @@ export default function Home() {
                 </p>
               </li>
             </ul>
-            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
+            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
               L’état de votre association,<br />en trois secondes<span className="cur">_</span>
             </p>
           </Reveal>
@@ -349,7 +400,7 @@ export default function Home() {
             <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
               PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
             </p>
-            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl md:text-[32px]">
+            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
               Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre association<span className="cur">_</span>
             </p>
           </Reveal>
@@ -375,6 +426,12 @@ export default function Home() {
               <p className="mt-5 text-lg leading-relaxed text-ink">Klubster est né de ce besoin.</p>
               <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe Anglaise
+              </p>
+              {/* Preuve sociale : un chiffre réel, vérifiable, plutôt qu'un slogan.
+                  312 = adhérents de l'USM Boxe dans Klubster (base prod, 13/07/2026).
+                  À rafraîchir en début de saison. */}
+              <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
+                <span className="text-brand">312</span> adhérents gérés cette saison
               </p>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
@@ -411,7 +468,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-ink/60" />
         <div className="relative flex min-h-[80vh] items-center justify-center">
           <div className="px-6 py-24 text-center text-paper">
-            <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl md:text-[32px]">
+            <p className="mono mx-auto max-w-[720px] text-lg font-normal leading-[1.2] tracking-[-0.02em] sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
               Quand l’association ouvre,<br />personne ne pense au logiciel.
             </p>
             <p className="mx-auto mt-8 max-w-prose text-lg text-paper/80">
