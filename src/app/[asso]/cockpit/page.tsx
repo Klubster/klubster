@@ -147,23 +147,52 @@ export default async function Cockpit({
               <p className={`mono text-[11px] uppercase tracking-label text-ink-soft ${searchParams?.bienvenue ? "mt-6" : ""}`}>
                 PREMIERS PAS<Cur />
               </p>
-              <div className="mt-5 flex flex-col gap-4 border border-line bg-paper p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-[16px] font-medium">
-                    <span className="mono mr-2 text-[12px] text-brand">01</span>
-                    Construisez votre fiche d&apos;inscription personnalisée.
-                  </p>
-                  <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
-                    Les champs à remplir, les pièces à demander, le questionnaire de santé :
-                    c&apos;est ce que verront vos adhérents avant même la salle.
-                  </p>
+              <div className="mt-5 divide-y divide-line border border-line bg-paper">
+                {(() => {
+                  const fc = org.form_config;
+                  const formulaireConfigure =
+                    (fc?.pages?.length ?? 0) > 0 ||
+                    (fc?.pieces?.length ?? 0) > 0 ||
+                    (fc?.mineur?.autorisations?.length ?? 0) > 0;
+                  return (
+                    <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-[16px] font-medium">
+                          <span className="mono mr-2 text-[12px] text-brand">{formulaireConfigure ? "✓" : "01"}</span>
+                          Construisez votre fiche d&apos;inscription personnalisée.
+                        </p>
+                        <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                          Les champs à remplir, les pièces à demander, les autorisations :
+                          c&apos;est ce que verront vos adhérents avant même la salle.
+                        </p>
+                      </div>
+                      <Link
+                        href={`/${org.slug}/cockpit/formulaire`}
+                        className={`mono shrink-0 px-5 py-3 text-center text-[12px] ${formulaireConfigure ? "border border-line text-ink hover:border-ink" : "bg-brand-dark text-white hover:opacity-90"}`}
+                      >
+                        {formulaireConfigure ? "REVOIR →" : "CONFIGURER →"}
+                      </Link>
+                    </div>
+                  );
+                })()}
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[16px] font-medium">
+                      <span className="mono mr-2 text-[12px] text-brand">02</span>
+                      Remplissez votre équipe.
+                    </p>
+                    <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                      Trésorier, secrétaire, encadrant : chacun son accès au cockpit —
+                      fini le mot de passe qui circule.
+                    </p>
+                  </div>
+                  <Link
+                    href={`/${org.slug}/cockpit/equipe`}
+                    className="mono shrink-0 border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink"
+                  >
+                    INVITER →
+                  </Link>
                 </div>
-                <Link
-                  href={`/${org.slug}/cockpit/formulaire`}
-                  className="mono shrink-0 bg-brand-dark px-5 py-3 text-center text-[12px] text-white hover:opacity-90"
-                >
-                  CONFIGURER →
-                </Link>
               </div>
             </div>
           ) : null}
