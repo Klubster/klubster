@@ -65,6 +65,13 @@ export async function creerCompteWizard(input: {
     if (/Password should be at least/i.test(error.message)) return { error: "Mot de passe trop court." };
     return { error: error.message };
   }
+  // Email déjà enregistré : Supabase répond « succès » sans erreur (anti-énumération)
+  // mais avec identities vide — et n'envoie AUCUN email. Sans cette garde, on
+  // afficherait « Confirmez votre email » à quelqu'un qui n'en recevra jamais
+  // (constaté le 13/07/2026 avec un compte existant).
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return { error: "Un compte existe déjà avec cet email. Cliquez sur « J'ai déjà un compte » pour vous connecter." };
+  }
   // Confirmation d'email exigée par Supabase : pas de session tout de suite.
   if (!data.session) return { confirmation: true };
   return { ok: true };
