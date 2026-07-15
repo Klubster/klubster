@@ -22,6 +22,20 @@ export default function ResponsableLegal({ accent }: { accent: string }) {
           L&apos;adhérent est mineur : merci de renseigner l&apos;identité d&apos;un parent ou représentant légal.
         </p>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label htmlFor="resp_qualite" className="mono text-[10px] uppercase tracking-label text-ink-soft">QUALITÉ *</label>
+            <select
+              id="resp_qualite"
+              name="resp_qualite"
+              required
+              className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+            >
+              <option value="Père">Père</option>
+              <option value="Mère">Mère</option>
+              <option value="Tuteur / Tutrice">Tuteur / Tutrice</option>
+              <option value="Autre représentant légal">Autre représentant légal</option>
+            </select>
+          </div>
           <div>
             <label className="mono text-[10px] uppercase tracking-label text-ink-soft">PRÉNOM *</label>
             <input name="resp_prenom" required className="mt-1.5 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />

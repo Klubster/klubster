@@ -50,8 +50,10 @@ export async function inscrireAdherent(formData: FormData) {
   const respNom = String(formData.get("resp_nom") ?? "").trim();
   const respEmail = String(formData.get("resp_email") ?? "").trim();
   const respTel = String(formData.get("resp_tel") ?? "").trim();
+  const respQualite = String(formData.get("resp_qualite") ?? "").trim();
   if (respPrenom || respNom) {
     infos["Responsable légal"] = [respPrenom, respNom].filter(Boolean).join(" ");
+    if (respQualite) infos["Responsable légal — qualité"] = respQualite.slice(0, 60);
     if (respEmail) infos["Responsable légal — email"] = respEmail;
     if (respTel) infos["Responsable légal — téléphone"] = respTel;
   }
