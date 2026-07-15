@@ -36,6 +36,10 @@ export async function inscrireAdherent(formData: FormData) {
     }
   }
 
+  // Adresse postale — champ de la base commune (licences, attestations, courriers).
+  const adressePostale = String(formData.get("adresse") ?? "").trim();
+  if (adressePostale) infos["Adresse"] = adressePostale.slice(0, 300);
+
   // Responsable légal (affiché automatiquement quand l'adhérent est mineur)
   const respPrenom = String(formData.get("resp_prenom") ?? "").trim();
   const respNom = String(formData.get("resp_nom") ?? "").trim();

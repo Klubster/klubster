@@ -100,6 +100,11 @@ export default async function InscriptionPage({
             <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
               <Field label="PRÉNOM" name="prenom" required autoComplete="given-name" />
               <Field label="NOM" name="nom" required autoComplete="family-name" />
+              {/* L'adresse fait partie de la base commune : licences fédérales,
+                  attestations et courriers en ont besoin (demande de Mathieu, 15/07/2026). */}
+              <div className="sm:col-span-2">
+                <Field label="ADRESSE" name="adresse" required autoComplete="street-address" />
+              </div>
               <Field label="EMAIL" name="email" type="email" required autoComplete="email" />
               <Field label="TÉLÉPHONE" name="tel" type="tel" autoComplete="tel" />
             </div>
