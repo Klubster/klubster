@@ -6,6 +6,7 @@ import { saisonCourante } from "@/lib/saison";
 import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
+import { NaissanceProvider, ChampNaissance } from "./naissance";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
@@ -86,6 +87,7 @@ export default async function InscriptionPage({
         ) : null}
 
         <form action={inscrireAdherent} className="mt-12 space-y-10">
+          <NaissanceProvider>
           <input type="hidden" name="slug" value={org.slug} />
 
           {/* Pot de miel : invisible et non focalisable. Seul un robot le remplit. */}
@@ -100,11 +102,12 @@ export default async function InscriptionPage({
             <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
               <Field label="PRÉNOM" name="prenom" required autoComplete="given-name" />
               <Field label="NOM" name="nom" required autoComplete="family-name" />
+              {/* La date de naissance vit ici (base commune) et pilote le questionnaire
+                  de santé + le bloc responsable légal plus bas (contexte partagé). */}
+              <ChampNaissance />
               {/* L'adresse fait partie de la base commune : licences fédérales,
                   attestations et courriers en ont besoin (demande de Mathieu, 15/07/2026). */}
-              <div className="sm:col-span-2">
-                <Field label="ADRESSE" name="adresse" required autoComplete="street-address" />
-              </div>
+              <Field label="ADRESSE" name="adresse" required autoComplete="street-address" />
               <Field label="EMAIL" name="email" type="email" required autoComplete="email" />
               <Field label="TÉLÉPHONE" name="tel" type="tel" autoComplete="tel" />
             </div>
@@ -204,6 +207,7 @@ export default async function InscriptionPage({
           <button type="submit" className="mono w-full px-6 py-4 text-[13px] text-white" style={{ background: accent }}>
             VALIDER MON INSCRIPTION →
           </button>
+          </NaissanceProvider>
         </form>
       </div>
     </main>

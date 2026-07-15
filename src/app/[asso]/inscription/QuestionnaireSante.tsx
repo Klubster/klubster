@@ -9,9 +9,11 @@ import {
   texteAttestation,
   type QSType,
 } from "@/lib/sante";
+import { useNaissance } from "./naissance";
 
 export default function QuestionnaireSante({ accent }: { accent: string }) {
-  const [naissance, setNaissance] = useState("");
+  // La date de naissance est saisie dans le bloc IDENTITÉ (contexte partagé).
+  const { naissance } = useNaissance();
   const [reponses, setReponses] = useState<Record<number, "oui" | "non">>({});
   const [signataire, setSignataire] = useState("");
   const [signature, setSignature] = useState("");
@@ -47,27 +49,18 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
         sera à fournir.
       </p>
 
-      {/* DATE DE NAISSANCE */}
-      <div className="mt-4 border border-line bg-paper px-5 py-4">
-        <label className="mono text-[10px] uppercase tracking-label text-ink-soft">
-          DATE DE NAISSANCE DE L&apos;ADHÉRENT *
-        </label>
-        <input
-          type="date"
-          name="naissance"
-          required
-          value={naissance}
-          onChange={(e) => setNaissance(e.target.value)}
-          className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
-        />
-        {naissance ? (
-          <p className="mono mt-2 text-[11px] text-ink-faint">
-            {type === "mineur"
-              ? "Adhérent mineur — à remplir par le représentant légal."
-              : "Adhérent majeur — questionnaire QS-SPORT."}
-          </p>
-        ) : null}
-      </div>
+      {/* La date de naissance est saisie dans le bloc IDENTITÉ, en haut du formulaire. */}
+      {!naissance ? (
+        <p className="mono mt-4 border border-line bg-paper px-5 py-4 text-[11px] text-ink-faint">
+          Renseignez la date de naissance (bloc Identité, en haut) pour afficher le questionnaire adapté.
+        </p>
+      ) : (
+        <p className="mono mt-4 text-[11px] text-ink-faint">
+          {type === "mineur"
+            ? "Adhérent mineur — à remplir par le représentant légal."
+            : "Adhérent majeur — questionnaire QS-SPORT."}
+        </p>
+      )}
 
       {/* RESPONSABLE LÉGAL — affiché automatiquement quand l'adhérent est mineur */}
       {naissance && type === "mineur" ? (
