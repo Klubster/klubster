@@ -174,5 +174,8 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
     console.error("email bienvenue", e);
   }
 
-  redirect(`/${slug}`);
+  // Vers le Cockpit, pas la vitrine : c'est là que tout se passe désormais, et le
+  // bloc « Premiers pas » y attend le président (avec le lien « Voir mon site »
+  // pour le moment de fierté). ?bienvenue=1 déclenche le message de confirmation.
+  redirect(`/${slug}/cockpit?bienvenue=1`);
 }

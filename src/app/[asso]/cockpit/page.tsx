@@ -19,7 +19,7 @@ export default async function Cockpit({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { stripe?: string };
+  searchParams: { stripe?: string; bienvenue?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -129,6 +129,44 @@ export default async function Cockpit({
             </h1>
             <p className="mt-4 max-w-prose text-lg text-ink-soft">{sousTitre}</p>
           </div>
+
+          {/* PREMIERS PAS — accompagnement de la première connexion. Visible tant que
+              le club n'a aucun adhérent : dès que la vie du club commence, il s'efface
+              (filtre « 18h » : ne montrer que ce qui sert ce soir). Liste volontairement
+              extensible — les étapes suivantes s'ajouteront après les tests de Mathieu. */}
+          {s.equipage === 0 ? (
+            <div className="border-b border-line bg-bg-alt px-6 py-8 md:px-10">
+              {searchParams?.bienvenue ? (
+                <p className="mono text-[12px] text-brand">
+                  ✓ Votre club est en ligne sur klubster.fr/{org.slug}{" "}
+                  <Link href={`/${org.slug}`} className="ml-2 underline underline-offset-2 hover:text-ink">
+                    VOIR MON SITE →
+                  </Link>
+                </p>
+              ) : null}
+              <p className={`mono text-[11px] uppercase tracking-label text-ink-soft ${searchParams?.bienvenue ? "mt-6" : ""}`}>
+                PREMIERS PAS<Cur />
+              </p>
+              <div className="mt-5 flex flex-col gap-4 border border-line bg-paper p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[16px] font-medium">
+                    <span className="mono mr-2 text-[12px] text-brand">01</span>
+                    Construisez votre fiche d&apos;inscription personnalisée.
+                  </p>
+                  <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                    Les champs à remplir, les pièces à demander, le questionnaire de santé :
+                    c&apos;est ce que verront vos adhérents avant même la salle.
+                  </p>
+                </div>
+                <Link
+                  href={`/${org.slug}/cockpit/formulaire`}
+                  className="mono shrink-0 bg-brand-dark px-5 py-3 text-center text-[12px] text-white hover:opacity-90"
+                >
+                  CONFIGURER →
+                </Link>
+              </div>
+            </div>
+          ) : null}
 
           {/* LE CLUB AUJOURD'HUI — l'essentiel en 3 secondes */}
           <div className="border-b border-line px-6 py-8 md:px-10">
