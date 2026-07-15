@@ -193,6 +193,24 @@ export default async function Cockpit({
                     INVITER →
                   </Link>
                 </div>
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[16px] font-medium">
+                      <span className="mono mr-2 text-[12px] text-brand">{stripeConnecte ? "✓" : "03"}</span>
+                      Connectez Stripe.
+                    </p>
+                    <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                      Les cotisations en ligne arrivent directement sur le compte du club —
+                      0 % de commission Klubster.
+                    </p>
+                  </div>
+                  <a
+                    href="#paiements"
+                    className={`mono shrink-0 px-5 py-3 text-center text-[12px] ${stripeConnecte ? "border border-line text-ink hover:border-ink" : "border border-ink text-ink hover:bg-ink hover:text-paper"}`}
+                  >
+                    {stripeConnecte ? "VOIR →" : "CONNECTER →"}
+                  </a>
+                </div>
               </div>
             </div>
           ) : null}
@@ -263,7 +281,7 @@ export default async function Cockpit({
           </div>
 
           {/* PAIEMENTS / STRIPE */}
-          <div className="border-b border-line px-6 py-7 md:px-10">
+          <div id="paiements" className="border-b border-line px-6 py-7 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
             {/* Aucun euro réel ne circule en mode test : il faut le dire, gros, avant que
                 quelqu'un croie avoir encaissé une cotisation. */}
