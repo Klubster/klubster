@@ -63,9 +63,12 @@ export default function FormBuilder({
       <div className="mx-auto max-w-3xl px-6 py-12 md:px-8">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ATELIER — {nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Votre formulaire d&apos;inscription.</h1>
+        {/* Lister la base complète : sinon le président la cherche dans le builder
+            et croit qu'elle manque (retour de Mathieu, 15/07/2026). */}
         <p className="mt-3 max-w-prose text-ink-soft">
-          Prénom, nom, email et choix du cours sont toujours présents. Ajoutez ici vos champs et vos
-          pièces, page par page.
+          La base est déjà en place sur votre formulaire : prénom, nom, date de naissance, adresse,
+          email, téléphone, choix du cours, questionnaire de santé — et l&apos;identité du responsable
+          légal quand l&apos;adhérent est mineur. Ajoutez ici vos champs et vos pièces, page par page.
         </p>
 
         {/* Formulaire encore vide : proposer un modèle complet plutôt qu'une page blanche.
