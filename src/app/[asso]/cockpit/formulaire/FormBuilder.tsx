@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { saveFormConfig } from "./actions";
 import { TYPE_LABELS, type FormConfig, type Champ, type ChampType, type Page, type Piece } from "@/types/form";
+import { formulaireType } from "@/lib/formulaires-types";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -66,6 +67,37 @@ export default function FormBuilder({
           Prénom, nom, email et choix du cours sont toujours présents. Ajoutez ici vos champs et vos
           pièces, page par page.
         </p>
+
+        {/* Formulaire encore vide : proposer un modèle complet plutôt qu'une page blanche.
+            Le modèle se charge dans l'éditeur — rien n'est enregistré avant le clic ENREGISTRER. */}
+        {config.pages.length === 0 && config.pieces.length === 0 ? (
+          <div className="mt-8 border border-line bg-bg-alt p-5">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PARTEZ D&apos;UN MODÈLE<Cur /></p>
+            <p className="mt-2 max-w-prose text-[14px] text-ink-soft">
+              Contact d&apos;urgence, autorisations, pièces à fournir : chargez une base complète,
+              puis ajustez chaque champ à votre club.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setConfig(formulaireType("sportive"))}
+                className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
+              >
+                ASSOCIATION SPORTIVE →
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfig(formulaireType("culturelle"))}
+                className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
+              >
+                ASSOCIATION CULTURELLE →
+              </button>
+            </div>
+            <p className="mono mt-3 text-[11px] text-ink-faint">
+              Sportive : certificat médical, pièce d&apos;identité, urgence. Culturelle : niveau de pratique, autorisations.
+            </p>
+          </div>
+        ) : null}
 
         {/* PAGES */}
         <div className="mt-12">

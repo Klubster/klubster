@@ -31,6 +31,8 @@ export interface CreerInput {
   tel?: string;
   cours: CoursInput[];
   accepteCGV?: boolean;
+  /** Pré-remplit le formulaire d'inscription avec un modèle adapté (sportive/culturelle). */
+  typeAsso?: string;
 }
 
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
@@ -126,6 +128,22 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
     throw new Error(error?.message ?? "Création impossible.");
   }
   const slug = data as string;
+
+  // Formulaire d'inscription pré-rempli selon le type d'association : le président
+  // découvre un formulaire complet (urgence, autorisations, pièces) au lieu d'une
+  // page vide — tout reste modifiable dans l'Atelier. Non bloquant.
+  if (input.typeAsso === "sportive" || input.typeAsso === "culturelle") {
+    try {
+      const { formulaireType } = await import("@/lib/formulaires-types");
+      const { error: fcErr } = await supabase
+        .from("organisations")
+        .update({ form_config: formulaireType(input.typeAsso) })
+        .eq("slug", slug);
+      if (fcErr) console.error("form_config type", fcErr.message);
+    } catch (e) {
+      console.error("form_config type", e);
+    }
+  }
 
   // Logo (optionnel). Après create_club, le président est admin de l'org :
   // la politique storage logos_admin_insert (current_org_id) autorise l'upload.

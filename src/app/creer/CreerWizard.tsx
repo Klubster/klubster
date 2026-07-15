@@ -52,6 +52,7 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
   const [connecte, setConnecte] = useState(connecteInitial);
   const [etape, setEtape] = useState(0);
   const [template, setTemplate] = useState<ThemeTemplateId | null>(null);
+  const [typeAsso, setTypeAsso] = useState<"sportive" | "culturelle">("sportive");
   const [mode, setMode] = useState<ThemeMode>("blanc");
   const [couleur, setCouleur] = useState("#189460");
   const [hexSaisie, setHexSaisie] = useState("");
@@ -86,6 +87,7 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
       const b = JSON.parse(brut);
       if (typeof b !== "object" || !b) return;
       if (b.template) setTemplate(b.template);
+      if (b.typeAsso === "sportive" || b.typeAsso === "culturelle") setTypeAsso(b.typeAsso);
       if (b.mode) setMode(b.mode);
       if (b.couleur) setCouleur(b.couleur);
       if (b.nom) setNom(b.nom);
@@ -105,12 +107,12 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
     try {
       localStorage.setItem(
         CLE_BROUILLON,
-        JSON.stringify({ template, mode, couleur, nom, adresse, email, tel, cours, etape })
+        JSON.stringify({ template, typeAsso, mode, couleur, nom, adresse, email, tel, cours, etape })
       );
     } catch {
       /* stockage plein ou bloqué : tant pis, le wizard reste utilisable */
     }
-  }, [template, mode, couleur, nom, adresse, email, tel, cours, etape]);
+  }, [template, typeAsso, mode, couleur, nom, adresse, email, tel, cours, etape]);
 
   const slug = nom ? nom.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "") : "monclub";
   const suivant = () => setEtape((e) => Math.min(e + 1, ETAPES.length - 1));
@@ -235,6 +237,7 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
           tel,
           cours: coursValides,
           accepteCGV: accepte,
+          typeAsso,
         },
         logoFd
       );
@@ -355,6 +358,29 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
               />
               <p className="mono mt-3 text-[12px] text-ink-soft">
                 Votre adresse : klubster.fr/<span className="text-ink">{slug}</span>
+              </p>
+
+              {/* Le type d'association pré-remplit le formulaire d'inscription (champs
+                  d'urgence, autorisations, certificat médical…) — tout reste modifiable. */}
+              <label className="mono mt-10 block text-[11px] uppercase tracking-label text-ink-soft">VOTRE ASSOCIATION EST PLUTÔT…</label>
+              <div className="mt-3 inline-flex border border-line">
+                {([["sportive", "SPORTIVE"], ["culturelle", "CULTURELLE"]] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setTypeAsso(val)}
+                    className={`mono px-5 py-2 text-[11px] uppercase tracking-wider ${
+                      typeAsso === val ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[13px] text-ink-soft">
+                Votre formulaire d&apos;inscription arrivera pré-rempli : contact d&apos;urgence, autorisations
+                {typeAsso === "sportive" ? ", certificat médical et pièces à fournir" : " et niveau de pratique"}.
+                Modifiable à tout moment.
               </p>
 
               <label className="mono mt-10 block text-[11px] uppercase tracking-label text-ink-soft">LOGO — OPTIONNEL</label>
