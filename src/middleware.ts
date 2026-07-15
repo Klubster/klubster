@@ -43,6 +43,18 @@ export async function middleware(request: NextRequest) {
   const host = brutHost.replace(/^www\./, "");
   const { pathname } = request.nextUrl;
 
+  // Filet de sécurité auth : si un lien de confirmation Supabase retombe sur la home
+  // avec un ?code= (Site URL/Redirect URLs mal configurées, ou vieux email), on route
+  // le code vers /auth/callback qui sait l'échanger contre une session — au lieu de
+  // laisser le visiteur sur la home, déconnecté, sans comprendre (constaté le 15/07/2026 :
+  // « le mail de validation renvoie sur la page d'accueil »). /auth/callback choisit
+  // ensuite la bonne destination (cockpit, /creer…) selon le profil.
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   const estPlateforme =
     HOTES_PLATEFORME.has(brutHost) || HOTES_PLATEFORME.has(host) || brutHost.endsWith(".vercel.app");
 
