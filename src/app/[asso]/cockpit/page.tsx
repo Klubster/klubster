@@ -259,7 +259,7 @@ export default async function Cockpit({
                     </p>
                   </div>
                   <Link
-                    href={`/${org.slug}/cockpit/import`}
+                    href={`/${org.slug}/cockpit/adherents/import`}
                     className="mono shrink-0 border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink"
                   >
                     IMPORTER →
@@ -474,7 +474,7 @@ export default async function Cockpit({
               <Geste titre="Formulaire d'inscription" desc="Champs, pièces demandées, questionnaire." href={`/${org.slug}/cockpit/formulaire`} action="CONFIGURER" />
               <Geste titre="Logo &amp; couleur" desc="Le visage du club, modifiable quand vous voulez." href={`/${org.slug}/cockpit/identite`} action="AJUSTER" />
               <Geste titre="Votre domaine" desc="Votre site sur votre propre adresse." href={`/${org.slug}/cockpit/domaine`} action="CONNECTER" />
-              <Geste titre="Importer vos adhérents" desc="Depuis votre tableur (CSV) : colonnes reconnues, aperçu avant import." href={`/${org.slug}/cockpit/import`} action="IMPORTER" />
+              <Geste titre="Importer vos adhérents" desc="Depuis votre tableur (CSV) : colonnes reconnues, aperçu avant import." href={`/${org.slug}/cockpit/adherents/import`} action="IMPORTER" />
               <Geste titre="Exporter vos adhérents" desc="La liste complète, en CSV. Vos données restent les vôtres." href={`/${org.slug}/cockpit/export`} action="EXPORTER" />
               {profile?.role === "admin_asso" || profile?.role === "super_admin" ? (
                 <Geste titre="Votre équipe" desc="Trésorier, secrétaire, encadrant : le juste accès pour chacun." href={`/${org.slug}/cockpit/equipe`} action="GÉRER" />
