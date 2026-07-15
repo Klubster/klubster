@@ -63,13 +63,44 @@ export default function FormBuilder({
       <div className="mx-auto max-w-3xl px-6 py-12 md:px-8">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ATELIER — {nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Votre formulaire d&apos;inscription.</h1>
-        {/* Lister la base complète : sinon le président la cherche dans le builder
-            et croit qu'elle manque (retour de Mathieu, 15/07/2026). */}
         <p className="mt-3 max-w-prose text-ink-soft">
-          La base est déjà en place sur votre formulaire : prénom, nom, date de naissance, adresse,
-          email, téléphone, choix du cours, questionnaire de santé — et l&apos;identité du responsable
-          légal quand l&apos;adhérent est mineur. Ajoutez ici vos champs et vos pièces, page par page.
+          La base ci-dessous est intégrée d&apos;office. Ajoutez ensuite vos champs et vos pièces,
+          page par page.
         </p>
+
+        {/* BASE VERROUILLÉE — visible dans le builder pour que le président voie le
+            formulaire complet, pas seulement ses ajouts (retour de Mathieu, 15/07/2026 :
+            « il n'y a pas le bloc identité »). Non modifiable : c'est le socle commun. */}
+        <div className="mt-10">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">BASE DU FORMULAIRE — TOUJOURS PRÉSENTE<Cur /></p>
+          <div className="mt-4 border border-line bg-bg-alt">
+            <div className="mono flex items-center justify-between border-b border-line px-4 py-2.5 text-[10px] uppercase tracking-label text-ink-faint">
+              <span>IDENTITÉ &amp; CONTACT</span>
+              <span>VERROUILLÉ</span>
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3">
+              {[
+                "Prénom *",
+                "Nom *",
+                "Date de naissance *",
+                "Adresse *",
+                "Email *",
+                "Téléphone",
+              ].map((c) => (
+                <div key={c} className="bg-bg-alt px-4 py-3 text-[13px] text-ink-soft">{c}</div>
+              ))}
+            </div>
+            <div className="mono border-t border-b border-line px-4 py-2.5 text-[10px] uppercase tracking-label text-ink-faint">
+              PUIS, AUTOMATIQUEMENT
+            </div>
+            <div className="divide-y divide-line">
+              <div className="px-4 py-3 text-[13px] text-ink-soft">Choix du cours — vos cours et tarifs, à jour en permanence</div>
+              <div className="px-4 py-3 text-[13px] text-ink-soft">Responsable légal (identité, email, téléphone) — dès que la date de naissance indique un mineur</div>
+              <div className="px-4 py-3 text-[13px] text-ink-soft">Questionnaire de santé QS-SPORT — version majeur ou mineur selon la date de naissance</div>
+              <div className="px-4 py-3 text-[13px] text-ink-soft">Création du compte adhérent (mot de passe) et paiement selon vos réglages</div>
+            </div>
+          </div>
+        </div>
 
         {/* Formulaire encore vide : proposer un modèle complet plutôt qu'une page blanche.
             Le modèle se charge dans l'éditeur — rien n'est enregistré avant le clic ENREGISTRER. */}
