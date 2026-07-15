@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { saveFormConfig, uploaderModelePiece } from "./actions";
 import { TYPE_LABELS, type FormConfig, type Champ, type ChampType, type Page, type Piece } from "@/types/form";
@@ -38,6 +38,50 @@ export default function FormBuilder({
   const [state, setState] = useState<"idle" | "saving" | "ok" | "err">("idle");
   const [modeleEnvoi, setModeleEnvoi] = useState<string | null>(null); // id de la pièce en cours d'envoi
   const [modeleErr, setModeleErr] = useState<string | null>(null);
+  const [brouillonRestaure, setBrouillonRestaure] = useState(false);
+
+  // BROUILLON AUTOMATIQUE — le travail en cours survit à un rechargement ou une
+  // navigation, tant qu'il n'a pas été enregistré (perte constatée par Mathieu le
+  // 15/07/2026 : modèle chargé, page rechargée, tout disparu). Un brouillon par club.
+  const cleBrouillon = `klubster-atelier-brouillon-${slug}`;
+
+  useEffect(() => {
+    try {
+      const brut = localStorage.getItem(cleBrouillon);
+      if (!brut) return;
+      const b = JSON.parse(brut) as FormConfig;
+      if (!b || typeof b !== "object" || !Array.isArray(b.pages) || !Array.isArray(b.pieces)) return;
+      // Ne restaurer que si le brouillon diffère de la version en ligne.
+      if (JSON.stringify(b) === JSON.stringify(initial)) {
+        localStorage.removeItem(cleBrouillon);
+        return;
+      }
+      setConfig(b);
+      setBrouillonRestaure(true);
+    } catch {
+      /* brouillon illisible : on repart de la version en ligne */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(cleBrouillon, JSON.stringify(config));
+    } catch {
+      /* stockage plein ou bloqué : l'éditeur reste utilisable */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config]);
+
+  function ignorerBrouillon() {
+    try {
+      localStorage.removeItem(cleBrouillon);
+    } catch {
+      /* sans conséquence */
+    }
+    setConfig(initial.pages || initial.pieces ? initial : { pages: [], pieces: [] });
+    setBrouillonRestaure(false);
+  }
 
   // Joint un fichier modèle à une pièce (le fichier part tout de suite ; le lien
   // n'est associé à la pièce qu'au clic ENREGISTRER, comme le reste du formulaire).
@@ -79,6 +123,15 @@ export default function FormBuilder({
     setState("saving");
     const res = await saveFormConfig(slug, config);
     setState(res?.ok ? "ok" : "err");
+    if (res?.ok) {
+      // Le brouillon a rempli son office : la version en ligne EST le brouillon.
+      try {
+        localStorage.removeItem(cleBrouillon);
+      } catch {
+        /* sans conséquence */
+      }
+      setBrouillonRestaure(false);
+    }
   }
 
   return (
@@ -93,8 +146,22 @@ export default function FormBuilder({
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Votre formulaire d&apos;inscription.</h1>
         <p className="mt-3 max-w-prose text-ink-soft">
           La base ci-dessous est intégrée d&apos;office. Ajoutez ensuite vos champs et vos pièces,
-          page par page.
+          page par page. Votre travail est conservé en brouillon sur cet appareil tant que vous
+          n&apos;avez pas cliqué ENREGISTRER.
         </p>
+
+        {brouillonRestaure ? (
+          <div className="mono mt-6 flex flex-wrap items-center gap-4 border border-line bg-bg-alt px-4 py-3 text-[12px]">
+            <span className="text-brand">✓ Brouillon restauré — modifications non enregistrées.</span>
+            <button
+              type="button"
+              onClick={ignorerBrouillon}
+              className="text-ink-faint underline underline-offset-2 hover:text-ink"
+            >
+              Ignorer et repartir de la version en ligne
+            </button>
+          </div>
+        ) : null}
 
         {/* BASE VERROUILLÉE — visible dans le builder pour que le président voie le
             formulaire complet, pas seulement ses ajouts (retour de Mathieu, 15/07/2026 :
