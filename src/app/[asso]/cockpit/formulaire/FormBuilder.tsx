@@ -230,6 +230,68 @@ export default function FormBuilder({
           </button>
         </div>
 
+        {/* RÉDUCTIONS — remises conditionnelles sur la cotisation (Pass'Sport…). */}
+        <div className="mt-14">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">RÉDUCTIONS<Cur /></p>
+          <p className="mt-2 max-w-prose text-[13px] text-ink-soft">
+            L&apos;adhérent sélectionne la réduction qui le concerne et le montant à régler baisse
+            d&apos;autant — en ligne comme au club. Exigez un code justificatif (Pass&apos;Sport…) :
+            il sera enregistré sur la fiche pour que vous puissiez le vérifier.
+          </p>
+          <div className="mt-6 divide-y divide-line border border-line bg-paper">
+            {(config.remises ?? []).length === 0 ? (
+              <p className="px-4 py-4 text-[14px] text-ink-soft">Aucune réduction pour l&apos;instant.</p>
+            ) : null}
+            {(config.remises ?? []).map((r) => (
+              <div key={r.id} className="space-y-2 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={r.label}
+                    onChange={(e) => setConfig((c) => ({ ...c, remises: (c.remises ?? []).map((x) => (x.id === r.id ? { ...x, label: e.target.value } : x)) }))}
+                    placeholder="Ex. Pass'Sport"
+                    className="min-w-[160px] flex-1 border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
+                  />
+                  <div className="mono flex items-center gap-1 text-[13px]">
+                    <span className="text-ink-faint">−</span>
+                    <input
+                      value={r.montant_centimes ? String(r.montant_centimes / 100) : ""}
+                      onChange={(e) => {
+                        const v = Math.max(0, Math.round((parseFloat(e.target.value.replace(",", ".")) || 0) * 100));
+                        setConfig((c) => ({ ...c, remises: (c.remises ?? []).map((x) => (x.id === r.id ? { ...x, montant_centimes: v } : x)) }));
+                      }}
+                      inputMode="decimal"
+                      placeholder="70"
+                      className="w-20 border border-line bg-paper px-3 py-2 text-right outline-none focus:border-ink"
+                    />
+                    <span className="text-ink-faint">€</span>
+                  </div>
+                  <label className="mono flex items-center gap-1.5 text-[11px] text-ink-soft">
+                    <input
+                      type="checkbox"
+                      checked={r.exigeCode}
+                      onChange={(e) => setConfig((c) => ({ ...c, remises: (c.remises ?? []).map((x) => (x.id === r.id ? { ...x, exigeCode: e.target.checked } : x)) }))}
+                    />
+                    CODE JUSTIFICATIF
+                  </label>
+                  <Btn onClick={() => setConfig((c) => ({ ...c, remises: (c.remises ?? []).filter((x) => x.id !== r.id) }))}>✕</Btn>
+                </div>
+                <input
+                  value={r.description ?? ""}
+                  onChange={(e) => setConfig((c) => ({ ...c, remises: (c.remises ?? []).map((x) => (x.id === r.id ? { ...x, description: e.target.value } : x)) }))}
+                  placeholder="Aide affichée sous la réduction (optionnel) — ex. Réservé aux bénéficiaires du Pass'Sport."
+                  className="w-full border border-line bg-paper px-3 py-2 text-[13px] outline-none focus:border-ink"
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setConfig((c) => ({ ...c, remises: [...(c.remises ?? []), { id: uid(), label: "", montant_centimes: 0, exigeCode: false }] }))}
+            className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
+          >
+            + AJOUTER UNE RÉDUCTION
+          </button>
+        </div>
+
         {/* AUTORISATIONS PARENTALES — cases à cocher affichées uniquement pour les
             mineurs (accord médical, sortie seul, compétitions…). */}
         <div className="mt-14">

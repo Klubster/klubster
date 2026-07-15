@@ -74,6 +74,15 @@ export function formulaireType(type: TypeAssociation): FormConfig {
           },
         ],
       },
+      remises: [
+        {
+          id: uid(),
+          label: "Pass'Sport",
+          description: "Aide de l'État pour les jeunes éligibles : saisissez le code reçu, le club le vérifiera.",
+          montant_centimes: 7000,
+          exigeCode: true,
+        },
+      ],
     };
   }
 

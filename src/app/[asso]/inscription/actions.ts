@@ -62,6 +62,22 @@ export async function inscrireAdherent(formData: FormData) {
     }
   }
 
+  // RÉDUCTIONS (Pass'Sport…) — calcul strictement côté serveur : les montants
+  // viennent de la configuration du club (form_config.remises), jamais du
+  // navigateur. Le code justificatif est tracé sur la fiche pour vérification
+  // par le club (portail officiel pour le Pass'Sport).
+  let remiseTotaleCentimes = 0;
+  for (const r of org.form_config?.remises ?? []) {
+    if (formData.get(`remise_${r.id}`) !== "oui") continue;
+    const codeRemise = String(formData.get(`remise_code_${r.id}`) ?? "").trim();
+    if (r.exigeCode && !codeRemise) continue; // pas de code = pas de remise
+    const montantRemise = Number.isFinite(r.montant_centimes) ? Math.max(0, Math.round(r.montant_centimes)) : 0;
+    if (montantRemise === 0) continue;
+    remiseTotaleCentimes += montantRemise;
+    infos[`Réduction — ${r.label.slice(0, 80)}`] = `−${(montantRemise / 100).toLocaleString("fr-FR")} €`;
+    if (codeRemise) infos[`Réduction — ${r.label.slice(0, 80)} — code`] = codeRemise.slice(0, 60);
+  }
+
   const respQualite = String(formData.get("resp_qualite") ?? "").trim();
   if (respPrenom || respNom) {
     infos["Responsable légal"] = [respPrenom, respNom].filter(Boolean).join(" ");
@@ -154,6 +170,17 @@ export async function inscrireAdherent(formData: FormData) {
   const coursNom = (coursChoisi as { nom: string } | null)?.nom ?? "Cours";
   const tarifCentimes = (coursChoisi as { tarif_centimes: number } | null)?.tarif_centimes ?? 0;
 
+  // Le montant dû de l'adhésion reflète la remise éventuelle (le RPC l'avait fixé
+  // au tarif plein du cours).
+  const montantDuCentimes = Math.max(0, tarifCentimes - remiseTotaleCentimes);
+  if (remiseTotaleCentimes > 0) {
+    const { error: majErr } = await admin
+      .from("adhesions")
+      .update({ montant_centimes: montantDuCentimes })
+      .eq("id", String(adhesionId));
+    if (majErr) console.error("remise montant adhesion", majErr.message);
+  }
+
   // Emails de confirmation (non bloquants — l'inscription est déjà enregistrée)
   const echeancesChoisies = Math.min(
     bornerEcheances(formData.get("echeances") ?? 1),
@@ -179,8 +206,11 @@ export async function inscrireAdherent(formData: FormData) {
           : `Bonjour ${prenom},\n\n` +
             `Votre inscription au ${org.nom} est bien enregistrée.\n\n` +
             `Cours : ${coursNom}\n` +
-            `Cotisation : ${(tarifCentimes / 100).toLocaleString("fr-FR")} € / an\n` +
-            `Règlement : ${libelleMode}\n\n` +
+            `Cotisation : ${(montantDuCentimes / 100).toLocaleString("fr-FR")} € / an` +
+            (remiseTotaleCentimes > 0
+              ? ` (${(tarifCentimes / 100).toLocaleString("fr-FR")} € − ${(remiseTotaleCentimes / 100).toLocaleString("fr-FR")} € de réduction)`
+              : "") +
+            `\nRèglement : ${libelleMode}\n\n` +
             `Votre espace adhérent (dossier, pièces à déposer, carte de membre) :\n` +
             `${BASE}/${slug}/espace\n\n` +
             `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).\n\n` +
@@ -214,13 +244,15 @@ export async function inscrireAdherent(formData: FormData) {
   // Paiement en ligne (si choisi + club connecté + plateforme configurée)
   const enLigne = mode === "en_ligne" || mode === "en_ligne_echeances";
   const compteClub = compteConnecte(org);
-  if (enLigne && compteClub && stripeConfigured()) {
+  // montantDuCentimes === 0 (remise couvrant tout) : rien à encaisser, pas de checkout.
+  if (enLigne && compteClub && stripeConfigured() && montantDuCentimes > 0) {
     const cours = coursChoisi;
     if (cours) {
       const optsCommunes = {
         clubAccount: compteClub,
         coursNom: (cours as { nom: string }).nom,
-        montantCentimes: (cours as { tarif_centimes: number }).tarif_centimes,
+        // Montant après réduction éventuelle — calculé serveur, jamais côté client.
+        montantCentimes: montantDuCentimes,
         successUrl: `${BASE}/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paye=1`,
         cancelUrl: `${BASE}/${slug}/inscription?annule=1`,
         adhesionId: String(adhesionId),

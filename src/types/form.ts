@@ -22,6 +22,21 @@ export interface Piece {
   modele_url?: string | null;
   modele_nom?: string | null;
 }
+/**
+ * Réduction conditionnelle sur la cotisation (ex. Pass'Sport) : l'adhérent la
+ * sélectionne à l'inscription — avec un code justificatif si le club l'exige —
+ * et le montant dû baisse d'autant. Le calcul se fait toujours côté serveur.
+ */
+export interface Remise {
+  id: string;
+  label: string;
+  /** Aide affichée sous la remise (ex. « Réservé aux bénéficiaires du Pass'Sport »). */
+  description?: string;
+  montant_centimes: number;
+  /** Un code justificatif est demandé (stocké sur la fiche pour vérification par le club). */
+  exigeCode: boolean;
+}
+
 /** Autorisation parentale (case à cocher), demandée uniquement quand l'adhérent est mineur. */
 export interface AutorisationMineur {
   id: string;
@@ -37,6 +52,8 @@ export interface FormConfig {
   mineur?: {
     autorisations: AutorisationMineur[];
   };
+  /** Réductions conditionnelles (Pass'Sport, tarif famille…). */
+  remises?: Remise[];
   paiement?: {
     troisFois?: boolean; // proposer le paiement en ligne en 3 mensualités
   };

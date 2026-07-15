@@ -8,6 +8,7 @@ import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
 import ResponsableLegal from "./ResponsableLegal";
 import AutorisationsMineur from "./AutorisationsMineur";
+import RemisesInscription from "./RemisesInscription";
 import { NaissanceProvider, ChampNaissance } from "./naissance";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
@@ -142,6 +143,9 @@ export default async function InscriptionPage({
               </fieldset>
             )
           ))}
+
+          {/* RÉDUCTIONS (Pass'Sport…) — montant recalculé côté serveur */}
+          <RemisesInscription remises={org.form_config?.remises ?? []} accent={accent} />
 
           {/* PIÈCES (info) */}
           {pieces.length > 0 ? (
