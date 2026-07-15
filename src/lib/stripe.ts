@@ -145,6 +145,10 @@ export async function createAbonnementCheckout(opts: {
         },
       },
     ],
+    // Codes promo (ex. PREM26 : première saison offerte aux clubs pilotes) :
+    // coupons et codes gérés dans le dashboard Stripe, sans redéploiement.
+    // Uniquement sur l'abonnement Klubster — jamais sur les cotisations des adhérents.
+    allow_promotion_codes: true,
     subscription_data: {
       trial_period_days: JOURS_ESSAI,
       metadata: { organisation_id: opts.organisationId, palier: opts.palier },
