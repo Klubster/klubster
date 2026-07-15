@@ -247,6 +247,24 @@ export default async function Cockpit({
                     {org.domaine_custom ? "VOIR →" : "CONNECTER →"}
                   </Link>
                 </div>
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[16px] font-medium">
+                      <span className="mono mr-2 text-[12px] text-brand">06</span>
+                      Importez vos adhérents.
+                    </p>
+                    <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                      Depuis votre tableur (fichier CSV) : Klubster fait correspondre vos
+                      colonnes aux siennes, vous vérifiez avant d&apos;enregistrer.
+                    </p>
+                  </div>
+                  <Link
+                    href={`/${org.slug}/cockpit/import`}
+                    className="mono shrink-0 border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink"
+                  >
+                    IMPORTER →
+                  </Link>
+                </div>
               </div>
             </div>
           ) : null}
@@ -456,6 +474,7 @@ export default async function Cockpit({
               <Geste titre="Formulaire d'inscription" desc="Champs, pièces demandées, questionnaire." href={`/${org.slug}/cockpit/formulaire`} action="CONFIGURER" />
               <Geste titre="Logo &amp; couleur" desc="Le visage du club, modifiable quand vous voulez." href={`/${org.slug}/cockpit/identite`} action="AJUSTER" />
               <Geste titre="Votre domaine" desc="Votre site sur votre propre adresse." href={`/${org.slug}/cockpit/domaine`} action="CONNECTER" />
+              <Geste titre="Importer vos adhérents" desc="Depuis votre tableur (CSV) : colonnes reconnues, aperçu avant import." href={`/${org.slug}/cockpit/import`} action="IMPORTER" />
               <Geste titre="Exporter vos adhérents" desc="La liste complète, en CSV. Vos données restent les vôtres." href={`/${org.slug}/cockpit/export`} action="EXPORTER" />
               {profile?.role === "admin_asso" || profile?.role === "super_admin" ? (
                 <Geste titre="Votre équipe" desc="Trésorier, secrétaire, encadrant : le juste accès pour chacun." href={`/${org.slug}/cockpit/equipe`} action="GÉRER" />
