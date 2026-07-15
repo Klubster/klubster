@@ -10,10 +10,10 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
         <Link href={`/${org.slug}`} className="flex min-w-0 items-center gap-2.5">
           {org.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={org.logo_url} alt={org.nom} className="h-7 w-7 object-cover" />
+            <img src={org.logo_url} alt={org.nom} className="h-10 w-10 object-cover" />
           ) : (
             <span
-              className="grid h-7 w-7 place-items-center text-[13px] font-bold text-white"
+              className="grid h-10 w-10 place-items-center text-[16px] font-bold text-white"
               style={{ background: accent }}
               aria-hidden
             >

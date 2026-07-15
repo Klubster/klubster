@@ -192,9 +192,9 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
       setLogoErr("Format non reconnu : choisissez une image (PNG, JPG, SVG…).");
       return;
     }
-    if (f.size > 2 * 1024 * 1024) {
+    if (f.size > 3 * 1024 * 1024) {
       setLogo(null); setLogoPreview(null);
-      setLogoErr("Image trop lourde (2 Mo maximum).");
+      setLogoErr("Image trop lourde (3 Mo maximum).");
       return;
     }
     setLogo(f);
@@ -415,7 +415,7 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
               {logoErr ? (
                 <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{logoErr}</p>
               ) : (
-                <p className="mt-3 text-[13px] text-ink-soft">PNG, JPG ou SVG, 2 Mo max. Sans logo, l&apos;initiale du club fait le travail.</p>
+                <p className="mt-3 text-[13px] text-ink-soft">PNG, JPG ou SVG, 3 Mo max. Sans logo, l&apos;initiale du club fait le travail.</p>
               )}
             </div>
           )}

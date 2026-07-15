@@ -150,8 +150,8 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
   const file = logoFd?.get("logo");
   if (file && typeof file === "object" && "size" in file && (file as File).size > 0) {
     const f = file as File;
-    // Validation par octets réels (2 Mo max) : ni SVG, ni fichier renommé.
-    const v = await validerImage(f, 2);
+    // Validation par octets réels (3 Mo max) : ni SVG, ni fichier renommé.
+    const v = await validerImage(f, 3);
     if (v.ok) {
       const { data: org } = await supabase.from("organisations").select("id").eq("slug", slug).single();
       if (org) {

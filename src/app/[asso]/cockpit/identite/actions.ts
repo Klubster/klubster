@@ -33,8 +33,9 @@ export async function changerLogo(slug: string, fd: FormData) {
   if (!file || typeof file !== "object" || !("size" in file) || (file as File).size === 0) {
     redirect(`/${slug}/cockpit/identite?erreur=vide`);
   }
-  // Validation par octets réels (2 Mo max), comme à la création du club.
-  const v = await validerImage(file as File, 2);
+  // Validation par octets réels (3 Mo max — les logos vectorisés exportés en PNG
+  // haute définition dépassent souvent 2 Mo ; le plafond serveur est à 4 Mo).
+  const v = await validerImage(file as File, 3);
   if (!v.ok) redirect(`/${slug}/cockpit/identite?erreur=image`);
 
   const path = `${org.id}/logo-${Date.now()}.${v.ext}`;
@@ -63,6 +64,23 @@ export async function retirerLogo(slug: string) {
   if (error) redirect(`/${slug}/cockpit/identite?erreur=enregistrement`);
   revalidatePath(`/${slug}`);
   redirect(`/${slug}/cockpit/identite?ok=retire`);
+}
+
+export async function changerTheme(slug: string, fd: FormData) {
+  const ctx = await organisationAutorisee(slug);
+  if (!ctx) redirect(`/connexion?next=/${slug}/cockpit/identite`);
+  const { supabase, org } = ctx;
+  // getTemplate / getMode retombent sur des valeurs sûres si l'entrée est inconnue.
+  const { getTemplate, getMode } = await import("@/lib/themes");
+  const template = getTemplate(String(fd.get("template") ?? "")).id;
+  const mode = getMode(String(fd.get("mode") ?? ""));
+  const { error } = await supabase
+    .from("organisations")
+    .update({ theme_template: template, theme_mode: mode })
+    .eq("id", org.id);
+  if (error) redirect(`/${slug}/cockpit/identite?erreur=enregistrement`);
+  revalidatePath(`/${slug}`);
+  redirect(`/${slug}/cockpit/identite?ok=theme`);
 }
 
 export async function changerCouleur(slug: string, fd: FormData) {

@@ -211,6 +211,42 @@ export default async function Cockpit({
                     {stripeConnecte ? "VOIR →" : "CONNECTER →"}
                   </a>
                 </div>
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[16px] font-medium">
+                      <span className="mono mr-2 text-[12px] text-brand">04</span>
+                      Personnalisez votre site.
+                    </p>
+                    <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                      Mot du président, photos, questions fréquentes — et votre logo,
+                      police et couleurs dans Identité.
+                    </p>
+                  </div>
+                  <Link
+                    href={`/${org.slug}?edition=1`}
+                    className="mono shrink-0 border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink"
+                  >
+                    ÉDITER →
+                  </Link>
+                </div>
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[16px] font-medium">
+                      <span className="mono mr-2 text-[12px] text-brand">{org.domaine_custom ? "✓" : "05"}</span>
+                      Un nom de domaine ? Connectez-le.
+                    </p>
+                    <p className="mt-1.5 max-w-prose text-[14px] text-ink-soft">
+                      Votre site vit sur klubster.fr/{org.slug} — il peut aussi répondre
+                      sur votre propre adresse (monclub.fr).
+                    </p>
+                  </div>
+                  <Link
+                    href={`/${org.slug}/cockpit/domaine`}
+                    className="mono shrink-0 border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink"
+                  >
+                    {org.domaine_custom ? "VOIR →" : "CONNECTER →"}
+                  </Link>
+                </div>
               </div>
             </div>
           ) : null}
