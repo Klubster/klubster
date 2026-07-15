@@ -36,6 +36,20 @@ export function formulaireType(type: TypeAssociation): FormConfig {
     },
   };
 
+  const autorisationsCommunes = {
+    medical: {
+      id: uid(),
+      label:
+        "Je donne mon accord aux responsables pour prendre toutes dispositions médicales en cas d'accident pendant la pratique.",
+      obligatoire: true,
+    },
+    sortieSeul: {
+      id: uid(),
+      label: "J'autorise mon enfant à quitter seul le lieu d'entraînement ou de compétition.",
+      obligatoire: false,
+    },
+  };
+
   if (type === "sportive") {
     return {
       pages: [
@@ -49,6 +63,17 @@ export function formulaireType(type: TypeAssociation): FormConfig {
         { id: uid(), label: "Certificat médical de non contre-indication", obligatoire: true, mode: "deux" },
         { id: uid(), label: "Photo d'identité", obligatoire: false, mode: "deux" },
       ],
+      mineur: {
+        autorisations: [
+          autorisationsCommunes.medical,
+          autorisationsCommunes.sortieSeul,
+          {
+            id: uid(),
+            label: "J'autorise mon enfant à participer aux compétitions pour lesquelles l'entraîneur l'aura engagé.",
+            obligatoire: false,
+          },
+        ],
+      },
     };
   }
 
@@ -75,5 +100,8 @@ export function formulaireType(type: TypeAssociation): FormConfig {
     pieces: [
       { id: uid(), label: "Photo d'identité", obligatoire: false, mode: "deux" },
     ],
+    mineur: {
+      autorisations: [autorisationsCommunes.medical, autorisationsCommunes.sortieSeul],
+    },
   };
 }

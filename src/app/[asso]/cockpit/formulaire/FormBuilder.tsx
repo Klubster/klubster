@@ -230,6 +230,82 @@ export default function FormBuilder({
           </button>
         </div>
 
+        {/* AUTORISATIONS PARENTALES — cases à cocher affichées uniquement pour les
+            mineurs (accord médical, sortie seul, compétitions…). */}
+        <div className="mt-14">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">AUTORISATIONS PARENTALES — MINEURS<Cur /></p>
+          <p className="mt-2 max-w-prose text-[13px] text-ink-soft">
+            Cases à cocher présentées au responsable légal quand l&apos;adhérent est mineur.
+            Une autorisation obligatoire bloque l&apos;inscription tant qu&apos;elle n&apos;est pas cochée
+            (ex. l&apos;accord pour les premiers soins).
+          </p>
+          <div className="mt-6 divide-y divide-line border border-line bg-paper">
+            {(config.mineur?.autorisations ?? []).length === 0 ? (
+              <p className="px-4 py-4 text-[14px] text-ink-soft">Aucune autorisation pour l&apos;instant.</p>
+            ) : null}
+            {(config.mineur?.autorisations ?? []).map((a, i) => (
+              <div key={a.id} className="flex flex-wrap items-center gap-2 px-4 py-3">
+                <input
+                  value={a.label}
+                  onChange={(e) =>
+                    setConfig((c) => ({
+                      ...c,
+                      mineur: { autorisations: (c.mineur?.autorisations ?? []).map((x) => (x.id === a.id ? { ...x, label: e.target.value } : x)) },
+                    }))
+                  }
+                  placeholder="Ex. J'autorise mon enfant à quitter seul le lieu d'entraînement."
+                  className="min-w-[220px] flex-1 border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
+                />
+                <label className="mono flex items-center gap-1.5 text-[11px] text-ink-soft">
+                  <input
+                    type="checkbox"
+                    checked={a.obligatoire}
+                    onChange={(e) =>
+                      setConfig((c) => ({
+                        ...c,
+                        mineur: { autorisations: (c.mineur?.autorisations ?? []).map((x) => (x.id === a.id ? { ...x, obligatoire: e.target.checked } : x)) },
+                      }))
+                    }
+                  />
+                  OBLIGATOIRE
+                </label>
+                <Btn
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, mineur: { autorisations: move(c.mineur?.autorisations ?? [], i, -1) } }))
+                  }
+                >
+                  ↑
+                </Btn>
+                <Btn
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, mineur: { autorisations: move(c.mineur?.autorisations ?? [], i, 1) } }))
+                  }
+                >
+                  ↓
+                </Btn>
+                <Btn
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, mineur: { autorisations: (c.mineur?.autorisations ?? []).filter((x) => x.id !== a.id) } }))
+                  }
+                >
+                  ✕
+                </Btn>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() =>
+              setConfig((c) => ({
+                ...c,
+                mineur: { autorisations: [...(c.mineur?.autorisations ?? []), { id: uid(), label: "", obligatoire: false }] },
+              }))
+            }
+            className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
+          >
+            + AJOUTER UNE AUTORISATION
+          </button>
+        </div>
+
         {/* QUESTIONNAIRE DE SANTÉ — optionnel : certaines disciplines exigent un
             certificat médical systématique, le QS-SPORT ne s'y substitue pas. */}
         <div className="mt-14">

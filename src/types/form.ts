@@ -22,9 +22,21 @@ export interface Piece {
   modele_url?: string | null;
   modele_nom?: string | null;
 }
+/** Autorisation parentale (case à cocher), demandée uniquement quand l'adhérent est mineur. */
+export interface AutorisationMineur {
+  id: string;
+  label: string;
+  /** Obligatoire = impossible de valider l'inscription sans cocher (ex. premiers soins). */
+  obligatoire: boolean;
+}
+
 export interface FormConfig {
   pages: Page[];
   pieces: Piece[];
+  /** Bloc « mineurs » : autorisations parentales, affichées selon la date de naissance. */
+  mineur?: {
+    autorisations: AutorisationMineur[];
+  };
   paiement?: {
     troisFois?: boolean; // proposer le paiement en ligne en 3 mensualités
   };

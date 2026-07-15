@@ -50,6 +50,18 @@ export async function inscrireAdherent(formData: FormData) {
   const respNom = String(formData.get("resp_nom") ?? "").trim();
   const respEmail = String(formData.get("resp_email") ?? "").trim();
   const respTel = String(formData.get("resp_tel") ?? "").trim();
+  // Autorisations parentales (mineurs) : on trace Oui/Non pour chaque autorisation
+  // configurée par le club — la valeur « Non » est aussi une information (ex. l'enfant
+  // ne doit PAS quitter seul l'entraînement).
+  const respPrenomBrut = String(formData.get("resp_prenom") ?? "").trim();
+  const estInscriptionMineur = Boolean(respPrenomBrut);
+  if (estInscriptionMineur) {
+    for (const a of org.form_config?.mineur?.autorisations ?? []) {
+      const coche = formData.get(`autorisation_${a.id}`) === "oui";
+      infos[`Autorisation — ${a.label.slice(0, 120)}`] = coche ? "Oui" : "Non";
+    }
+  }
+
   const respQualite = String(formData.get("resp_qualite") ?? "").trim();
   if (respPrenom || respNom) {
     infos["Responsable légal"] = [respPrenom, respNom].filter(Boolean).join(" ");

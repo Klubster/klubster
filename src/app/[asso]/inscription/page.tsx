@@ -7,6 +7,7 @@ import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
 import ResponsableLegal from "./ResponsableLegal";
+import AutorisationsMineur from "./AutorisationsMineur";
 import { NaissanceProvider, ChampNaissance } from "./naissance";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
@@ -184,6 +185,9 @@ export default async function InscriptionPage({
 
           {/* RESPONSABLE LÉGAL — toujours actif pour les mineurs, indépendant du QS */}
           <ResponsableLegal accent={accent} />
+
+          {/* AUTORISATIONS PARENTALES — configurées dans l'Atelier, mineurs uniquement */}
+          <AutorisationsMineur autorisations={org.form_config?.mineur?.autorisations ?? []} accent={accent} />
 
           {/* QUESTIONNAIRE DE SANTÉ — seulement si le club l'a activé dans l'Atelier
               (certaines disciplines exigent un certificat médical, le QS ne s'y
