@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { saveFormConfig } from "./actions";
+import { saveFormConfig, uploaderModelePiece } from "./actions";
 import { TYPE_LABELS, type FormConfig, type Champ, type ChampType, type Page, type Piece } from "@/types/form";
 import { formulaireType } from "@/lib/formulaires-types";
 
@@ -36,6 +36,34 @@ export default function FormBuilder({
 }) {
   const [config, setConfig] = useState<FormConfig>(initial.pages || initial.pieces ? initial : { pages: [], pieces: [] });
   const [state, setState] = useState<"idle" | "saving" | "ok" | "err">("idle");
+  const [modeleEnvoi, setModeleEnvoi] = useState<string | null>(null); // id de la pièce en cours d'envoi
+  const [modeleErr, setModeleErr] = useState<string | null>(null);
+
+  // Joint un fichier modèle à une pièce (le fichier part tout de suite ; le lien
+  // n'est associé à la pièce qu'au clic ENREGISTRER, comme le reste du formulaire).
+  async function joindreModele(pieceId: string, f: File | null) {
+    if (!f) return;
+    setModeleErr(null);
+    setModeleEnvoi(pieceId);
+    try {
+      const fd = new FormData();
+      fd.append("modele", f);
+      const r = await uploaderModelePiece(slug, fd);
+      if (r.error || !r.url) {
+        setModeleErr(r.error ?? "L'envoi a échoué.");
+      } else {
+        // Updater fonctionnel : l'état peut avoir changé pendant l'envoi.
+        setConfig((c) => ({
+          ...c,
+          pieces: c.pieces.map((p) => (p.id === pieceId ? { ...p, modele_url: r.url, modele_nom: r.nom ?? null } : p)),
+        }));
+      }
+    } catch {
+      setModeleErr("L'envoi a échoué. Réessayez.");
+    } finally {
+      setModeleEnvoi(null);
+    }
+  }
 
   const setPages = (pages: Page[]) => setConfig((c) => ({ ...c, pages }));
   const setPieces = (pieces: Piece[]) => setConfig((c) => ({ ...c, pieces }));
@@ -96,7 +124,6 @@ export default function FormBuilder({
             <div className="divide-y divide-line">
               <div className="px-4 py-3 text-[13px] text-ink-soft">Choix du cours — vos cours et tarifs, à jour en permanence</div>
               <div className="px-4 py-3 text-[13px] text-ink-soft">Responsable légal (identité, email, téléphone) — dès que la date de naissance indique un mineur</div>
-              <div className="px-4 py-3 text-[13px] text-ink-soft">Questionnaire de santé QS-SPORT — version majeur ou mineur selon la date de naissance</div>
               <div className="px-4 py-3 text-[13px] text-ink-soft">Création du compte adhérent (mot de passe) et paiement selon vos réglages</div>
             </div>
           </div>
@@ -203,9 +230,41 @@ export default function FormBuilder({
           </button>
         </div>
 
+        {/* QUESTIONNAIRE DE SANTÉ — optionnel : certaines disciplines exigent un
+            certificat médical systématique, le QS-SPORT ne s'y substitue pas. */}
+        <div className="mt-14">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUESTIONNAIRE DE SANTÉ<Cur /></p>
+          <div className="mt-6 border border-line bg-paper p-5">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={Boolean(config.sante?.questionnaire)}
+                onChange={(e) => setConfig((c) => ({ ...c, sante: { ...c.sante, questionnaire: e.target.checked } }))}
+                className="mt-1"
+              />
+              <span>
+                <span className="text-[15px] font-medium">Inclure le questionnaire de santé QS-SPORT</span>
+                <span className="mt-1.5 block max-w-prose text-[13px] leading-relaxed text-ink-soft">
+                  Depuis 2021, ce questionnaire officiel peut remplacer le certificat médical dans
+                  certaines disciplines : si l&apos;adhérent répond « non » à toutes les questions, aucun
+                  certificat n&apos;est demandé ; au moindre « oui », un certificat devient obligatoire.
+                  Version majeur ou mineur choisie automatiquement selon la date de naissance, signée
+                  en ligne, et seul le résultat est conservé (jamais le détail des réponses).
+                </span>
+                <span className="mt-2 block max-w-prose text-[13px] leading-relaxed text-ink-soft">
+                  Si votre discipline exige un certificat médical dans tous les cas (sports de combat,
+                  compétition…), laissez cette case décochée et demandez le certificat dans les pièces
+                  à fournir ci-dessous.
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+
         {/* PIÈCES */}
         <div className="mt-14">
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<Cur /></p>
+          {modeleErr ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{modeleErr}</p> : null}
           <div className="mt-6 divide-y divide-line border border-line bg-paper">
             {config.pieces.length === 0 ? (
               <p className="px-4 py-4 text-[14px] text-ink-soft">Aucune pièce demandée pour l&apos;instant.</p>
@@ -245,6 +304,35 @@ export default function FormBuilder({
                 <Btn onClick={() => setPieces(move(config.pieces, i, -1))}>↑</Btn>
                 <Btn onClick={() => setPieces(move(config.pieces, i, 1))}>↓</Btn>
                 <Btn onClick={() => setPieces(config.pieces.filter((p) => p.id !== pc.id))}>✕</Btn>
+
+                {/* Modèle à télécharger (ex. certificat médical vierge) */}
+                <div className="mono flex w-full flex-wrap items-center gap-3 pl-1 pt-1 text-[11px]">
+                  {pc.modele_url ? (
+                    <>
+                      <a href={pc.modele_url} target="_blank" rel="noreferrer" className="text-brand underline underline-offset-2">
+                        MODÈLE JOINT ✓ {pc.modele_nom ? `(${pc.modele_nom})` : ""}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, modele_url: null, modele_nom: null } : p)))}
+                        className="text-ink-faint underline underline-offset-2 hover:text-ink"
+                      >
+                        Retirer le modèle
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer text-ink-soft underline underline-offset-2 hover:text-ink">
+                      {modeleEnvoi === pc.id ? "ENVOI DU MODÈLE…" : "+ JOINDRE UN MODÈLE À TÉLÉCHARGER (PDF, 3 Mo max)"}
+                      <input
+                        type="file"
+                        accept="application/pdf,image/png,image/jpeg"
+                        className="hidden"
+                        disabled={modeleEnvoi !== null}
+                        onChange={(e) => joindreModele(pc.id, e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             ))}
           </div>

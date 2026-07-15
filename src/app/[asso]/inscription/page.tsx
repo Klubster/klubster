@@ -6,6 +6,7 @@ import { saisonCourante } from "@/lib/saison";
 import { formatPrix } from "@/lib/format";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
+import ResponsableLegal from "./ResponsableLegal";
 import { NaissanceProvider, ChampNaissance } from "./naissance";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
@@ -157,6 +158,18 @@ export default async function InscriptionPage({
                             {coursLie.nom} uniquement
                           </span>
                         ) : null}
+                        {/* Modèle fourni par le club (ex. certificat médical vierge) */}
+                        {pc.modele_url ? (
+                          <a
+                            href={pc.modele_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mono ml-2 text-[10px] uppercase tracking-wider underline underline-offset-2"
+                            style={{ color: accent }}
+                          >
+                            TÉLÉCHARGER LE MODÈLE ↓
+                          </a>
+                        ) : null}
                       </span>
                       <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
                         {pc.mode === "email" ? "PAR EMAIL" : pc.mode === "upload" ? "À TÉLÉVERSER" : "TÉLÉVERSER OU EMAIL"}
@@ -169,8 +182,13 @@ export default async function InscriptionPage({
             </fieldset>
           ) : null}
 
-          {/* QUESTIONNAIRE DE SANTÉ */}
-          <QuestionnaireSante accent={accent} />
+          {/* RESPONSABLE LÉGAL — toujours actif pour les mineurs, indépendant du QS */}
+          <ResponsableLegal accent={accent} />
+
+          {/* QUESTIONNAIRE DE SANTÉ — seulement si le club l'a activé dans l'Atelier
+              (certaines disciplines exigent un certificat médical, le QS ne s'y
+              substitue pas — retour de Mathieu, 15/07/2026). */}
+          {org.form_config?.sante?.questionnaire ? <QuestionnaireSante accent={accent} /> : null}
 
           {/* COMPTE */}
           <fieldset>

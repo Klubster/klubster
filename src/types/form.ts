@@ -18,12 +18,23 @@ export interface Piece {
   obligatoire: boolean;
   mode: "upload" | "email" | "deux";
   cours_id?: string | null; // pièce demandée uniquement pour ce cours (null/absent = tous)
+  /** Fichier modèle à télécharger par l'adhérent (ex. certificat médical vierge). */
+  modele_url?: string | null;
+  modele_nom?: string | null;
 }
 export interface FormConfig {
   pages: Page[];
   pieces: Piece[];
   paiement?: {
     troisFois?: boolean; // proposer le paiement en ligne en 3 mensualités
+  };
+  sante?: {
+    /**
+     * Questionnaire de santé QS-SPORT dans le formulaire d'inscription.
+     * Désactivé par défaut : certaines disciplines (sports de combat…) exigent
+     * un certificat médical systématique, le QS ne s'y substitue pas.
+     */
+    questionnaire?: boolean;
   };
 }
 

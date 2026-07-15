@@ -40,6 +40,11 @@ export async function inscrireAdherent(formData: FormData) {
   const adressePostale = String(formData.get("adresse") ?? "").trim();
   if (adressePostale) infos["Adresse"] = adressePostale.slice(0, 300);
 
+  // Date de naissance — champ de la base commune. Stockée sur la fiche : elle
+  // n'était persistée que via le questionnaire de santé, désormais optionnel.
+  const dateNaissance = String(formData.get("naissance") ?? "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateNaissance)) infos["Date de naissance"] = dateNaissance;
+
   // Responsable légal (affiché automatiquement quand l'adhérent est mineur)
   const respPrenom = String(formData.get("resp_prenom") ?? "").trim();
   const respNom = String(formData.get("resp_nom") ?? "").trim();
