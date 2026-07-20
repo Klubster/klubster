@@ -11,7 +11,7 @@ import {
   createAbonnementCheckout,
   createPortalSession,
   palierPourEffectif,
-  trouverCodePromo,
+  detailCodePromo,
 } from "@/lib/stripe";
 import { compteConnecte, champsCompteConnecte, clientAbonnement } from "@/lib/stripe-org";
 
@@ -43,6 +43,32 @@ export async function definirEcheancesMax(slug: string, formData: FormData) {
  * Souscrire à l'abonnement Klubster — premier mois offert.
  * Le palier est calculé sur l'effectif réel du club : personne ne choisit son prix.
  */
+/**
+ * « Appliquer » un code promo avant de souscrire : on le vérifie chez Stripe et
+ * on renvoie le président sur son cockpit, où l'avantage obtenu s'affiche en
+ * toutes lettres. Personne ne s'engage sans savoir ce qu'il obtient.
+ */
+export async function appliquerCodePromo(slug: string, formData: FormData) {
+  const org = await getOrganisationBySlug(slug);
+  if (!org) redirect("/");
+  const profile = await getProfile();
+  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
+    redirect(`/connexion?next=/${slug}/cockpit`);
+  }
+
+  const code = String(formData.get("code") ?? "").trim();
+  if (!code) redirect(`/${slug}/cockpit#paiements`);
+
+  let trouve = false;
+  try {
+    trouve = Boolean(await detailCodePromo(code));
+  } catch (e) {
+    console.error("appliquer code promo", e);
+  }
+  if (!trouve) redirect(`/${slug}/cockpit?abonnement=codeinconnu#paiements`);
+  redirect(`/${slug}/cockpit?code=${encodeURIComponent(code)}#paiements`);
+}
+
 export async function souscrireAbonnement(slug: string, formData?: FormData) {
   const org = await getOrganisationBySlug(slug);
   if (!org) redirect("/");
@@ -59,7 +85,7 @@ export async function souscrireAbonnement(slug: string, formData?: FormData) {
   let promotionCodeId: string | null = null;
   if (codeSaisi) {
     try {
-      promotionCodeId = await trouverCodePromo(codeSaisi);
+      promotionCodeId = (await detailCodePromo(codeSaisi))?.id ?? null;
     } catch (e) {
       console.error("code promo", e);
     }

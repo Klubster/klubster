@@ -112,16 +112,55 @@ export function palierPourEffectif(nbAdherents: number): PalierAbonnement {
   return "club_plus";
 }
 
+export type CodePromo = {
+  /** Identifiant Stripe (promo_…) à passer au checkout. */
+  id: string;
+  /** Le code tel que Stripe l'orthographie (PREM26), pas la saisie de l'utilisateur. */
+  code: string;
+  /** Nom donné au coupon dans le dashboard, ex. « Première saison offerte ». */
+  nom: string | null;
+  /** Ce que le code offre, en français : « 100 % de remise pendant 12 mois ». */
+  avantage: string;
+};
+
+/** Traduit un coupon Stripe en une phrase qu'un bénévole comprend sans lexique. */
+function decrireCoupon(coupon: {
+  percent_off?: number | null;
+  amount_off?: number | null;
+  duration?: string;
+  duration_in_months?: number | null;
+}): string {
+  const remise = coupon.percent_off
+    ? `${String(coupon.percent_off).replace(".", ",")} % de remise`
+    : coupon.amount_off
+      ? `${(coupon.amount_off / 100).toLocaleString("fr-FR")} € de remise`
+      : "une remise";
+
+  if (coupon.duration === "forever") return `${remise}, sans limite de durée`;
+  if (coupon.duration === "repeating" && coupon.duration_in_months) {
+    return `${remise} pendant ${coupon.duration_in_months} mois`;
+  }
+  return `${remise} sur la première facture`;
+}
+
 /**
  * Retrouve un code promo (ex. PREM26) côté serveur, pour l'appliquer d'office
  * au checkout : le président saisit le code dans le cockpit Klubster, jamais
- * sur la page de paiement. Renvoie l'identifiant Stripe, ou null si inconnu/expiré.
+ * sur la page de paiement. Renvoie aussi ce que le code offre, pour l'annoncer
+ * AVANT de s'engager. `null` si le code est inconnu, expiré ou épuisé.
  */
-export async function trouverCodePromo(code: string): Promise<string | null> {
+export async function detailCodePromo(code: string): Promise<CodePromo | null> {
   const propre = code.trim();
   if (!propre) return null;
   const res = await call("GET", `/promotion_codes?code=${encodeURIComponent(propre)}&active=true&limit=1`);
-  return (res?.data?.[0]?.id as string) ?? null;
+  const promo = res?.data?.[0];
+  if (!promo?.id) return null;
+  return {
+    id: promo.id as string,
+    code: (promo.code as string) ?? propre.toUpperCase(),
+    nom: (promo.coupon?.name as string) ?? null,
+    avantage: decrireCoupon(promo.coupon ?? {}),
+  };
 }
 
 /**

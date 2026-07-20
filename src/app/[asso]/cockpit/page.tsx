@@ -3,8 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujourdhui } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
-import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement } from "./stripe-actions";
-import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente } from "@/lib/stripe";
+import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement, appliquerCodePromo } from "./stripe-actions";
+import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
+import type { CodePromo } from "@/lib/stripe";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 
@@ -19,7 +20,7 @@ export default async function Cockpit({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { stripe?: string; bienvenue?: string; abonnement?: string };
+  searchParams: { stripe?: string; bienvenue?: string; abonnement?: string; code?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -40,6 +41,17 @@ export default async function Cockpit({
   const definirEcheancesAvecSlug = definirEcheancesMax.bind(null, org.slug);
   const souscrireAvecSlug = souscrireAbonnement.bind(null, org.slug);
   const gererAvecSlug = gererAbonnement.bind(null, org.slug);
+
+  // Code promo appliqué : on redemande son détail à Stripe pour annoncer
+  // l'avantage exact. Une panne Stripe ne doit pas casser le cockpit entier.
+  let codePromo: CodePromo | null = null;
+  if (searchParams?.code) {
+    try {
+      codePromo = await detailCodePromo(searchParams.code);
+    } catch (e) {
+      console.error("detail code promo", e);
+    }
+  }
 
   // Abonnement Klubster — état lisible pour un bénévole, pas du vocabulaire Stripe.
   const abo = statutAbonnement(org);
@@ -390,17 +402,42 @@ export default async function Cockpit({
                     {(prixMensuel.prixCentimes / 100).toLocaleString("fr-FR")} € par mois — {prixMensuel.libelle.toLowerCase()}.
                     Sans engagement, résiliable en un clic.
                   </p>
-                  {/* Le code se saisit ICI, pas sur la page de paiement : la réduction
-                      est déjà appliquée quand le président arrive chez Stripe. */}
-                  <form action={souscrireAvecSlug} className="mt-5 flex flex-wrap items-center gap-3">
-                    <input
-                      type="text"
-                      name="code"
-                      placeholder="Code promo (facultatif)"
-                      spellCheck={false}
-                      autoComplete="off"
-                      className="mono w-52 border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink"
-                    />
+                  {/* Le code se saisit ICI, pas sur la page de paiement, et on annonce
+                      ce qu'il offre AVANT de s'engager (demande de Mathieu, 20/07/2026). */}
+                  {codePromo ? (
+                    <div className="mt-5 border border-line bg-bg-alt px-4 py-3">
+                      <p className="mono text-[12px] text-brand">
+                        ✓ CODE {codePromo.code} APPLIQUÉ<Cur />
+                      </p>
+                      <p className="mt-2 text-[15px]">
+                        {codePromo.nom ? <span className="text-ink">{codePromo.nom} — </span> : null}
+                        {codePromo.avantage}.
+                      </p>
+                      <Link
+                        href={`/${org.slug}/cockpit#paiements`}
+                        className="mono mt-2 inline-block text-[11px] text-ink-faint underline underline-offset-2 hover:text-ink"
+                      >
+                        Retirer ce code
+                      </Link>
+                    </div>
+                  ) : (
+                    <form action={appliquerCodePromo.bind(null, org.slug)} className="mt-5 flex flex-wrap items-center gap-3">
+                      <input
+                        type="text"
+                        name="code"
+                        placeholder="Code promo (facultatif)"
+                        spellCheck={false}
+                        autoComplete="off"
+                        className="mono w-52 border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink"
+                      />
+                      <button className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
+                        APPLIQUER
+                      </button>
+                    </form>
+                  )}
+
+                  <form action={souscrireAvecSlug} className="mt-4">
+                    {codePromo ? <input type="hidden" name="code" value={codePromo.code} /> : null}
                     <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
                       COMMENCER LE MOIS OFFERT →
                     </button>
