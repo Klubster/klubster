@@ -410,9 +410,12 @@ export default async function Cockpit({
                       <p className="mono text-[12px] text-brand">
                         ✓ CODE {codePromo.code} APPLIQUÉ<Cur />
                       </p>
-                      <p className="mt-2 text-[15px]">
-                        {codePromo.nom ? <span className="text-ink">{codePromo.nom} — </span> : null}
-                        {codePromo.avantage}.
+                      {codePromo.nom ? (
+                        <p className="mt-2 text-[15px] text-ink">{codePromo.nom}</p>
+                      ) : null}
+                      <p className="mt-1 text-[15px] text-ink-soft">
+                        Vous bénéficiez de <span className="text-ink">{codePromo.avantage}</span>, après votre
+                        mois d&apos;essai.
                       </p>
                       <Link
                         href={`/${org.slug}/cockpit#paiements`}

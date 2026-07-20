@@ -152,7 +152,12 @@ function decrireCoupon(coupon: {
 export async function detailCodePromo(code: string): Promise<CodePromo | null> {
   const propre = code.trim();
   if (!propre) return null;
-  const res = await call("GET", `/promotion_codes?code=${encodeURIComponent(propre)}&active=true&limit=1`);
+  // `expand[]=data.coupon` est indispensable : sans lui Stripe ne renvoie que
+  // l'identifiant du coupon, et on ne peut pas dire ce que le code offre.
+  const res = await call(
+    "GET",
+    `/promotion_codes?code=${encodeURIComponent(propre)}&active=true&limit=1&expand[]=data.coupon`,
+  );
   const promo = res?.data?.[0];
   if (!promo?.id) return null;
   return {
