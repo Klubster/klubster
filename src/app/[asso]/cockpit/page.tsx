@@ -437,11 +437,19 @@ export default async function Cockpit({
 
             {stripeConnecte ? (
               <>
-                <p className="mt-4 text-[15px]">
-                  <span className="mono text-brand">✓</span> Stripe connecté. Les cotisations arrivent
-                  directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
-                  0 % de commission.
-                </p>
+                <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <p className="max-w-prose text-[15px]">
+                    <span className="mono text-brand">✓</span> Stripe connecté. Les cotisations arrivent
+                    directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
+                    0 % de commission.
+                  </p>
+                  <Link
+                    href={`/${org.slug}/cockpit/virements`}
+                    className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
+                  >
+                    MES VIREMENTS →
+                  </Link>
+                </div>
 
                 {/* Le club fixe le plafond ; l'adhérent choisit dans cette limite. */}
                 <form action={definirEcheancesAvecSlug} className="mt-6 border-t border-line pt-5">
@@ -515,6 +523,9 @@ export default async function Cockpit({
               <Geste titre="Cours et tarifs" desc="Horaires, tarifs, nouvelle activité." href={`/${org.slug}/cockpit/cours`} action="MODIFIER" />
               <Geste titre="Envoyer un message" desc="Aux adhérents, par groupe ou par cours." href={`/${org.slug}/cockpit/communication`} action="OUVRIR" />
               <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
+              {stripeConnecte ? (
+                <Geste titre="Mes virements" desc="Ce qui arrive sur le compte du club, et quand." href={`/${org.slug}/cockpit/virements`} action="CONSULTER" />
+              ) : null}
               <Geste titre="Faire l'appel" desc="Scanner la carte ou chercher un nom." href={`/${org.slug}/cockpit/scanner`} action="SCANNER" />
               <Geste titre="Publier une actualité" desc="À la une du site du club." href={`/${org.slug}/cockpit/actualite`} action="PUBLIER" />
               <Geste titre="Modifier le site" desc="Sections, photos, textes de la vitrine." href={`/${org.slug}?edition=1`} action="ÉDITER" />

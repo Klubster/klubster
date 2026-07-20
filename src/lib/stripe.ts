@@ -199,6 +199,36 @@ export async function createConnectedAccount(email: string | null) {
   });
 }
 
+/* ————————————————————————————————————————————————————————————————
+   VIREMENTS DU CLUB — l'argent vit sur le compte connecté, jamais chez nous.
+   Ces lectures sont faites « au nom du club » (en-tête Stripe-Account) :
+   la plateforme ne fait que regarder, elle ne déplace aucun fonds.
+   ———————————————————————————————————————————————————————————————— */
+
+/** Solde du club : `available` (virable) et `pending` (en cours de compensation). */
+export async function getSoldeClub(account: string) {
+  return call("GET", "/balance", undefined, account);
+}
+
+/** Derniers virements vers le compte bancaire du club. */
+export async function getVirementsClub(account: string, limit = 12) {
+  return call("GET", `/payouts?limit=${limit}`, undefined, account);
+}
+
+/** Coordonnées du compte bancaire enregistré (les 4 derniers chiffres suffisent à rassurer). */
+export async function getCompteBancaireClub(account: string) {
+  return call("GET", "/external_accounts?object=bank_account&limit=1", undefined, account);
+}
+
+/**
+ * Lien vers le tableau de bord Stripe du club (Express), à usage unique et
+ * de courte durée. Sert uniquement à modifier le RIB : une donnée bancaire ne
+ * doit jamais transiter par nos serveurs.
+ */
+export async function createLoginLink(account: string) {
+  return call("POST", `/accounts/${account}/login_links`, {}, undefined);
+}
+
 export async function createAccountLink(account: string, refreshUrl: string, returnUrl: string) {
   return call("POST", "/account_links", {
     account,
