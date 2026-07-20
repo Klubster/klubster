@@ -132,8 +132,8 @@ export async function createAbonnementCheckout(opts: {
     cancel_url: opts.cancelUrl,
     customer: opts.customerId ?? undefined,
     customer_email: opts.customerId ? undefined : (opts.email ?? undefined),
-    // Sans cela, Stripe ne conserve pas l'adresse pour les factures ultérieures.
-    customer_creation: opts.customerId ? undefined : "always",
+    // En mode subscription, Stripe crée toujours le client : `customer_creation`
+    // y est interdit et faisait échouer tout le checkout en live (20/07/2026).
     line_items: [
       {
         quantity: 1,
