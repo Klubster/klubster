@@ -133,7 +133,10 @@ export async function connecterStripe(slug: string) {
   try {
     let acct = compteConnecte(org);
     if (!acct) {
-      const account = await createConnectedAccount(org.email_contact);
+      const account = await createConnectedAccount(org.email_contact, {
+        nom: org.nom,
+        url: org.domaine_custom ? `https://${org.domaine_custom}` : `${BASE}/${org.slug}`,
+      });
       acct = account.id as string;
       // Écrit dans le compartiment du mode courant : un compte de test ne doit
       // jamais apparaître comme un compte de production.

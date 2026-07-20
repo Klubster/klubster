@@ -186,12 +186,27 @@ export async function createPortalSession(customerId: string, returnUrl: string)
   return call("POST", "/billing_portal/sessions", { customer: customerId, return_url: returnUrl });
 }
 
-export async function createConnectedAccount(email: string | null) {
+/**
+ * Compte connecté du club. On transmet le nom et l'adresse du site :
+ * sans cela l'onboarding démarre vide, et surtout l'adhérent voit un libellé
+ * générique sur son relevé bancaire au lieu du nom de son club — première
+ * cause de réclamation « je ne reconnais pas ce prélèvement ».
+ */
+export async function createConnectedAccount(
+  email: string | null,
+  club?: { nom?: string | null; url?: string | null },
+) {
   return call("POST", "/accounts", {
     type: "express",
     country: "FR",
     email: email ?? undefined,
     business_type: "non_profit",
+    business_profile: {
+      name: club?.nom ?? undefined,
+      url: club?.url ?? undefined,
+      // 8641 : associations civiques et sociales — la catégorie des clubs amateurs.
+      mcc: "8641",
+    },
     capabilities: {
       card_payments: { requested: true },
       transfers: { requested: true },
