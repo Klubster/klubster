@@ -11,6 +11,7 @@ import {
   createAbonnementCheckout,
   createPortalSession,
   palierPourEffectif,
+  trouverCodePromo,
 } from "@/lib/stripe";
 import { compteConnecte, champsCompteConnecte, clientAbonnement } from "@/lib/stripe-org";
 
@@ -42,7 +43,7 @@ export async function definirEcheancesMax(slug: string, formData: FormData) {
  * Souscrire à l'abonnement Klubster — premier mois offert.
  * Le palier est calculé sur l'effectif réel du club : personne ne choisit son prix.
  */
-export async function souscrireAbonnement(slug: string) {
+export async function souscrireAbonnement(slug: string, formData?: FormData) {
   const org = await getOrganisationBySlug(slug);
   if (!org) redirect("/");
   const profile = await getProfile();
@@ -50,6 +51,20 @@ export async function souscrireAbonnement(slug: string) {
     redirect(`/connexion?next=/${slug}/cockpit`);
   }
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?abonnement=nonconfig`);
+
+  // Code promo saisi dans le cockpit (jamais sur la page de paiement) :
+  // résolu ici, appliqué d'office au checkout. Un code inconnu bloque AVANT
+  // de partir chez Stripe — le président n'a pas de mauvaise surprise là-bas.
+  const codeSaisi = String(formData?.get("code") ?? "").trim();
+  let promotionCodeId: string | null = null;
+  if (codeSaisi) {
+    try {
+      promotionCodeId = await trouverCodePromo(codeSaisi);
+    } catch (e) {
+      console.error("code promo", e);
+    }
+    if (!promotionCodeId) redirect(`/${slug}/cockpit?abonnement=codeinconnu`);
+  }
 
   const supabase = createSupabaseServerClient();
   const { count } = await supabase
@@ -60,6 +75,7 @@ export async function souscrireAbonnement(slug: string) {
   let url: string | null = null;
   try {
     const session = await createAbonnementCheckout({
+      promotionCodeId,
       organisationId: org.id,
       organisationNom: org.nom,
       palier: palierPourEffectif(count ?? 0),

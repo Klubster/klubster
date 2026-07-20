@@ -355,6 +355,10 @@ export default async function Cockpit({
               <p className="mono mb-5 text-[12px] text-ink-soft">
                 Aucun abonnement en cours pour l&apos;instant.
               </p>
+            ) : searchParams?.abonnement === "codeinconnu" ? (
+              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+                Ce code promo n&apos;est pas reconnu (ou n&apos;est plus actif). Vérifiez la saisie, ou laissez le champ vide.
+              </p>
             ) : searchParams?.abonnement === "erreur" ? (
               <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
                 La souscription n&apos;a pas pu démarrer. Réessayez dans un instant ; si cela persiste, écrivez-nous.
@@ -380,13 +384,23 @@ export default async function Cockpit({
               </p>
 
               {abo === "aucun" || abo === "resilie" ? (
-                <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4">
                   <p className="max-w-prose text-[15px] text-ink-soft">
-                    <span className="text-ink">Le premier mois est offert.</span> Ensuite{" "}
+                    <span className="text-ink">Le premier mois est offert — sans carte bancaire.</span> Ensuite{" "}
                     {(prixMensuel.prixCentimes / 100).toLocaleString("fr-FR")} € par mois — {prixMensuel.libelle.toLowerCase()}.
-                    Sans engagement, résiliable en un clic. Aucun prélèvement pendant les {JOURS_ESSAI} premiers jours.
+                    Sans engagement, résiliable en un clic.
                   </p>
-                  <form action={souscrireAvecSlug}>
+                  {/* Le code se saisit ICI, pas sur la page de paiement : la réduction
+                      est déjà appliquée quand le président arrive chez Stripe. */}
+                  <form action={souscrireAvecSlug} className="mt-5 flex flex-wrap items-center gap-3">
+                    <input
+                      type="text"
+                      name="code"
+                      placeholder="Code promo (facultatif)"
+                      spellCheck={false}
+                      autoComplete="off"
+                      className="mono w-52 border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink"
+                    />
                     <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
                       COMMENCER LE MOIS OFFERT →
                     </button>

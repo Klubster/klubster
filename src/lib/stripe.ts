@@ -113,8 +113,22 @@ export function palierPourEffectif(nbAdherents: number): PalierAbonnement {
 }
 
 /**
+ * Retrouve un code promo (ex. PREM26) côté serveur, pour l'appliquer d'office
+ * au checkout : le président saisit le code dans le cockpit Klubster, jamais
+ * sur la page de paiement. Renvoie l'identifiant Stripe, ou null si inconnu/expiré.
+ */
+export async function trouverCodePromo(code: string): Promise<string | null> {
+  const propre = code.trim();
+  if (!propre) return null;
+  const res = await call("GET", `/promotion_codes?code=${encodeURIComponent(propre)}&active=true&limit=1`);
+  return (res?.data?.[0]?.id as string) ?? null;
+}
+
+/**
  * Souscription à l'abonnement Klubster : 30 jours offerts, puis prélèvement mensuel.
  * Stripe émet et envoie la facture chaque mois ; nous n'encaissons rien nous-mêmes.
+ * La carte n'est PAS exigée pendant l'essai : la demander d'entrée fait fuir
+ * les bénévoles ; Stripe la réclame par email à l'approche de l'échéance.
  */
 export async function createAbonnementCheckout(opts: {
   organisationId: string;
@@ -124,6 +138,8 @@ export async function createAbonnementCheckout(opts: {
   customerId?: string | null;
   successUrl: string;
   cancelUrl: string;
+  /** Identifiant Stripe (promo_…) déjà résolu via trouverCodePromo. */
+  promotionCodeId?: string | null;
 }) {
   const p = PALIERS[opts.palier];
   return call("POST", "/checkout/sessions", {
@@ -145,12 +161,20 @@ export async function createAbonnementCheckout(opts: {
         },
       },
     ],
-    // Codes promo (ex. PREM26 : première saison offerte aux clubs pilotes) :
-    // coupons et codes gérés dans le dashboard Stripe, sans redéploiement.
+    // Pas de carte pendant l'essai. À la fin : facture émise normalement —
+    // payée d'office si un code 100 % court toujours (clubs pilotes), sinon
+    // Stripe relance par email pour ajouter un moyen de paiement.
+    payment_method_collection: "if_required",
+    // Code promo (ex. PREM26) : saisi dans le cockpit et appliqué ici d'office —
+    // la page Stripe affiche directement 0 €. `discounts` et
+    // `allow_promotion_codes` s'excluent mutuellement chez Stripe.
     // Uniquement sur l'abonnement Klubster — jamais sur les cotisations des adhérents.
-    allow_promotion_codes: true,
+    ...(opts.promotionCodeId
+      ? { discounts: [{ promotion_code: opts.promotionCodeId }] }
+      : { allow_promotion_codes: true }),
     subscription_data: {
       trial_period_days: JOURS_ESSAI,
+      trial_settings: { end_behavior: { missing_payment_method: "create_invoice" } },
       metadata: { organisation_id: opts.organisationId, palier: opts.palier },
     },
     metadata: { organisation_id: opts.organisationId, palier: opts.palier },
