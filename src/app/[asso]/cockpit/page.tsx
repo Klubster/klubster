@@ -450,9 +450,22 @@ export default async function Cockpit({
                   </label>
                   <p className="mt-2 max-w-prose text-[14px] text-ink-soft">
                     Jusqu&apos;à combien de mensualités autorisez-vous vos adhérents ? Ils choisiront
-                    librement dans cette limite. <span className="text-ink">Stripe prélève des frais à chaque
-                    échéance</span> : douze prélèvements coûtent plus cher au club qu&apos;un seul.
+                    librement dans cette limite.
                   </p>
+                  {/* Le coût réel, chiffré : « des frais » ne permet pas de décider.
+                      Demandé par Mathieu le 20/07/2026. */}
+                  <div className="mono mt-4 border border-line bg-bg-alt px-4 py-3 text-[12px] leading-relaxed text-ink-soft">
+                    CE QUE PRÉLÈVE STRIPE<Cur />
+                    <span className="mt-2 block">
+                      <span className="text-ink">1,5 % + 0,25 €</span> par paiement (carte européenne standard).
+                      Les 0,25 € reviennent <span className="text-ink">à chaque échéance</span>, le pourcentage ne bouge pas.
+                    </span>
+                    <span className="mt-2 block">
+                      Sur une cotisation de 160 € : <span className="text-ink">2,65 €</span> en une fois,{" "}
+                      <span className="text-ink">3,15 €</span> en 3 fois, <span className="text-ink">5,15 €</span> en 12 fois.
+                      Soit <span className="text-ink">2,50 € de plus</span> pour douze prélèvements.
+                    </span>
+                  </div>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <select
                       id="echeances_max"
