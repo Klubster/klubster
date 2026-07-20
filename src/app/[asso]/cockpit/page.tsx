@@ -6,6 +6,7 @@ import { deconnexion } from "@/app/connexion/actions";
 import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement, appliquerCodePromo } from "./stripe-actions";
 import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
 import type { CodePromo } from "@/lib/stripe";
+import BoutonAttente from "@/components/BoutonAttente";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 
@@ -430,17 +431,20 @@ export default async function Cockpit({
                         autoComplete="off"
                         className="mono w-52 border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink"
                       />
-                      <button className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
+                      <BoutonAttente attente="VÉRIFICATION…" className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
                         APPLIQUER
-                      </button>
+                      </BoutonAttente>
                     </form>
                   )}
 
                   <form action={souscrireAvecSlug} className="mt-4">
                     {codePromo ? <input type="hidden" name="code" value={codePromo.code} /> : null}
-                    <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                    <BoutonAttente
+                      attente="OUVERTURE DE STRIPE…"
+                      className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+                    >
                       COMMENCER LE MOIS OFFERT →
-                    </button>
+                    </BoutonAttente>
                   </form>
                 </div>
               ) : (
@@ -464,9 +468,12 @@ export default async function Cockpit({
                     )}
                   </p>
                   <form action={gererAvecSlug}>
-                    <button className="mono whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
-                      FACTURES & RÉSILIATION →
-                    </button>
+                    <BoutonAttente
+                      attente="OUVERTURE DE STRIPE…"
+                      className="mono whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+                    >
+                      FACTURES &amp; RÉSILIATION →
+                    </BoutonAttente>
                   </form>
                 </div>
               )}
@@ -534,9 +541,12 @@ export default async function Cockpit({
                   directement sur votre compte, <span className="text-ink">0 % de commission</span>.
                 </p>
                 <form action={connecterAvecSlug}>
-                  <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                  <BoutonAttente
+                    attente="OUVERTURE DE STRIPE…"
+                    className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+                  >
                     CONNECTER STRIPE →
-                  </button>
+                  </BoutonAttente>
                 </form>
               </div>
             )}

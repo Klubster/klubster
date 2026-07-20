@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { getSoldeClub, getVirementsClub, getCompteBancaireClub, stripeConfigured } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
 import { ouvrirCompteStripe } from "./actions";
+import BoutonAttente from "@/components/BoutonAttente";
 
 export const dynamic = "force-dynamic";
 
@@ -208,9 +209,12 @@ export default async function VirementsPage({
                 passent jamais par Klubster.
               </p>
               <form action={ouvrirCompteStripe.bind(null, org.slug)} className="mt-5">
-                <button className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                <BoutonAttente
+                  attente="OUVERTURE DE STRIPE…"
+                  className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper"
+                >
                   MODIFIER MES COORDONNÉES BANCAIRES →
-                </button>
+                </BoutonAttente>
               </form>
             </section>
           </>
