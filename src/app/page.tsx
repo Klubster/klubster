@@ -141,6 +141,14 @@ export default function Home() {
             <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
           </nav>
           <div className="flex items-center gap-3">
+            {/* Le président qui revient chercher son cockpit : le lien n'existait
+                qu'au footer et dans le menu mobile (retour de Mathieu, 15/07/2026). */}
+            <Link
+              href="/connexion"
+              className="mono hidden text-[12px] tracking-wide text-paper/80 hover:text-paper sm:block"
+            >
+              ESPACE PRÉSIDENT
+            </Link>
             <Link href="/creer" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
               <span className="hidden sm:inline">CRÉER MON ASSOCIATION</span>
               <span className="sm:hidden">CRÉER</span>

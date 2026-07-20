@@ -19,7 +19,7 @@ export default async function Cockpit({
   searchParams,
 }: {
   params: { asso: string };
-  searchParams: { stripe?: string; bienvenue?: string };
+  searchParams: { stripe?: string; bienvenue?: string; abonnement?: string };
 }) {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
@@ -336,6 +336,30 @@ export default async function Cockpit({
 
           {/* PAIEMENTS / STRIPE */}
           <div id="paiements" className="border-b border-line px-6 py-7 md:px-10">
+            {/* Retours de l'abonnement Klubster. Sans ces messages, un échec de
+                souscription rechargeait la page à l'identique : le bouton semblait
+                ne rien faire (constaté par Mathieu, 15/07/2026). */}
+            {searchParams?.abonnement === "ok" ? (
+              <p className="mono mb-5 text-[12px] text-brand">
+                ✓ Abonnement souscrit. Votre facture est disponible dans le portail Stripe.
+              </p>
+            ) : searchParams?.abonnement === "annule" ? (
+              <p className="mono mb-5 text-[12px] text-ink-soft">
+                Souscription abandonnée — vous pourrez la reprendre quand vous voudrez.
+              </p>
+            ) : searchParams?.abonnement === "nonconfig" ? (
+              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+                Les paiements ne sont pas encore activés côté plateforme. Écrivez-nous, nous réglons ça.
+              </p>
+            ) : searchParams?.abonnement === "aucun" ? (
+              <p className="mono mb-5 text-[12px] text-ink-soft">
+                Aucun abonnement en cours pour l&apos;instant.
+              </p>
+            ) : searchParams?.abonnement === "erreur" ? (
+              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+                La souscription n&apos;a pas pu démarrer. Réessayez dans un instant ; si cela persiste, écrivez-nous.
+              </p>
+            ) : null}
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENTS<Cur /></p>
             {/* Aucun euro réel ne circule en mode test : il faut le dire, gros, avant que
                 quelqu'un croie avoir encaissé une cotisation. */}
