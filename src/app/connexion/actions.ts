@@ -1,6 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { destinationApresConnexion } from "@/lib/auth";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import { destinationSure } from "@/lib/redirection";
 
@@ -11,7 +12,9 @@ export async function connexion(input: { email: string; password: string; next?:
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
   if (error) return { error: traduire(error.message) };
-  redirect(destinationSure(input.next));
+  // Sans `?next=`, on renvoie l'utilisateur chez lui plutôt que vers l'assistant de
+  // création — voir destinationApresConnexion().
+  redirect(destinationSure(input.next, await destinationApresConnexion()));
 }
 
 export async function inscription(input: {

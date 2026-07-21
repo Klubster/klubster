@@ -49,4 +49,19 @@ describe("destinationSure", () => {
     expect(destinationSure("https://ailleurs.fr", "/connexion")).toBe("/connexion");
     expect(destinationSure(null, "/connexion")).toBe("/connexion");
   });
+
+  it("renvoie un président connecté vers son cockpit, pas vers l'assistant de création", () => {
+    // Le bug du 21/07/2026 : la destination par défaut après connexion était `/creer`.
+    // Un président qui gère déjà son club atterrissait sur l'assistant de création, qui y
+    // restaurait son brouillon local — jusqu'à lui présenter un club fantôme portant un
+    // vieux nom de test. La destination est désormais calculée par
+    // destinationApresConnexion() et passée ici en valeur par défaut.
+    expect(destinationSure(undefined, "/usmboxe/cockpit")).toBe("/usmboxe/cockpit");
+  });
+
+  it("protège aussi cette destination calculée contre une valeur externe", () => {
+    // La valeur par défaut change, la règle ne change pas : `next` reste non fiable.
+    expect(destinationSure("https://exemple-malveillant.fr", "/usmboxe/cockpit")).toBe("/usmboxe/cockpit");
+    expect(destinationSure("//exemple-malveillant.fr", "/usmboxe/cockpit")).toBe("/usmboxe/cockpit");
+  });
 });
