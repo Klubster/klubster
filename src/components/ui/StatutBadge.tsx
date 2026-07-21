@@ -12,8 +12,8 @@ const MAP: Record<StatutAdhesion, { label: string; dot: string; text: string }> 
 export function StatutBadge({ statut }: { statut: StatutAdhesion }) {
   const s = MAP[statut];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-medium">
-      <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} aria-hidden />
+    <span className="inline-flex items-center gap-1.5 border border-line bg-surface px-2.5 py-1 text-xs font-medium">
+      <span className={cn("h-1.5 w-1.5 kb-dot", s.dot)} aria-hidden />
       <span className={s.text}>{s.label}</span>
     </span>
   );

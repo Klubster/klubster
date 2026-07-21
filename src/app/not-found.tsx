@@ -7,7 +7,7 @@ export default function NotFound() {
         <p className="font-mono text-sm uppercase tracking-[0.18em] text-ink-soft">erreur 404</p>
         <h1 className="mt-3 text-3xl font-bold">Page introuvable</h1>
         <p className="mt-3 text-ink-soft">Cette association ou cette page n&apos;existe pas (ou n&apos;est pas encore publiée).</p>
-        <Link href="/" className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-medium text-white">
+        <Link href="/" className="mt-6 inline-flex bg-ink px-6 py-3 text-sm font-medium text-white">
           Retour à l&apos;accueil
         </Link>
       </div>

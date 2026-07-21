@@ -1,8 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
+import { exigerPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
 import { peut } from "@/lib/roles";
@@ -10,13 +10,15 @@ import { rembourser } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
 import type { Organisation } from "@/types/db";
 
+/**
+ * Toutes les actions de ce fichier écrivent sur des fiches d'adhérents : création,
+ * modification, import, renouvellement de saison, anonymisation, statut des pièces.
+ * Elles exigent donc la permission d'écriture sur les adhérents, et non la simple
+ * appartenance au club — un encadrant ou un accès en lecture seule pouvait sinon les
+ * appeler directement, l'interface étant le seul obstacle (audit du 21/07/2026).
+ */
 async function garde(slug: string): Promise<Organisation> {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const p = await getProfile();
-  if (!p || (p.organisation_id !== org.id && p.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit/adherents`);
-  }
+  const { org } = await exigerPermission(slug, "adherents_ecriture");
   return org;
 }
 

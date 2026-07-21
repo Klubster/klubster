@@ -64,7 +64,8 @@ export default function Confidentialite() {
 
       <h2>6. Données de santé et mineurs</h2>
       <p>
-        Le questionnaire de santé remplace le certificat médical. Par minimisation, Klubster ne conserve que
+        Selon les règles de la fédération et de l’activité concernées, un club peut demander un
+        questionnaire de santé, un certificat médical, ou les deux. Par minimisation, Klubster ne conserve que
         le <strong>résultat</strong> (attestation négative ou certificat requis), la signature et la date —
         <strong> et non le détail des réponses</strong>. Les données de mineurs sont saisies par le
         représentant légal. La base légale est le <strong>consentement explicite</strong> (art. 9.2.a). Ces

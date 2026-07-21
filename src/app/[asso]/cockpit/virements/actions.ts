@@ -1,7 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { exigerPermission } from "@/lib/garde";
 import { createLoginLink } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
 
@@ -11,12 +10,10 @@ import { compteConnecte } from "@/lib/stripe-org";
  * de confort. Le lien est à usage unique et expire vite.
  */
 export async function ouvrirCompteStripe(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit/virements`);
-  }
+  // Le tableau de bord Stripe donne accès aux virements et aux coordonnées bancaires
+  // du club : permission « paiements ». Aucune table n'étant touchée ici, aucune
+  // politique de base ne pouvait servir de garde-fou.
+  const { org } = await exigerPermission(slug, "paiements");
 
   const account = compteConnecte(org);
   if (!account) redirect(`/${slug}/cockpit?stripe=nonconnecte`);

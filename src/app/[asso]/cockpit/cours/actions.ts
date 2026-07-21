@@ -1,19 +1,15 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { exigerPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { envoyerEmail } from "@/lib/resend";
 import type { Organisation, Creneau } from "@/types/db";
 
+// Cours, horaires et tarifs pilotent ce que paient les adhérents et ce qu'affiche le
+// site : permission « site », pas la seule appartenance au club.
 async function garde(slug: string): Promise<Organisation> {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const p = await getProfile();
-  if (!p || (p.organisation_id !== org.id && p.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit/cours`);
-  }
+  const { org } = await exigerPermission(slug, "site");
   return org;
 }
 

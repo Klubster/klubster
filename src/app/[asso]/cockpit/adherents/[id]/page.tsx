@@ -29,7 +29,7 @@ type Adhesion = {
   litige_le: string | null;
   cours: { nom: string } | null;
 };
-type Piece = { id: string; cle: string; label: string | null; statut: string | null };
+type Piece = { id: string; cle: string; label: string | null; statut: string | null; chemin: string | null };
 type Reglement = { id: string; adhesion_id: string; montant_centimes: number; mode: string | null; note: string | null; created_at: string };
 type Sante = { resultat: string | null; signataire_nom: string | null; created_at: string };
 
@@ -64,7 +64,7 @@ export default async function FicheAdherent({
       .select("id, statut, saison, montant_centimes, mode_paiement, created_at, stripe_payment_intent, litige_le, cours(nom)")
       .eq("adherent_id", params.id)
       .order("created_at", { ascending: false }),
-    supabase.from("pieces_adherent").select("id, cle, label, statut").eq("adherent_id", params.id),
+    supabase.from("pieces_adherent").select("id, cle, label, statut, chemin").eq("adherent_id", params.id),
     supabase
       .from("questionnaires_sante")
       .select("resultat, signataire_nom, created_at")
@@ -281,14 +281,28 @@ export default async function FicheAdherent({
               {listePieces.map((p) => (
                 <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3 last:border-b-0">
                   <span className="text-[15px]">{p.label ?? p.cle}</span>
-                  <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
-                    <button
-                      className="mono text-[11px] uppercase tracking-wide hover:underline"
-                      style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
-                    >
-                      {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-5">
+                    {/* Le fichier déposé par l'adhérent : consultable seulement par qui a
+                        accès aux données de santé, et via une URL signée de courte durée. */}
+                    {p.chemin && peut(profile.role, "sante") ? (
+                      <a
+                        href={`/${org.slug}/cockpit/adherents/${adherent.id}/piece/${p.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mono text-[11px] uppercase tracking-wide text-ink-soft underline underline-offset-2 hover:text-ink"
+                      >
+                        Consulter
+                      </a>
+                    ) : null}
+                    <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
+                      <button
+                        className="mono text-[11px] uppercase tracking-wide hover:underline"
+                        style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
+                      >
+                        {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
+                      </button>
+                    </form>
+                  </div>
                 </div>
               ))}
             </div>

@@ -43,10 +43,15 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
         QUESTIONNAIRE DE SANTÉ<span style={{ color: accent }}>_</span>
       </legend>
 
+      {/* Le questionnaire ne remplace pas le certificat dans tous les cas : chaque
+          fédération fixe ses règles, et certaines disciplines — dont les sports de
+          combat — exigent un certificat quoi qu'il arrive. L'affirmer sans nuance
+          exposait les clubs (relevé à l'audit du 21/07/2026). */}
       <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
-        Le certificat médical est remplacé par ce questionnaire auto-déclaré. Si toutes les réponses
-        sont « non », aucun certificat n&apos;est demandé. Au moins un « oui » et un certificat médical
-        sera à fournir.
+        Questionnaire de santé auto-déclaré. Si toutes les réponses sont « non », il tient lieu
+        d&apos;attestation ; au moins un « oui » et un certificat médical sera à fournir. Selon les
+        règles de votre fédération et de votre activité, votre club peut malgré tout demander un
+        certificat médical : les pièces qu&apos;il exige sont listées plus bas.
       </p>
 
       {/* La date de naissance est saisie dans le bloc IDENTITÉ, en haut du formulaire. */}
@@ -156,12 +161,21 @@ export default function QuestionnaireSante({ accent }: { accent: string }) {
 
       {/* CHAMPS TRANSMIS AU SERVEUR */}
       <input type="hidden" name="qsante_type" value={type} />
-      <input type="hidden" name="qsante_resultat" value={resultat} />
       <input type="hidden" name="qsante_qualite" value={qualite} />
       <input type="hidden" name="qsante_signataire" value={signataire} />
       <input type="hidden" name="qsante_signature" value={signature} />
-      {/* RGPD — minimisation : le détail des réponses santé n'est jamais transmis ni stocké,
-          seul le résultat (atteste_negatif / certificat_requis) l'est. */}
+      {/* Les réponses partent sous forme de « oui »/« non » ordonnés, sans les questions.
+          Le serveur en déduit lui-même le résultat : jusqu'ici il faisait confiance à un
+          champ masqué `qsante_resultat`, qu'il suffisait de modifier dans la requête pour
+          se déclarer apte (relevé à l'audit du 21/07/2026). Le détail n'est ni conservé
+          ni enregistré — il est utilisé le temps du calcul, puis abandonné. */}
+      <input
+        type="hidden"
+        name="qsante_reponses"
+        value={questions.map((_, i) => reponses[i] ?? "").join(",")}
+      />
+      {/* Conservé pour affichage seul : le serveur ne s'en sert plus. */}
+      <input type="hidden" name="qsante_resultat_indicatif" value={resultat} />
       {/* Verrou de validation : coché uniquement si tout est rempli */}
       <input
         type="checkbox"

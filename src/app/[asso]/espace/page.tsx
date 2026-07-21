@@ -164,7 +164,7 @@ export default async function EspacePage({ params }: { params: { asso: string } 
             <div className="text-lg font-medium">{a.prenom} {a.nom}</div>
             <div className="text-ink-soft">{org.nom} · Saison {saisonCourante(org)}</div>
             <p className="mono mt-3 text-[11px] text-ink-faint">Présentez ce code à l&apos;accueil pour l&apos;appel.</p>
-            <Link href={`/${org.slug}/espace/facture`} className="mono mt-4 inline-block border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">VOIR MA FACTURE →</Link>
+            <Link href={`/${org.slug}/espace/facture`} className="mono mt-4 inline-block border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">VOIR MON REÇU →</Link>
           </div>
         </div>
       </div>

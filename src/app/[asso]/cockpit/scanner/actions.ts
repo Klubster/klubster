@@ -1,6 +1,5 @@
 "use server";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface VerifResult {
@@ -10,11 +9,11 @@ export interface VerifResult {
   error?: string;
 }
 
+// Contrôle au bord du tapis : permission « controle ». C'est le seul droit d'un
+// encadrant, et un accès en lecture seule ne doit pas pouvoir marquer les présences.
 async function guard(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  const p = await getProfile();
-  if (!org || !p || (p.organisation_id !== org.id && p.role !== "super_admin")) return null;
-  return org;
+  const ctx = await verifierPermission(slug, "controle");
+  return ctx?.org ?? null;
 }
 
 export async function verifierAdherent(slug: string, adherentId: string): Promise<VerifResult> {

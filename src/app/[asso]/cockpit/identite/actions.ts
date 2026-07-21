@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getProfile } from "@/lib/auth";
+import { verifierPermission } from "@/lib/garde";
 import { validerImage } from "@/lib/upload";
 
 /**
@@ -11,17 +11,12 @@ import { validerImage } from "@/lib/upload";
  * créé sans logo ne pouvait plus jamais en ajouter un (constaté le 13/07/2026
  * en construisant le club de démonstration « comme un utilisateur »).
  */
+// Logo, police et couleur habillent le site public, les emails et l'application des
+// adhérents : permission « site ». Un trésorier ou un encadrant n'a pas à y toucher.
 async function organisationAutorisee(slug: string) {
-  const supabase = createSupabaseServerClient();
-  const { data: org } = await supabase
-    .from("organisations")
-    .select("id, slug")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (!org) return null;
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) return null;
-  return { supabase, org };
+  const ctx = await verifierPermission(slug, "site");
+  if (!ctx) return null;
+  return { supabase: createSupabaseServerClient(), org: ctx.org };
 }
 
 export async function changerLogo(slug: string, fd: FormData) {

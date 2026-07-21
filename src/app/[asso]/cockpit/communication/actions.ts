@@ -1,7 +1,6 @@
 "use server";
 // Envoi direct de la messagerie du club via Resend (clubs@klubster.fr, reply-to club).
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { envoyerAuxAdherents, resendConfigured, type EnvoiResultat } from "@/lib/resend";
 
@@ -33,11 +32,12 @@ export async function envoyerMessage(
   objet: string,
   message: string
 ): Promise<EnvoiResultat> {
-  const org = await getOrganisationBySlug(slug);
-  const profile = await getProfile();
-  if (!org || !profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    return { ok: false, envoyes: 0, erreur: "Non autorisé." };
-  }
+  // Écrire à tous les adhérents est une permission, pas une simple appartenance au
+  // club : un encadrant ou un accès en lecture seule n'a rien à envoyer en masse.
+  // Aucune politique de base ne pouvait l'arrêter, l'envoi passant par Resend.
+  const ctx = await verifierPermission(slug, "messages");
+  if (!ctx) return { ok: false, envoyes: 0, erreur: "Non autorisé." };
+  const { org } = ctx;
   if (!resendConfigured()) return { ok: false, envoyes: 0, erreur: "Envoi non configuré." };
 
   const objetNet = objet.trim().slice(0, 150);

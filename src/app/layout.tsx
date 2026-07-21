@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Space_Mono, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Space_Mono, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import Mesure from "@/components/site/Mesure";
 
 // Polices auto-hébergées par Next (aucune requête vers Google depuis le navigateur du
 // visiteur — cohérent avec la politique de confidentialité — et plus de FOUT).
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500"], display: "swap", variable: "--kb-inter" });
 const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap", variable: "--kb-space-mono" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], display: "swap", variable: "--kb-plex-mono" });
+// Titres : sans grotesque, compagnon direct de Space Mono. Donne du caractère aux
+// h1/h2/h3 sans toucher au corps de lecture (qui reste sur Inter).
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["500", "600", "700"], display: "swap", variable: "--kb-space-grotesk" });
 
 // RGPD — exécution des fonctions serveur en Europe (Paris). Les données ne sortent pas de l'UE.
 export const preferredRegion = "cdg1";
@@ -56,19 +58,16 @@ const JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${spaceMono.variable} ${plexMono.variable}`}>
+    <html lang="fr" className={`${inter.variable} ${spaceMono.variable} ${plexMono.variable} ${spaceGrotesk.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
       </head>
-      <body>
-        {children}
-        {/* Mesure d'audience : limitée aux pages de la marque et soumise au consentement.
-            Voir components/site/Mesure.tsx — la liste blanche des pages y est le garde-fou. */}
-        <Mesure />
-      </body>
+      {/* La mesure d'audience ne vit PAS ici : elle est montée dans le layout du groupe
+          (marketing), pour être démontée dès qu'on entre dans l'espace d'un club. */}
+      <body>{children}</body>
     </html>
   );
 }

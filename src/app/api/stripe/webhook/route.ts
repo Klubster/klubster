@@ -25,9 +25,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Webhook non configuré." }, { status: 400 });
   }
 
-  // Un même endpoint sert le mode test et le mode production.
-  const event = verifyWebhookMulti(raw, sig);
-  if (!event) return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
+  // Un même endpoint sert le mode test et le mode production. La vérification renvoie
+  // aussi le mode du secret qui a validé la signature, et refuse tout événement dont
+  // le `livemode` ne concorde pas : un événement de test ne peut plus être écrit dans
+  // les données de production, ni l'inverse.
+  const verifie = verifyWebhookMulti(raw, sig);
+  if (!verifie) return NextResponse.json({ error: "Signature invalide." }, { status: 400 });
+  const { event } = verifie;
+  // Le mode courant de l'application doit être celui de l'événement reçu. Sinon la
+  // destination Stripe est mal configurée : on refuse plutôt que d'écrire au hasard.
+  if (verifie.live === stripeModeTest) {
+    console.error("webhook: mode de l'evenement different du mode de l application", {
+      id: event.id,
+      evenementLive: verifie.live,
+      appEnTest: stripeModeTest,
+    });
+    return NextResponse.json({ error: "Mode incohérent." }, { status: 400 });
+  }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {

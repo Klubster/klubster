@@ -1,4 +1,7 @@
-// Questionnaire de santé — remplace le certificat médical (loi du 2 mars 2022).
+// Questionnaire de santé (loi du 2 mars 2022). Il peut tenir lieu de certificat médical,
+// mais pas systématiquement : chaque fédération fixe ses propres exigences et certaines
+// disciplines — dont les sports de combat — réclament un certificat dans tous les cas.
+// C'est au club de dire quelles pièces il demande, via son formulaire d'inscription.
 // Majeur : QS-SPORT (Cerfa 15699*01). Mineur : questionnaire relatif à l'état
 // de santé du sportif mineur (décret du 7 mai 2021).
 // Règle : si TOUTES les réponses sont « non » → attestation, pas de certificat.

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
+import { peut } from "@/lib/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,12 @@ export async function GET(_req: Request, { params }: { params: { asso: string } 
 
   if (!org || !profil || (profil.organisation_id !== org.id && profil.role !== "super_admin")) {
     // On ne révèle pas l'existence du club à un visiteur non autorisé.
+    return new NextResponse("Introuvable.", { status: 404 });
+  }
+  // Emporter le fichier complet des adhérents — noms, emails, téléphones — n'est pas
+  // une lecture ordinaire. Un encadrant ou un accès en lecture seule pouvait le faire
+  // en appelant l'URL directement (relevé à l'audit du 21/07/2026).
+  if (!peut(profil.role, "adherents_ecriture")) {
     return new NextResponse("Introuvable.", { status: 404 });
   }
 

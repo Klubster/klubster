@@ -8,6 +8,8 @@
   --font-sans: var(--kb-inter), "Inter", system-ui, sans-serif;
   --font-mono: var(--kb-space-mono), "Space Mono", ui-monospace, monospace;
   --font-logo: var(--kb-plex-mono), "IBM Plex Mono", "Space Mono", monospace;
+  /* Titres : grotesque distinctive (repli sur la sans si non injectée). */
+  --font-display: var(--kb-space-grotesk), "Space Grotesk", var(--font-sans);
 
   /* Tokens couleur (mode blanc par défaut). Les sites clubs peuvent les surcharger
      via <ThemeVitrine> (templates blanc/noir — src/lib/themes.ts).
@@ -50,6 +52,8 @@ body {
 
 /* 0px partout : aucun arrondi. */
 * { border-radius: 0 !important; }
+/* Seule exception : les pastilles / indicateurs ronds restent circulaires. */
+.kb-dot { border-radius: 9999px !important; }
 
 /* Révélations au scroll — discrètes, additives (ne touchent pas aux tokens). */
 .kb-reveal { opacity: 0; transform: translateY(16px); transition: opacity .85s cubic-bezier(.22,.61,.36,1), transform .85s cubic-bezier(.22,.61,.36,1); }
@@ -99,8 +103,9 @@ body {
 :focus-visible { outline: 2px solid #279B65; outline-offset: 3px; }
 :focus:not(:focus-visible) { outline: none; }
 
-/* Titres : équilibrage des retours à la ligne (évite les orphelins). */
-h1, h2, h3 { text-wrap: balance; }
+/* Titres : police d'affichage distinctive + équilibrage des retours à la ligne.
+   Les titres explicitement en .mono / font-mono gardent le mono (classe > élément). */
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; text-wrap: balance; }
 p { text-wrap: pretty; }
 
 /* Transitions douces sur les éléments interactifs (feel « premium »). */

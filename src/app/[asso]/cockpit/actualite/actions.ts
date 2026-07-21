@@ -2,17 +2,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { exigerPermission } from "@/lib/garde";
 import { validerImage } from "@/lib/upload";
 
+// Publier à la une du site du club engage son image publique : permission « site »,
+// et non la simple appartenance à l'équipe.
 async function gardeAdmin(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect(`/${slug}/cockpit`);
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit/actualite`);
-  }
+  const { org } = await exigerPermission(slug, "site");
   return org;
 }
 

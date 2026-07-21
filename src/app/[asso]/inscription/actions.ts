@@ -147,9 +147,23 @@ export async function inscrireAdherent(formData: FormData) {
   const { data: adhLigne } = await admin.from("adhesions").select("statut").eq("id", String(adhesionId)).maybeSingle();
   const enListeAttente = (adhLigne as { statut: string } | null)?.statut === "liste_attente";
 
-  // Questionnaire de santé (remplace le certificat médical) + signature
+  // Questionnaire de santé + signature.
+  //
+  // Le résultat est RECALCULÉ ici à partir des réponses transmises : auparavant le
+  // serveur reprenait tel quel un champ masqué `qsante_resultat`, qu'il suffisait de
+  // modifier dans la requête pour se déclarer apte sans avoir répondu (audit du
+  // 21/07/2026). Les réponses ne servent qu'à ce calcul et ne sont jamais enregistrées.
   const qType = String(formData.get("qsante_type") ?? "adulte");
-  const qResultat = String(formData.get("qsante_resultat") ?? "atteste_negatif");
+  const reponsesBrutes = String(formData.get("qsante_reponses") ?? "")
+    .split(",")
+    .map((r) => r.trim().toLowerCase());
+  const aRepondu = reponsesBrutes.filter((r) => r === "oui" || r === "non");
+  const qResultat =
+    // Un seul « oui » suffit. Un questionnaire incomplet est traité comme le cas le
+    // plus prudent : certificat demandé, plutôt qu'attestation accordée par défaut.
+    aRepondu.length === 0 || aRepondu.length !== reponsesBrutes.length || aRepondu.includes("oui")
+      ? "certificat_requis"
+      : "atteste_negatif";
   const qNaissance = String(formData.get("naissance") ?? "");
   const qSignature = String(formData.get("qsante_signature") ?? "");
   const qSignataire = String(formData.get("qsante_signataire") ?? "").trim();

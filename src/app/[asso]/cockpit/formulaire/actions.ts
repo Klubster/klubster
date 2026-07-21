@@ -1,15 +1,14 @@
 "use server";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { FormConfig } from "@/types/form";
 
 export async function saveFormConfig(slug: string, config: FormConfig): Promise<{ ok?: boolean; error?: string }> {
-  const org = await getOrganisationBySlug(slug);
-  const profile = await getProfile();
-  if (!org || !profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    return { error: "Non autorisé." };
-  }
+  // Le formulaire d'inscription décide des pièces demandées et des réductions : il
+  // engage le club. Réservé aux rôles qui gèrent le site, pas à toute l'équipe.
+  const ctx = await verifierPermission(slug, "site");
+  if (!ctx) return { error: "Non autorisé." };
+  const { org } = ctx;
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ form_config: config }).eq("id", org.id);
   if (error) return { error: error.message };
@@ -25,11 +24,9 @@ export async function uploaderModelePiece(
   slug: string,
   fd: FormData
 ): Promise<{ url?: string; nom?: string; error?: string }> {
-  const org = await getOrganisationBySlug(slug);
-  const profile = await getProfile();
-  if (!org || !profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    return { error: "Non autorisé." };
-  }
+  const ctx = await verifierPermission(slug, "site");
+  if (!ctx) return { error: "Non autorisé." };
+  const { org } = ctx;
   const file = fd.get("modele");
   if (!file || typeof file !== "object" || !("size" in file)) return { error: "Aucun fichier reçu." };
   const f = file as File;

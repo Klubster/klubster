@@ -7,17 +7,20 @@ import { usePathname } from "next/navigation";
 /**
  * Mesure d'audience (Microsoft Clarity) et consentement.
  *
- * Deux règles non négociables tiennent ce fichier :
+ * Trois règles tiennent ce fichier :
  *
- * 1. LISTE BLANCHE DE PAGES. Clarity rejoue les sessions. Sur un cockpit, un espace
- *    adhérent ou une vitrine de club, cela enverrait à Microsoft des noms, des emails
- *    et des résultats de questionnaires de santé d'adhérents — alors que Klubster
- *    s'engage auprès des clubs, dans son contrat de sous-traitance, à ne pas faire
- *    sortir leurs données. La mesure ne tourne donc QUE sur les pages de la marque,
- *    et jamais sur `/[asso]/…`, `/connexion`, `/admin`. Une liste blanche et non une
- *    liste noire : une page ajoutée demain n'est pas tracée par défaut.
+ * 1. PORTÉE PAR LE LAYOUT. Ce composant n'est monté que dans `app/(marketing)/layout.tsx`.
+ *    C'est la vraie barrière : entrer dans l'espace d'un club le démonte, et la mesure
+ *    s'arrête avec lui. Auparavant il vivait dans le layout racine, où le script
+ *    survivait à une navigation côté client vers un cockpit ou un espace adhérent.
  *
- * 2. CONSENTEMENT PRÉALABLE. Les cookies de Clarity ne sont pas essentiels : la CNIL
+ * 2. LISTE BLANCHE, EN SECOND RIDEAU. Clarity rejoue les sessions : sur un espace de
+ *    club, cela enverrait à Microsoft des noms, des emails et des résultats de
+ *    questionnaires de santé — alors que Klubster s'engage auprès des clubs, dans son
+ *    contrat de sous-traitance, à ne pas faire sortir leurs données. La liste ci-dessous
+ *    reste donc en place au cas où le composant serait monté ailleurs par erreur.
+ *
+ * 3. CONSENTEMENT PRÉALABLE. Les cookies de Clarity ne sont pas essentiels : la CNIL
  *    impose donc le consentement, et depuis le 31/10/2025 Microsoft lui-même le
  *    réclame pour les visiteurs de l'EEE — sans bandeau, l'outil ne collecte rien.
  *    Le refus est aussi accessible que l'acceptation, et il est mémorisé : reposer la
@@ -27,8 +30,14 @@ import { usePathname } from "next/navigation";
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
 const CLE = "klubster-mesure-v1";
 
-/** Pages de la marque. Tout le reste appartient aux clubs et à leurs adhérents. */
-const PAGES_MESUREES = ["/", "/tarifs", "/fonctionnalites", "/combat", "/creer"];
+/**
+ * Pages de la marque. Tout le reste appartient aux clubs et à leurs adhérents.
+ *
+ * `/creer` en est volontairement absent : c'est la seule page marketing où l'on saisit
+ * un nom, un email et un mot de passe. Y rejouer des sessions pour observer un
+ * décrochage de tunnel ne vaut pas d'enregistrer quelqu'un en train d'ouvrir son compte.
+ */
+const PAGES_MESUREES = ["/", "/tarifs", "/fonctionnalites", "/combat"];
 
 function pageMesurable(pathname: string | null): boolean {
   if (!pathname) return false;

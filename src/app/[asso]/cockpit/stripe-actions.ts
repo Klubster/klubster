@@ -1,7 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
-import { getProfile } from "@/lib/auth";
+import { exigerPresident } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   createConnectedAccount,
@@ -22,12 +21,7 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
  * L'adhérent choisira ensuite librement dans cette limite.
  */
 export async function definirEcheancesMax(slug: string, formData: FormData) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit`);
-  }
+  const { org } = await exigerPresident(slug);
 
   const max = bornerEcheances(formData.get("echeances_max"));
   const supabase = createSupabaseServerClient();
@@ -49,12 +43,7 @@ export async function definirEcheancesMax(slug: string, formData: FormData) {
  * toutes lettres. Personne ne s'engage sans savoir ce qu'il obtient.
  */
 export async function appliquerCodePromo(slug: string, formData: FormData) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit`);
-  }
+  const { org } = await exigerPresident(slug);
 
   const code = String(formData.get("code") ?? "").trim();
   if (!code) redirect(`/${slug}/cockpit#paiements`);
@@ -70,12 +59,7 @@ export async function appliquerCodePromo(slug: string, formData: FormData) {
 }
 
 export async function souscrireAbonnement(slug: string, formData?: FormData) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit`);
-  }
+  const { org, profile } = await exigerPresident(slug);
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?abonnement=nonconfig`);
 
   // Code promo saisi dans le cockpit (jamais sur la page de paiement) :
@@ -121,12 +105,7 @@ export async function souscrireAbonnement(slug: string, formData?: FormData) {
 
 /** Portail Stripe : factures, moyen de paiement, résiliation. */
 export async function gererAbonnement(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit`);
-  }
+  const { org } = await exigerPresident(slug);
   const client = clientAbonnement(org);
   if (!client) redirect(`/${slug}/cockpit?abonnement=aucun`);
 
@@ -142,12 +121,7 @@ export async function gererAbonnement(slug: string) {
 }
 
 export async function connecterStripe(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  if (!org) redirect("/");
-  const profile = await getProfile();
-  if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit`);
-  }
+  const { org } = await exigerPresident(slug);
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?stripe=nonconfig`);
 
   const supabase = createSupabaseServerClient();

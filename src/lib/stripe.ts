@@ -471,7 +471,20 @@ export interface StripeEvent {
   id: string;
   type: string;
   account?: string; // présent pour les événements Connect (compte du club)
+  /**
+   * Mode réel de l'événement, tel que Stripe l'annonce. Il n'était pas conservé : le
+   * traitement choisissait le compartiment test ou production d'après une variable
+   * globale, sans jamais confronter les deux. Un événement de test pouvait donc être
+   * écrit côté production, ou l'inverse (relevé à l'audit du 21/07/2026).
+   */
+  livemode?: boolean;
   data: { object: Record<string, unknown> };
+}
+
+/** Événement vérifié, accompagné du mode déduit du secret qui a validé sa signature. */
+export interface WebhookVerifie {
+  event: StripeEvent;
+  live: boolean;
 }
 
 // Fenêtre de validité d'une signature Stripe. Au-delà, on refuse : sans cela, un
@@ -503,15 +516,37 @@ export function verifyWebhook(rawBody: string, sigHeader: string | null, secret:
   return JSON.parse(rawBody);
 }
 
+/** Les secrets avec le mode auquel chacun appartient. */
+function secretsParMode(): { secret: string; live: boolean }[] {
+  const decouper = (v: string | undefined) =>
+    (v ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  const test = decouper(process.env.STRIPE_WEBHOOK_SECRET_TEST).map((secret) => ({ secret, live: false }));
+  const live = decouper(process.env.STRIPE_WEBHOOK_SECRET).map((secret) => ({ secret, live: true }));
+  return stripeModeTest ? [...test, ...live] : [...live, ...test];
+}
+
 /**
  * Vérifie la signature contre chacun des secrets connus (test et live).
  * Un seul endpoint sert les deux modes : sans cela, basculer en production
  * exigerait de reconfigurer Stripe, et on oublierait.
+ *
+ * Le mode n'est plus déduit d'une variable globale mais du secret qui a effectivement
+ * validé la signature — et il doit concorder avec le `livemode` annoncé par Stripe.
+ * Toute incohérence est refusée : c'est le seul moyen d'empêcher qu'un événement de
+ * test soit comptabilisé comme un encaissement réel.
  */
-export function verifyWebhookMulti(rawBody: string, sigHeader: string | null): StripeEvent | null {
-  for (const secret of webhookSecrets()) {
+export function verifyWebhookMulti(rawBody: string, sigHeader: string | null): WebhookVerifie | null {
+  for (const { secret, live } of secretsParMode()) {
     const event = verifyWebhook(rawBody, sigHeader, secret);
-    if (event) return event;
+    if (!event) continue;
+    if (typeof event.livemode === "boolean" && event.livemode !== live) {
+      console.error("webhook: mode du secret et livemode incohérents", { id: event.id, live, livemode: event.livemode });
+      return null;
+    }
+    return { event, live };
   }
   return null;
 }
