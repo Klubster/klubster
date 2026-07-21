@@ -34,10 +34,6 @@ export default function LegalShell({
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{kicker}<Cur /></p>
         <h1 className="mt-6 text-3xl font-medium md:text-4xl">{titre}</h1>
         <p className="mono mt-3 text-[11px] text-ink-faint">Dernière mise à jour : {maj}</p>
-        <p className="mono mt-6 border-l-2 border-brand pl-4 text-[12px] leading-relaxed text-ink-soft">
-          Modèle de référence à faire valider par un conseil juridique avant publication, notamment
-          pour les données de santé et de mineurs.
-        </p>
         <div className="legal-prose mt-10">{children}</div>
       </div>
 

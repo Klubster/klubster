@@ -43,6 +43,22 @@ export async function middleware(request: NextRequest) {
   const host = brutHost.replace(/^www\./, "");
   const { pathname } = request.nextUrl;
 
+  // Hôte canonique : www et l'apex étaient servis tous les deux, donc traités par le
+  // navigateur comme DEUX origines distinctes. Conséquence constatée à l'audit du
+  // 21/07/2026 : un visiteur qui créait son club sur www.klubster.fr écrivait son
+  // cookie PKCE et son brouillon de wizard (localStorage) sur l'origine « www », mais
+  // l'email de confirmation le renvoyait sur klubster.fr (NEXT_PUBLIC_SITE_URL) —
+  // cookie absent, échange de code en échec, brouillon introuvable : compte activé
+  // mais travail perdu et « erreur » sans explication. On fixe donc une seule origine.
+  // Volontairement limité à l'hôte de la plateforme : rediriger tous les « www. »
+  // enverrait le visiteur d'un club vers un apex dont rien ne garantit qu'il soit
+  // configuré côté DNS.
+  if (brutHost === "www.klubster.fr") {
+    const url = request.nextUrl.clone();
+    url.host = "klubster.fr";
+    return NextResponse.redirect(url, 308);
+  }
+
   // Filet de sécurité auth : si un lien de confirmation Supabase retombe sur la home
   // avec un ?code= (Site URL/Redirect URLs mal configurées, ou vieux email), on route
   // le code vers /auth/callback qui sait l'échanger contre une session — au lieu de

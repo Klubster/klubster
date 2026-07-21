@@ -15,7 +15,7 @@ import {
 } from "@/lib/stripe";
 import { compteConnecte, champsCompteConnecte, clientAbonnement } from "@/lib/stripe-org";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
 /**
  * Le club fixe le nombre maximal de mensualités proposées à ses adhérents (1 à 12).

@@ -115,6 +115,16 @@ function ConnexionInner() {
             Mot de passe modifié. Connectez-vous.
           </p>
         ) : null}
+        {/* Le lien de confirmation n'a pas pu ouvrir la session (lien déjà utilisé, expiré,
+            ou ouvert dans un autre navigateur que celui de l'inscription). Le compte, lui,
+            est bien créé : sans ce message, le visiteur restait devant un formulaire muet
+            après avoir cliqué « Confirmer mon email » (constaté à l'audit du 21/07/2026). */}
+        {params.get("erreur") === "confirmation" && !msg && !err ? (
+          <p className="mono mt-4 text-[12px] leading-relaxed" style={{ color: "#8A6A2F" }}>
+            Votre compte est créé, mais ce lien de confirmation a expiré ou a déjà servi.
+            Connectez-vous ci-dessus pour reprendre.
+          </p>
+        ) : null}
         {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
         {msg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{msg}</p> : null}
 

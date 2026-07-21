@@ -177,7 +177,13 @@ export default async function VitrinePage({
         ),
       });
     }
-    if (cle === "contact") {
+    // Sans adresse, email ni téléphone, ce chapitre n'affichait qu'un titre « OÙ NOUS
+    // TROUVER_ » suivi de vide — ce qui est le cas de tout club fraîchement créé, l'étape
+    // « Infos » du wizard étant optionnelle (constaté à l'audit du 21/07/2026). On le
+    // masque pour le public ; en mode édition l'admin le voit, sinon il ne saurait pas
+    // qu'il existe ni comment le remplir.
+    const contactVide = !org.adresse && !org.email_contact && !org.telephone;
+    if (cle === "contact" && (!contactVide || edition)) {
       rendus.push({
         cle,
         id: "contact",
@@ -217,6 +223,12 @@ export default async function VitrinePage({
                       {org.telephone}
                     </a>
                   </div>
+                ) : null}
+                {contactVide ? (
+                  <p className="mono text-[12px] leading-relaxed text-ink-soft">
+                    Adresse, email, téléphone : à renseigner dans le cockpit, rubrique Identité.
+                    Ce chapitre reste invisible pour vos visiteurs tant qu&apos;il est vide.
+                  </p>
                 ) : null}
               </div>
             </div>

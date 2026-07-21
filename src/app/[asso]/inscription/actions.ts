@@ -8,7 +8,7 @@ import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { compteConnecte } from "@/lib/stripe-org";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.vercel.app";
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
 export async function inscrireAdherent(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
@@ -99,6 +99,12 @@ export async function inscrireAdherent(formData: FormData) {
   }
 
   // Compte adhérent (mot de passe)
+  // signUp() écrit les cookies de session de la personne inscrite : si quelqu'un est
+  // déjà connecté (cas courant — le président teste son propre formulaire d'inscription
+  // juste après avoir publié son club, constaté à l'audit du 21/07/2026), il se retrouvait
+  // déconnecté et renvoyé vers /connexion à la navigation suivante. On mémorise donc la
+  // session en cours pour la rétablir juste après.
+  const { data: sessionAvant } = await supabase.auth.getSession();
   let userId: string | null = null;
   if (email && password) {
     const { data, error } = await supabase.auth.signUp({
@@ -106,6 +112,12 @@ export async function inscrireAdherent(formData: FormData) {
       password,
       options: { data: { prenom, nom, role: "adherent" }, emailRedirectTo: `${BASE}/auth/callback` },
     });
+    if (sessionAvant.session) {
+      await supabase.auth.setSession({
+        access_token: sessionAvant.session.access_token,
+        refresh_token: sessionAvant.session.refresh_token,
+      });
+    }
     if (error) redirect(`/${slug}/inscription?erreur=compte`);
     // Email déjà enregistré : Supabase renvoie un faux utilisateur (anti-énumération, identities vides).
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
@@ -217,9 +229,27 @@ export async function inscrireAdherent(formData: FormData) {
             `Sportivement,\n${org.nom}`,
       });
     }
-    if (org.email_contact) {
+    // Destinataire de l'alerte club : l'email de contact public s'il existe, sinon celui
+    // du président. L'étape « Infos » du wizard étant optionnelle, un club créé en 5 minutes
+    // n'a souvent aucun email de contact — et ne recevait alors AUCUNE notification
+    // d'inscription (constaté à l'audit du 21/07/2026). Les inscriptions n'existaient que
+    // pour qui pensait à ouvrir son cockpit.
+    let destinataireClub = org.email_contact;
+    if (!destinataireClub) {
+      const { data: president } = await admin
+        .from("profiles")
+        .select("email")
+        .eq("organisation_id", org.id)
+        .eq("role", "admin_asso")
+        .not("email", "is", null)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      destinataireClub = president?.email ?? null;
+    }
+    if (destinataireClub) {
       await envoyerEmail({
-        to: org.email_contact,
+        to: destinataireClub,
         objet: enListeAttente ? `Liste d'attente — ${prenom} ${nom}` : `Nouvelle inscription — ${prenom} ${nom}`,
         texte:
           (enListeAttente
