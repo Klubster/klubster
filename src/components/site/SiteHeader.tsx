@@ -2,8 +2,36 @@ import Link from "next/link";
 import MenuMobile from "@/components/site/MenuMobile";
 import type { Organisation } from "@/types/db";
 
-export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estAdmin?: boolean; edition?: boolean }) {
+export interface LienSection {
+  href: string;
+  label: string;
+}
+
+/** Chapitres standards, dans leur ordre de lecture. Repli si l'appelant ne dit rien. */
+const LIENS_PAR_DEFAUT: LienSection[] = [
+  { href: "#presentation", label: "Le club" },
+  { href: "#cours", label: "Cours" },
+  { href: "#planning", label: "Planning" },
+  { href: "#tarifs", label: "Tarifs" },
+  { href: "#contact", label: "Contact" },
+];
+
+export function SiteHeader({
+  org,
+  estAdmin,
+  edition,
+  liens,
+}: {
+  org: Organisation;
+  estAdmin?: boolean;
+  edition?: boolean;
+  /** Les chapitres réellement présents sur la page. Les sections vides étant masquées,
+   *  une nav figée proposait « Planning » ou « Contact » vers une ancre inexistante :
+   *  le lien ne faisait rien, ce qui est pire que de ne pas l'afficher. */
+  liens?: LienSection[];
+}) {
   const accent = org.couleur_primaire ?? "#111111";
+  const nav = liens && liens.length > 0 ? liens : LIENS_PAR_DEFAUT;
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4 md:px-8">
@@ -23,11 +51,11 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
           <span className="mono truncate text-[14px] font-bold tracking-tight">{org.nom}</span>
         </Link>
         <nav className="mono hidden items-center gap-6 text-[12px] tracking-wide text-ink-soft md:flex">
-          <a href="#presentation" className="hover:text-ink">Le club</a>
-          <a href="#cours" className="hover:text-ink">Cours</a>
-          <a href="#planning" className="hover:text-ink">Planning</a>
-          <a href="#tarifs" className="hover:text-ink">Tarifs</a>
-          <a href="#contact" className="hover:text-ink">Contact</a>
+          {nav.map((l) => (
+            <a key={l.href} href={l.href} className="hover:text-ink">
+              {l.label}
+            </a>
+          ))}
         </nav>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {estAdmin ? (
@@ -53,16 +81,7 @@ export function SiteHeader({ org, estAdmin, edition }: { org: Organisation; estA
           >
             S&apos;INSCRIRE →
           </Link>
-          <MenuMobile
-            ton="sombre"
-            liens={[
-              { href: "#presentation", label: "Le club" },
-              { href: "#cours", label: "Cours" },
-              { href: "#planning", label: "Planning" },
-              { href: "#tarifs", label: "Tarifs" },
-              { href: "#contact", label: "Contact" },
-            ]}
-          />
+          <MenuMobile ton="sombre" liens={nav} />
         </div>
       </div>
     </header>

@@ -260,10 +260,18 @@ export default async function VitrinePage({
     }
   }
 
+  // La nav du site ne propose que les chapitres réellement rendus. Depuis que les
+  // sections vides sont masquées, une nav figée annonçait « Planning » ou « Contact »
+  // vers une ancre absente : le clic ne faisait rien, ce qui est pire que l'absence
+  // du lien. Les chapitres personnalisés restent hors nav, comme avant.
+  const liensNav = rendus
+    .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle])
+    .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] }));
+
   return (
     <ThemeVitrine org={org}>
     <main className="text-ink">
-      <SiteHeader org={org} estAdmin={estAdmin} edition={edition} />
+      <SiteHeader org={org} estAdmin={estAdmin} edition={edition} liens={liensNav} />
 
       {/* BARRE DU MODE ÉDITION — collante sous le header, impossible à confondre avec le site public */}
       {edition ? (
