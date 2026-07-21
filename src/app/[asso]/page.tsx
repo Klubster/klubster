@@ -120,7 +120,12 @@ export default async function VitrinePage({
         ),
       });
     }
-    if (cle === "planning") {
+    // Même principe que le chapitre contact : un club qui n'a pas encore saisi ses
+    // horaires affichait « Créneaux de la semaine » suivi de « Le planning sera bientôt
+    // disponible ». Une promesse creuse sur la vitrine que le club vient de partager.
+    // Invisible pour le public tant qu'il est vide, visible en édition pour être rempli.
+    const aucunCreneau = cours.every((c) => (c.creneaux ?? []).length === 0);
+    if (cle === "planning" && (!aucunCreneau || edition)) {
       rendus.push({
         cle,
         id: "planning",
@@ -132,6 +137,12 @@ export default async function VitrinePage({
             <div className="mt-12">
               <PlanningGrid cours={cours} accent={accent} />
             </div>
+            {aucunCreneau ? (
+              <p className="mono mt-6 text-[12px] leading-relaxed text-ink-soft">
+                Ajoutez les horaires de vos cours depuis le cockpit, rubrique Cours et tarifs.
+                Ce chapitre reste invisible pour vos visiteurs tant qu&apos;il est vide.
+              </p>
+            ) : null}
           </div>
         ),
       });
@@ -266,7 +277,7 @@ export default async function VitrinePage({
                 className="inline-flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-label text-white"
                 style={{ background: accent }}
               >
-                <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse kb-dot bg-white" />
                 Mode édition
               </span>
               <span className="text-ink-soft">
@@ -348,6 +359,15 @@ export default async function VitrinePage({
           <h1 className="mt-8 max-w-[18ch] text-[38px] font-medium leading-[1.05] tracking-[-0.015em] md:text-[54px]">
             {org.accroche ?? org.nom}
           </h1>
+          {/* Un club fraîchement publié n'a que son nom en haut de page : c'est nu au
+              moment précis où il partage son adresse. Cette phrase par défaut dit au
+              moins ce que le visiteur peut y faire, et disparaît dès que le club écrit
+              la sienne depuis le mode édition. */}
+          {!org.accroche && !org.presentation ? (
+            <p className="mt-8 max-w-prose text-lg text-ink-soft">
+              Les inscriptions se font en ligne, en quelques minutes.
+            </p>
+          ) : null}
           {org.presentation ? (
             <p className="mt-8 max-w-prose text-lg text-ink-soft">{org.presentation}</p>
           ) : null}

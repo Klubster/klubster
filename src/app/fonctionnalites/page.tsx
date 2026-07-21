@@ -80,7 +80,7 @@ export default function Fonctionnalites() {
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-ink-soft md:flex">
             <Link href="/fonctionnalites" className="text-ink">Fonctionnalités</Link>
             <Link href="/tarifs" className="hover:text-ink">Tarifs</Link>
-            <Link href="/usmboxe" className="hover:text-ink">Un club</Link>
+            <Link href="/usmboxe" className="hover:text-ink">Voir un club</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/creer" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">

@@ -138,7 +138,7 @@ export default function Home() {
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
             <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
-            <Link href="/usmboxe" className="hover:text-paper">Un club</Link>
+            <Link href="/usmboxe" className="hover:text-paper">Voir un club</Link>
           </nav>
           <div className="flex items-center gap-3">
             {/* Le président qui revient chercher son cockpit : le lien n'existait

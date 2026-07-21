@@ -152,13 +152,13 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                   onChange={(e) => setSaisie((s) => ({ ...s, [l.id]: e.target.value }))}
                   placeholder="€"
                   inputMode="decimal"
-                  className="mono w-20 border border-line bg-paper px-2 py-2 text-right text-[13px] outline-none focus:border-ink"
+                  className="mono w-20 border border-line bg-paper px-2 py-3 text-right text-[13px] outline-none focus:border-ink"
                   title="Montant reçu (acompte possible)"
                 />
                 <select
                   value={modeDe(l)}
                   onChange={(e) => setModeLigne((m) => ({ ...m, [l.id]: e.target.value as "especes" | "cheque" | "autre" }))}
-                  className="border border-line bg-paper px-2 py-2 text-[12px] outline-none focus:border-ink"
+                  className="border border-line bg-paper px-2 py-3 text-[12px] outline-none focus:border-ink"
                   title="Moyen de paiement"
                 >
                   <option value="especes">Espèces</option>
@@ -172,7 +172,9 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                     const centimes = Number.isFinite(euros) && euros > 0 ? Math.round(euros * 100) : solde;
                     encaisser(l, centimes, modeDe(l));
                   }}
-                  className="mono border border-ink px-3 py-2 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-40"
+                  /* py-3 et non py-2 : cet encaissement se fait debout, au bord du tapis,
+                     sur un téléphone — une cible de 30 px se rate une fois sur trois. */
+                  className="mono border border-ink px-4 py-3 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-40"
                   title="Sans montant saisi : encaisse le solde complet"
                 >
                   ENCAISSER →

@@ -118,7 +118,7 @@ export default function Tarifs() {
               Tarifs
             </Link>
             <Link href="/usmboxe" className="mono text-[12px] text-ink-soft hover:text-ink">
-              Un club
+              Voir un club
             </Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -133,7 +133,7 @@ export default function Tarifs() {
               liens={[
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
-                { href: "/usmboxe", label: "Un club" },
+                { href: "/usmboxe", label: "Voir un club" },
                 { href: "/connexion", label: "Espace président" },
                 { href: "/creer", label: "Créer mon association" },
               ]}
