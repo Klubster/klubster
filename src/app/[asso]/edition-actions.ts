@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
-import { normaliserPageConfig } from "@/lib/page-config";
+import { normaliserPageConfig, SECTIONS_STANDARD } from "@/lib/page-config";
 import type { ItemChapitre, Organisation, SectionCustom, SectionCustomType } from "@/types/db";
 
 async function gardeAdmin(slug: string): Promise<Organisation> {
@@ -213,7 +213,52 @@ export async function ajouterChapitreMedias(slug: string, type: "galerie" | "par
 export async function supprimerSection(slug: string, id: string) {
   const org = await gardeAdmin(slug);
   const pc = normaliserPageConfig(org.page_config);
-  pc.custom = pc.custom.filter((c) => c.id !== id);
+  const estStandard = (SECTIONS_STANDARD as readonly string[]).includes(id);
+  if (estStandard) {
+    // Retrait réversible : le chapitre est mémorisé comme masqué, sinon la
+    // normalisation le remettrait aussitôt dans l'ordre. Il se réaffiche depuis la
+    // barre d'édition — un club qui retire « Planning » ne perd rien.
+    pc.masquees = [...new Set([...(pc.masquees ?? []), id])];
+  } else {
+    pc.custom = pc.custom.filter((c) => c.id !== id);
+  }
   pc.ordre = pc.ordre.filter((k) => k !== id);
   await sauver(org, pc, slug, undefined, "supprimee");
+}
+
+/** Réafficher un chapitre standard retiré. Il revient en fin de page, déplaçable. */
+export async function restaurerSection(slug: string, cle: string) {
+  const org = await gardeAdmin(slug);
+  const pc = normaliserPageConfig(org.page_config);
+  pc.masquees = (pc.masquees ?? []).filter((k) => k !== cle);
+  if (!pc.ordre.includes(cle)) pc.ordre.push(cle);
+  await sauver(org, pc, slug, cle, "ajoutee");
+}
+
+/**
+ * Le hero : accroche, présentation, et affichage du logo.
+ *
+ * Ces textes n'étaient modifiables nulle part. Le wizard posait une accroche vide en
+ * annonçant « modifiable ensuite », mais aucun écran ne le permettait : un club restait
+ * avec son seul nom en haut de page, définitivement (constaté le 21/07/2026).
+ */
+export async function modifierHero(slug: string, formData: FormData) {
+  const org = await gardeAdmin(slug);
+  const accroche = String(formData.get("accroche") ?? "").trim().slice(0, 160) || null;
+  const presentation = String(formData.get("presentation") ?? "").trim().slice(0, 2000) || null;
+  const afficherLogo = formData.get("logo") === "on";
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("organisations")
+    .update({ accroche, presentation })
+    .eq("id", org.id);
+  if (error) {
+    console.error("modifierHero", error.message);
+    redirect(`/${slug}?edition=1&erreur=enregistrement`);
+  }
+
+  const pc = normaliserPageConfig(org.page_config);
+  pc.hero = { ...(pc.hero ?? {}), logo: afficherLogo };
+  await sauver(org, pc, slug, undefined, "deplacee");
 }

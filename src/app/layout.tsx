@@ -38,33 +38,13 @@ export const metadata: Metadata = {
   },
 };
 
-// Données structurées : permet aux moteurs de comprendre l'offre (3 paliers, un seul produit).
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Klubster",
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  url: SITE,
-  description: DESCRIPTION,
-  inLanguage: "fr-FR",
-  author: { "@type": "Person", name: "Mathieu Bourdieu" },
-  offers: [
-    { "@type": "Offer", price: "9", priceCurrency: "EUR", description: "Jusqu’à 300 adhérents", category: "Abonnement mensuel" },
-    { "@type": "Offer", price: "19", priceCurrency: "EUR", description: "De 301 à 500 adhérents", category: "Abonnement mensuel" },
-    { "@type": "Offer", price: "29", priceCurrency: "EUR", description: "Plus de 500 adhérents", category: "Abonnement mensuel" },
-  ],
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${inter.variable} ${spaceMono.variable} ${plexMono.variable} ${spaceGrotesk.variable}`}>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-        />
-      </head>
+      {/* Les données structurées de Klubster ne vivent pas ici non plus : posées dans le
+          layout racine, elles décrivaient CHAQUE page comme le logiciel Klubster — y
+          compris la vitrine d'un club, qui se retrouvait à se déclarer application
+          professionnelle en même temps que club sportif. Elles sont dans (marketing). */}
       {/* La mesure d'audience ne vit PAS ici : elle est montée dans le layout du groupe
           (marketing), pour être démontée dès qu'on entre dans l'espace d'un club. */}
       <body>{children}</body>

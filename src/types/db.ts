@@ -85,6 +85,18 @@ export interface SectionCustom {
 export interface PageConfig {
   ordre: string[]; // clés standard ("presentation", "cours"…) et ids de sections custom
   custom: SectionCustom[];
+  /**
+   * Chapitres standards que le club a choisi de retirer. Sans cette liste, les retirer
+   * de `ordre` ne servait à rien : la normalisation les y remettait aussitôt, et la
+   * suppression n'était donc proposée que pour les chapitres personnalisés.
+   * Un retrait reste réversible — ils se réaffichent depuis le mode édition.
+   */
+  masquees?: string[];
+  /** Réglages du hero (première section). */
+  hero?: {
+    /** Afficher le logo du club à droite du titre. Vrai par défaut s'il y a un logo. */
+    logo?: boolean;
+  };
 }
 
 // Actualité « à la une » affichée dans le hero de la vitrine du club.

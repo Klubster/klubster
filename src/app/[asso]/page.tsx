@@ -8,7 +8,8 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import { normaliserPageConfig } from "@/lib/page-config";
-import { deplacerSection, supprimerSection } from "./edition-actions";
+import { deplacerSection, supprimerSection, restaurerSection, modifierHero } from "./edition-actions";
+import type { Organisation } from "@/types/db";
 import { ChapitreView } from "@/components/site/Chapitres";
 import { AjouterChapitre } from "@/components/site/AjouterChapitre";
 
@@ -289,6 +290,13 @@ export default async function VitrinePage({
     .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle])
     .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] }));
 
+  // Logo dans le hero : seulement s'il y en a un ET si le club n'a pas choisi de le
+  // masquer. Certains logos portent déjà le nom du club : le répéter sous le titre
+  // ferait doublon, d'où l'interrupteur.
+  const afficherLogoHero = !!org.logo_url && (pc.hero?.logo ?? true);
+  // Chapitres standards retirés par le club, proposés à la réaffichage en édition.
+  const masquees = (pc.masquees ?? []).filter((k) => NOMS_SECTIONS[k]);
+
   /* ——— Données structurées du club ———
      Un club cherche à être trouvé sur « boxe à Montauban », pas sur « logiciel
      d'association ». Décrire la vitrine comme un SportsClub — avec son adresse, ses
@@ -433,41 +441,68 @@ export default async function VitrinePage({
         </section>
       ) : null}
 
-      {/* HERO */}
-      <section className="border-b border-line">
+      {/* HERO — texte à gauche, logo du club à droite (masquable depuis l'édition) */}
+      <section className={`border-b border-line ${edition ? "kb-editable relative" : ""}`}>
+        {edition ? (
+          <span
+            className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[10px] uppercase tracking-label"
+            style={{ borderColor: accent, color: accent }}
+          >
+            En-tête
+          </span>
+        ) : null}
         <div className="mx-auto max-w-5xl px-6 py-24 md:px-8 md:py-32">
-          {org.sport ? (
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
-              {org.sport}<span style={{ color: accent }}>_</span>
-            </p>
-          ) : null}
-          <h1 className="mt-8 max-w-[18ch] text-[38px] font-medium leading-[1.05] tracking-[-0.015em] md:text-[54px]">
-            {org.accroche ?? org.nom}
-          </h1>
-          {/* Un club fraîchement publié n'a que son nom en haut de page : c'est nu au
-              moment précis où il partage son adresse. Cette phrase par défaut dit au
-              moins ce que le visiteur peut y faire, et disparaît dès que le club écrit
-              la sienne depuis le mode édition. */}
-          {!org.accroche && !org.presentation ? (
-            <p className="mt-8 max-w-prose text-lg text-ink-soft">
-              Les inscriptions se font en ligne, en quelques minutes.
-            </p>
-          ) : null}
-          {org.presentation ? (
-            <p className="mt-8 max-w-prose text-lg text-ink-soft">{org.presentation}</p>
-          ) : null}
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link
-              href={`/${org.slug}/inscription`}
-              className="mono px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
-              style={{ background: accent }}
-            >
-              S&apos;INSCRIRE →
-            </Link>
-            <a href="#cours" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
-              DÉCOUVRIR LES COURS
-            </a>
+          <div className={afficherLogoHero ? "grid items-center gap-12 md:grid-cols-[1fr_auto]" : ""}>
+            <div>
+              {org.sport ? (
+                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
+                  {org.sport}<span style={{ color: accent }}>_</span>
+                </p>
+              ) : null}
+              <h1 className="mt-8 max-w-[18ch] text-[38px] font-medium leading-[1.05] tracking-[-0.015em] md:text-[54px]">
+                {org.accroche ?? org.nom}
+              </h1>
+              {/* Un club fraîchement publié n'a que son nom en haut de page : c'est nu au
+                  moment précis où il partage son adresse. Cette phrase par défaut dit au
+                  moins ce que le visiteur peut y faire, et disparaît dès que le club écrit
+                  la sienne depuis le mode édition. */}
+              {!org.accroche && !org.presentation ? (
+                <p className="mt-8 max-w-prose text-lg text-ink-soft">
+                  Les inscriptions se font en ligne, en quelques minutes.
+                </p>
+              ) : null}
+              {org.presentation ? (
+                <p className="mt-8 max-w-prose text-lg text-ink-soft">{org.presentation}</p>
+              ) : null}
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Link
+                  href={`/${org.slug}/inscription`}
+                  className="mono px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
+                  style={{ background: accent }}
+                >
+                  S&apos;INSCRIRE →
+                </Link>
+                <a href="#cours" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
+                  DÉCOUVRIR LES COURS
+                </a>
+              </div>
+            </div>
+
+            {/* Le logo est posé tel quel, sans cadre ni fond : un PNG détouré s'inscrit
+                alors dans la couleur du site, clair comme sombre. */}
+            {afficherLogoHero ? (
+              <div className="order-first flex justify-start md:order-none md:justify-end">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={org.logo_url as string}
+                  alt={org.nom}
+                  className="h-32 w-32 object-contain md:h-52 md:w-52"
+                />
+              </div>
+            ) : null}
           </div>
+
+          {edition ? <EditeurHero org={org} afficherLogo={afficherLogoHero} accent={accent} /> : null}
         </div>
       </section>
 
@@ -494,6 +529,30 @@ export default async function VitrinePage({
         </section>
       ))}
 
+      {/* CHAPITRES RETIRÉS — un retrait doit toujours pouvoir se défaire, sinon c'est
+          un piège : le club n'aurait aucun moyen de récupérer son planning ou ses tarifs. */}
+      {edition && masquees.length > 0 ? (
+        <section className="border-b border-line bg-bg-alt">
+          <div className="mx-auto max-w-5xl px-6 py-8 md:px-8">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              CHAPITRES RETIRÉS DE LA PAGE<span style={{ color: accent }}>_</span>
+            </p>
+            <p className="mt-3 text-[14px] text-ink-soft">
+              Ils ne sont plus visibles par vos visiteurs. Rien n’est perdu : réaffichez-les quand vous voulez.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {masquees.map((cle) => (
+                <form key={cle} action={restaurerSection.bind(null, org.slug, cle)}>
+                  <button className="mono border border-line bg-paper px-4 py-3 text-[12px] hover:border-ink">
+                    ↺ Réafficher « {NOMS_SECTIONS[cle]} »
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* AJOUTER UN CHAPITRE (mode édition) */}
       {edition ? (
         <AjouterChapitre slug={org.slug} organisationId={org.id} accent={accent} type={searchParams?.chapitre} />
@@ -519,6 +578,82 @@ export default async function VitrinePage({
 }
 
 /* ——— Mode édition : contrôles de la section (monter / descendre / supprimer) ——— */
+/**
+ * Édition du hero : accroche, présentation, affichage du logo.
+ *
+ * Le panneau n'apparaît qu'en mode édition, sous le hero, et montre le texte réel du
+ * club. Un club ne pouvait jusqu'ici modifier ni son accroche ni sa présentation —
+ * aucun écran ne le permettait, alors que le wizard promettait « modifiable ensuite ».
+ */
+function EditeurHero({
+  org,
+  afficherLogo,
+  accent,
+}: {
+  org: Organisation;
+  afficherLogo: boolean;
+  accent: string;
+}) {
+  return (
+    <form
+      action={modifierHero.bind(null, org.slug)}
+      className="mt-12 border border-line bg-paper p-6 md:p-8"
+      style={{ borderColor: accent }}
+    >
+      <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
+        MODIFIER L’EN-TÊTE<span className="cur">_</span>
+      </p>
+
+      <label className="mono mt-6 block text-[10px] uppercase tracking-label text-ink-soft">
+        ACCROCHE — LA PHRASE EN GRAND
+      </label>
+      <input
+        name="accroche"
+        defaultValue={org.accroche ?? ""}
+        maxLength={160}
+        placeholder={org.nom}
+        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[15px] outline-none focus:border-ink"
+      />
+
+      <label className="mono mt-5 block text-[10px] uppercase tracking-label text-ink-soft">
+        PRÉSENTATION — LE PARAGRAPHE SOUS L’ACCROCHE
+      </label>
+      <textarea
+        name="presentation"
+        defaultValue={org.presentation ?? ""}
+        maxLength={2000}
+        rows={5}
+        placeholder="Qui vous êtes, depuis quand, pour qui."
+        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-ink"
+      />
+
+      {org.logo_url ? (
+        <label className="mt-5 flex cursor-pointer items-start gap-3 text-[14px]">
+          <input type="checkbox" name="logo" defaultChecked={afficherLogo} className="mt-1" />
+          <span>
+            Afficher le logo à droite du titre.
+            <span className="mono mt-1 block text-[11px] text-ink-soft">
+              Un PNG détouré (sans fond) s’intègre le mieux. Le logo se change dans le cockpit, rubrique Identité.
+            </span>
+          </span>
+        </label>
+      ) : (
+        <p className="mono mt-5 text-[11px] leading-relaxed text-ink-soft">
+          Aucun logo pour l’instant. Ajoutez-en un depuis le cockpit, rubrique Identité : il s’affichera ici,
+          à droite du titre.
+        </p>
+      )}
+
+      <button
+        className="mono mt-7 px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
+        style={{ background: accent }}
+      >
+        ENREGISTRER L’EN-TÊTE →
+      </button>
+    </form>
+  );
+}
+
 function Controles({
   slug,
   cle,
@@ -535,7 +670,8 @@ function Controles({
   accent: string;
 }) {
   return (
-    <div className="absolute right-3 top-3 z-20 flex gap-px border bg-line" style={{ borderColor: accent }}>
+    <div className="absolute right-3 top-3 z-20 flex flex-wrap justify-end gap-px border bg-line" style={{ borderColor: accent }}>
+      {/* Repère de lecture : les contrôles restent identiques d'une section à l'autre. */}
       <form action={deplacerSection.bind(null, slug, cle, -1)}>
         <button
           disabled={first}
@@ -556,18 +692,19 @@ function Controles({
           ↓ <span className="hidden sm:inline">Descendre</span>
         </button>
       </form>
-      {custom ? (
-        <form action={supprimerSection.bind(null, slug, cle)}>
-          <button
-            title="Supprimer ce chapitre"
-            aria-label="Supprimer ce chapitre"
-            className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt"
-            style={{ color: "#B23B3B" }}
-          >
-            × <span className="hidden sm:inline">Supprimer</span>
-          </button>
-        </form>
-      ) : null}
+      {/* Tous les chapitres se retirent, pas seulement les personnalisés. Un chapitre
+          standard n'est pas détruit mais masqué : il se réaffiche depuis la barre du
+          mode édition. D'où deux libellés, pour que le geste dise ce qu'il fait. */}
+      <form action={supprimerSection.bind(null, slug, cle)}>
+        <button
+          title={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page (réversible)"}
+          aria-label={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page"}
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt"
+          style={{ color: "#B23B3B" }}
+        >
+          × <span className="hidden sm:inline">{custom ? "Supprimer" : "Retirer"}</span>
+        </button>
+      </form>
     </div>
   );
 }

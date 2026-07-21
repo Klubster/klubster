@@ -12,7 +12,11 @@ export function normaliserPageConfig(pc: PageConfig | null | undefined): PageCon
   const custom = (pc?.custom ?? []).filter((c) => c && typeof c.id === "string");
   const connues = new Set<string>([...SECTIONS_STANDARD, ...custom.map((c) => c.id)]);
   const ordre = (pc?.ordre ?? []).filter((k, i, arr) => connues.has(k) && arr.indexOf(k) === i);
-  for (const k of SECTIONS_STANDARD) if (!ordre.includes(k)) ordre.push(k);
+  // Chapitres standards volontairement retirés par le club. Sans cette liste, la boucle
+  // ci-dessous les réintroduisait à chaque lecture : un club ne pouvait pas retirer
+  // « Planning » ou « Tarifs » de sa vitrine, même s'ils ne le concernaient pas.
+  const masquees = (pc?.masquees ?? []).filter((k) => (SECTIONS_STANDARD as readonly string[]).includes(k));
+  for (const k of SECTIONS_STANDARD) if (!ordre.includes(k) && !masquees.includes(k)) ordre.push(k);
   for (const c of custom) if (!ordre.includes(c.id)) ordre.push(c.id);
-  return { ordre, custom };
+  return { ordre, custom, masquees, hero: { logo: pc?.hero?.logo ?? true } };
 }
