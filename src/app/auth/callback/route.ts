@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
       const user = u.user;
       if (user) {
         const { data: prof } = await supabase.from("profiles").select("role, organisation_id").eq("id", user.id).maybeSingle();
-        if (prof?.role === "admin_asso") {
+        if (prof?.role === "super_admin") {
+          dest = "/admin";
+        } else if (prof?.role === "admin_asso") {
           if (prof.organisation_id) {
             const { data: org } = await supabase.from("organisations").select("slug").eq("id", prof.organisation_id).maybeSingle();
             dest = org?.slug ? `/${org.slug}/cockpit` : "/creer";
