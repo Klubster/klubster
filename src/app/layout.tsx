@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Mono, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import Mesure from "@/components/site/Mesure";
 
 // Polices auto-hébergées par Next (aucune requête vers Google depuis le navigateur du
 // visiteur — cohérent avec la politique de confidentialité — et plus de FOUT).
@@ -62,7 +63,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Mesure d'audience : limitée aux pages de la marque et soumise au consentement.
+            Voir components/site/Mesure.tsx — la liste blanche des pages y est le garde-fou. */}
+        <Mesure />
+      </body>
     </html>
   );
 }

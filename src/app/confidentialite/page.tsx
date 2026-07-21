@@ -78,10 +78,29 @@ export default function Confidentialite() {
         notification (72 h) sont appliquées.
       </p>
 
-      <h2>8. Cookies</h2>
+      <h2>8. Cookies et mesure d’audience</h2>
       <p>
-        Klubster n’utilise que des cookies strictement nécessaires à l’authentification. Aucun cookie
-        publicitaire ni de mesure d’audience non essentiel n’est déposé sans consentement.
+        Le fonctionnement du service repose sur des cookies strictement nécessaires à l’authentification.
+        Aucun cookie publicitaire n’est déposé, et Klubster ne pratique aucun profilage.
+      </p>
+      <p>
+        Sur les <strong>pages de présentation de Klubster</strong> (accueil, tarifs, fonctionnalités, page
+        de création d’association), et uniquement sur celles-ci, une mesure d’audience{" "}
+        <strong>Microsoft Clarity</strong> permet de comprendre ce qui se lit mal ou décourage les
+        visiteurs. Elle n’est activée <strong>qu’après votre accord</strong>, demandé par un bandeau où
+        refuser est aussi simple qu’accepter, et votre refus est conservé. Microsoft Clarity est un service
+        de Microsoft Corporation, société américaine ; les transferts s’appuient sur les clauses
+        contractuelles types et le cadre de protection des données UE–États-Unis.
+      </p>
+      <p>
+        <strong>Cette mesure ne s’applique jamais aux espaces des associations ni de leurs adhérents</strong>
+        {" "}— sites des clubs, formulaires d’inscription, espaces adhérents, cockpits. Aucune donnée
+        d’adhérent, aucun dossier et aucune donnée de santé n’est transmis à cet outil : les pages qui en
+        contiennent sont exclues de la mesure par construction.
+      </p>
+      <p>
+        Vous pouvez revenir sur votre choix à tout moment en effaçant les données de site de votre
+        navigateur pour klubster.fr : le bandeau vous sera de nouveau proposé.
       </p>
 
       <h2>9. Vos droits</h2>
