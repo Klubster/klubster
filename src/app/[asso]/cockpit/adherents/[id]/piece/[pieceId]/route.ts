@@ -22,8 +22,9 @@ const DUREE_SIGNATURE = 60; // secondes : le temps d'ouvrir l'onglet, pas de le 
 
 export async function GET(
   _req: Request,
-  { params }: { params: { asso: string; id: string; pieceId: string } }
+  props: { params: Promise<{ asso: string; id: string; pieceId: string }> }
 ) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) return NextResponse.json({ erreur: "Introuvable" }, { status: 404 });
 
@@ -38,7 +39,7 @@ export async function GET(
     return NextResponse.redirect(new URL(`/${org.slug}/cockpit?acces=refuse`, _req.url));
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // La pièce doit appartenir à CET adhérent, lui-même rattaché à CE club : sans cette
   // double condition, un identifiant de pièce d'un autre club suffirait.

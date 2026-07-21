@@ -11,8 +11,13 @@ const SUPABASE_ANON_KEY =
 
 // Client Supabase côté serveur (Server Components / Route Handlers).
 // Utilise la clé publishable (anon) : la sécurité repose sur les politiques RLS.
-export function createSupabaseServerClient() {
-  const cookieStore = cookies();
+//
+// Asynchrone depuis Next 15 : `cookies()` retourne désormais une promesse. Le codemod
+// officiel proposait l'échappatoire `UnsafeUnwrappedCookies`, qui déballe la promesse de
+// force ; elle porte bien son nom et n'est qu'un sursis avant suppression. Puisque tous
+// les appelants sont déjà des fonctions asynchrones, autant faire les choses proprement.
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {

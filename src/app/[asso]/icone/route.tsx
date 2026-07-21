@@ -4,7 +4,8 @@ import { getOrganisationBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request, { params }: { params: { asso: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   const { searchParams } = new URL(req.url);
   const brut = parseInt(searchParams.get("taille") ?? "512", 10);

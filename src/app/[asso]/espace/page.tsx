@@ -16,7 +16,8 @@ const STATUT_LABEL: Record<string, string> = {
   paye: "Payé", en_attente: "En attente", en_retard: "En retard", rembourse: "Remboursé", annule: "Annulé",
 };
 
-export default async function EspacePage({ params }: { params: { asso: string } }) {
+export default async function EspacePage(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";
@@ -24,7 +25,7 @@ export default async function EspacePage({ params }: { params: { asso: string } 
   const user = await getUser();
   if (!user) redirect(`/connexion?next=/${org.slug}/espace`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase
     .from("adherents").select("*").eq("user_id", user.id).eq("organisation_id", org.id).maybeSingle();
 
@@ -68,14 +69,12 @@ export default async function EspacePage({ params }: { params: { asso: string } 
       <p className="mt-3 text-ink-soft">
         {manquantes > 0 ? `Il vous reste ${manquantes} pièce${manquantes > 1 ? "s" : ""} à fournir.` : "Votre dossier est complet."}
       </p>
-
       {/* DOSSIER */}
       <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-3">
         <Kpi label="COURS" value={coursNom || "—"} />
         <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
         <Kpi label="RÈGLEMENT" value={adhesion ? (STATUT_LABEL[adhesion.statut] ?? adhesion.statut) : "—"} accent={adhesion?.statut === "paye" ? accent : undefined} />
       </div>
-
       {/* INFOS */}
       <div className="mt-12">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MES INFORMATIONS<span style={{ color: accent }}>_</span></p>
@@ -98,7 +97,6 @@ export default async function EspacePage({ params }: { params: { asso: string } 
           </div>
         </form>
       </div>
-
       {/* PIÈCES */}
       {pieces.length > 0 ? (
         <div className="mt-12">
@@ -128,7 +126,6 @@ export default async function EspacePage({ params }: { params: { asso: string } 
           </div>
         </div>
       ) : null}
-
       {/* QUESTIONNAIRE DE SANTÉ */}
       {qsante ? (
         <div className="mt-12">
@@ -142,12 +139,11 @@ export default async function EspacePage({ params }: { params: { asso: string } 
             </div>
             {qsante.signature ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={qsante.signature} alt="Signature" width={220} height={90} className="mt-3 border border-line bg-white" />
+              (<img src={qsante.signature} alt="Signature" width={220} height={90} className="mt-3 border border-line bg-white" />)
             ) : null}
           </div>
         </div>
       ) : null}
-
       {/* CARTE / QR */}
       <div className="mt-12">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">CARTE DE MEMBRE<span style={{ color: accent }}>_</span></p>

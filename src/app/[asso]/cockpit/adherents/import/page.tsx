@@ -10,7 +10,8 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-export default async function Import({ params }: { params: { asso: string } }) {
+export default async function Import(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();

@@ -38,13 +38,14 @@ const ETATS: Record<string, string> = {
  * Le trésorier ne veut pas piloter Stripe — il veut savoir ce qui est arrivé
  * sur le compte de l'association, et ce qui arrive bientôt.
  */
-export default async function VirementsPage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { erreur?: string };
-}) {
+export default async function VirementsPage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ erreur?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();

@@ -14,13 +14,14 @@ function Cur() {
 
 type Membre = { id: string; prenom: string | null; nom: string | null; email: string | null; role: string };
 
-export default async function EquipePage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { ok?: string; ajout?: string; erreur?: string };
-}) {
+export default async function EquipePage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ ok?: string; ajout?: string; erreur?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -30,7 +31,7 @@ export default async function EquipePage({
   }
   if (!president) redirect(`/${params.asso}/cockpit?equipe=refuse`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("profiles")
     .select("id, prenom, nom, email, role")

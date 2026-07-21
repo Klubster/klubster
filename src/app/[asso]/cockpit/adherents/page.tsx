@@ -26,13 +26,14 @@ type LigneAdherent = {
   adhesions: LigneAdhesion[] | null;
 };
 
-export default async function Adherents({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { q?: string; page?: string; statut?: string; renouvelees?: string };
-}) {
+export default async function Adherents(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ q?: string; page?: string; statut?: string; renouvelees?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -45,7 +46,7 @@ export default async function Adherents({
   const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
   const debut = (page - 1) * PAR_PAGE;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Le filtre par statut doit vivre dans la requête, pas en mémoire : appliqué après la
   // pagination, il ne filtrait que les 25 lignes déjà chargées — « aucun résultat » page 1,

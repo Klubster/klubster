@@ -11,13 +11,14 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-export default async function DomainePage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { ok?: string; erreur?: string; retire?: string };
-}) {
+export default async function DomainePage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ ok?: string; erreur?: string; retire?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();

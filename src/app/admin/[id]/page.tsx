@@ -31,7 +31,8 @@ function Ligne({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export default async function FicheClubAdmin({ params }: { params: { id: string } }) {
+export default async function FicheClubAdmin(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const profile = await verifierSuperAdmin();
   if (!profile) notFound();
 

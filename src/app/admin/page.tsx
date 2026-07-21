@@ -90,11 +90,12 @@ function Acquisition({ series }: { series: StatsAdmin["creationsParSemaine"] }) 
 
 type Tri = "recent" | "adherents" | "encaisse" | "activite" | "nom";
 
-export default async function SuperAdmin({
-  searchParams,
-}: {
-  searchParams?: { q?: string; statut?: string; tri?: Tri };
-}) {
+export default async function SuperAdmin(
+  props: {
+    searchParams?: Promise<{ q?: string; statut?: string; tri?: Tri }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   // Réservé au super-admin. Une page inexistante pour tous les autres : on ne
   // révèle même pas qu'elle existe.
   const profile = await verifierSuperAdmin();

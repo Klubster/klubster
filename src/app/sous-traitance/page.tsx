@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
 export const metadata = { title: "Contrat de sous-traitance (DPA) — Klubster" };
@@ -8,7 +9,7 @@ export default function SousTraitance() {
       <p>
         Le présent accord (« DPA ») encadre le traitement, par Klubster (le « Sous-traitant »), des données
         personnelles pour le compte du club (le « Responsable de traitement »). Il est accepté par le club
-        lors de la création de son compte et complète les <a href="/cgv">CGV</a>.
+        lors de la création de son compte et complète les <Link href="/cgv">CGV</Link>.
       </p>
 
       <h2>1. Objet et durée</h2>

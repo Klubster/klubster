@@ -5,13 +5,14 @@ import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 
 export const dynamic = "force-dynamic";
 
-export default async function MerciPage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { prenom?: string; mode?: string; paye?: string; attente?: string };
-}) {
+export default async function MerciPage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ prenom?: string; mode?: string; paye?: string; attente?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";

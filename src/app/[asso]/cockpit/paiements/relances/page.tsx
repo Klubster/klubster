@@ -30,13 +30,14 @@ function depuis(dateIso: string): string {
   return `le ${new Date(dateIso).toLocaleDateString("fr-FR")}`;
 }
 
-export default async function RelancesPage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { relance?: string; relances?: string; erreur?: string; partiel?: string };
-}) {
+export default async function RelancesPage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ relance?: string; relances?: string; erreur?: string; partiel?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -45,7 +46,7 @@ export default async function RelancesPage({
   }
   if (!peut(profile.role, "paiements")) redirect(`/${org.slug}/cockpit?acces=refuse`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
     .select("id, montant_centimes, statut, derniere_relance, adherent:adherents(id, prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")

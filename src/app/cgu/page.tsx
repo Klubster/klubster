@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
 export const metadata = { title: "Conditions générales d’utilisation — Klubster" };
@@ -29,9 +30,9 @@ export default function CGU() {
 
       <h2>4. Données et confidentialité</h2>
       <p>
-        Le traitement des données personnelles est décrit dans la <a href="/confidentialite">Politique de
-        confidentialité</a>. Lorsqu’un club gère les données de ses adhérents via Klubster, les rôles
-        respectifs sont précisés dans le <a href="/sous-traitance">contrat de sous-traitance</a>.
+        Le traitement des données personnelles est décrit dans la <Link href="/confidentialite">Politique de
+        confidentialité</Link>. Lorsqu’un club gère les données de ses adhérents via Klubster, les rôles
+        respectifs sont précisés dans le <Link href="/sous-traitance">contrat de sous-traitance</Link>.
       </p>
 
       <h2>5. Disponibilité</h2>
@@ -50,7 +51,7 @@ export default function CGU() {
       <h2>7. Résiliation</h2>
       <p>
         L’utilisateur peut fermer son compte à tout moment. L’éditeur peut suspendre un compte en cas de
-        manquement aux CGU. Les conditions commerciales figurent dans les <a href="/cgv">CGV</a>.
+        manquement aux CGU. Les conditions commerciales figurent dans les <Link href="/cgv">CGV</Link>.
       </p>
 
       <h2>8. Droit applicable</h2>

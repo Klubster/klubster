@@ -38,7 +38,9 @@ async function slugPourDomaine(host: string): Promise<string | null> {
   return slug;
 }
 
-export async function middleware(request: NextRequest) {
+// Anciennement `middleware`. Next 16 a renommé la convention en « proxy » : le fichier
+// et la fonction changent de nom, le comportement est identique.
+export async function proxy(request: NextRequest) {
   const brutHost = (request.headers.get("host") ?? "").toLowerCase();
   const host = brutHost.replace(/^www\./, "");
   const { pathname } = request.nextUrl;

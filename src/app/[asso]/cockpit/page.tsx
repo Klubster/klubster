@@ -16,13 +16,14 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-export default async function Cockpit({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { stripe?: string; bienvenue?: string; abonnement?: string; code?: string };
-}) {
+export default async function Cockpit(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ stripe?: string; bienvenue?: string; abonnement?: string; code?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
 

@@ -24,7 +24,7 @@ export async function definirEcheancesMax(slug: string, formData: FormData) {
   const { org } = await exigerPresident(slug);
 
   const max = bornerEcheances(formData.get("echeances_max"));
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ echeances_max: max }).eq("id", org.id);
   if (error) {
     console.error("echeances_max", error.message);
@@ -76,7 +76,7 @@ export async function souscrireAbonnement(slug: string, formData?: FormData) {
     if (!promotionCodeId) redirect(`/${slug}/cockpit?abonnement=codeinconnu`);
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { count } = await supabase
     .from("adherents")
     .select("id", { count: "exact", head: true })
@@ -124,7 +124,7 @@ export async function connecterStripe(slug: string) {
   const { org } = await exigerPresident(slug);
   if (!stripeConfigured()) redirect(`/${slug}/cockpit?stripe=nonconfig`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   let url: string | null = null;
 
   // Stripe refuse la création de compte tant que Connect n'est pas activé sur la

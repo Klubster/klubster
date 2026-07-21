@@ -75,7 +75,7 @@ export async function enregistrerCours(slug: string, coursId: string | null, for
     places_max: places,
   };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Sur une modification, le filtre par organisation empêche d'éditer le cours d'un autre
   // club en changeant un identifiant dans le HTML.
@@ -102,7 +102,7 @@ export async function enregistrerCours(slug: string, coursId: string | null, for
  */
 export async function supprimerCours(slug: string, coursId: string) {
   const org = await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { count } = await supabase
     .from("adhesions")
@@ -133,7 +133,7 @@ export async function supprimerCours(slug: string, coursId: string) {
  */
 export async function promouvoirAttente(slug: string, adhesionId: string) {
   const org = await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("promouvoir_liste_attente", { p_adhesion_id: adhesionId });
   if (error) {
     console.error("promouvoir_liste_attente", error.message);

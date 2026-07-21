@@ -6,7 +6,8 @@ import type { FormConfig } from "@/types/form";
 
 export const dynamic = "force-dynamic";
 
-export default async function Page({ params }: { params: { asso: string } }) {
+export default async function Page(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();

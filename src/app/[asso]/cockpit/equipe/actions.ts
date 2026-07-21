@@ -20,7 +20,7 @@ export async function definirRole(slug: string, formData: FormData) {
   await gardePresident(slug);
   const target = String(formData.get("user_id") ?? "");
   const role = String(formData.get("role") ?? "");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("equipe_definir_role", { p_target: target, p_role: role });
   if (error) console.error("definirRole", error.message);
   revalidatePath(`/${slug}/cockpit/equipe`);
@@ -30,7 +30,7 @@ export async function definirRole(slug: string, formData: FormData) {
 export async function ajouterMembre(slug: string, formData: FormData) {
   await gardePresident(slug);
   const email = String(formData.get("email") ?? "").trim();
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("equipe_ajouter", { p_email: email });
   revalidatePath(`/${slug}/cockpit/equipe`);
   const res = error ? "erreur" : (data as string);
@@ -40,7 +40,7 @@ export async function ajouterMembre(slug: string, formData: FormData) {
 export async function retirerMembre(slug: string, formData: FormData) {
   await gardePresident(slug);
   const target = String(formData.get("user_id") ?? "");
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("equipe_retirer", { p_target: target });
   if (error) console.error("retirerMembre", error.message);
   revalidatePath(`/${slug}/cockpit/equipe`);

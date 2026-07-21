@@ -62,7 +62,6 @@ export default async function Image({ params }: { params: { asso: string } }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={logo} alt="" width={132} height={132} style={{ objectFit: "contain" }} />
           ) : (
             <div

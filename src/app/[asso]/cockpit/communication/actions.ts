@@ -44,7 +44,7 @@ export async function envoyerMessage(
   const texteNet = message.trim().slice(0, 10000);
   if (!objetNet || !texteNet) return { ok: false, envoyes: 0, erreur: "Objet et message sont requis." };
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adherents } = await supabase
     .from("adherents")
     .select("id, email, date_naissance")

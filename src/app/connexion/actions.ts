@@ -8,7 +8,7 @@ import { destinationSure } from "@/lib/redirection";
 // fonctions async, ce qui la rendait intestable là où elle était.
 
 export async function connexion(input: { email: string; password: string; next?: string }): Promise<{ error?: string }> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
   if (error) return { error: traduire(error.message) };
   redirect(destinationSure(input.next));
@@ -17,7 +17,7 @@ export async function connexion(input: { email: string; password: string; next?:
 export async function inscription(input: {
   email: string; password: string; prenom: string; nom: string; next?: string;
 }): Promise<{ error?: string; message?: string }> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -42,7 +42,7 @@ export async function motDePasseOublie(email: string): Promise<{ message: string
   };
   if (!propre || !propre.includes("@")) return reponse;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
   const { error } = await supabase.auth.resetPasswordForEmail(propre, {
     redirectTo: `${base}/auth/callback?next=/connexion/nouveau-mot-de-passe`,
@@ -54,7 +54,7 @@ export async function motDePasseOublie(email: string): Promise<{ message: string
 /** Applique le nouveau mot de passe, une fois la session de récupération établie. */
 export async function definirNouveauMotDePasse(password: string): Promise<{ error?: string }> {
   if (password.length < LONGUEUR_MIN_MDP) return { error: `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.` };
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return { error: "Lien expiré. Demandez un nouveau lien de réinitialisation." };
   const { error } = await supabase.auth.updateUser({ password });
@@ -63,7 +63,7 @@ export async function definirNouveauMotDePasse(password: string): Promise<{ erro
 }
 
 export async function deconnexion() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/");
 }

@@ -39,7 +39,7 @@ export async function modifierAdherent(slug: string, adherentId: string, formDat
   const nom = texte(formData, "nom", 80);
   if (!prenom || !nom) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=nom`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("adherents")
     .update({
@@ -78,7 +78,7 @@ export async function ajouterAdherent(slug: string, formData: FormData) {
   if (!prenom || !nom) redirect(`/${slug}/cockpit/adherents/nouveau?erreur=nom`);
 
   const coursId = texte(formData, "cours", 40);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: adherent, error } = await supabase
     .from("adherents")
@@ -159,7 +159,7 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
     return { crees: 0, ignores: 0, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Les cours autorisés — un identifiant venu du client ne suffit pas.
   const { data: coursOrg } = await supabase
@@ -243,7 +243,7 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
  */
 export async function renouvelerSaison(slug: string) {
   const org = await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("renouveler_saison", { p_org: org.id });
   if (error) {
     console.error("renouvelerSaison", error.message);
@@ -259,7 +259,7 @@ export async function renouvelerSaison(slug: string) {
  */
 export async function anonymiserAdherent(slug: string, adherentId: string) {
   const org = await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("anonymiser_adherent", { p_adherent_id: adherentId });
   if (error) {
     console.error("anonymiserAdherent", error.message);
@@ -283,7 +283,7 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
   const p = await getProfile();
   if (!p || !peut(p.role, "paiements")) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=acces`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adh } = await supabase
     .from("adhesions")
     .select("id, stripe_payment_intent, montant_centimes")
@@ -323,7 +323,7 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
 /** Marquer une pièce comme reçue (ou de nouveau manquante) depuis la fiche. */
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const nouveau = statut === "recue" ? "manquante" : "recue";
 
   const { error } = await supabase

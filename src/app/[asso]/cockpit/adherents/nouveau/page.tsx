@@ -13,13 +13,14 @@ function Cur() {
 
 const CHAMP = "mt-2 w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink";
 
-export default async function NouvelAdherent({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { erreur?: string };
-}) {
+export default async function NouvelAdherent(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ erreur?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();

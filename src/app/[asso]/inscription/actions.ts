@@ -87,7 +87,7 @@ export async function inscrireAdherent(formData: FormData) {
     if (respTel) infos["Responsable légal — téléphone"] = respTel;
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Les écritures d'inscription passent par la service_role, jamais par la clé anonyme.
   // Conséquence : `register_adherent_full` et `enregistrer_questionnaire_sante` peuvent être

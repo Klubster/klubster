@@ -17,7 +17,8 @@ export const dynamic = "force-dynamic";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
-export async function generateMetadata({ params }: { params: { asso: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ asso: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) return { title: "Association introuvable" };
 
@@ -45,13 +46,14 @@ export async function generateMetadata({ params }: { params: { asso: string } })
   };
 }
 
-export default async function VitrinePage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { edition?: string; chapitre?: string; erreur?: string; ok?: string };
-}) {
+export default async function VitrinePage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ edition?: string; chapitre?: string; erreur?: string; ok?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);

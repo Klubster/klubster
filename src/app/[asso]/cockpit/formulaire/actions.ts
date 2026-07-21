@@ -9,7 +9,7 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
   const ctx = await verifierPermission(slug, "site");
   if (!ctx) return { error: "Non autorisé." };
   const { org } = ctx;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ form_config: config }).eq("id", org.id);
   if (error) return { error: error.message };
   return { ok: true };
@@ -41,7 +41,7 @@ export async function uploaderModelePiece(
   const ext = estPdf ? "pdf" : estPng ? "png" : "jpg";
   const contentType = estPdf ? "application/pdf" : estPng ? "image/png" : "image/jpeg";
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const path = `${org.id}/modele-piece-${Date.now()}.${ext}`;
   const { error: upErr } = await supabase.storage
     .from("sections")

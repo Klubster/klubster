@@ -33,13 +33,14 @@ type Piece = { id: string; cle: string; label: string | null; statut: string | n
 type Reglement = { id: string; adhesion_id: string; montant_centimes: number; mode: string | null; note: string | null; created_at: string };
 type Sante = { resultat: string | null; signataire_nom: string | null; created_at: string };
 
-export default async function FicheAdherent({
-  params,
-  searchParams,
-}: {
-  params: { asso: string; id: string };
-  searchParams: { ok?: string; erreur?: string; rembourse?: string };
-}) {
+export default async function FicheAdherent(
+  props: {
+    params: Promise<{ asso: string; id: string }>;
+    searchParams: Promise<{ ok?: string; erreur?: string; rembourse?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -47,7 +48,7 @@ export default async function FicheAdherent({
     redirect(`/connexion?next=/${params.asso}/cockpit/adherents/${params.id}`);
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Filtré par organisation : un identifiant deviné ne doit jamais ouvrir la fiche d'un autre club.
   const { data: adherent } = await supabase

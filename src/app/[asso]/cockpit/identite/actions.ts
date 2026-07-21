@@ -16,7 +16,7 @@ import { validerImage } from "@/lib/upload";
 async function organisationAutorisee(slug: string) {
   const ctx = await verifierPermission(slug, "site");
   if (!ctx) return null;
-  return { supabase: createSupabaseServerClient(), org: ctx.org };
+  return { supabase: await createSupabaseServerClient(), org: ctx.org };
 }
 
 export async function changerLogo(slug: string, fd: FormData) {

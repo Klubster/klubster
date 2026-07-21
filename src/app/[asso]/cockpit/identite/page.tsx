@@ -12,13 +12,14 @@ function Cur() {
 }
 
 /** Identité du club : logo et couleur, modifiables après la création. */
-export default async function IdentitePage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { ok?: string; erreur?: string };
-}) {
+export default async function IdentitePage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ ok?: string; erreur?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -37,13 +38,11 @@ export default async function IdentitePage({
   return (
     <main className="min-h-screen text-ink">
       {/* Polices des 6 templates, pour les aperçus. */}
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontsHrefAll()} />
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← AUJOURD&apos;HUI</Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">IDENTITÉ<Cur /></span>
       </header>
-
       <div className="mx-auto max-w-2xl px-6 py-12 md:px-8">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">IDENTITÉ — {org.nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Le visage du club.</h1>
@@ -76,7 +75,7 @@ export default async function IdentitePage({
           <div className="mt-5 flex items-center gap-5">
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={org.logo_url} alt={`Logo ${org.nom}`} className="h-16 w-16 border border-line object-cover" />
+              (<img src={org.logo_url} alt={`Logo ${org.nom}`} className="h-16 w-16 border border-line object-cover" />)
             ) : (
               <span
                 className="grid h-16 w-16 place-items-center border border-line bg-bg-alt text-[20px] font-bold"

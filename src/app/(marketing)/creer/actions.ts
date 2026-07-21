@@ -52,7 +52,7 @@ export async function creerCompteWizard(input: {
   if (input.password.length < LONGUEUR_MIN_MDP) {
     return { error: `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.` };
   }
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -81,7 +81,7 @@ export async function creerCompteWizard(input: {
 
 /** Connexion depuis le wizard (le président a déjà un compte) — sans redirection. */
 export async function connexionWizard(input: { email: string; password: string }): Promise<{ ok?: boolean; error?: string }> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
   if (error) {
     if (/Invalid login credentials/i.test(error.message)) return { error: "Email ou mot de passe incorrect." };
@@ -109,7 +109,7 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
         .map((k) => ({ jour: k.jour, debut: k.debut, fin: k.fin })),
     }));
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("create_club", {
     p_nom: nom,
     p_template: getTemplate(input.template).id,

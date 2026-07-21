@@ -42,8 +42,11 @@ function trop(cle: string, max: number): boolean {
   return actuel.nb > max;
 }
 
-function ip(): string {
-  const h = headers();
+// Asynchrone depuis Next 15 : `headers()` retourne une promesse. Le codemod proposait
+// l'échappatoire `UnsafeUnwrappedHeaders` ; le seul appelant étant déjà asynchrone,
+// autant l'écrire correctement.
+async function ip(): Promise<string> {
+  const h = await headers();
   const fwd = h.get("x-forwarded-for");
   return (fwd ? fwd.split(",")[0] : h.get("x-real-ip") ?? "inconnue").trim();
 }
@@ -98,7 +101,7 @@ export async function verifierSoumissionPublique(formData: FormData, slug: strin
   if (!(await turnstileValide(token))) return { ok: false, raison: "robot" };
 
   // 3. Limitation de débit.
-  if (trop(`ip:${ip()}`, MAX_PAR_IP)) return { ok: false, raison: "trop_de_tentatives" };
+  if (trop(`ip:${await ip()}`, MAX_PAR_IP)) return { ok: false, raison: "trop_de_tentatives" };
   if (trop(`asso:${slug}`, MAX_PAR_ASSO)) return { ok: false, raison: "trop_de_tentatives" };
 
   return { ok: true };

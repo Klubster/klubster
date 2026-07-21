@@ -20,13 +20,14 @@ function modeLabel(mode: string | null): string {
   }
 }
 
-export default async function RecuPage({ params }: { params: { asso: string } }) {
+export default async function RecuPage(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const user = await getUser();
   if (!user) redirect(`/connexion?next=/${org.slug}/espace/facture`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase.from("adherents").select("id, prenom, nom, email").eq("user_id", user.id).eq("organisation_id", org.id).maybeSingle();
   if (!adherent) redirect(`/${org.slug}/espace`);
   const a = adherent as { id: string; prenom: string; nom: string; email: string | null };

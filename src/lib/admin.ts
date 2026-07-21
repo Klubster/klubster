@@ -96,7 +96,7 @@ export async function verifierSuperAdmin() {
 }
 
 export async function getStatsAdmin(): Promise<StatsAdmin> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const [orgsRes, adhesionsRes, reglementsRes, coursRes, profilsRes, presencesRes] = await Promise.all([
     supabase.from("organisations").select("*").order("created_at", { ascending: false }).limit(PLAFOND),

@@ -17,7 +17,7 @@ import { validerDocument } from "@/lib/upload";
 
 /** Retrouve une pièce SI elle appartient bien à un adhérent de l'utilisateur connecté. */
 async function piecePossedee(pieceId: string, userId: string) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("pieces_adherent")
     .select("id, organisation_id, adherent_id, cle, adherents!inner(user_id)")
@@ -32,7 +32,7 @@ export async function updateInfos(slug: string, adherentId: string, formData: Fo
   if (!user) redirect(`/connexion?next=/${slug}/espace`);
   const tel = String(formData.get("tel") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase
     .from("adherents")
     .update({ telephone: tel || null, email: email || null })
@@ -47,7 +47,7 @@ export async function marquerPieceEmail(slug: string, pieceId: string) {
   const piece = await piecePossedee(pieceId, user.id);
   if (!piece) redirect(`/${slug}/espace?erreur=piece`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase
     .from("pieces_adherent")
     .update({ statut: "par_email", updated_at: new Date().toISOString() })
@@ -77,7 +77,7 @@ export async function uploadPiece(slug: string, formData: FormData) {
   const alea = crypto.randomUUID();
   const path = `${piece.organisation_id}/${piece.adherent_id}/${alea}.${v.ext}`;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   // upsert désactivé : deux dépôts créent deux objets distincts, on n'écrase jamais
   // un fichier existant depuis une requête entrante.
   const { error } = await supabase.storage

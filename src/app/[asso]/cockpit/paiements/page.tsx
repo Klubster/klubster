@@ -20,7 +20,8 @@ const LIBELLE_MODE: Record<string, string> = {
   remboursement: "Remboursements",
 };
 
-export default async function PaiementsPage({ params }: { params: { asso: string } }) {
+export default async function PaiementsPage(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -30,7 +31,7 @@ export default async function PaiementsPage({ params }: { params: { asso: string
   // Trésorerie réservée au président et au trésorier.
   if (!peut(profile.role, "paiements")) redirect(`/${org.slug}/cockpit?acces=refuse`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // Totaux par moyen de paiement, bornés à la saison si elle est configurée.
   let reqTotaux = supabase.from("reglements").select("mode, montant_centimes").eq("organisation_id", org.id);

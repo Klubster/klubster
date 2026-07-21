@@ -4,7 +4,8 @@ import { getOrganisationBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: { asso: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) return new Response("Introuvable", { status: 404 });
 

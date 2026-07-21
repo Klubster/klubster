@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   let dest = nextExplicite ?? "/creer";
 
   if (code) {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       // Une destination explicite (ex. réinitialisation de mot de passe) prime sur

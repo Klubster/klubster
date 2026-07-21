@@ -10,13 +10,13 @@ export interface Profile {
 }
 
 export async function getUser() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   return data.user;
 }
 
 export async function getProfile(): Promise<Profile | null> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
   const { data } = await supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle();

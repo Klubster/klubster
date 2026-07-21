@@ -24,7 +24,7 @@ async function sauver(
   ancre?: string,
   succes?: "deplacee" | "ajoutee" | "supprimee"
 ) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ page_config: pc }).eq("id", org.id);
   if (error) {
     // Sans ceci, un échec d'enregistrement renvoyait la même page qu'un succès :
@@ -70,7 +70,7 @@ export async function ajouterSection(slug: string, formData: FormData) {
   if (file && typeof file === "object" && "size" in file) {
     const f = file as File;
     if (f.size > 0 && f.size <= 3 * 1024 * 1024 && (f.type ?? "").startsWith("image/")) {
-      const supabase = createSupabaseServerClient();
+      const supabase = await createSupabaseServerClient();
       const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
       const path = `${org.id}/section-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
@@ -95,7 +95,7 @@ async function uploaderImage(orgId: string, file: unknown, prefixe: string): Pro
   if (!file || typeof file !== "object" || !("size" in file)) return null;
   const f = file as File;
   if (f.size <= 0 || f.size > 3 * 1024 * 1024 || !(f.type ?? "").startsWith("image/")) return null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const path = `${orgId}/${prefixe}-${Date.now()}-${Math.floor(Math.random() * 1e6)}.${ext}`;
   const { error } = await supabase.storage.from("sections").upload(path, f, { upsert: true, contentType: f.type || undefined });
@@ -248,7 +248,7 @@ export async function modifierHero(slug: string, formData: FormData) {
   const presentation = String(formData.get("presentation") ?? "").trim().slice(0, 2000) || null;
   const afficherLogo = formData.get("logo") === "on";
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("organisations")
     .update({ accroche, presentation })

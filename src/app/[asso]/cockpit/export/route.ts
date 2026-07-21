@@ -19,7 +19,8 @@ function champCsv(v: unknown): string {
   return `"${s.replace(/"/g, '""')}"`;
 }
 
-export async function GET(_req: Request, { params }: { params: { asso: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const slug = params.asso;
   const org = await getOrganisationBySlug(slug);
   const profil = await getProfile();
@@ -35,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: { asso: string } 
     return new NextResponse("Introuvable.", { status: 404 });
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("adherents")
     .select("prenom, nom, email, telephone, created_at, adhesions(saison, statut, montant_centimes, mode_paiement, cours(nom))")

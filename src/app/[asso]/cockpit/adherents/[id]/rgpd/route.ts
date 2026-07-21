@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 // Export RGPD complet d'un adhérent (droit d'accès / portabilité) : toutes ses données
 // dans un seul fichier JSON. Réservé au président et au secrétariat.
-export async function GET(_req: Request, { params }: { params: { asso: string; id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ asso: string; id: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) return NextResponse.json({ error: "introuvable" }, { status: 404 });
   const profile = await getProfile();
@@ -19,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: { asso: string; i
     return NextResponse.json({ error: "non autorisé" }, { status: 403 });
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase
     .from("adherents")
     .select("id, prenom, nom, email, telephone, date_naissance, created_at, infos")

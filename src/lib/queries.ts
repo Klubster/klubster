@@ -4,7 +4,7 @@ import type { Organisation, Cours } from "@/types/db";
 // Charge une association publiée par son slug (ex. "usmboxe").
 // La lecture publique est autorisée par la politique RLS "publie = true".
 export async function getOrganisationBySlug(slug: string): Promise<Organisation | null> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("organisations")
     .select("*")
@@ -19,7 +19,7 @@ export async function getOrganisationBySlug(slug: string): Promise<Organisation 
 }
 
 export async function getCoursByOrganisation(organisationId: string): Promise<Cours[]> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("cours")
     .select("*")
@@ -42,7 +42,7 @@ export interface CockpitStats {
 
 // Agrégats du Cockpit via une fonction SECURITY DEFINER (aucune donnée personnelle exposée).
 export async function getCockpitStats(slug: string): Promise<CockpitStats> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("cockpit_stats", { p_slug: slug });
   const row = (data as Array<Record<string, number>> | null)?.[0];
   if (error || !row) {
@@ -83,7 +83,7 @@ function nomDe(rel: unknown): string {
 }
 
 export async function getAujourdhui(organisationId: string): Promise<Aujourdhui> {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const depuis7j = new Date(Date.now() - 7 * 86400_000).toISOString();
 
   const [adh, pres, pieces, nouvelles, attendues] = await Promise.all([

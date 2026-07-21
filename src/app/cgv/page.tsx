@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
 export const metadata = { title: "Conditions générales de vente — Klubster" };
@@ -9,7 +10,7 @@ export default function CGV() {
       <p>
         Les présentes conditions (« CGV ») encadrent l’abonnement au service Klubster souscrit par une
         association (le « Club »). La souscription vaut acceptation des CGV et du
-        <a href="/sous-traitance"> contrat de sous-traitance</a>.
+        <Link href="/sous-traitance"> contrat de sous-traitance</Link>.
       </p>
 
       <h2>2. Offres et prix</h2>
@@ -65,8 +66,8 @@ export default function CGV() {
       <p>
         L’éditeur fournit le service avec diligence et met en œuvre des mesures de sécurité appropriées. Les
         données des adhérents sont hébergées dans l’Union européenne ; les prestataires établis hors UE sont
-        encadrés par des clauses contractuelles types (voir la <a href="/confidentialite">politique de
-        confidentialité</a>). Il agit en qualité de sous-traitant pour les
+        encadrés par des clauses contractuelles types (voir la <Link href="/confidentialite">politique de
+        confidentialité</Link>). Il agit en qualité de sous-traitant pour les
         données des adhérents.
       </p>
 

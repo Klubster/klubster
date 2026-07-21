@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
 export const metadata = { title: "Politique de confidentialité — Klubster" };
@@ -16,8 +17,8 @@ export default function Confidentialite() {
         </li>
         <li>
           <strong>Sous-traitant</strong> pour les données des adhérents, dont chaque club reste le
-          responsable de traitement. Les modalités figurent dans le <a href="/sous-traitance">contrat de
-          sous-traitance</a>.
+          responsable de traitement. Les modalités figurent dans le <Link href="/sous-traitance">contrat de
+          sous-traitance</Link>.
         </li>
       </ul>
 

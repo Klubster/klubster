@@ -14,7 +14,7 @@ async function gardeAdmin(slug: string) {
 
 export async function enregistrerActualite(slug: string, formData: FormData) {
   const org = await gardeAdmin(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const texte = String(formData.get("texte") ?? "").trim();
   let imageUrl: string | null = org.actualite?.image_url ?? null;
@@ -46,7 +46,7 @@ export async function enregistrerActualite(slug: string, formData: FormData) {
 
 export async function supprimerActualite(slug: string) {
   const org = await gardeAdmin(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.from("organisations").update({ actualite: null }).eq("id", org.id);
   revalidatePath(`/${slug}`);
   redirect(`/${slug}/cockpit/actualite?supprime=1`);

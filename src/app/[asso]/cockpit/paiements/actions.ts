@@ -60,7 +60,7 @@ const resteDe = (l: LigneImpaye) =>
  */
 export async function relancerImpaye(slug: string, adhesionId: string) {
   const org = await gardeFinance(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
     .select("id, montant_centimes, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
@@ -86,7 +86,7 @@ export async function relancerImpaye(slug: string, adhesionId: string) {
 /** Relancer d'un coup tous les impayés qui ont un email. Un email individuel et chiffré par personne. */
 export async function relancerTousImpayes(slug: string) {
   const org = await gardeFinance(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
     .select("id, montant_centimes, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
@@ -115,7 +115,7 @@ export async function definirSaison(slug: string, formData: FormData) {
   const org = await garde(slug);
   const debut = String(formData.get("debut") ?? "").trim() || null;
   const fin = String(formData.get("fin") ?? "").trim() || null;
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("organisations")
     .update({ saison_debut: debut, saison_fin: fin })
@@ -127,7 +127,7 @@ export async function definirSaison(slug: string, formData: FormData) {
 // Marque le solde complet comme encaissé.
 export async function marquerEncaisse(slug: string, adhesionId: string) {
   await garde(slug);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.rpc("marquer_encaisse", { p_adhesion_id: adhesionId });
   redirect(`/${slug}/cockpit/paiements`);
 }
@@ -144,7 +144,7 @@ export async function enregistrerReglement(
   if (!Number.isFinite(montantCentimes) || montantCentimes <= 0) {
     return { ok: false, error: "Montant invalide." };
   }
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("enregistrer_reglement", {
     p_adhesion_id: adhesionId,
     p_montant_centimes: Math.round(montantCentimes),
@@ -166,7 +166,7 @@ export async function marquerChequesRemis(
 ): Promise<{ ok: boolean; nombre?: number; error?: string }> {
   await garde(slug);
   if (!Array.isArray(ids) || ids.length === 0) return { ok: false, error: "Aucun chèque sélectionné." };
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("marquer_cheques_remis", { p_ids: ids });
   if (error) {
     console.error("marquer_cheques_remis", error.message);

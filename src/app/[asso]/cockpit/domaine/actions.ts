@@ -40,7 +40,7 @@ export async function connecterDomaine(slug: string, formData: FormData) {
   // On rattache aussi www.<domaine> pour couvrir les deux écritures.
   await attacherDomaine(`www.${brut}`);
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ domaine_custom: brut }).eq("id", org.id);
   if (error) redirect(`/${slug}/cockpit/domaine?erreur=deja_pris`);
 
@@ -54,7 +54,7 @@ export async function deconnecterDomaine(slug: string) {
     await detacherDomaine(org.domaine_custom);
     await detacherDomaine(`www.${org.domaine_custom}`);
   }
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   await supabase.from("organisations").update({ domaine_custom: null }).eq("id", org.id);
   revalidatePath(`/${slug}/cockpit/domaine`);
   redirect(`/${slug}/cockpit/domaine?retire=1`);

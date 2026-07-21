@@ -15,13 +15,14 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-export default async function CoursPage({
-  params,
-  searchParams,
-}: {
-  params: { asso: string };
-  searchParams: { ok?: string; erreur?: string; promo?: string };
-}) {
+export default async function CoursPage(
+  props: {
+    params: Promise<{ asso: string }>;
+    searchParams: Promise<{ ok?: string; erreur?: string; promo?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -29,7 +30,7 @@ export default async function CoursPage({
     redirect(`/connexion?next=/${params.asso}/cockpit/cours`);
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("cours")
     .select("id, nom, public_cible, tarif_centimes, creneaux, ordre, places_max")

@@ -11,7 +11,8 @@ function Cur() {
   return <span className="cur">_</span>;
 }
 
-export default async function MessageriePage({ params }: { params: { asso: string } }) {
+export default async function MessageriePage(props: { params: Promise<{ asso: string }> }) {
+  const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -19,7 +20,7 @@ export default async function MessageriePage({ params }: { params: { asso: strin
     redirect(`/connexion?next=/${org.slug}/cockpit/communication`);
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: adhData } = await supabase
     .from("adherents")
     .select("id, email, date_naissance")
