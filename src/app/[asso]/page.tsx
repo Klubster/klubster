@@ -14,12 +14,33 @@ import { AjouterChapitre } from "@/components/site/AjouterChapitre";
 
 export const dynamic = "force-dynamic";
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
+
 export async function generateMetadata({ params }: { params: { asso: string } }): Promise<Metadata> {
   const org = await getOrganisationBySlug(params.asso);
   if (!org) return { title: "Association introuvable" };
+
+  const description =
+    org.accroche ?? org.presentation?.slice(0, 300) ?? `${org.nom} — inscriptions en ligne.`;
+  // Un club joignable à la fois sur klubster.fr/son-slug et sur son propre domaine
+  // existe deux fois pour un moteur de recherche. Sans canonique propre, les pages
+  // héritaient de celle du layout racine (« / »), qui désigne… l'accueil de Klubster.
+  // Le club se retrouvait donc à concourir contre la marque pour son propre nom.
+  const canonical = org.domaine_custom ? `https://${org.domaine_custom}` : `${SITE}/${org.slug}`;
+
   return {
     title: `${org.nom} — inscriptions, cours & planning`,
-    description: org.accroche ?? org.presentation ?? org.nom,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title: `${org.nom} — inscriptions, cours & planning`,
+      description,
+      url: canonical,
+      siteName: org.nom,
+      locale: "fr_FR",
+      type: "website",
+    },
+    twitter: { card: "summary_large_image", title: org.nom, description },
   };
 }
 
@@ -268,9 +289,65 @@ export default async function VitrinePage({
     .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle])
     .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] }));
 
+  /* ——— Données structurées du club ———
+     Un club cherche à être trouvé sur « boxe à Montauban », pas sur « logiciel
+     d'association ». Décrire la vitrine comme un SportsClub — avec son adresse, ses
+     horaires réels et ses tarifs — c'est ce qui la rend éligible aux résultats locaux,
+     et exploitable par les assistants qui répondent « quel club près de chez moi ». Le
+     planning et les cours sont déjà saisis par le club : rien de plus à lui demander.
+     Chaque champ est omis s'il est vide — une donnée structurée inventée nuit plus
+     qu'elle ne sert. */
+  const JOURS_SCHEMA: Record<string, string> = {
+    lundi: "Monday", mardi: "Tuesday", mercredi: "Wednesday", jeudi: "Thursday",
+    vendredi: "Friday", samedi: "Saturday", dimanche: "Sunday",
+  };
+  const creneauxSchema = cours.flatMap((c) =>
+    (c.creneaux ?? [])
+      .filter((cr) => JOURS_SCHEMA[cr.jour])
+      .map((cr) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: `https://schema.org/${JOURS_SCHEMA[cr.jour]}`,
+        opens: cr.debut,
+        closes: cr.fin,
+        name: c.nom,
+      }))
+  );
+  const offresSchema = cours
+    .filter((c) => (c.tarif_centimes ?? 0) > 0)
+    .map((c) => ({
+      "@type": "Offer",
+      name: c.nom,
+      description: c.public_cible ?? undefined,
+      price: ((c.tarif_centimes ?? 0) / 100).toFixed(2),
+      priceCurrency: "EUR",
+      category: "Cotisation annuelle",
+    }));
+  const clubSchema = {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: org.nom,
+    url: org.domaine_custom ? `https://${org.domaine_custom}` : `${SITE}/${org.slug}`,
+    ...(org.presentation ? { description: org.presentation } : {}),
+    ...(org.logo_url ? { logo: org.logo_url, image: org.logo_url } : {}),
+    ...(org.sport ? { sport: org.sport } : {}),
+    ...(org.telephone ? { telephone: org.telephone } : {}),
+    ...(org.email_contact ? { email: org.email_contact } : {}),
+    ...(org.adresse
+      ? { address: { "@type": "PostalAddress", streetAddress: org.adresse, addressCountry: "FR" } }
+      : {}),
+    ...(creneauxSchema.length ? { openingHoursSpecification: creneauxSchema } : {}),
+    ...(offresSchema.length ? { makesOffer: offresSchema } : {}),
+    potentialAction: {
+      "@type": "RegisterAction",
+      target: `${SITE}/${org.slug}/inscription`,
+      name: "S’inscrire au club",
+    },
+  };
+
   return (
     <ThemeVitrine org={org}>
     <main className="text-ink">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(clubSchema) }} />
       <SiteHeader org={org} estAdmin={estAdmin} edition={edition} liens={liensNav} />
 
       {/* BARRE DU MODE ÉDITION — collante sous le header, impossible à confondre avec le site public */}

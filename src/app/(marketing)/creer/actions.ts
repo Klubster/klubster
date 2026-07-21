@@ -125,6 +125,14 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
 
   if (error || !data) {
     console.error("creerClub", error?.message);
+    // create_club refuse désormais de rattacher un second club à un compte qui en gère
+    // déjà un : la réaffectation lui faisait perdre l'accès au premier, sans un mot.
+    // On traduit ce refus en langage de bénévole plutôt qu'en message Postgres.
+    if (/gère déjà une association/i.test(error?.message ?? "")) {
+      throw new Error(
+        "Ce compte gère déjà une association. Pour en créer une seconde, utilisez une autre adresse email — sinon vous perdriez l’accès à la première."
+      );
+    }
     throw new Error(error?.message ?? "Création impossible.");
   }
   const slug = data as string;

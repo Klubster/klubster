@@ -272,7 +272,8 @@ export default function Fonctionnalites() {
               Les cotisations arrivent sur le compte Stripe de votre association.
             </p>
             <p className="mono mt-4 max-w-prose text-[11px] leading-relaxed text-ink-soft">
-              Les frais de paiement (1,5 % + 0,25 €) sont facturés directement par Stripe, comme pour n’importe
+              Les frais de paiement (à partir de 1,5 % + 0,25 € pour une carte européenne standard) sont
+              facturés directement par Stripe, comme pour n’importe
               quel encaissement par carte. Klubster ne prend rien au passage.
             </p>
           </div>

@@ -350,7 +350,8 @@ export default function Home() {
             Les cotisations arrivent directement sur le compte Stripe de votre association.
           </p>
           <p className="mono mt-4 max-w-prose text-[11px] leading-relaxed text-ink-soft">
-            Klubster ne prélève aucune commission. Les frais de paiement (1,5 % + 0,25 €) sont facturés
+            Klubster ne prélève aucune commission. Les frais de paiement (à partir de 1,5 % + 0,25 € pour
+            une carte européenne standard) sont facturés
             directement par Stripe. Premier mois offert, sans prélèvement. Changez d’offre ou résiliez à tout
             moment, depuis votre cockpit.
           </p>

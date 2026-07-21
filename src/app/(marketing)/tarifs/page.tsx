@@ -68,7 +68,7 @@ const QUESTIONS: [string, string][] = [
   ],
   [
     "Y a-t-il des frais cachés ?",
-    "Non. Klubster ne prélève aucune commission sur les cotisations : elles arrivent directement sur le compte Stripe de votre association. Seuls les frais de paiement de Stripe s’appliquent (1,5 % + 0,25 € par transaction), facturés par Stripe et non par nous.",
+    "Non. Klubster ne prélève aucune commission sur les cotisations : elles arrivent directement sur le compte Stripe de votre association. Seuls les frais de paiement de Stripe s’appliquent — à partir de 1,5 % + 0,25 € pour une carte européenne standard, davantage pour une carte premium ou hors Europe — et ils sont facturés par Stripe, pas par nous.",
   ],
   [
     "Et si nous encaissons par chèque ou en espèces ?",
@@ -202,7 +202,8 @@ export default function Tarifs() {
             Les cotisations arrivent directement sur le compte Stripe de votre association.
           </p>
           <p className="mono mt-4 max-w-prose text-[11px] leading-relaxed text-ink-soft">
-            Klubster ne prélève aucune commission. Les frais de paiement (1,5 % + 0,25 €) sont facturés
+            Klubster ne prélève aucune commission. Les frais de paiement (à partir de 1,5 % + 0,25 € pour
+            une carte européenne standard) sont facturés
             directement par Stripe. Premier mois offert, sans prélèvement. Changez d’offre ou résiliez à
             tout moment, depuis votre cockpit.
           </p>
