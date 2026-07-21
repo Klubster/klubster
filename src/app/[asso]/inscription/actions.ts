@@ -240,7 +240,9 @@ export async function inscrireAdherent(formData: FormData) {
         .from("profiles")
         .select("email")
         .eq("organisation_id", org.id)
-        .eq("role", "admin_asso")
+        // super_admin inclus : l'éditeur est rattaché à son propre club et en reste le
+        // président, son rôle ne doit pas le priver des notifications d'inscription.
+        .in("role", ["admin_asso", "super_admin"])
         .not("email", "is", null)
         .order("created_at", { ascending: true })
         .limit(1)

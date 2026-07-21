@@ -131,11 +131,17 @@ export async function getStatsAdmin(): Promise<StatsAdmin> {
   const reglementsPar = parOrg(reglements);
   const coursPar = parOrg(cours);
   const presencesPar = parOrg(presences);
+  // Le référent d'un club, c'est son président. Mais l'éditeur lui-même est rattaché à
+  // son propre club tout en portant le rôle super_admin : sans ce second passage, son
+  // club apparaîtrait sans contact, ou pire avec un compte de test comme référent.
+  // On prend donc le président, et à défaut le super-admin rattaché.
   const presidentPar = new Map<string, { email: string | null; prenom: string | null; nom: string | null }>();
-  for (const p of profils) {
-    if (p.role !== "admin_asso" || !p.organisation_id) continue;
-    if (!presidentPar.has(p.organisation_id)) {
-      presidentPar.set(p.organisation_id, { email: p.email, prenom: p.prenom, nom: p.nom });
+  for (const role of ["admin_asso", "super_admin"]) {
+    for (const p of profils) {
+      if (p.role !== role || !p.organisation_id) continue;
+      if (!presidentPar.has(p.organisation_id)) {
+        presidentPar.set(p.organisation_id, { email: p.email, prenom: p.prenom, nom: p.nom });
+      }
     }
   }
 
