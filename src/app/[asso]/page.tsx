@@ -7,9 +7,9 @@ import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
-import { normaliserPageConfig } from "@/lib/page-config";
+import { normaliserPageConfig, classeLogoHero, TAILLES_LOGO, tailleLogoSure } from "@/lib/page-config";
 import { deplacerSection, supprimerSection, restaurerSection, modifierHero } from "./edition-actions";
-import type { Organisation } from "@/types/db";
+import type { Organisation, TailleLogo } from "@/types/db";
 import { ChapitreView } from "@/components/site/Chapitres";
 import { AjouterChapitre } from "@/components/site/AjouterChapitre";
 
@@ -496,13 +496,20 @@ export default async function VitrinePage({
                 <img
                   src={org.logo_url as string}
                   alt={org.nom}
-                  className="h-32 w-32 object-contain md:h-52 md:w-52"
+                  className={classeLogoHero(pc)}
                 />
               </div>
             ) : null}
           </div>
 
-          {edition ? <EditeurHero org={org} afficherLogo={afficherLogoHero} accent={accent} /> : null}
+          {edition ? (
+            <EditeurHero
+              org={org}
+              afficherLogo={afficherLogoHero}
+              tailleLogo={tailleLogoSure(pc.hero?.logoTaille)}
+              accent={accent}
+            />
+          ) : null}
         </div>
       </section>
 
@@ -588,10 +595,12 @@ export default async function VitrinePage({
 function EditeurHero({
   org,
   afficherLogo,
+  tailleLogo,
   accent,
 }: {
   org: Organisation;
   afficherLogo: boolean;
+  tailleLogo: TailleLogo;
   accent: string;
 }) {
   return (
@@ -637,12 +646,45 @@ function EditeurHero({
             </span>
           </span>
         </label>
-      ) : (
+      ) : null}
+
+      {/* La bonne taille dépend du dessin du logo : un blason supporte le très grand,
+          un logo tout en longueur non. Quatre paliers, plutôt qu'une saisie en pixels
+          qui laisserait poser un logo écrasant le titre. */}
+      {org.logo_url ? (
+        <>
+          <label className="mono mt-5 block text-[10px] uppercase tracking-label text-ink-soft">
+            TAILLE DU LOGO
+          </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(Object.keys(TAILLES_LOGO) as TailleLogo[]).map((t) => (
+              <label
+                key={t}
+                className="mono cursor-pointer border border-line px-4 py-2 text-[12px] hover:bg-bg-alt has-[:checked]:border-ink has-[:checked]:bg-bg-alt"
+              >
+                <input
+                  type="radio"
+                  name="logo_taille"
+                  value={t}
+                  defaultChecked={t === tailleLogo}
+                  className="mr-2 align-middle"
+                />
+                {TAILLES_LOGO[t].libelle.toUpperCase()}
+              </label>
+            ))}
+          </div>
+          <p className="mono mt-2 text-[11px] text-ink-soft">
+            Sur mobile, le logo passe au-dessus du titre et reste plus petit dans tous les cas.
+          </p>
+        </>
+      ) : null}
+
+      {!org.logo_url ? (
         <p className="mono mt-5 text-[11px] leading-relaxed text-ink-soft">
           Aucun logo pour l’instant. Ajoutez-en un depuis le cockpit, rubrique Identité : il s’affichera ici,
           à droite du titre.
         </p>
-      )}
+      ) : null}
 
       <button
         className="mono mt-7 px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"

@@ -2,17 +2,10 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
+import { destinationSure } from "@/lib/redirection";
 
-/**
- * `next` vient de l'URL : sans contrôle, `?next=https://exemple-malveillant.fr` renverrait
- * l'utilisateur fraîchement authentifié vers un site tiers (redirection ouverte → hameçonnage).
- * On n'accepte qu'un chemin interne : commence par « / », jamais par « // » ni « /\ ».
- */
-function destinationSure(next: string | undefined): string {
-  if (!next || !next.startsWith("/")) return "/creer";
-  if (next.startsWith("//") || next.startsWith("/\\")) return "/creer";
-  return next;
-}
+// La règle vit dans lib/redirection.ts : un fichier « use server » n'exporte que des
+// fonctions async, ce qui la rendait intestable là où elle était.
 
 export async function connexion(input: { email: string; password: string; next?: string }): Promise<{ error?: string }> {
   const supabase = createSupabaseServerClient();

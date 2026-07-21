@@ -82,6 +82,9 @@ export interface SectionCustom {
   items?: ItemChapitre[];
 }
 
+/** Paliers de taille du logo dans le hero. */
+export type TailleLogo = "s" | "m" | "l" | "xl";
+
 export interface PageConfig {
   ordre: string[]; // clés standard ("presentation", "cours"…) et ids de sections custom
   custom: SectionCustom[];
@@ -96,6 +99,12 @@ export interface PageConfig {
   hero?: {
     /** Afficher le logo du club à droite du titre. Vrai par défaut s'il y a un logo. */
     logo?: boolean;
+    /**
+     * Taille du logo dans le hero. Quatre paliers plutôt qu'un nombre libre : un logo
+     * très large ou très carré ne se règle pas de la même façon, et un champ en pixels
+     * laisserait un club poser un logo de 900 px qui écrase son propre titre.
+     */
+    logoTaille?: TailleLogo;
   };
 }
 

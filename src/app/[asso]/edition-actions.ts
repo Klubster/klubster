@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
-import { normaliserPageConfig, SECTIONS_STANDARD } from "@/lib/page-config";
+import { normaliserPageConfig, SECTIONS_STANDARD, tailleLogoSure } from "@/lib/page-config";
 import type { ItemChapitre, Organisation, SectionCustom, SectionCustomType } from "@/types/db";
 
 async function gardeAdmin(slug: string): Promise<Organisation> {
@@ -259,6 +259,6 @@ export async function modifierHero(slug: string, formData: FormData) {
   }
 
   const pc = normaliserPageConfig(org.page_config);
-  pc.hero = { ...(pc.hero ?? {}), logo: afficherLogo };
+  pc.hero = { ...(pc.hero ?? {}), logo: afficherLogo, logoTaille: tailleLogoSure(formData.get("logo_taille")) };
   await sauver(org, pc, slug, undefined, "deplacee");
 }

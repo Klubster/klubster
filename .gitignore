@@ -11,3 +11,19 @@ klubster-home.html
 public/orig/
 cockpit-code-export.md
 prospection/
+
+# Sorties graphify (graphe généré, ne pas versionner)
+graphify-out/
+
+# Cache incrémental de tsc
+tsconfig.tsbuildinfo
+
+# Exports de code faits pour relecture externe (audits)
+klubster-code-*.md
+
+# Réglages d'éditeur / d'assistant, propres à une machine
+.claude/
+.cursor/
+
+# Sources du logo USM conservées en local ; l'image servie vit dans Supabase Storage
+usm-logo-*.png

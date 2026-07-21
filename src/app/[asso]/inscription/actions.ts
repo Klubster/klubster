@@ -7,6 +7,7 @@ import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { compteConnecte } from "@/lib/stripe-org";
+import { resultatDepuisReponses } from "@/lib/sante";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
@@ -154,16 +155,7 @@ export async function inscrireAdherent(formData: FormData) {
   // modifier dans la requête pour se déclarer apte sans avoir répondu (audit du
   // 21/07/2026). Les réponses ne servent qu'à ce calcul et ne sont jamais enregistrées.
   const qType = String(formData.get("qsante_type") ?? "adulte");
-  const reponsesBrutes = String(formData.get("qsante_reponses") ?? "")
-    .split(",")
-    .map((r) => r.trim().toLowerCase());
-  const aRepondu = reponsesBrutes.filter((r) => r === "oui" || r === "non");
-  const qResultat =
-    // Un seul « oui » suffit. Un questionnaire incomplet est traité comme le cas le
-    // plus prudent : certificat demandé, plutôt qu'attestation accordée par défaut.
-    aRepondu.length === 0 || aRepondu.length !== reponsesBrutes.length || aRepondu.includes("oui")
-      ? "certificat_requis"
-      : "atteste_negatif";
+  const qResultat = resultatDepuisReponses(formData.get("qsante_reponses") as string | null);
   const qNaissance = String(formData.get("naissance") ?? "");
   const qSignature = String(formData.get("qsante_signature") ?? "");
   const qSignataire = String(formData.get("qsante_signataire") ?? "").trim();

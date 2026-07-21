@@ -73,6 +73,28 @@ export function resultatDe(reponses: Record<string, "oui" | "non">): QSResultat 
   return Object.values(reponses).some((r) => r === "oui") ? "certificat_requis" : "atteste_negatif";
 }
 
+/**
+ * Recalcule le résultat côté serveur, à partir des réponses transmises par le
+ * formulaire (« oui,non,non,… »).
+ *
+ * Le serveur reprenait auparavant un champ masqué `qsante_resultat` tel quel : il
+ * suffisait de le modifier dans la requête pour se déclarer apte sans avoir répondu
+ * (relevé à l'audit du 21/07/2026). On ne fait donc plus confiance qu'aux réponses,
+ * et jamais à la conclusion qu'on nous annonce.
+ *
+ * Un questionnaire vide ou incomplet penche du côté prudent : certificat demandé.
+ * Accorder l'attestation par défaut reviendrait à récompenser une requête tronquée.
+ */
+export function resultatDepuisReponses(brut: string | null | undefined): QSResultat {
+  const reponses = String(brut ?? "")
+    .split(",")
+    .map((r) => r.trim().toLowerCase());
+  const valides = reponses.filter((r) => r === "oui" || r === "non");
+  if (valides.length === 0) return "certificat_requis";
+  if (valides.length !== reponses.length) return "certificat_requis";
+  return valides.includes("oui") ? "certificat_requis" : "atteste_negatif";
+}
+
 export function texteAttestation(type: QSType, resultat: QSResultat): string {
   if (resultat === "atteste_negatif") {
     return type === "mineur"
