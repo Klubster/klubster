@@ -79,7 +79,7 @@ export default function Fonctionnalites() {
           <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-ink-soft md:flex">
             <Link href="/fonctionnalites" className="text-ink">Fonctionnalités</Link>
-            <Link href="/#tarifs" className="hover:text-ink">Tarifs</Link>
+            <Link href="/tarifs" className="hover:text-ink">Tarifs</Link>
             <Link href="/usmboxe" className="hover:text-ink">Un club</Link>
           </nav>
           <div className="flex items-center gap-3">
@@ -91,7 +91,7 @@ export default function Fonctionnalites() {
               ton="sombre"
               liens={[
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
-                { href: "/#tarifs", label: "Tarifs" },
+                { href: "/tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
                 { href: "/connexion", label: "Espace président" },
               ]}
