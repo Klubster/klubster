@@ -1,0 +1,53 @@
+# Vérification automatique à chaque push et à chaque pull request.
+#
+# L'objectif est simple : qu'aucune régression sur les types, le lint, les tests ou le
+# build n'arrive en production sans avoir été signalée. Vercel déploie automatiquement
+# sur push ; ce workflow tourne en parallèle et rend le résultat visible sur le commit.
+#
+# `npm ci` exige un package-lock.json cohérent — c'est justement ce qui garantit que
+# l'environnement de CI installe exactement les mêmes versions que la machine de dev.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Même version majeure que la machine de développement. Next 16 exige au
+          # minimum Node 20.9 ; rester aligné évite de découvrir en CI une panne que
+          # personne ne reproduit en local.
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Tests unitaires
+        run: npm test
+
+      # Le build passe AVANT le typecheck, et ce n'est pas un détail : `next build`
+      # génère .next/types/**, que tsconfig inclut. Lancer `tsc` sur un dépôt fraîchement
+      # cloné échoue donc sur des fichiers de types qui n'existent pas encore (TS6053).
+      #
+      # Les variables publiques Supabase sont nécessaires à la compilation des pages. Ce
+      # sont des valeurs de projet, pas des secrets d'écriture : la clé anon est de toute
+      # façon exposée au navigateur, et ce sont les RLS qui protègent les données.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
