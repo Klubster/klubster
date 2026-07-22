@@ -59,7 +59,8 @@ export default function RemisesInscription({ remises, accent }: { remises: Remis
         ))}
       </div>
       <p className="mono mt-2 text-[11px] text-ink-faint">
-        La réduction est appliquée au montant à régler. Le club vérifie les justificatifs.
+        La réduction est enregistrée avec votre demande. Le club la déduit après
+        vérification du justificatif : vous réglez d’abord le tarif indiqué.
       </p>
     </fieldset>
   );
