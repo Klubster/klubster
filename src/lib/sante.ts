@@ -75,24 +75,29 @@ export function resultatDe(reponses: Record<string, "oui" | "non">): QSResultat 
 
 /**
  * Recalcule le résultat côté serveur, à partir des réponses transmises par le
- * formulaire (« oui,non,non,… »).
+ * formulaire (« oui,non,non,… ») ET du type de questionnaire attendu.
  *
- * Le serveur reprenait auparavant un champ masqué `qsante_resultat` tel quel : il
- * suffisait de le modifier dans la requête pour se déclarer apte sans avoir répondu
- * (relevé à l'audit du 21/07/2026). On ne fait donc plus confiance qu'aux réponses,
- * et jamais à la conclusion qu'on nous annonce.
+ * Le serveur reprenait d'abord un champ masqué `qsante_resultat` tel quel : il suffisait
+ * de le modifier dans la requête pour se déclarer apte sans avoir répondu. On a alors
+ * recalculé le résultat depuis les réponses — mais sans vérifier leur NOMBRE, si bien
+ * qu'une seule réponse « non » valait attestation alors que le questionnaire adulte en
+ * compte neuf (second contournement relevé à l'audit du 21/07/2026).
  *
- * Un questionnaire vide ou incomplet penche du côté prudent : certificat demandé.
- * Accorder l'attestation par défaut reviendrait à récompenser une requête tronquée.
+ * Désormais : le nombre de réponses doit correspondre exactement au questionnaire du
+ * type donné, et le type est imposé par le serveur (dérivé de la date de naissance),
+ * jamais annoncé par le navigateur. Toute divergence — trop peu de réponses, une valeur
+ * ni « oui » ni « non », un type incohérent — penche du côté prudent : certificat demandé.
  */
-export function resultatDepuisReponses(brut: string | null | undefined): QSResultat {
+export function resultatDepuisReponses(type: QSType, brut: string | null | undefined): QSResultat {
+  const attendues = questionsPour(type).length;
   const reponses = String(brut ?? "")
     .split(",")
-    .map((r) => r.trim().toLowerCase());
-  const valides = reponses.filter((r) => r === "oui" || r === "non");
-  if (valides.length === 0) return "certificat_requis";
-  if (valides.length !== reponses.length) return "certificat_requis";
-  return valides.includes("oui") ? "certificat_requis" : "atteste_negatif";
+    .map((r) => r.trim().toLowerCase())
+    .filter((r) => r !== "");
+
+  if (reponses.length !== attendues) return "certificat_requis";
+  if (!reponses.every((r) => r === "oui" || r === "non")) return "certificat_requis";
+  return reponses.includes("oui") ? "certificat_requis" : "atteste_negatif";
 }
 
 export function texteAttestation(type: QSType, resultat: QSResultat): string {

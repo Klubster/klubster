@@ -14,7 +14,7 @@ import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import Turnstile from "@/components/site/Turnstile";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import ChoixEcheances from "@/components/site/ChoixEcheances";
-import { compteConnecte } from "@/lib/stripe-org";
+import { compteConnecte, accesClub } from "@/lib/stripe-org";
 import type { Champ } from "@/types/form";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,34 @@ export default async function InscriptionPage(
   const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
+
+  // Club dont l'abonnement est suspendu : les inscriptions en ligne sont fermées. On
+  // l'affiche clairement plutôt que de laisser remplir un formulaire refusé à l'envoi.
+  if (accesClub(org) === "suspendu") {
+    const accentF = org.couleur_primaire ?? "#111111";
+    return (
+      <ThemeVitrine org={org}>
+        <main className="min-h-screen text-ink">
+          <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
+            <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
+            <span className="mono text-[11px] uppercase tracking-label text-ink-soft">INSCRIPTION<span style={{ color: accentF }}>_</span></span>
+          </header>
+          <div className="mx-auto max-w-2xl px-6 py-20 text-center md:px-8">
+            <h1 className="text-2xl font-medium md:text-3xl">Les inscriptions en ligne sont momentanément fermées.</h1>
+            <p className="mt-4 text-ink-soft">
+              Rapprochez-vous directement de {org.nom} pour connaître les modalités d&apos;adhésion.
+            </p>
+            {org.email_contact ? (
+              <a href={`mailto:${org.email_contact}`} className="mono mt-8 inline-block border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
+                CONTACTER LE CLUB
+              </a>
+            ) : null}
+          </div>
+        </main>
+      </ThemeVitrine>
+    );
+  }
+
   const cours = await getCoursByOrganisation(org.id);
 
   // Jauge : un cours dont la capacité est atteinte est signalé « complet » (→ liste d'attente).
@@ -85,6 +113,15 @@ export default async function InscriptionPage(
           ) : searchParams?.erreur === "robot" ? (
             <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
               Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
+            </p>
+          ) : searchParams?.erreur === "suspendu" ? (
+            <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+              Les inscriptions en ligne de ce club sont momentanément fermées. Rapprochez-vous directement du club.
+            </p>
+          ) : searchParams?.erreur === "champs" ? (
+            <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+              Le formulaire est incomplet : vérifiez les champs obligatoires. Pour un mineur, les coordonnées du
+              responsable légal et les autorisations requises doivent être renseignées.
             </p>
           ) : searchParams?.erreur ? (
             <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>

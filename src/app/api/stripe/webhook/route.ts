@@ -49,17 +49,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Base indisponible." }, { status: 500 });
   }
 
-  /* ——— Verrou d'idempotence à état ———
-     Le piège de l'ancien modèle : on posait le verrou AVANT de traiter, puis on avalait
-     les erreurs et on répondait 200 → un événement échoué n'était jamais rejoué, le
-     règlement était perdu. Désormais on « réclame » l'événement en `en_cours`, on traite,
-     et on ne le passe `traite` qu'après succès. Un échec renvoie 500 : Stripe redélivre,
-     et le second passage voit `en_cours`/`echoue` et rejoue. Un `traite` est acquitté sans
-     rien rejouer. */
+  /* ——— Verrou d'idempotence atomique ———
+     On « réclame » l'événement via une RPC atomique (INSERT ... ON CONFLICT DO UPDATE ...
+     WHERE, verrouillante au niveau de la ligne) : un seul appelant obtient le bail, on
+     traite, et on ne passe l'événement `traite` qu'après succès. Deux livraisons
+     concurrentes ne peuvent plus traiter le même règlement en double. Un échec renvoie
+     500 → Stripe redélivre, et le passage suivant reprend (statut `echoue` ou bail
+     expiré). Un `traite` est acquitté sans rien rejouer ; un `occupe` (autre worker en
+     cours, bail encore valide) demande une redélivrance plutôt qu'un double traitement. */
   if (event.id) {
-    const dejaTraite = await reclamerEvenement(admin, event.id, event.type);
-    if (dejaTraite === "traite") return NextResponse.json({ received: true, duplicate: true });
-    if (dejaTraite === "erreur") return NextResponse.json({ error: "Verrou indisponible." }, { status: 500 });
+    const verrou = await reclamerEvenement(admin, event.id, event.type);
+    if (verrou === "traite") return NextResponse.json({ received: true, duplicate: true });
+    if (verrou === "occupe") return NextResponse.json({ error: "Déjà en cours de traitement." }, { status: 409 });
+    if (verrou === "erreur") return NextResponse.json({ error: "Verrou indisponible." }, { status: 500 });
   }
 
   try {
@@ -294,20 +296,20 @@ async function reclamerEvenement(
   admin: ClientAdmin,
   eventId: string,
   type: string | undefined
-): Promise<"nouveau" | "traite" | "erreur"> {
-  const { error } = await admin.from("stripe_events").insert({ event_id: eventId, type, statut: "en_cours" });
-  if (!error) return "nouveau";
-  if (error.code !== "23505") {
-    console.error("stripe_events insert", error.message);
+): Promise<"nouveau" | "traite" | "occupe" | "erreur"> {
+  // Un seul appel atomique décide qui obtient le bail (voir migration 0005).
+  const { data, error } = await admin.rpc("claim_stripe_event", {
+    p_event_id: eventId,
+    p_type: type ?? null,
+    p_lease_seconds: 120,
+  });
+  if (error) {
+    console.error("claim_stripe_event", error.message);
     return "erreur";
   }
-  // Déjà présent : traité (on acquitte) ou en cours/échoué (on rejoue).
-  const { data } = await admin.from("stripe_events").select("statut, tentatives").eq("event_id", eventId).maybeSingle();
-  if (data?.statut === "traite") return "traite";
-  await admin
-    .from("stripe_events")
-    .update({ statut: "en_cours", tentatives: (data?.tentatives ?? 1) + 1 })
-    .eq("event_id", eventId);
+  const statut = String(data);
+  if (statut === "traite") return "traite";
+  if (statut === "occupe") return "occupe";
   return "nouveau";
 }
 
@@ -398,14 +400,17 @@ async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promis
         .from("organisations")
         .update({ stripe_test: { ...actuel, ...champs } })
         .eq("id", data.id);
-      if (error) console.error("abonnement test maj", error.message);
+      // On lève l'erreur au lieu de la journaliser : sinon l'événement était marqué
+      // « traité » alors que l'état de l'abonnement du club n'avait pas été écrit. Un
+      // throw fait renvoyer 500 au webhook, et Stripe redélivre (audit du 21/07/2026).
+      if (error) throw new Error(`abonnement test maj: ${error.message}`);
       return;
     }
     const { error } = await admin
       .from("organisations")
       .update(champs)
       .eq("abonnement_subscription_id", subscriptionId);
-    if (error) console.error("abonnement maj", error.message);
+    if (error) throw new Error(`abonnement maj: ${error.message}`);
   };
 
   if (event.type === "checkout.session.completed") {

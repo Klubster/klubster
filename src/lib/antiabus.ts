@@ -55,8 +55,8 @@ async function turnstileValide(token: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return true; // non configuré : on ne bloque pas
 
-  // Rendu du widget vérifié en conditions réelles (jeton produit en moins d'une seconde) :
-  // une soumission sans jeton n'est plus un cas légitime.
+  // Le jeton est produit en moins d'une seconde à l'affichage du widget : une soumission
+  // sans jeton n'est pas un cas légitime.
   if (!token) {
     console.warn("[antiabus] Aucun jeton Turnstile — soumission refusée.");
     return false;
@@ -74,18 +74,29 @@ async function turnstileValide(token: string): Promise<boolean> {
     const codes = data["error-codes"] ?? [];
     console.warn("[antiabus] Turnstile refusé :", codes.join(", ") || "aucun code");
 
-    // « timeout-or-duplicate » = jeton expiré (5 min) ou déjà consommé. C'est le cas d'un
-    // parent qui a mis du temps à remplir le formulaire, pas d'un robot. On ne le punit pas :
-    // le widget se régénère au rechargement, et le pot de miel + la limitation de débit restent.
-    if (codes.includes("timeout-or-duplicate")) return true;
+    // « timeout-or-duplicate » = jeton expiré (valable 5 min) ou DÉJÀ consommé.
+    // Cloudflare est explicite : ce résultat doit être traité comme un échec exigeant un
+    // nouveau jeton. L'accepter, comme on le faisait, transformait un jeton unique en
+    // passe permanent — rejouable depuis des IP variées et des instances serverless
+    // différentes, exactement ce dont un robot d'inscription a besoin (audit du
+    // 21/07/2026). Le widget se régénère au rechargement : un humain retente sans peine.
+    if (codes.includes("timeout-or-duplicate")) return false;
 
-    // Notre configuration est en cause, pas le visiteur : ne bloquons pas de vraies inscriptions.
-    if (codes.includes("invalid-input-secret") || codes.includes("missing-input-secret")) return true;
+    // Secret manquant ou invalide = NOTRE configuration est cassée. En développement on
+    // laisse passer pour ne pas bloquer les tests ; en production on refuse, car « laisser
+    // passer quand le contrôle est cassé » revient à n'avoir aucun contrôle.
+    if (codes.includes("invalid-input-secret") || codes.includes("missing-input-secret")) {
+      const prod = process.env.NODE_ENV === "production";
+      console.error("[antiabus] Secret Turnstile invalide ou manquant.", prod ? "Refusé (prod)." : "Toléré (dev).");
+      return !prod;
+    }
 
     return false;
   } catch {
-    // Cloudflare injoignable : on ne prend pas en otage les inscriptions du soir.
-    console.warn("[antiabus] Turnstile injoignable — soumission acceptée en mode dégradé.");
+    // Cloudflare réellement injoignable (erreur réseau) : on n'annule pas les inscriptions
+    // du soir pour une panne d'un tiers. Le pot de miel et la limitation de débit restent
+    // en place comme filet. C'est le SEUL cas où l'on accepte en mode dégradé.
+    console.warn("[antiabus] Turnstile injoignable — accepté en mode dégradé (pot de miel + rate limit actifs).");
     return true;
   }
 }

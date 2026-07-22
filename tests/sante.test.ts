@@ -20,38 +20,49 @@ import {
  */
 
 describe("resultatDepuisReponses — recalcul serveur", () => {
-  it("toutes les réponses « non » donnent une attestation", () => {
-    expect(resultatDepuisReponses("non,non,non,non")).toBe("atteste_negatif");
+  // Le questionnaire adulte compte 9 questions, le mineur 21. Un « non » complet doit
+  // en fournir exactement autant.
+  const nonAdulte = Array(QS_ADULTE.length).fill("non").join(",");
+  const nonMineur = Array(QS_MINEUR.length).fill("non").join(",");
+
+  it("un questionnaire adulte entièrement « non » donne une attestation", () => {
+    expect(resultatDepuisReponses("adulte", nonAdulte)).toBe("atteste_negatif");
+  });
+
+  it("un questionnaire mineur entièrement « non » donne une attestation", () => {
+    expect(resultatDepuisReponses("mineur", nonMineur)).toBe("atteste_negatif");
   });
 
   it("un seul « oui » suffit à exiger un certificat", () => {
-    expect(resultatDepuisReponses("non,non,oui,non")).toBe("certificat_requis");
-    expect(resultatDepuisReponses("oui,non,non")).toBe("certificat_requis");
-    expect(resultatDepuisReponses("non,non,oui")).toBe("certificat_requis");
+    const avecOui = ["oui", ...Array(QS_ADULTE.length - 1).fill("non")].join(",");
+    expect(resultatDepuisReponses("adulte", avecOui)).toBe("certificat_requis");
+  });
+
+  it("le nombre de réponses doit correspondre au questionnaire — le cœur de la faille", () => {
+    // Un seul « non » ne vaut PAS un questionnaire adulte complet (9 questions). C'était
+    // le contournement : envoyer « non » se déclarait apte.
+    expect(resultatDepuisReponses("adulte", "non")).toBe("certificat_requis");
+    expect(resultatDepuisReponses("adulte", "non,non,non")).toBe("certificat_requis");
+    // Un « non » adulte (9) présenté comme mineur (21) est incomplet.
+    expect(resultatDepuisReponses("mineur", nonAdulte)).toBe("certificat_requis");
+    // Trop de réponses est tout aussi invalide.
+    expect(resultatDepuisReponses("adulte", nonAdulte + ",non")).toBe("certificat_requis");
   });
 
   it("un questionnaire vide exige un certificat", () => {
-    // Le cas de la requête tronquée : ne rien répondre ne vaut pas répondre « non ».
-    expect(resultatDepuisReponses("")).toBe("certificat_requis");
-    expect(resultatDepuisReponses(null)).toBe("certificat_requis");
-    expect(resultatDepuisReponses(undefined)).toBe("certificat_requis");
-  });
-
-  it("un questionnaire incomplet exige un certificat", () => {
-    // Une réponse manquante au milieu : « non,,non » ne doit pas passer pour complet.
-    expect(resultatDepuisReponses("non,,non")).toBe("certificat_requis");
-    expect(resultatDepuisReponses("non,non,")).toBe("certificat_requis");
+    expect(resultatDepuisReponses("adulte", "")).toBe("certificat_requis");
+    expect(resultatDepuisReponses("adulte", null)).toBe("certificat_requis");
+    expect(resultatDepuisReponses("adulte", undefined)).toBe("certificat_requis");
   });
 
   it("ignore la casse et les espaces", () => {
-    expect(resultatDepuisReponses(" NON , non ,Non")).toBe("atteste_negatif");
-    expect(resultatDepuisReponses("Non, OUI ")).toBe("certificat_requis");
+    const casse = Array(QS_ADULTE.length).fill(" NoN ").join(",");
+    expect(resultatDepuisReponses("adulte", casse)).toBe("atteste_negatif");
   });
 
   it("une valeur inattendue rend le questionnaire invalide", () => {
-    // Ni « oui » ni « non » : on ne devine pas, on demande le certificat.
-    expect(resultatDepuisReponses("non,peut-etre,non")).toBe("certificat_requis");
-    expect(resultatDepuisReponses("true,false")).toBe("certificat_requis");
+    const avecNawak = ["peut-etre", ...Array(QS_ADULTE.length - 1).fill("non")].join(",");
+    expect(resultatDepuisReponses("adulte", avecNawak)).toBe("certificat_requis");
   });
 });
 

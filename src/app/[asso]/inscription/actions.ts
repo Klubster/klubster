@@ -6,8 +6,8 @@ import { stripeConfigured, createCheckoutForClub, createCheckoutEcheancesForClub
 import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { compteConnecte } from "@/lib/stripe-org";
-import { resultatDepuisReponses } from "@/lib/sante";
+import { compteConnecte, accesClub } from "@/lib/stripe-org";
+import { resultatDepuisReponses, estMineur } from "@/lib/sante";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
@@ -28,6 +28,12 @@ export async function inscrireAdherent(formData: FormData) {
   const org = await getOrganisationBySlug(slug);
   if (!org) redirect(`/${slug}/inscription?erreur=1`);
 
+  // Abonnement du club suspendu (résilié, ou impayé au-delà de la grâce) : on ne prend
+  // plus de nouvelles inscriptions. Lecture et export restent ouverts côté cockpit ; les
+  // données existantes ne sont pas touchées. Les clubs pilotes (statut « aucun ») ne sont
+  // jamais concernés.
+  if (accesClub(org) === "suspendu") redirect(`/${slug}/inscription?erreur=suspendu`);
+
   // Réponses aux champs personnalisés
   const infos: Record<string, string> = {};
   for (const page of org.form_config?.pages ?? []) {
@@ -44,7 +50,14 @@ export async function inscrireAdherent(formData: FormData) {
   // Date de naissance — champ de la base commune. Stockée sur la fiche : elle
   // n'était persistée que via le questionnaire de santé, désormais optionnel.
   const dateNaissance = String(formData.get("naissance") ?? "").trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateNaissance)) infos["Date de naissance"] = dateNaissance;
+  const dateValide = /^\d{4}-\d{2}-\d{2}$/.test(dateNaissance);
+  if (dateValide) infos["Date de naissance"] = dateNaissance;
+
+  // La minorité est DÉDUITE de la date de naissance, jamais de la présence d'un champ
+  // « responsable légal » dans la requête. Auparavant `Boolean(resp_prenom)` en tenait
+  // lieu : un appel direct pouvait donc envoyer la date d'un mineur sans responsable et
+  // passer pour un adulte (audit du 21/07/2026).
+  const estInscriptionMineur = dateValide && estMineur(dateNaissance);
 
   // Responsable légal (affiché automatiquement quand l'adhérent est mineur)
   const respPrenom = String(formData.get("resp_prenom") ?? "").trim();
@@ -54,8 +67,6 @@ export async function inscrireAdherent(formData: FormData) {
   // Autorisations parentales (mineurs) : on trace Oui/Non pour chaque autorisation
   // configurée par le club — la valeur « Non » est aussi une information (ex. l'enfant
   // ne doit PAS quitter seul l'entraînement).
-  const respPrenomBrut = String(formData.get("resp_prenom") ?? "").trim();
-  const estInscriptionMineur = Boolean(respPrenomBrut);
   if (estInscriptionMineur) {
     for (const a of org.form_config?.mineur?.autorisations ?? []) {
       const coche = formData.get(`autorisation_${a.id}`) === "oui";
@@ -63,21 +74,55 @@ export async function inscrireAdherent(formData: FormData) {
     }
   }
 
-  // RÉDUCTIONS (Pass'Sport…) — calcul strictement côté serveur : les montants
-  // viennent de la configuration du club (form_config.remises), jamais du
-  // navigateur. Le code justificatif est tracé sur la fiche pour vérification
-  // par le club (portail officiel pour le Pass'Sport).
-  let remiseTotaleCentimes = 0;
+  // VALIDATION SERVEUR DU FORMULAIRE. Le navigateur marque les champs obligatoires, mais
+  // un appel direct ne passe par aucun de ces contrôles : on reconstruit donc les règles
+  // ici, à partir de la seule configuration du club et des données réellement reçues.
+  const manque: string[] = [];
+  if (!prenom || !nom || !email || !coursId || !dateValide) manque.push("base");
+  // Champs personnalisés déclarés obligatoires par le club.
+  for (const page of org.form_config?.pages ?? []) {
+    for (const ch of page.champs) {
+      if (!ch.obligatoire) continue;
+      const v = formData.get(`champ_${ch.id}`);
+      if (v == null || String(v).trim() === "") manque.push(`champ:${ch.id}`);
+    }
+  }
+  if (estInscriptionMineur) {
+    // Un mineur exige un responsable légal identifiable et joignable.
+    if (!respPrenom || !respNom || !respEmail) manque.push("responsable");
+    // Autorisations parentales déclarées obligatoires.
+    for (const a of org.form_config?.mineur?.autorisations ?? []) {
+      if (a.obligatoire && formData.get(`autorisation_${a.id}`) !== "oui") manque.push(`autorisation:${a.id}`);
+    }
+  }
+  if (manque.length > 0) {
+    console.warn("inscription incomplète", slug, manque.join(","));
+    redirect(`/${slug}/inscription?erreur=champs`);
+  }
+
+  // RÉDUCTIONS (Pass'Sport…) — DEMANDÉES à l'inscription, APPLIQUÉES après vérification
+  // par le club.
+  //
+  // Auparavant la remise était déduite immédiatement du montant dû dès qu'un code non
+  // vide était saisi — « x » suffisait à obtenir le Pass'Sport, et l'adhérent payait
+  // moins avant toute vérification (audit du 21/07/2026). Un code justificatif (Pass'Sport,
+  // aide locale) ne se valide pas à la volée : il se contrôle sur un portail officiel.
+  //
+  // On enregistre donc la demande sur la fiche, sans toucher au montant : l'adhérent paie
+  // le tarif plein, et le club applique la réduction (avoir, remboursement partiel, ou
+  // règlement du reliquat) une fois le justificatif vérifié. Aucune remise n'est plus
+  // accordée automatiquement sur la foi d'un code non contrôlé.
   for (const r of org.form_config?.remises ?? []) {
     if (formData.get(`remise_${r.id}`) !== "oui") continue;
     const codeRemise = String(formData.get(`remise_code_${r.id}`) ?? "").trim();
-    if (r.exigeCode && !codeRemise) continue; // pas de code = pas de remise
-    const montantRemise = Number.isFinite(r.montant_centimes) ? Math.max(0, Math.round(r.montant_centimes)) : 0;
-    if (montantRemise === 0) continue;
-    remiseTotaleCentimes += montantRemise;
-    infos[`Réduction — ${r.label.slice(0, 80)}`] = `−${(montantRemise / 100).toLocaleString("fr-FR")} €`;
-    if (codeRemise) infos[`Réduction — ${r.label.slice(0, 80)} — code`] = codeRemise.slice(0, 60);
+    if (r.exigeCode && !codeRemise) continue; // demande sans code = ignorée
+    const montant = Number.isFinite(r.montant_centimes) ? Math.max(0, Math.round(r.montant_centimes)) : 0;
+    infos[`Réduction demandée — ${r.label.slice(0, 80)}`] =
+      `−${(montant / 100).toLocaleString("fr-FR")} € — à valider par le club`;
+    if (codeRemise) infos[`Réduction demandée — ${r.label.slice(0, 80)} — code`] = codeRemise.slice(0, 60);
   }
+  // Le montant dû n'est PAS réduit ici : plus de remise appliquée avant validation.
+  const remiseTotaleCentimes = 0;
 
   const respQualite = String(formData.get("resp_qualite") ?? "").trim();
   if (respPrenom || respNom) {
@@ -154,13 +199,18 @@ export async function inscrireAdherent(formData: FormData) {
   // serveur reprenait tel quel un champ masqué `qsante_resultat`, qu'il suffisait de
   // modifier dans la requête pour se déclarer apte sans avoir répondu (audit du
   // 21/07/2026). Les réponses ne servent qu'à ce calcul et ne sont jamais enregistrées.
-  const qType = String(formData.get("qsante_type") ?? "adulte");
-  const qResultat = resultatDepuisReponses(formData.get("qsante_reponses") as string | null);
-  const qNaissance = String(formData.get("naissance") ?? "");
-  const qSignature = String(formData.get("qsante_signature") ?? "");
-  const qSignataire = String(formData.get("qsante_signataire") ?? "").trim();
-  const qQualite = String(formData.get("qsante_qualite") ?? "adherent");
-  if (qNaissance && qSignature) {
+  // Le TYPE est imposé par le serveur d'après la minorité réelle — jamais repris du
+  // champ masqué `qsante_type`, qui déterminait sinon le nombre de questions attendues.
+  const qType = estInscriptionMineur ? "mineur" : "adulte";
+  const qResultat = resultatDepuisReponses(qType, formData.get("qsante_reponses") as string | null);
+  const qNaissance = dateNaissance;
+  const qSignature = String(formData.get("qsante_signature") ?? "").trim().slice(0, 200000);
+  const qSignataire = String(formData.get("qsante_signataire") ?? "").trim().slice(0, 120);
+  const qQualite = String(formData.get("qsante_qualite") ?? "adherent").slice(0, 40);
+  // La case d'attestation sur l'honneur est vérifiée côté serveur : sans elle, on
+  // n'enregistre aucune attestation, quelles que soient les réponses transmises.
+  const qAtteste = formData.get("qsante_ok") === "on" || formData.get("qsante_ok") === "oui";
+  if (qNaissance && qSignature && qAtteste) {
     // RGPD — minimisation des données de santé : on ne conserve que le résultat
     // (atteste_negatif / certificat_requis) + signature + date, jamais le détail des réponses.
     const { error: qErr } = await admin.rpc("enregistrer_questionnaire_sante", {

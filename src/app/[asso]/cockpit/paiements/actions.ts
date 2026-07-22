@@ -6,15 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { peut } from "@/lib/roles";
 import { envoyerLotPersonnalise } from "@/lib/resend";
 import { compteConnecte } from "@/lib/stripe-org";
-
-async function garde(slug: string) {
-  const org = await getOrganisationBySlug(slug);
-  const p = await getProfile();
-  if (!org || !p || (p.organisation_id !== org.id && p.role !== "super_admin")) {
-    redirect(`/connexion?next=/${slug}/cockpit/paiements`);
-  }
-  return org;
-}
+import type { Organisation } from "@/types/db";
 
 // Garde spécifique trésorerie : réserve l'action au président et au trésorier.
 async function gardeFinance(slug: string) {
@@ -25,6 +17,19 @@ async function gardeFinance(slug: string) {
   }
   if (!peut(p.role, "paiements")) redirect(`/${slug}/cockpit?acces=refuse`);
   return org;
+}
+
+// Même contrôle, mais sans redirection : les actions appelées depuis un composant client
+// renvoient `{ ok, error }` et affichent le message à l'écran. Rediriger en pleine saisie
+// dérouterait l'utilisateur. Renvoie l'organisation, ou `null` si l'accès est refusé —
+// l'appelant doit alors s'arrêter.
+async function gardeFinanceDouce(slug: string): Promise<{ org: Organisation } | null> {
+  const org = await getOrganisationBySlug(slug);
+  const p = await getProfile();
+  if (!org || !p) return null;
+  if (p.organisation_id !== org.id && p.role !== "super_admin") return null;
+  if (!peut(p.role, "paiements")) return null;
+  return { org };
 }
 
 const eurRelance = (c: number) => (c / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
@@ -112,7 +117,7 @@ export async function relancerTousImpayes(slug: string) {
 
 // Dates de début et de fin de saison : bornent les totaux de trésorerie.
 export async function definirSaison(slug: string, formData: FormData) {
-  const org = await garde(slug);
+  const org = await gardeFinance(slug);
   const debut = String(formData.get("debut") ?? "").trim() || null;
   const fin = String(formData.get("fin") ?? "").trim() || null;
   const supabase = await createSupabaseServerClient();
@@ -126,7 +131,7 @@ export async function definirSaison(slug: string, formData: FormData) {
 
 // Marque le solde complet comme encaissé.
 export async function marquerEncaisse(slug: string, adhesionId: string) {
-  await garde(slug);
+  await gardeFinance(slug);
   const supabase = await createSupabaseServerClient();
   await supabase.rpc("marquer_encaisse", { p_adhesion_id: adhesionId });
   redirect(`/${slug}/cockpit/paiements`);
@@ -140,7 +145,7 @@ export async function enregistrerReglement(
   mode: "cheque" | "especes" | "autre",
   note?: string | null
 ): Promise<{ ok: boolean; soldeCentimes?: number; error?: string }> {
-  await garde(slug);
+  if (!(await gardeFinanceDouce(slug))) return { ok: false, error: "Accès refusé." };
   if (!Number.isFinite(montantCentimes) || montantCentimes <= 0) {
     return { ok: false, error: "Montant invalide." };
   }
@@ -164,7 +169,7 @@ export async function marquerChequesRemis(
   slug: string,
   ids: string[]
 ): Promise<{ ok: boolean; nombre?: number; error?: string }> {
-  await garde(slug);
+  if (!(await gardeFinanceDouce(slug))) return { ok: false, error: "Accès refusé." };
   if (!Array.isArray(ids) || ids.length === 0) return { ok: false, error: "Aucun chèque sélectionné." };
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("marquer_cheques_remis", { p_ids: ids });
