@@ -152,9 +152,14 @@ export default async function SuperAdmin(
         <Link href="/" className="font-logo text-lg font-semibold">
           k<Cur />
         </Link>
-        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
-          CONSOLE PLATEFORME<Cur />
-        </span>
+        <div className="flex items-center gap-5">
+          <Link href="/admin/codes" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
+            Codes promo
+          </Link>
+          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            CONSOLE PLATEFORME<Cur />
+          </span>
+        </div>
       </header>
 
       <div className="mx-auto max-w-6xl">

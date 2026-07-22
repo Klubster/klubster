@@ -168,6 +168,110 @@ export async function detailCodePromo(code: string): Promise<CodePromo | null> {
   };
 }
 
+/** Un code promo tel qu'affiché dans la console admin, avec son état d'usage. */
+export type CodePromoAdmin = CodePromo & {
+  actif: boolean;
+  utilisations: number;
+  maxUtilisations: number | null;
+  expireLe: string | null;
+};
+
+/** Liste les codes promo de l'abonnement Klubster (compte plateforme), récents d'abord. */
+export async function listerCodesPromo(limite = 100): Promise<CodePromoAdmin[]> {
+  const res = await call("GET", `/promotion_codes?limit=${limite}&expand[]=data.coupon`);
+  const data = (res?.data ?? []) as Array<Record<string, unknown>>;
+  return data.map((p) => {
+    const coupon = (p.coupon ?? {}) as Record<string, unknown>;
+    return {
+      id: p.id as string,
+      code: (p.code as string) ?? "",
+      nom: (coupon.name as string) ?? null,
+      avantage: decrireCoupon(coupon),
+      actif: p.active === true,
+      utilisations: Number(p.times_redeemed ?? 0),
+      maxUtilisations: p.max_redemptions != null ? Number(p.max_redemptions) : null,
+      expireLe: p.expires_at ? new Date(Number(p.expires_at) * 1000).toISOString() : null,
+    };
+  });
+}
+
+export type NouveauCodePromo = {
+  /** Le code que l'utilisateur saisira (ex. PILOTE27). Normalisé en majuscules. */
+  code: string;
+  /** « gratuit » = 100 %, « pourcent » = remise en %, « montant » = remise en euros. */
+  type: "gratuit" | "pourcent" | "montant";
+  /** Valeur : le pourcentage (1–100) ou le montant en euros, selon le type. */
+  valeur: number;
+  /** « once » = 1re facture, « repeating » = N mois, « forever » = sans limite. */
+  duree: "once" | "repeating" | "forever";
+  /** Nombre de mois si `duree = repeating`. */
+  dureeMois?: number;
+  /** Nombre maximal d'utilisations, toutes personnes confondues (optionnel). */
+  maxUtilisations?: number | null;
+  /** Date d'expiration au format AAAA-MM-JJ (optionnel). */
+  expireLe?: string | null;
+};
+
+/**
+ * Crée un code promo sur l'abonnement Klubster : d'abord un coupon (le montant de la
+ * remise et sa durée), puis le code lui-même (ce que l'utilisateur saisit), rattaché à ce
+ * coupon. Opère sur le compte plateforme, dans le mode courant (test ou production).
+ * Renvoie une phrase de confirmation lisible.
+ */
+export async function creerCodePromo(opts: NouveauCodePromo): Promise<CodePromoAdmin> {
+  const code = opts.code.trim().toUpperCase();
+  if (!/^[A-Z0-9]{3,40}$/.test(code)) {
+    throw new Error("Le code doit faire 3 à 40 caractères, lettres et chiffres seulement.");
+  }
+
+  // 1. Le coupon décrit la remise.
+  const coupon: Dict = { duration: opts.duree };
+  if (opts.type === "gratuit") coupon.percent_off = 100;
+  else if (opts.type === "pourcent") {
+    if (!(opts.valeur > 0 && opts.valeur <= 100)) throw new Error("Le pourcentage doit être compris entre 1 et 100.");
+    coupon.percent_off = opts.valeur;
+  } else {
+    if (!(opts.valeur > 0)) throw new Error("Le montant doit être supérieur à zéro.");
+    coupon.amount_off = Math.round(opts.valeur * 100);
+    coupon.currency = "eur";
+  }
+  if (opts.duree === "repeating") {
+    const mois = Math.max(1, Math.round(opts.dureeMois ?? 1));
+    coupon.duration_in_months = mois;
+  }
+  coupon.name =
+    opts.type === "gratuit"
+      ? "Offert" + (opts.duree === "repeating" ? ` ${coupon.duration_in_months} mois` : opts.duree === "forever" ? " sans limite" : " (1re facture)")
+      : `Code ${code}`;
+
+  const couponCree = await call("POST", "/coupons", coupon);
+
+  // 2. Le code promo, rattaché au coupon.
+  const promo: Dict = { coupon: couponCree.id as string, code };
+  if (opts.maxUtilisations && opts.maxUtilisations > 0) promo.max_redemptions = Math.round(opts.maxUtilisations);
+  if (opts.expireLe) {
+    const t = Math.floor(new Date(`${opts.expireLe}T23:59:59`).getTime() / 1000);
+    if (Number.isFinite(t)) promo.expires_at = t;
+  }
+
+  const promoCree = await call("POST", "/promotion_codes", promo);
+  return {
+    id: promoCree.id as string,
+    code: (promoCree.code as string) ?? code,
+    nom: (couponCree.name as string) ?? null,
+    avantage: decrireCoupon(couponCree),
+    actif: promoCree.active === true,
+    utilisations: 0,
+    maxUtilisations: opts.maxUtilisations ?? null,
+    expireLe: opts.expireLe ?? null,
+  };
+}
+
+/** Active ou désactive un code promo existant (sans le supprimer, pour garder l'historique). */
+export async function basculerCodePromo(id: string, actif: boolean): Promise<void> {
+  await call("POST", `/promotion_codes/${id}`, { active: actif });
+}
+
 /**
  * Souscription à l'abonnement Klubster : 30 jours offerts, puis prélèvement mensuel.
  * Stripe émet et envoie la facture chaque mois ; nous n'encaissons rien nous-mêmes.
