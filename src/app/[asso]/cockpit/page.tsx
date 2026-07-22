@@ -586,7 +586,10 @@ export default async function Cockpit(
               <Geste titre="Importer vos adhérents" desc="Depuis votre tableur (CSV) : colonnes reconnues, aperçu avant import." href={`/${org.slug}/cockpit/adherents/import`} action="IMPORTER" />
               <Geste titre="Exporter vos adhérents" desc="La liste complète, en CSV. Vos données restent les vôtres." href={`/${org.slug}/cockpit/export`} action="EXPORTER" />
               {profile?.role === "admin_asso" || profile?.role === "super_admin" ? (
-                <Geste titre="Votre équipe" desc="Trésorier, secrétaire, encadrant : le juste accès pour chacun." href={`/${org.slug}/cockpit/equipe`} action="GÉRER" />
+                <>
+                  <Geste titre="Votre équipe" desc="Trésorier, secrétaire, encadrant : le juste accès pour chacun." href={`/${org.slug}/cockpit/equipe`} action="GÉRER" />
+                  <Geste titre="Emails automatiques" desc="Relances pièces et cotisations : choisissez ce que Klubster envoie à votre place." href={`/${org.slug}/cockpit/emails`} action="RÉGLER" />
+                </>
               ) : null}
             </div>
           </div>

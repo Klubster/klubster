@@ -182,7 +182,14 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
           ) : null}
         </div>
       </header>
-      <div className="mx-auto max-w-2xl px-6 py-14 md:px-8">{children}</div>
+      <div className="mx-auto max-w-2xl px-6 py-14 md:px-8">
+        {children}
+        <div className="mt-14 border-t border-line pt-6">
+          <Link href={`/${org.slug}/installer`} className="mono text-[12px] text-ink-soft hover:text-ink">
+            Installer l&apos;app sur mon téléphone →
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }

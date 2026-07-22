@@ -8,6 +8,7 @@ import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { compteConnecte, accesClub } from "@/lib/stripe-org";
 import { resultatDepuisReponses, estMineur } from "@/lib/sante";
+import { gabaritEmail } from "@/lib/email-gabarit";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
@@ -261,28 +262,37 @@ export async function inscrireAdherent(formData: FormData) {
     : "En espèces, à remettre au club";
   try {
     if (email) {
+      // Corps commun aux deux cas : on liste ce qui est utile, et on invite à installer
+      // l'app (accès en un tap à la carte de membre et au dossier).
+      const para = enListeAttente
+        ? [
+            `Bonjour ${prenom},`,
+            `Le cours « ${coursNom} » est complet pour le moment : vous êtes inscrit(e) sur la liste d'attente.`,
+            `Aucun paiement ne vous est demandé pour l'instant. Nous vous préviendrons dès qu'une place se libère.`,
+            `Astuce : installez l'app du club sur votre téléphone pour être prévenu(e) et retrouver votre dossier d'un tap — ${BASE}/${slug}/installer`,
+          ]
+        : [
+            `Bonjour ${prenom},`,
+            `Votre inscription au ${org.nom} est bien enregistrée.`,
+            `Cours : ${coursNom} · Cotisation : ${(montantDuCentimes / 100).toLocaleString("fr-FR")} € / an · Règlement : ${libelleMode}.`,
+            `Depuis votre espace adhérent, vous suivez votre dossier, déposez vos pièces et retrouvez votre carte de membre.`,
+            `Pour un accès en un tap, installez l'app du club sur votre téléphone : ${BASE}/${slug}/installer`,
+            `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).`,
+          ];
+      const objet = enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`;
       await envoyerEmail({
         to: email,
         fromNom: `${org.nom} via Klubster`,
         replyTo: org.email_contact,
-        objet: enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`,
-        texte: enListeAttente
-          ? `Bonjour ${prenom},\n\n` +
-            `Le cours « ${coursNom} » est complet pour le moment : vous êtes inscrit(e) sur la liste d'attente.\n\n` +
-            `Aucun paiement ne vous est demandé pour l'instant. Nous vous préviendrons dès qu'une place se libère.\n\n` +
-            `Sportivement,\n${org.nom}`
-          : `Bonjour ${prenom},\n\n` +
-            `Votre inscription au ${org.nom} est bien enregistrée.\n\n` +
-            `Cours : ${coursNom}\n` +
-            `Cotisation : ${(montantDuCentimes / 100).toLocaleString("fr-FR")} € / an` +
-            (remiseTotaleCentimes > 0
-              ? ` (${(tarifCentimes / 100).toLocaleString("fr-FR")} € − ${(remiseTotaleCentimes / 100).toLocaleString("fr-FR")} € de réduction)`
-              : "") +
-            `\nRèglement : ${libelleMode}\n\n` +
-            `Votre espace adhérent (dossier, pièces à déposer, carte de membre) :\n` +
-            `${BASE}/${slug}/espace\n\n` +
-            `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).\n\n` +
-            `Sportivement,\n${org.nom}`,
+        objet,
+        texte: para.join("\n\n") + `\n\nSportivement,\n${org.nom}`,
+        html: gabaritEmail({
+          club: org.nom,
+          couleur: org.couleur_primaire,
+          titre: objet,
+          paragraphes: para,
+          bouton: { libelle: "OUVRIR MON ESPACE", url: `${BASE}/${slug}/espace` },
+        }),
       });
     }
     // Destinataire de l'alerte club : l'email de contact public s'il existe, sinon celui

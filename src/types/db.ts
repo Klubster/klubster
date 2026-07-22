@@ -50,6 +50,8 @@ export interface Organisation {
   form_config: FormConfig | null;
   actualite: Actualite | null;
   page_config: PageConfig | null;
+  /** Préférences d'emails automatiques du club (voir lib/emails-config.ts). */
+  emails_config: import("@/lib/emails-config").EmailsConfig | Record<string, boolean> | null;
 }
 
 // Mode « Édition de page » : ordre des sections de la vitrine + chapitres personnalisés.

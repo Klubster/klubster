@@ -14,10 +14,13 @@ export interface EnvoiResultat {
 }
 
 // Email transactionnel simple (confirmation d'inscription, notification club, bienvenue…).
+// Le HTML est optionnel : quand il est fourni, le texte reste envoyé en parallèle, pour
+// les clients qui n'affichent pas le HTML et pour la délivrabilité.
 export async function envoyerEmail(opts: {
   to: string;
   objet: string;
   texte: string;
+  html?: string;
   fromNom?: string; // ex. le nom du club — défaut : Klubster
   replyTo?: string | null;
 }): Promise<boolean> {
@@ -32,6 +35,7 @@ export async function envoyerEmail(opts: {
         to: [opts.to],
         subject: opts.objet,
         text: opts.texte,
+        ...(opts.html ? { html: opts.html } : {}),
         ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
       }),
     });
