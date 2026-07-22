@@ -46,6 +46,11 @@ export async function GET(req: Request, props: { params: Promise<{ asso: string 
   const margePct = maskable ? 0.2 : 0.12;
   const marge = Math.round(taille * margePct);
 
+  // Avec un logo, fond BLANC : la plupart des logos (dont celui de l'USM, vert détouré)
+  // sont dessinés pour le blanc et disparaîtraient sur la couleur du club. Sans logo,
+  // l'initiale blanche se détache sur la couleur du club.
+  const fond = logo ? "#FFFFFF" : couleur;
+
   return new ImageResponse(
     (
       <div
@@ -55,7 +60,7 @@ export async function GET(req: Request, props: { params: Promise<{ asso: string 
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: couleur,
+          background: fond,
           color: "#FFFFFF",
         }}
       >
