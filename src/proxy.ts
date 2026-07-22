@@ -73,6 +73,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Le service worker vit à la racine (`src/app/sw.js`) et doit y rester sur TOUS les
+  // hôtes, domaines personnalisés compris. Sans cette exception, la réécriture multi-
+  // tenant le transformait en `/{slug}/sw.js` (inexistant → 404), et la PWA ne
+  // fonctionnait pas sur le domaine propre d'un club.
+  if (pathname === "/sw.js") {
+    return await updateSession(request);
+  }
+
   const estPlateforme =
     HOTES_PLATEFORME.has(brutHost) || HOTES_PLATEFORME.has(host) || brutHost.endsWith(".vercel.app");
 

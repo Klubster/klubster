@@ -1,22 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { destinationSure } from "@/lib/redirection";
 
 // Retour de confirmation d'email (flux par défaut Supabase : ?code=...).
 // Pas besoin de modifier le modèle d'email : on fixe redirect_to via emailRedirectTo côté code.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  // Une même fonction, testée, valide `next` dans toutes les routes d'authentification —
+  // plus de validateur improvisé qui laisserait passer `/\evil.com`.
   const nextExplicite = searchParams.get("next");
-  let dest = nextExplicite ?? "/creer";
+  const nextSur = destinationSure(nextExplicite, "");
+  let dest = "/creer";
 
   if (code) {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Une destination explicite (ex. réinitialisation de mot de passe) prime sur
+      // Une destination explicite et sûre (ex. réinitialisation de mot de passe) prime sur
       // la redirection automatique vers le cockpit.
-      if (nextExplicite && nextExplicite.startsWith("/") && !nextExplicite.startsWith("//")) {
-        return NextResponse.redirect(new URL(nextExplicite, origin));
+      if (nextSur) {
+        return NextResponse.redirect(new URL(nextSur, origin));
       }
       const { data: u } = await supabase.auth.getUser();
       const user = u.user;

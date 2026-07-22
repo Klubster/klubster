@@ -1,13 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { destinationSure } from "@/lib/redirection";
 
 // Confirmation d'email (@supabase/ssr) + redirection selon le rôle.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  let dest = searchParams.get("next") ?? "/creer";
+  // `next` vient de l'URL : on n'accepte qu'un chemin interne. Sans ça, un lien de
+  // confirmation forgé pouvait rediriger l'utilisateur fraîchement authentifié vers un
+  // site tiers (`new URL(dest, origin)` accepte une URL absolue). Les branches ci-dessous
+  // ne posent que des chemins internes.
+  let dest = destinationSure(searchParams.get("next"), "/creer");
 
   if (token_hash && type) {
     const supabase = await createSupabaseServerClient();

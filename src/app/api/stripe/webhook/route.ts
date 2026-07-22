@@ -118,8 +118,11 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       await appelerRpc(admin, adhesionId, obj.amount_total, "Paiement en ligne (Stripe)", event.id);
       // On mémorise le paiement : c'est lui qu'un remboursement depuis le cockpit ciblera,
       // et c'est par lui qu'on rattache un futur remboursement ou litige à l'adhésion.
+      // L'écriture doit réussir : sans ce lien, un remboursement ultérieur ne retrouverait
+      // pas l'adhésion. On lève en cas d'échec pour déclencher un rejeu Stripe.
       if (obj.payment_intent) {
-        await admin.from("adhesions").update({ stripe_payment_intent: obj.payment_intent }).eq("id", adhesionId);
+        const { error } = await admin.from("adhesions").update({ stripe_payment_intent: obj.payment_intent }).eq("id", adhesionId);
+        if (error) throw new Error(`maj payment_intent: ${error.message}`);
       }
     }
     return;
@@ -245,7 +248,13 @@ async function signalerLitige(adhesionId: string, montantCentimes: number, admin
     .select("adherents(prenom, nom), organisations(nom, email_contact)")
     .eq("id", adhesionId)
     .maybeSingle();
-  await admin.from("adhesions").update({ statut: "en_retard", litige_le: new Date().toISOString() }).eq("id", adhesionId);
+  {
+    const { error } = await admin
+      .from("adhesions")
+      .update({ statut: "en_retard", litige_le: new Date().toISOString() })
+      .eq("id", adhesionId);
+    if (error) throw new Error(`litige maj statut: ${error.message}`);
+  }
   if (!data) return;
   const adherent = data.adherents as unknown as { prenom: string; nom: string } | null;
   const org = data.organisations as unknown as { nom: string; email_contact: string | null } | null;
@@ -338,7 +347,10 @@ async function signalerEcheanceRejetee(adhesionId: string, montantCentimes: numb
     .eq("id", adhesionId)
     .maybeSingle();
 
-  await admin.from("adhesions").update({ statut: "en_retard" }).eq("id", adhesionId);
+  {
+    const { error } = await admin.from("adhesions").update({ statut: "en_retard" }).eq("id", adhesionId);
+    if (error) throw new Error(`échéance rejetée maj statut: ${error.message}`);
+  }
 
   if (!data) return;
   const adherent = data.adherents as unknown as { prenom: string; nom: string; email: string | null } | null;

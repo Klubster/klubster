@@ -3,7 +3,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmail } from "@/lib/resend";
 import { gabaritEmail } from "@/lib/email-gabarit";
 import { lireEmailsConfig } from "@/lib/emails-config";
-import { compteConnecte } from "@/lib/stripe-org";
+import { compteConnecte, accesClub } from "@/lib/stripe-org";
+import { saisonCourante } from "@/lib/saison";
 import type { Organisation } from "@/types/db";
 
 export const dynamic = "force-dynamic";
@@ -56,19 +57,24 @@ async function lancer(request: NextRequest) {
   const admin = createSupabaseAdminClient();
   if (!admin) return NextResponse.json({ error: "Base indisponible." }, { status: 500 });
 
-  const { data: orgsData } = await admin
+  const { data: orgsData, error: orgsErr } = await admin
     .from("organisations")
-    .select("id, nom, slug, couleur_primaire, email_contact, form_config, emails_config, stripe_account_id, stripe_test, abonnement_statut, abonnement_essai_fin")
+    .select("id, nom, slug, couleur_primaire, email_contact, form_config, emails_config, stripe_account_id, stripe_test, abonnement_statut, abonnement_essai_fin, abonnement_periode_fin, saison_debut, saison_fin")
     .eq("publie", true);
+  // Une lecture ratée ne doit JAMAIS être traitée comme « aucune donnée » : on abandonne,
+  // faute de quoi le plafond et la déduplication seraient calculés sur un journal vide et
+  // des relances pourraient repartir à tort.
+  if (orgsErr) return NextResponse.json({ error: "Lecture organisations." }, { status: 500 });
   const orgs = (orgsData ?? []) as unknown as Organisation[];
   if (orgs.length === 0) return NextResponse.json({ ok: true, envoyes: 0 });
 
   // Journal des 60 derniers jours : pour le plafond (7 j) et la déduplication par motif.
   const depuis = new Date(Date.now() - 60 * UN_JOUR).toISOString();
-  const { data: journalData } = await admin
+  const { data: journalData, error: journalErr } = await admin
     .from("emails_journal")
     .select("organisation_id, adherent_id, motif, envoye_le")
     .gte("envoye_le", depuis);
+  if (journalErr) return NextResponse.json({ error: "Lecture journal." }, { status: 500 });
   const journal = journalData ?? [];
   // Motifs de club (sans adhérent) déjà envoyés récemment — pour le récap et la fin d'essai.
   const motifOrgRecent = (orgId: string, motif: string, jours: number) =>
@@ -89,17 +95,23 @@ async function lancer(request: NextRequest) {
     return Date.now() - new Date(dernier).getTime() >= PLAFOND_JOURS * UN_JOUR;
   };
 
-  // Adhésions en cours avec l'adhérent et les règlements — une seule lecture globale.
-  const { data: adhData } = await admin
+  // Adhésions à considérer : uniquement les statuts ACTIFS. On exclut ainsi la liste
+  // d'attente, les adhésions annulées et remboursées — personne dans ces états ne doit
+  // recevoir « votre inscription est enregistrée, une pièce manque » ni une relance
+  // d'impayé. Le tri par saison courante du club se fait ensuite, adhésion par adhésion.
+  const { data: adhData, error: adhErr } = await admin
     .from("adhesions")
-    .select("id, organisation_id, adherent_id, montant_centimes, statut, created_at, cours(nom), adherents(prenom, email), reglements(montant_centimes)");
+    .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, cours(nom), adherents(prenom, email), reglements(montant_centimes)")
+    .in("statut", ["en_attente", "en_retard", "paye"]);
+  if (adhErr) return NextResponse.json({ error: "Lecture adhésions." }, { status: 500 });
   const adhesions = (adhData ?? []) as unknown as AdhesionLigne[];
 
   // Pièces obligatoires encore manquantes, indexées par adhérent.
-  const { data: piecesData } = await admin
+  const { data: piecesData, error: piecesErr } = await admin
     .from("pieces_adherent")
     .select("adherent_id, cle, statut")
     .eq("statut", "manquante");
+  if (piecesErr) return NextResponse.json({ error: "Lecture pièces." }, { status: 500 });
   const piecesManquantes = new Map<string, Set<string>>();
   for (const p of piecesData ?? []) {
     if (!p.adherent_id) continue;
@@ -127,6 +139,12 @@ async function lancer(request: NextRequest) {
   for (const adh of adhesions) {
     const org = orgsPar.get(adh.organisation_id ?? "");
     if (!org) continue;
+    // Un club dont l'abonnement est suspendu (résilié / impayé au-delà de la grâce) ne
+    // relance plus ses adhérents : ses automatisations sont coupées comme ses nouvelles
+    // inscriptions. Seul le club lui-même reste joignable (récap, régularisation).
+    if (accesClub(org) === "suspendu") continue;
+    // Seule la saison COURANTE du club compte : on ne relance pas sur une vieille adhésion.
+    if ((adh.saison ?? "") !== saisonCourante(org)) continue;
     const adherentId = adh.adherent_id;
     if (!adherentId || dejaCeTour.has(adherentId)) continue;
     const email = adh.adherents?.email ?? null;
@@ -275,9 +293,26 @@ async function lancer(request: NextRequest) {
     }
   }
 
-  // Envois + journalisation.
+  // Envois. On RÉSERVE dans le journal AVANT d'appeler Resend, pas après : l'insertion,
+  // protégée par l'index unique (adherent_id, motif), désigne un seul gagnant si deux
+  // exécutions se chevauchent — l'autre reçoit une violation d'unicité et n'envoie rien.
+  // Si l'envoi échoue ensuite, on relâche la réservation pour réessayer au prochain tour.
   let envoyes = 0;
   for (const e of aEnvoyer) {
+    // 1) Réservation atomique.
+    const { error: claimErr } = await admin.from("emails_journal").insert({
+      organisation_id: e.orgId,
+      adherent_id: e.adherentId,
+      destinataire: e.to,
+      motif: e.motif,
+    });
+    if (claimErr) {
+      // 23505 = déjà réservé/envoyé par un autre passage : on passe, sans double envoi.
+      if (claimErr.code === "23505") continue;
+      // Toute autre erreur DB : on abandonne le cron plutôt que d'envoyer sans trace.
+      return NextResponse.json({ error: "Réservation email.", envoyes }, { status: 500 });
+    }
+    // 2) Envoi.
     const html = gabaritEmail({
       club: e.club.nom,
       couleur: e.club.couleur_primaire,
@@ -293,19 +328,22 @@ async function lancer(request: NextRequest) {
       texte: e.para.join("\n\n") + `\n\nVotre espace : https://klubster.fr/${e.club.slug}/espace`,
       html,
     });
-    if (ok) {
-      envoyes++;
-      await admin.from("emails_journal").insert({
-        organisation_id: e.orgId,
-        adherent_id: e.adherentId,
-        destinataire: e.to,
-        motif: e.motif,
-      });
-    }
+    // 3) Échec d'envoi : on libère la réservation pour un prochain essai.
+    if (ok) envoyes++;
+    else await admin.from("emails_journal").delete().eq("adherent_id", e.adherentId).eq("motif", e.motif);
   }
 
-  // Emails de club (récap hebdo, fin d'essai) : bouton vers le cockpit, journal sans adhérent.
+  // Emails de club (récap hebdo, fin d'essai) : bouton vers le cockpit, journal sans
+  // adhérent. On réserve d'abord (marqueur en base), on envoie ensuite, et on relâche si
+  // l'envoi échoue — pour ne pas re-tenter le lendemain un email déjà parti.
   for (const e of aEnvoyerClub) {
+    const { error: claimErr } = await admin.from("emails_journal").insert({
+      organisation_id: e.orgId,
+      adherent_id: null,
+      destinataire: e.to,
+      motif: e.motif,
+    });
+    if (claimErr) return NextResponse.json({ error: "Réservation email club.", envoyes }, { status: 500 });
     const html = gabaritEmail({
       club: e.club.nom,
       couleur: e.club.couleur_primaire,
@@ -320,15 +358,8 @@ async function lancer(request: NextRequest) {
       texte: e.para.join("\n\n") + `\n\nVotre cockpit : https://klubster.fr/${e.club.slug}/cockpit`,
       html,
     });
-    if (ok) {
-      envoyes++;
-      await admin.from("emails_journal").insert({
-        organisation_id: e.orgId,
-        adherent_id: null,
-        destinataire: e.to,
-        motif: e.motif,
-      });
-    }
+    if (ok) envoyes++;
+    else await admin.from("emails_journal").delete().eq("organisation_id", e.orgId).is("adherent_id", null).eq("motif", e.motif);
   }
 
   return NextResponse.json({ ok: true, candidats: aEnvoyer.length + aEnvoyerClub.length, envoyes });
@@ -340,6 +371,7 @@ type AdhesionLigne = {
   adherent_id: string | null;
   montant_centimes: number | null;
   statut: string | null;
+  saison: string | null;
   created_at: string;
   cours: { nom: string } | null;
   adherents: { prenom: string | null; email: string | null } | null;
