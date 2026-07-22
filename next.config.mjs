@@ -1,5 +1,14 @@
+// Empreinte du build, figée au moment de la compilation. Elle sert de version au service
+// worker (src/app/sw.js) : puisqu'elle change à chaque build, le navigateur détecte la
+// nouvelle version et l'active en silence. On prend d'abord le SHA du commit fourni par
+// Vercel ; à défaut (build local), l'horodatage garantit une valeur unique à chaque fois.
+const EMPREINTE_BUILD = process.env.VERCEL_GIT_COMMIT_SHA ?? String(Date.now());
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    KLUBSTER_BUILD: EMPREINTE_BUILD,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
