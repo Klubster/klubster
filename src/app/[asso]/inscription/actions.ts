@@ -75,10 +75,36 @@ export async function inscrireAdherent(formData: FormData) {
     }
   }
 
+  // Questionnaire de santé + signature — lus ICI pour être validés avec le reste du
+  // formulaire, AVANT toute création de compte ou d'adhésion.
+  //
+  // Le résultat est RECALCULÉ à partir des réponses transmises : auparavant le serveur
+  // reprenait tel quel un champ masqué `qsante_resultat` (audit du 21/07/2026). Le TYPE
+  // et la QUALITÉ du signataire sont imposés par le serveur d'après la minorité réelle —
+  // jamais repris des champs masqués : un mineur exige la signature du représentant légal.
+  const questionnaireActif = Boolean(org.form_config?.sante?.questionnaire);
+  const qType = estInscriptionMineur ? ("mineur" as const) : ("adulte" as const);
+  const qResultat = resultatDepuisReponses(qType, formData.get("qsante_reponses") as string | null);
+  const qSignature = String(formData.get("qsante_signature") ?? "").trim().slice(0, 200000);
+  const qSignataire = String(formData.get("qsante_signataire") ?? "").trim().slice(0, 120);
+  const qQualite = estInscriptionMineur ? "representant_legal" : "adherent";
+  // La case d'attestation sur l'honneur est vérifiée côté serveur : sans elle, on
+  // n'enregistre aucune attestation, quelles que soient les réponses transmises.
+  const qAtteste = formData.get("qsante_ok") === "on" || formData.get("qsante_ok") === "oui";
+  // Une signature est une image dessinée (canvas → PNG en base64), pas une chaîne
+  // arbitraire : on exige le format et une taille minimale — « x » ne signe rien.
+  const signatureValide = /^data:image\/png;base64,[A-Za-z0-9+/=]{500,}$/.test(qSignature);
+
   // VALIDATION SERVEUR DU FORMULAIRE. Le navigateur marque les champs obligatoires, mais
   // un appel direct ne passe par aucun de ces contrôles : on reconstruit donc les règles
   // ici, à partir de la seule configuration du club et des données réellement reçues.
   const manque: string[] = [];
+  // Quand le club active le questionnaire de santé, il est OBLIGATOIRE : un appel direct
+  // qui retire simplement les champs `qsante_*` ne doit plus aboutir (4e audit). Sans lui,
+  // le club croirait le dossier en règle alors qu'aucune attestation n'existe.
+  if (questionnaireActif && (!dateValide || !qAtteste || !signatureValide || qSignataire.length < 2)) {
+    manque.push("questionnaire");
+  }
   if (!prenom || !nom || !email || !coursId || !dateValide) manque.push("base");
   // Champs personnalisés déclarés obligatoires par le club.
   for (const page of org.form_config?.pages ?? []) {
@@ -173,7 +199,12 @@ export async function inscrireAdherent(formData: FormData) {
     userId = data.user?.id ?? null;
   }
 
-  const { data: adhesionId, error } = await admin.rpc("register_adherent_full", {
+  // Adhésion + questionnaire de santé dans UNE transaction SQL : un échec du volet santé
+  // annule l'inscription entière — plus de dossier « complet » sans attestation (4e audit).
+  // Le questionnaire part dès qu'il est fourni et valide ; il vient d'être exigé plus haut
+  // quand le club l'active.
+  const questionnaireFourni = dateValide && signatureValide && qAtteste;
+  const { data: adhesionId, error } = await admin.rpc("register_adherent_avec_sante", {
     p_slug: slug,
     p_user_id: userId,
     p_prenom: prenom,
@@ -183,9 +214,15 @@ export async function inscrireAdherent(formData: FormData) {
     p_cours_id: coursId || null,
     p_infos: infos,
     p_mode: mode === "en_ligne_echeances" ? "en_ligne" : mode,
+    p_q_type: questionnaireFourni ? qType : null,
+    p_q_date_naissance: questionnaireFourni ? dateNaissance : null,
+    p_q_resultat: questionnaireFourni ? qResultat : null,
+    p_q_signataire_nom: questionnaireFourni ? qSignataire || null : null,
+    p_q_signataire_qualite: questionnaireFourni ? qQualite : null,
+    p_q_signature: questionnaireFourni ? qSignature : null,
   });
   if (error || !adhesionId) {
-    console.error("register_adherent_full", error?.message);
+    console.error("register_adherent_avec_sante", error?.message);
     redirect(`/${slug}/inscription?erreur=1`);
   }
 
@@ -193,39 +230,6 @@ export async function inscrireAdherent(formData: FormData) {
   // demande aucun paiement — la personne n'a pas encore de place — et on la prévient.
   const { data: adhLigne } = await admin.from("adhesions").select("statut").eq("id", String(adhesionId)).maybeSingle();
   const enListeAttente = (adhLigne as { statut: string } | null)?.statut === "liste_attente";
-
-  // Questionnaire de santé + signature.
-  //
-  // Le résultat est RECALCULÉ ici à partir des réponses transmises : auparavant le
-  // serveur reprenait tel quel un champ masqué `qsante_resultat`, qu'il suffisait de
-  // modifier dans la requête pour se déclarer apte sans avoir répondu (audit du
-  // 21/07/2026). Les réponses ne servent qu'à ce calcul et ne sont jamais enregistrées.
-  // Le TYPE est imposé par le serveur d'après la minorité réelle — jamais repris du
-  // champ masqué `qsante_type`, qui déterminait sinon le nombre de questions attendues.
-  const qType = estInscriptionMineur ? "mineur" : "adulte";
-  const qResultat = resultatDepuisReponses(qType, formData.get("qsante_reponses") as string | null);
-  const qNaissance = dateNaissance;
-  const qSignature = String(formData.get("qsante_signature") ?? "").trim().slice(0, 200000);
-  const qSignataire = String(formData.get("qsante_signataire") ?? "").trim().slice(0, 120);
-  const qQualite = String(formData.get("qsante_qualite") ?? "adherent").slice(0, 40);
-  // La case d'attestation sur l'honneur est vérifiée côté serveur : sans elle, on
-  // n'enregistre aucune attestation, quelles que soient les réponses transmises.
-  const qAtteste = formData.get("qsante_ok") === "on" || formData.get("qsante_ok") === "oui";
-  if (qNaissance && qSignature && qAtteste) {
-    // RGPD — minimisation des données de santé : on ne conserve que le résultat
-    // (atteste_negatif / certificat_requis) + signature + date, jamais le détail des réponses.
-    const { error: qErr } = await admin.rpc("enregistrer_questionnaire_sante", {
-      p_adhesion_id: String(adhesionId),
-      p_type: qType,
-      p_date_naissance: qNaissance,
-      p_reponses: {},
-      p_resultat: qResultat,
-      p_signataire_nom: qSignataire || null,
-      p_signataire_qualite: qQualite,
-      p_signature: qSignature,
-    });
-    if (qErr) console.error("enregistrer_questionnaire_sante", qErr.message);
-  }
 
   // Cours choisi (pour les emails de confirmation et le paiement en ligne)
   // Filtré par organisation : sans cela, un coursId d'un autre club (tarif plus bas)

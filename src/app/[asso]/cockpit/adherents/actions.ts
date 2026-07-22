@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { exigerPermission } from "@/lib/garde";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
 import { peut } from "@/lib/roles";
@@ -254,20 +255,93 @@ export async function renouvelerSaison(slug: string) {
 }
 
 /**
- * Droit à l'effacement : anonymise l'adhérent (données personnelles et de santé supprimées),
- * en conservant les écritures comptables. Réservé au président.
+ * Droit à l'effacement : anonymise l'adhérent en conservant les écritures comptables.
+ * Réservé au président (contrôle interne de la RPC `anonymiser_adherent`).
+ *
+ * La RPC SQL seule ne suffisait pas (4e audit) : supprimer la ligne `pieces_adherent`
+ * laissait le certificat médical physiquement présent dans le bucket `pieces`, et le
+ * compte `auth.users` survivait avec email et métadonnées. L'effacement se fait donc en
+ * trois couches, dans cet ordre — chaque étape est vérifiée, la première qui échoue
+ * arrête tout SANS annoncer de succès :
+ *   1. fichiers Storage (chemins en base ∪ listing du préfixe org/adhérent) ;
+ *   2. anonymisation SQL (détache aussi `user_id`, exigé par la FK vers auth.users) ;
+ *   3. suppression du compte Auth — seulement si aucun autre adhérent ne pointe dessus
+ *      et que le profil est un simple adhérent (jamais un compte de bureau).
  */
 export async function anonymiserAdherent(slug: string, adherentId: string) {
   const org = await garde(slug);
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    console.error("anonymiserAdherent : service_role indisponible");
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=anonymisation`);
+  }
+
+  // Fiche + rattachement de compte, AVANT l'anonymisation qui détache user_id.
+  const { data: fiche } = await admin
+    .from("adherents")
+    .select("id, user_id")
+    .eq("id", adherentId)
+    .eq("organisation_id", org.id)
+    .maybeSingle();
+  if (!fiche) redirect(`/${slug}/cockpit/adherents?erreur=anonymisation`);
+  const userId = (fiche as { user_id: string | null }).user_id;
+
+  // 1. Fichiers Storage. On croise deux sources : les chemins enregistrés en base et le
+  // listing du préfixe `{org}/{adherent}/` — un dépôt dont l'écriture en base aurait
+  // échoué reste ainsi couvert.
+  const prefixe = `${org.id}/${adherentId}`;
+  const { data: lignes, error: eLignes } = await admin
+    .from("pieces_adherent")
+    .select("chemin")
+    .eq("adherent_id", adherentId)
+    .not("chemin", "is", null);
+  const { data: listes, error: eListe } = await admin.storage.from("pieces").list(prefixe, { limit: 1000 });
+  if (eLignes || eListe) {
+    console.error("anonymiserAdherent inventaire fichiers", eLignes?.message ?? eListe?.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=anonymisation`);
+  }
+  const chemins = new Set<string>([
+    ...(lignes ?? []).map((l) => String((l as { chemin: string }).chemin)),
+    ...(listes ?? []).map((f) => `${prefixe}/${f.name}`),
+  ]);
+  if (chemins.size > 0) {
+    const { error: eRm } = await admin.storage.from("pieces").remove([...chemins]);
+    if (eRm) {
+      console.error("anonymiserAdherent suppression fichiers", eRm.message);
+      redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=anonymisation`);
+    }
+  }
+
+  // 2. Anonymisation SQL — via la session du président, pour que le contrôle de rôle
+  // interne de la RPC s'applique (l'inventaire ci-dessus n'a rien modifié).
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("anonymiser_adherent", { p_adherent_id: adherentId });
   if (error) {
     console.error("anonymiserAdherent", error.message);
     redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=anonymisation`);
   }
+
+  // 3. Compte Auth. Un compte partagé (autre fiche adhérent, rôle de bureau) n'est
+  // JAMAIS supprimé : on efface la personne, pas un accès encore légitime ailleurs.
+  if (userId) {
+    const [{ data: autres }, { data: prof }] = await Promise.all([
+      admin.from("adherents").select("id").eq("user_id", userId).neq("id", adherentId).limit(1),
+      admin.from("profiles").select("role").eq("id", userId).maybeSingle(),
+    ]);
+    const roleSimple = !prof || (prof as { role: string }).role === "adherent";
+    if ((autres ?? []).length === 0 && roleSimple) {
+      const { error: eDel } = await admin.auth.admin.deleteUser(userId);
+      if (eDel) {
+        // Fichiers et données déjà effacés : on signale l'échec restant plutôt que
+        // d'annoncer une suppression complète (l'identifiant est journalisé pour reprise).
+        console.error("anonymiserAdherent compte auth", userId, eDel.message);
+        redirect(`/${slug}/cockpit/adherents?erreur=anonymisation_compte`);
+      }
+    }
+  }
+
   revalidatePath(`/${slug}/cockpit/adherents`);
   redirect(`/${slug}/cockpit/adherents?anonymise=1`);
-  void org;
 }
 
 /**

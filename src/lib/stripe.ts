@@ -532,19 +532,55 @@ export async function createCheckoutEcheancesForClub(opts: {
   return call("POST", "/checkout/sessions", body, opts.clubAccount);
 }
 
-/** Après le checkout : borne l'abonnement à exactement N échéances, puis annulation. */
+type ScheduleStripe = {
+  id: string;
+  end_behavior?: string;
+  phases?: Array<{ items?: Array<{ price?: string; quantity?: number }>; start_date?: number }>;
+};
+
+/**
+ * Après le checkout : borne l'abonnement à exactement N échéances, puis annulation.
+ *
+ * REJOUABLE (4e audit) : le webhook `checkout.session.completed` peut être redélivré par
+ * Stripe si une étape ultérieure échoue. Recréer alors un échéancier avec
+ * `from_subscription` sur un abonnement qui en possède déjà un fait échouer l'appel — et
+ * l'événement s'empoisonnait. On commence donc par relire l'abonnement : échéancier déjà
+ * borné → il n'y a rien à faire ; échéancier existant mais pas encore borné → on le
+ * reprend là où il en était.
+ *
+ * Et si le prix de la phase est introuvable, on LÈVE au lieu de sortir en silence : un
+ * retour silencieux laissait l'abonnement SANS borne — prélèvements au-delà du nombre de
+ * mensualités convenu. L'erreur fait rejouer l'événement plutôt que laisser courir.
+ */
 export async function planifierEcheances(subscriptionId: string, clubAccount: string, echeances: number) {
   const n = bornerEcheances(echeances);
-  const schedule = (await call(
-    "POST",
-    "/subscription_schedules",
-    { from_subscription: subscriptionId },
-    clubAccount
-  )) as { id: string; phases?: Array<{ items?: Array<{ price?: string; quantity?: number }>; start_date?: number }> };
+
+  const sub = (await call("GET", `/subscriptions/${subscriptionId}`, undefined, clubAccount)) as {
+    schedule?: string | { id: string } | null;
+  };
+  const scheduleExistant = typeof sub.schedule === "string" ? sub.schedule : sub.schedule?.id ?? null;
+
+  let schedule: ScheduleStripe;
+  if (scheduleExistant) {
+    schedule = (await call("GET", `/subscription_schedules/${scheduleExistant}`, undefined, clubAccount)) as ScheduleStripe;
+    // Déjà borné lors d'un passage précédent (end_behavior « cancel ») : rien à refaire.
+    if (schedule.end_behavior === "cancel") return;
+  } else {
+    schedule = (await call(
+      "POST",
+      "/subscription_schedules",
+      { from_subscription: subscriptionId },
+      clubAccount
+    )) as ScheduleStripe;
+  }
 
   const phase = schedule.phases?.[0];
   const item = phase?.items?.[0];
-  if (!item?.price) return;
+  if (!item?.price) {
+    throw new Error(
+      `planifierEcheances : prix introuvable sur l'échéancier ${schedule.id} (abonnement ${subscriptionId}) — abonnement non borné, rejeu demandé.`
+    );
+  }
 
   await call(
     "POST",
