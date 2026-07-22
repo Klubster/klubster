@@ -58,7 +58,7 @@ async function lancer(request: NextRequest) {
 
   const { data: orgsData } = await admin
     .from("organisations")
-    .select("id, nom, slug, couleur_primaire, email_contact, form_config, emails_config, stripe_account_id, stripe_test, abonnement_statut")
+    .select("id, nom, slug, couleur_primaire, email_contact, form_config, emails_config, stripe_account_id, stripe_test, abonnement_statut, abonnement_essai_fin")
     .eq("publie", true);
   const orgs = (orgsData ?? []) as unknown as Organisation[];
   if (orgs.length === 0) return NextResponse.json({ ok: true, envoyes: 0 });
@@ -67,9 +67,15 @@ async function lancer(request: NextRequest) {
   const depuis = new Date(Date.now() - 60 * UN_JOUR).toISOString();
   const { data: journalData } = await admin
     .from("emails_journal")
-    .select("adherent_id, motif, envoye_le")
+    .select("organisation_id, adherent_id, motif, envoye_le")
     .gte("envoye_le", depuis);
   const journal = journalData ?? [];
+  // Motifs de club (sans adhérent) déjà envoyés récemment — pour le récap et la fin d'essai.
+  const motifOrgRecent = (orgId: string, motif: string, jours: number) =>
+    journal.some(
+      (j) => j.organisation_id === orgId && j.motif === motif && !j.adherent_id &&
+        Date.now() - new Date(j.envoye_le).getTime() < jours * UN_JOUR
+    );
   const motifsEnvoyes = new Set(journal.map((j) => `${j.adherent_id}:${j.motif}`));
   const dernierEnvoi = new Map<string, string>();
   for (const j of journal) {
@@ -195,6 +201,80 @@ async function lancer(request: NextRequest) {
     }
   }
 
+  // ——— Emails de CLUB (pas de plafond par adhérent ; dédup par motif d'org) ———
+  type EnvoiClub = { orgId: string; motif: string; to: string; objet: string; para: string[]; club: Organisation };
+  const aEnvoyerClub: EnvoiClub[] = [];
+
+  // Récap hebdomadaire : le lundi seulement, au plus un par semaine, et seulement s'il y a
+  // quelque chose à signaler (sinon on n'envoie rien — pas de bruit).
+  const estLundi = new Date().getUTCDay() === 1;
+  const il7j = Date.now() - 7 * UN_JOUR;
+  // Adhésions regroupées par club, pour les agrégats du récap.
+  const adhParOrg = new Map<string, AdhesionLigne[]>();
+  for (const a of adhesions) {
+    if (!a.organisation_id) continue;
+    const arr = adhParOrg.get(a.organisation_id) ?? [];
+    arr.push(a);
+    adhParOrg.set(a.organisation_id, arr);
+  }
+
+  for (const org of orgs) {
+    const cfg = lireEmailsConfig(org.emails_config);
+    const contact = org.email_contact;
+    if (!contact) continue;
+
+    // 1) Récap hebdomadaire.
+    if (estLundi && cfg.recap_hebdo && !motifOrgRecent(org.id, "recap_hebdo", 6)) {
+      const liste = adhParOrg.get(org.id) ?? [];
+      const nouvelles = liste.filter((a) => new Date(a.created_at).getTime() >= il7j).length;
+      const oblig = clesObligatoires.get(org.id) ?? new Set<string>();
+      let impayes = 0;
+      let dossiers = 0;
+      for (const a of liste) {
+        if (!a.adherent_id) continue;
+        const regle = (a.reglements ?? []).reduce((s, r) => s + (r.montant_centimes ?? 0), 0);
+        const reste = (a.montant_centimes ?? 0) - regle;
+        if ((a.statut === "en_attente" || a.statut === "en_retard") && reste > 0) impayes++;
+        const manq = piecesManquantes.get(a.adherent_id);
+        if (manq && [...manq].some((c) => oblig.has(c))) dossiers++;
+      }
+      // Rien à signaler : on n'envoie pas.
+      if (nouvelles > 0 || impayes > 0 || dossiers > 0) {
+        const lignes: string[] = [];
+        if (nouvelles > 0) lignes.push(`${nouvelles} nouvelle${nouvelles > 1 ? "s" : ""} inscription${nouvelles > 1 ? "s" : ""} cette semaine.`);
+        if (impayes > 0) lignes.push(`${impayes} cotisation${impayes > 1 ? "s" : ""} encore à régler.`);
+        if (dossiers > 0) lignes.push(`${dossiers} dossier${dossiers > 1 ? "s" : ""} avec une pièce manquante.`);
+        aEnvoyerClub.push({
+          orgId: org.id, motif: "recap_hebdo", to: contact, club: org,
+          objet: `Votre semaine au ${org.nom}`,
+          para: [
+            `Bonjour,`,
+            `Voici le point de la semaine pour ${org.nom} :`,
+            lignes.join("\n"),
+            `Tout se gère depuis votre cockpit. Bon début de semaine.`,
+          ],
+        });
+      }
+    }
+
+    // 2) Fin d'essai approche (J-5) — ton Klubster, en complément des emails Stripe.
+    if (org.abonnement_statut === "essai" && org.abonnement_essai_fin && !motifOrgRecent(org.id, "fin_essai", 20)) {
+      const restJours = Math.ceil((new Date(org.abonnement_essai_fin).getTime() - Date.now()) / UN_JOUR);
+      if (restJours >= 3 && restJours <= 6) {
+        aEnvoyerClub.push({
+          orgId: org.id, motif: "fin_essai", to: contact, club: org,
+          objet: `Votre mois offert se termine dans ${restJours} jours`,
+          para: [
+            `Bonjour,`,
+            `Le mois offert de ${org.nom} sur Klubster se termine dans ${restJours} jours.`,
+            `Pour continuer sans interruption, enregistrez un moyen de paiement depuis votre cockpit (rubrique abonnement). Aucun engagement : vous pouvez changer d'offre ou arrêter à tout moment.`,
+            `Rien à faire si vous ne souhaitez pas poursuivre : votre compte et vos données restent accessibles en lecture.`,
+          ],
+        });
+      }
+    }
+  }
+
   // Envois + journalisation.
   let envoyes = 0;
   for (const e of aEnvoyer) {
@@ -224,7 +304,34 @@ async function lancer(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, candidats: aEnvoyer.length, envoyes });
+  // Emails de club (récap hebdo, fin d'essai) : bouton vers le cockpit, journal sans adhérent.
+  for (const e of aEnvoyerClub) {
+    const html = gabaritEmail({
+      club: e.club.nom,
+      couleur: e.club.couleur_primaire,
+      titre: e.objet,
+      paragraphes: e.para,
+      bouton: { libelle: "OUVRIR LE COCKPIT", url: `https://klubster.fr/${e.club.slug}/cockpit` },
+    });
+    const ok = await envoyerEmail({
+      to: e.to,
+      fromNom: "Klubster",
+      objet: e.objet,
+      texte: e.para.join("\n\n") + `\n\nVotre cockpit : https://klubster.fr/${e.club.slug}/cockpit`,
+      html,
+    });
+    if (ok) {
+      envoyes++;
+      await admin.from("emails_journal").insert({
+        organisation_id: e.orgId,
+        adherent_id: null,
+        destinataire: e.to,
+        motif: e.motif,
+      });
+    }
+  }
+
+  return NextResponse.json({ ok: true, candidats: aEnvoyer.length + aEnvoyerClub.length, envoyes });
 }
 
 type AdhesionLigne = {
