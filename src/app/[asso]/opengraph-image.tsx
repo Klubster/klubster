@@ -5,7 +5,7 @@
 // Générée à la volée pour chaque club, à partir de ce qu'il a déjà renseigné : son logo
 // (ou son initiale), son nom, sa couleur. Aucun club n'a rien à faire.
 import { ImageResponse } from "next/og";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 
 export const runtime = "nodejs";
 export const alt = "Site du club — inscriptions en ligne";
@@ -35,7 +35,7 @@ async function logoEnDataUrl(url: string | null): Promise<string | null> {
 }
 
 export default async function Image({ params }: { params: { asso: string } }) {
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   const couleur = org?.couleur_primaire ?? "#279B65";
   const nom = org?.nom ?? "Klubster";
   const initiale = nom.trim().charAt(0).toUpperCase() || "K";

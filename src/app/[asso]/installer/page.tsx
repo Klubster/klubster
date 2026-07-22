@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import GuideInstallation from "./GuideInstallation";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function InstallerPage(props: { params: Promise<{ asso: string }> }) {
   const { asso } = await props.params;
-  const org = await getOrganisationBySlug(asso);
+  const org = await getOrganisationPubliqueBySlug(asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";
 

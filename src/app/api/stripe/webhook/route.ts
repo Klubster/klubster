@@ -18,6 +18,16 @@ export const preferredRegion = "cdg1"; // RGPD — exécution en Europe (Paris)
 
 type ClientAdmin = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
+/**
+ * Toute écriture Stripe → base est CRITIQUE : si elle échoue, l'événement ne doit pas
+ * être acquitté. `exiger` lève sur `error`, ce qui remonte au `catch` du POST (500 →
+ * Stripe redélivre). Sans lui, une panne de base était confondue avec un simple « rien
+ * à faire » et l'événement, marqué reçu, n'était jamais rejoué (4e audit).
+ */
+function exiger(res: { error: { message: string } | null }, contexte: string): void {
+  if (res.error) throw new Error(`${contexte}: ${res.error.message}`);
+}
+
 export async function POST(request: NextRequest) {
   const raw = await request.text();
   const sig = request.headers.get("stripe-signature");
@@ -76,6 +86,8 @@ export async function POST(request: NextRequest) {
       await traiterCotisation(event, admin);
     }
 
+    // Le marquage `traité` est lui-même vérifié : s'il échoue, on renvoie 500 pour que
+    // Stripe redélivre plutôt que de laisser l'événement bloqué en `en_cours` (4e audit).
     await marquerTraite(admin, event.id);
     return NextResponse.json({ received: true });
   } catch (e) {
@@ -215,7 +227,7 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
     const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
     if (adhesionId) {
       await verifierCompte(admin, adhesionId, event.account!);
-      await admin.from("adhesions").update({ litige_le: null }).eq("id", adhesionId);
+      exiger(await admin.from("adhesions").update({ litige_le: null }).eq("id", adhesionId), "litige clos");
     }
   }
 }
@@ -233,11 +245,14 @@ async function resoudreAdhesion(
 ): Promise<string | null> {
   if (adhesionId) return adhesionId;
   if (!paymentIntent) return null;
-  const { data } = await admin
+  const { data, error } = await admin
     .from("adhesions")
     .select("id")
     .eq("stripe_payment_intent", paymentIntent)
     .maybeSingle();
+  // Une panne de base ne doit pas se déguiser en « adhésion introuvable » : sans ce
+  // contrôle, l'événement était acquitté à tort et jamais rejoué (4e audit).
+  exiger({ error }, "resoudreAdhesion");
   return (data?.id as string | undefined) ?? null;
 }
 
@@ -275,11 +290,12 @@ async function signalerLitige(adhesionId: string, montantCentimes: number, admin
 
 /** Vérifie que le compte Stripe de l'événement est bien celui de l'organisation de l'adhésion. */
 async function verifierCompte(admin: ClientAdmin, adhesionId: string, account: string): Promise<void> {
-  const { data } = await admin
+  const { data, error } = await admin
     .from("adhesions")
     .select("organisations(id, stripe_account_id, stripe_test)")
     .eq("id", adhesionId)
     .maybeSingle();
+  exiger({ error }, "verifierCompte");
   const org = data?.organisations as unknown as Organisation | null;
   if (!org) throw new Error(`adhesion ${adhesionId} sans organisation`);
   const attendu = compteConnecte(org);
@@ -324,7 +340,8 @@ async function reclamerEvenement(
 
 async function marquerTraite(admin: ClientAdmin, eventId: string | undefined): Promise<void> {
   if (!eventId) return;
-  await admin.from("stripe_events").update({ statut: "traite", traite_le: new Date().toISOString() }).eq("event_id", eventId);
+  const res = await admin.from("stripe_events").update({ statut: "traite", traite_le: new Date().toISOString() }).eq("event_id", eventId);
+  exiger(res, "marquerTraite");
 }
 
 async function marquerEchoue(admin: ClientAdmin, eventId: string | undefined, erreur: string): Promise<void> {
@@ -436,30 +453,37 @@ async function traiterAbonnement(event: StripeEvent, admin: ClientAdmin): Promis
     if (obj.mode !== "subscription" || !orgId) return false;
 
     if (stripeModeTest) {
-      const { data } = await admin.from("organisations").select("stripe_test").eq("id", orgId).maybeSingle();
+      const { data, error: eLire } = await admin.from("organisations").select("stripe_test").eq("id", orgId).maybeSingle();
+      exiger({ error: eLire }, "abonnement checkout test lecture");
       const actuel = (data?.stripe_test as Record<string, unknown>) ?? {};
-      await admin
-        .from("organisations")
-        .update({
-          stripe_test: {
-            ...actuel,
-            customer_id: obj.customer ?? null,
-            subscription_id: obj.subscription ?? null,
-            statut: "essai",
-          },
-        })
-        .eq("id", orgId);
+      exiger(
+        await admin
+          .from("organisations")
+          .update({
+            stripe_test: {
+              ...actuel,
+              customer_id: obj.customer ?? null,
+              subscription_id: obj.subscription ?? null,
+              statut: "essai",
+            },
+          })
+          .eq("id", orgId),
+        "abonnement checkout test maj"
+      );
       return true;
     }
 
-    await admin
-      .from("organisations")
-      .update({
-        abonnement_customer_id: obj.customer ?? null,
-        abonnement_subscription_id: obj.subscription ?? null,
-        abonnement_statut: "essai",
-      })
-      .eq("id", orgId);
+    exiger(
+      await admin
+        .from("organisations")
+        .update({
+          abonnement_customer_id: obj.customer ?? null,
+          abonnement_subscription_id: obj.subscription ?? null,
+          abonnement_statut: "essai",
+        })
+        .eq("id", orgId),
+      "abonnement checkout maj"
+    );
     return true;
   }
 

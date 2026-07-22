@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
 import { formatPrix } from "@/lib/format";
@@ -27,7 +27,7 @@ export default async function InscriptionPage(
 ) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) notFound();
 
   // Club dont l'abonnement est suspendu : les inscriptions en ligne sont fermées. On

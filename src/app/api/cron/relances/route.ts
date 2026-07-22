@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { envoyerEmail } from "@/lib/resend";
+import { envoyerEmailDetaille } from "@/lib/resend";
 import { gabaritEmail } from "@/lib/email-gabarit";
 import { lireEmailsConfig } from "@/lib/emails-config";
 import { compteConnecte, accesClub } from "@/lib/stripe-org";
@@ -72,10 +72,18 @@ async function lancer(request: NextRequest) {
   const depuis = new Date(Date.now() - 60 * UN_JOUR).toISOString();
   const { data: journalData, error: journalErr } = await admin
     .from("emails_journal")
-    .select("organisation_id, adherent_id, motif, envoye_le")
+    .select("organisation_id, adherent_id, motif, envoye_le, statut, lease_until")
     .gte("envoye_le", depuis);
   if (journalErr) return NextResponse.json({ error: "Lecture journal." }, { status: 500 });
-  const journal = journalData ?? [];
+  // Outbox : ne comptent comme « déjà pris » que les envois RÉUSSIS (`envoye`) ou une
+  // réservation `en_cours` dont le bail court encore. Une réservation morte (crash avant
+  // envoi, bail expiré) ou un `echoue` reste reprenable — la réservation atomique tranche.
+  const maintenant = Date.now();
+  const journal = (journalData ?? []).filter(
+    (j) =>
+      j.statut === "envoye" ||
+      (j.statut === "en_cours" && j.lease_until != null && new Date(j.lease_until).getTime() > maintenant)
+  );
   // Motifs de club (sans adhérent) déjà envoyés récemment — pour le récap et la fin d'essai.
   const motifOrgRecent = (orgId: string, motif: string, jours: number) =>
     journal.some(
@@ -219,9 +227,18 @@ async function lancer(request: NextRequest) {
     }
   }
 
-  // ——— Emails de CLUB (pas de plafond par adhérent ; dédup par motif d'org) ———
-  type EnvoiClub = { orgId: string; motif: string; to: string; objet: string; para: string[]; club: Organisation };
+  // ——— Emails de CLUB (pas de plafond par adhérent ; dédup par motif + période d'org) ———
+  type EnvoiClub = { orgId: string; motif: string; periode: string; to: string; objet: string; para: string[]; club: Organisation };
   const aEnvoyerClub: EnvoiClub[] = [];
+  // Semaine ISO courante (année-Wsemaine) — période du récap hebdomadaire.
+  const semaineISO = (() => {
+    const d = new Date();
+    const jeudi = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    jeudi.setUTCDate(jeudi.getUTCDate() + 4 - (jeudi.getUTCDay() || 7));
+    const debutAnnee = new Date(Date.UTC(jeudi.getUTCFullYear(), 0, 1));
+    const sem = Math.ceil(((jeudi.getTime() - debutAnnee.getTime()) / UN_JOUR + 1) / 7);
+    return `${jeudi.getUTCFullYear()}-W${String(sem).padStart(2, "0")}`;
+  })();
 
   // Récap hebdomadaire : le lundi seulement, au plus un par semaine, et seulement s'il y a
   // quelque chose à signaler (sinon on n'envoie rien — pas de bruit).
@@ -243,7 +260,10 @@ async function lancer(request: NextRequest) {
 
     // 1) Récap hebdomadaire.
     if (estLundi && cfg.recap_hebdo && !motifOrgRecent(org.id, "recap_hebdo", 6)) {
-      const liste = adhParOrg.get(org.id) ?? [];
+      // Uniquement la saison courante du club : un récap ne compte pas les vieilles
+      // adhésions (point du 4e audit).
+      const saison = saisonCourante(org);
+      const liste = (adhParOrg.get(org.id) ?? []).filter((a) => (a.saison ?? "") === saison);
       const nouvelles = liste.filter((a) => new Date(a.created_at).getTime() >= il7j).length;
       const oblig = clesObligatoires.get(org.id) ?? new Set<string>();
       let impayes = 0;
@@ -263,7 +283,7 @@ async function lancer(request: NextRequest) {
         if (impayes > 0) lignes.push(`${impayes} cotisation${impayes > 1 ? "s" : ""} encore à régler.`);
         if (dossiers > 0) lignes.push(`${dossiers} dossier${dossiers > 1 ? "s" : ""} avec une pièce manquante.`);
         aEnvoyerClub.push({
-          orgId: org.id, motif: "recap_hebdo", to: contact, club: org,
+          orgId: org.id, motif: "recap_hebdo", periode: semaineISO, to: contact, club: org,
           objet: `Votre semaine au ${org.nom}`,
           para: [
             `Bonjour,`,
@@ -280,7 +300,7 @@ async function lancer(request: NextRequest) {
       const restJours = Math.ceil((new Date(org.abonnement_essai_fin).getTime() - Date.now()) / UN_JOUR);
       if (restJours >= 3 && restJours <= 6) {
         aEnvoyerClub.push({
-          orgId: org.id, motif: "fin_essai", to: contact, club: org,
+          orgId: org.id, motif: "fin_essai", periode: org.abonnement_essai_fin.slice(0, 10), to: contact, club: org,
           objet: `Votre mois offert se termine dans ${restJours} jours`,
           para: [
             `Bonjour,`,
@@ -293,73 +313,80 @@ async function lancer(request: NextRequest) {
     }
   }
 
-  // Envois. On RÉSERVE dans le journal AVANT d'appeler Resend, pas après : l'insertion,
-  // protégée par l'index unique (adherent_id, motif), désigne un seul gagnant si deux
-  // exécutions se chevauchent — l'autre reçoit une violation d'unicité et n'envoie rien.
-  // Si l'envoi échoue ensuite, on relâche la réservation pour réessayer au prochain tour.
+  // Envois — modèle outbox (migration 0014). Pour chaque email :
+  //   1) `reserver_email` (RPC atomique) pose statut `en_cours` + un bail. Un seul worker
+  //      l'obtient ; `deja_envoye`/`occupe` → on passe, sans double envoi.
+  //   2) on envoie via Resend ;
+  //   3) succès → `marquer_email_envoye` (statut `envoye` + id fournisseur) ;
+  //      échec → `liberer_email` (statut `echoue`, repris au prochain tour). Un crash
+  //      entre 1 et 3 laisse la ligne `en_cours` : son bail expire et elle repart — plus
+  //      d'email perdu, plus de récap en double (l'unicité club+motif+période tranche).
   let envoyes = 0;
-  for (const e of aEnvoyer) {
-    // 1) Réservation atomique.
-    const { error: claimErr } = await admin.from("emails_journal").insert({
-      organisation_id: e.orgId,
-      adherent_id: e.adherentId,
-      destinataire: e.to,
-      motif: e.motif,
+  const reserver = async (orgId: string, adherentId: string | null, to: string, motif: string, periode: string | null) => {
+    const { data, error } = await admin.rpc("reserver_email", {
+      p_org: orgId, p_adherent: adherentId, p_destinataire: to, p_motif: motif, p_periode: periode, p_lease_seconds: 120,
     });
-    if (claimErr) {
-      // 23505 = déjà réservé/envoyé par un autre passage : on passe, sans double envoi.
-      if (claimErr.code === "23505") continue;
-      // Toute autre erreur DB : on abandonne le cron plutôt que d'envoyer sans trace.
+    if (error) throw new Error(error.message);
+    const r = data as { statut: string; id?: string };
+    return r;
+  };
+
+  for (const e of aEnvoyer) {
+    let r: { statut: string; id?: string };
+    try {
+      r = await reserver(e.orgId, e.adherentId, e.to, e.motif, null);
+    } catch {
       return NextResponse.json({ error: "Réservation email.", envoyes }, { status: 500 });
     }
-    // 2) Envoi.
+    if (r.statut !== "reserve" || !r.id) continue; // deja_envoye | occupe
     const html = gabaritEmail({
-      club: e.club.nom,
-      couleur: e.club.couleur_primaire,
-      titre: e.objet,
-      paragraphes: e.para,
+      club: e.club.nom, couleur: e.club.couleur_primaire, titre: e.objet, paragraphes: e.para,
       bouton: { libelle: "OUVRIR MON ESPACE", url: `https://klubster.fr/${e.club.slug}/espace` },
     });
-    const ok = await envoyerEmail({
-      to: e.to,
-      fromNom: e.club.nom,
-      replyTo: e.club.email_contact,
-      objet: e.objet,
-      texte: e.para.join("\n\n") + `\n\nVotre espace : https://klubster.fr/${e.club.slug}/espace`,
-      html,
+    const res = await envoyerEmailDetaille({
+      to: e.to, fromNom: e.club.nom, replyTo: e.club.email_contact, objet: e.objet,
+      texte: e.para.join("\n\n") + `\n\nVotre espace : https://klubster.fr/${e.club.slug}/espace`, html,
     });
-    // 3) Échec d'envoi : on libère la réservation pour un prochain essai.
-    if (ok) envoyes++;
-    else await admin.from("emails_journal").delete().eq("adherent_id", e.adherentId).eq("motif", e.motif);
+    if (res.ok) {
+      await admin.rpc("marquer_email_envoye", { p_id: r.id, p_provider_id: res.id });
+      envoyes++;
+    } else {
+      await admin.rpc("liberer_email", { p_id: r.id, p_erreur: res.erreur ?? null });
+    }
   }
 
-  // Emails de club (récap hebdo, fin d'essai) : bouton vers le cockpit, journal sans
-  // adhérent. On réserve d'abord (marqueur en base), on envoie ensuite, et on relâche si
-  // l'envoi échoue — pour ne pas re-tenter le lendemain un email déjà parti.
   for (const e of aEnvoyerClub) {
-    const { error: claimErr } = await admin.from("emails_journal").insert({
-      organisation_id: e.orgId,
-      adherent_id: null,
-      destinataire: e.to,
-      motif: e.motif,
-    });
-    if (claimErr) return NextResponse.json({ error: "Réservation email club.", envoyes }, { status: 500 });
+    let r: { statut: string; id?: string };
+    try {
+      r = await reserver(e.orgId, null, e.to, e.motif, e.periode);
+    } catch {
+      return NextResponse.json({ error: "Réservation email club.", envoyes }, { status: 500 });
+    }
+    if (r.statut !== "reserve" || !r.id) continue;
     const html = gabaritEmail({
-      club: e.club.nom,
-      couleur: e.club.couleur_primaire,
-      titre: e.objet,
-      paragraphes: e.para,
+      club: e.club.nom, couleur: e.club.couleur_primaire, titre: e.objet, paragraphes: e.para,
       bouton: { libelle: "OUVRIR LE COCKPIT", url: `https://klubster.fr/${e.club.slug}/cockpit` },
     });
-    const ok = await envoyerEmail({
-      to: e.to,
-      fromNom: "Klubster",
-      objet: e.objet,
-      texte: e.para.join("\n\n") + `\n\nVotre cockpit : https://klubster.fr/${e.club.slug}/cockpit`,
-      html,
+    const res = await envoyerEmailDetaille({
+      to: e.to, fromNom: "Klubster", objet: e.objet,
+      texte: e.para.join("\n\n") + `\n\nVotre cockpit : https://klubster.fr/${e.club.slug}/cockpit`, html,
     });
-    if (ok) envoyes++;
-    else await admin.from("emails_journal").delete().eq("organisation_id", e.orgId).is("adherent_id", null).eq("motif", e.motif);
+    if (res.ok) {
+      await admin.rpc("marquer_email_envoye", { p_id: r.id, p_provider_id: res.id });
+      envoyes++;
+    } else {
+      await admin.rpc("liberer_email", { p_id: r.id, p_erreur: res.erreur ?? null });
+    }
+  }
+
+  // Entretien quotidien : purge des questionnaires de santé hors saison, du journal
+  // d'emails au-delà de 13 mois, et des fenêtres de rate limit expirées. Non bloquant.
+  try {
+    await admin.rpc("purger_questionnaires_sante");
+    await admin.rpc("purger_emails_journal");
+    await admin.rpc("purger_rate_limit");
+  } catch (e) {
+    console.error("purge entretien", e);
   }
 
   return NextResponse.json({ ok: true, candidats: aEnvoyer.length + aEnvoyerClub.length, envoyes });

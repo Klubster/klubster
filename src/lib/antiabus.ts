@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Garde anti-abus pour les formulaires publics (inscription d'un adhérent).
@@ -40,6 +41,29 @@ function trop(cle: string, max: number): boolean {
   }
   actuel.nb += 1;
   return actuel.nb > max;
+}
+
+/**
+ * Limitation de débit PARTAGÉE entre instances (migration 0016). Le compteur en mémoire
+ * ne voyait que sa propre instance serverless ; ici, une RPC atomique compte à l'échelle
+ * de la plateforme. Repli sur le compteur mémoire si la base est indisponible — on ne
+ * bloque jamais une inscription pour une panne du limiteur, le pot de miel et Turnstile
+ * restant en place.
+ */
+async function tropDistribue(cle: string, max: number): Promise<boolean> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return trop(cle, max);
+  try {
+    const { data, error } = await admin.rpc("incrementer_rate_limit", {
+      p_cle: cle,
+      p_fenetre_secondes: Math.round(FENETRE_MS / 1000),
+      p_max: max,
+    });
+    if (error) return trop(cle, max);
+    return data === true;
+  } catch {
+    return trop(cle, max);
+  }
 }
 
 // Asynchrone depuis Next 15 : `headers()` retourne une promesse. Le codemod proposait
@@ -111,9 +135,9 @@ export async function verifierSoumissionPublique(formData: FormData, slug: strin
   const token = String(formData.get("cf-turnstile-response") ?? "");
   if (!(await turnstileValide(token))) return { ok: false, raison: "robot" };
 
-  // 3. Limitation de débit.
-  if (trop(`ip:${await ip()}`, MAX_PAR_IP)) return { ok: false, raison: "trop_de_tentatives" };
-  if (trop(`asso:${slug}`, MAX_PAR_ASSO)) return { ok: false, raison: "trop_de_tentatives" };
+  // 3. Limitation de débit — partagée entre instances (repli mémoire si base indisponible).
+  if (await tropDistribue(`ip:${await ip()}`, MAX_PAR_IP)) return { ok: false, raison: "trop_de_tentatives" };
+  if (await tropDistribue(`asso:${slug}`, MAX_PAR_ASSO)) return { ok: false, raison: "trop_de_tentatives" };
 
   return { ok: true };
 }

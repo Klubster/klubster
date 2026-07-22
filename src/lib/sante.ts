@@ -60,6 +60,24 @@ export function questionsPour(type: QSType): string[] {
   return type === "mineur" ? QS_MINEUR : QS_ADULTE;
 }
 
+/**
+ * Vraie date calendaire de naissance : pas seulement `\d{4}-\d{2}-\d{2}` (qui laisse
+ * passer `2026-99-99`), mais une date qui existe, pas dans le futur, pas absurde
+ * (année ≥ 1900). Le navigateur le vérifie, un appel direct non — d'où ce contrôle
+ * serveur (4e audit).
+ */
+export function estDateNaissanceValide(s: string, ref = new Date()): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [a, m, j] = s.split("-").map(Number);
+  if (a < 1900 || m < 1 || m > 12 || j < 1 || j > 31) return false;
+  const d = new Date(Date.UTC(a, m - 1, j));
+  // Rejette les jours qui « débordent » (31 avril → 1er mai) : les composants doivent
+  // se retrouver intacts après reconstruction.
+  if (d.getUTCFullYear() !== a || d.getUTCMonth() !== m - 1 || d.getUTCDate() !== j) return false;
+  // Pas dans le futur.
+  return d.getTime() <= ref.getTime();
+}
+
 export function estMineur(dateNaissance: string, ref = new Date()): boolean {
   const d = new Date(dateNaissance);
   if (Number.isNaN(d.getTime())) return false;

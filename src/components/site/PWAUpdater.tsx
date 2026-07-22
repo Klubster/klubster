@@ -3,13 +3,22 @@
 import { useEffect } from "react";
 
 /**
- * Enregistre le service worker et rend ses mises à jour invisibles.
+ * Enregistre le service worker et applique ses mises à jour sans jamais faire perdre une
+ * saisie.
  *
- * Le service worker s'active immédiatement (skipWaiting) ; côté page, on écoute la prise
- * de contrôle par une nouvelle version et on recharge en silence. Le garde `avaitControle`
- * évite un rechargement à la toute première installation (il n'y a alors rien à
- * remplacer) : on ne recharge que lorsqu'une version PRÉCÉDENTE cède la place à une
- * nouvelle. L'utilisateur ne voit jamais de bandeau « mettre à jour ».
+ * Le service worker s'active immédiatement (skipWaiting). Quand une nouvelle version prend
+ * le contrôle :
+ *   — page inactive (aucune saisie en cours) → on recharge en silence, la mise à jour est
+ *     invisible ;
+ *   — saisie en cours → on NE recharge PAS. On laisse la version actuelle terminer la
+ *     session ; le nouveau service worker étant déjà actif, la PROCHAINE navigation
+ *     (envoi du formulaire, clic sur un lien, ouverture d'une autre page) chargera d'
+ *     elle-même la nouvelle version.
+ *
+ * On ne recharge jamais sur un changement de visibilité ou un `pagehide` : changer d'
+ * onglet pendant un formulaire cachait la page et déclenchait le rechargement, effaçant
+ * la saisie au retour (4e audit). Le garde `avaitControle` évite tout rechargement à la
+ * première installation (rien à remplacer).
  */
 export default function PWAUpdater() {
   useEffect(() => {
@@ -18,23 +27,26 @@ export default function PWAUpdater() {
     const avaitControle = !!navigator.serviceWorker.controller;
     let rechargement = false;
 
-    // Une mise à jour ne doit jamais recharger la page alors que quelqu'un remplit un
-    // formulaire (inscription, message, règlement, édition du site) : il perdrait sa
-    // saisie. On repère une saisie en cours, et dans ce cas on diffère le rechargement à
-    // la fermeture/navigation suivante plutôt que de l'imposer.
+    // Repère une saisie en cours : champ focalisé (input/textarea/select/contenteditable)
+    // ou champ modifié même s'il n'a plus le focus. `select` et `contenteditable` sont
+    // désormais couverts (ils échappaient à la détection — 4e audit).
     const saisieEnCours = () => {
       const a = document.activeElement as HTMLElement | null;
       if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable)) {
         return true;
       }
-      // Un champ modifié mais plus focalisé compte aussi comme travail en cours.
-      return document.querySelector<HTMLInputElement>("input[data-modifie], textarea[data-modifie]") != null;
+      return document.querySelector("[data-modifie]") != null;
     };
     const marquerModifie = (e: Event) => {
       const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) t.setAttribute("data-modifie", "1");
+      if (!t) return;
+      // `input` couvre input/textarea/contenteditable ; `change` couvre les <select>.
+      if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable) {
+        t.setAttribute("data-modifie", "1");
+      }
     };
     document.addEventListener("input", marquerModifie, true);
+    document.addEventListener("change", marquerModifie, true);
 
     const recharger = () => {
       if (rechargement) return;
@@ -45,14 +57,9 @@ export default function PWAUpdater() {
       // Uniquement s'il y avait déjà une version en place : c'est une mise à jour, pas
       // une première installation.
       if (!avaitControle) return;
-      if (saisieEnCours()) {
-        // On attend que la personne quitte la page (ou change d'onglet) pour appliquer.
-        window.addEventListener("pagehide", recharger, { once: true });
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "hidden") recharger();
-        }, { once: true });
-        return;
-      }
+      // Saisie en cours : on ne force RIEN. La nouvelle version s'appliquera à la
+      // prochaine navigation, sans perte de données.
+      if (saisieEnCours()) return;
       recharger();
     };
     navigator.serviceWorker.addEventListener("controllerchange", surChangement);
@@ -73,6 +80,7 @@ export default function PWAUpdater() {
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", surChangement);
       document.removeEventListener("input", marquerModifie, true);
+      document.removeEventListener("change", marquerModifie, true);
       if (intervalle) clearInterval(intervalle);
     };
   }, []);

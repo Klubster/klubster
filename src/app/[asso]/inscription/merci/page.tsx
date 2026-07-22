@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function MerciPage(
 ) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";
   const prenom = searchParams?.prenom?.trim();

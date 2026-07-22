@@ -1,12 +1,38 @@
 import { describe, it, expect } from "vitest";
 import {
   estMineur,
+  estDateNaissanceValide,
   resultatDe,
   resultatDepuisReponses,
   questionsPour,
   QS_ADULTE,
   QS_MINEUR,
 } from "@/lib/sante";
+
+describe("estDateNaissanceValide — vraie date calendaire", () => {
+  const ref = new Date("2026-07-22T00:00:00Z");
+  it("accepte une date normale", () => {
+    expect(estDateNaissanceValide("1990-03-15", ref)).toBe(true);
+  });
+  it("refuse un mois/jour hors bornes (2026-99-99)", () => {
+    expect(estDateNaissanceValide("2026-99-99", ref)).toBe(false);
+  });
+  it("refuse un jour qui déborde (31 avril)", () => {
+    expect(estDateNaissanceValide("2000-04-31", ref)).toBe(false);
+  });
+  it("refuse le 29 février d'une année non bissextile", () => {
+    expect(estDateNaissanceValide("2001-02-29", ref)).toBe(false);
+    expect(estDateNaissanceValide("2000-02-29", ref)).toBe(true);
+  });
+  it("refuse une date future", () => {
+    expect(estDateNaissanceValide("2030-01-01", ref)).toBe(false);
+  });
+  it("refuse une année absurde et un format non ISO", () => {
+    expect(estDateNaissanceValide("1800-01-01", ref)).toBe(false);
+    expect(estDateNaissanceValide("15/03/1990", ref)).toBe(false);
+    expect(estDateNaissanceValide("", ref)).toBe(false);
+  });
+});
 
 /**
  * Questionnaire de santé. Deux enjeux distincts :

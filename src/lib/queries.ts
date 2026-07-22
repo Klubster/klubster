@@ -18,6 +18,41 @@ export async function getOrganisationBySlug(slug: string): Promise<Organisation 
   return data as Organisation | null;
 }
 
+// Colonnes de vitrine, lisibles par un visiteur non connecté. On EXCLUT les identifiants
+// internes d'abonnement (`abonnement_customer_id`, `abonnement_subscription_id`) et les
+// préférences d'emails du club (`emails_config`) : un visiteur anonyme n'en a jamais
+// besoin, et ils n'ont pas à sortir via l'API publique (4e audit). `stripe_account_id`
+// et `stripe_test` restent lus : le formulaire public en dépend (mode de paiement,
+// checkout sur le compte connecté du club).
+const COLONNES_ORG_PUBLIQUES =
+  "id, slug, nom, sport, logo_url, couleur_primaire, adresse, email_contact, telephone, " +
+  "stripe_account_id, abonnement_plan, publie, created_at, accroche, presentation, infos_pratiques, " +
+  "form_config, actualite, theme_template, theme_mode, page_config, domaine_custom, echeances_max, " +
+  "abonnement_statut, abonnement_essai_fin, abonnement_periode_fin, stripe_test, saison_debut, saison_fin";
+
+/**
+ * Variante PUBLIQUE de `getOrganisationBySlug` pour les pages accessibles sans connexion
+ * (vitrine, inscription, manifest, installer…). Elle ne lit que les colonnes de vitrine :
+ * les colonnes internes retirées à `anon` en base (migration 0015) feraient échouer un
+ * `select("*")` anonyme. Le cockpit, lui, reste sur `getOrganisationBySlug` (authentifié,
+ * accès complet).
+ */
+export async function getOrganisationPubliqueBySlug(slug: string): Promise<Organisation | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("organisations")
+    .select(COLONNES_ORG_PUBLIQUES)
+    .eq("slug", slug)
+    .eq("publie", true)
+    .maybeSingle();
+  if (error) {
+    console.error("getOrganisationPubliqueBySlug", error.message);
+    return null;
+  }
+  // Les 3 colonnes internes absentes ne sont jamais lues par les pages publiques.
+  return data as unknown as Organisation | null;
+}
+
 export async function getCoursByOrganisation(organisationId: string): Promise<Cours[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase

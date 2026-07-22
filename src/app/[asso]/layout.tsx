@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 import PWAUpdater from "@/components/site/PWAUpdater";
 
 // PWA par club : chaque site de club est installable comme une app à son nom,
 // avec son icône (initiale sur sa couleur) et son thème. Klubster s'efface.
 export async function generateMetadata(props: { params: Promise<{ asso: string }> }): Promise<Metadata> {
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) return {};
   return {
     manifest: `/${org.slug}/manifest.webmanifest`,
@@ -23,7 +23,7 @@ export async function generateMetadata(props: { params: Promise<{ asso: string }
 
 export async function generateViewport(props: { params: Promise<{ asso: string }> }): Promise<Viewport> {
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   return {
     themeColor: org?.couleur_primaire ?? "#111111",
   };

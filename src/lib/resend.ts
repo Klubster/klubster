@@ -45,6 +45,42 @@ export async function envoyerEmail(opts: {
   }
 }
 
+// Variante de `envoyerEmail` qui remonte l'identifiant de message du fournisseur (Resend)
+// en plus du succès — utile à l'outbox, qui le mémorise dans `provider_message_id`.
+export async function envoyerEmailDetaille(opts: {
+  to: string;
+  objet: string;
+  texte: string;
+  html?: string;
+  fromNom?: string;
+  replyTo?: string | null;
+}): Promise<{ ok: boolean; id: string | null; erreur?: string }> {
+  if (!KEY) return { ok: false, id: null, erreur: "RESEND_API_KEY manquante" };
+  const from = `${(opts.fromNom ?? "Klubster").replace(/["<>]/g, "").slice(0, 60)} <inscriptions@klubster.fr>`;
+  try {
+    const res = await fetch(`${API}/emails`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [opts.to],
+        subject: opts.objet,
+        text: opts.texte,
+        ...(opts.html ? { html: opts.html } : {}),
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const detail = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, id: null, erreur: detail?.message ?? `Erreur Resend (${res.status})` };
+    }
+    const json = (await res.json().catch(() => null)) as { id?: string } | null;
+    return { ok: true, id: json?.id ?? null };
+  } catch (e) {
+    return { ok: false, id: null, erreur: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 // Envoie un message DIFFÉRENT à chaque destinataire (relances : chacun voit son propre
 // montant restant). Un email individuel par personne ; batch de 100 max par appel Resend.
 export async function envoyerLotPersonnalise(opts: {

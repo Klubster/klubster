@@ -1,13 +1,17 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 import { stripeConfigured, createCheckoutForClub, createCheckoutEcheancesForClub, bornerEcheances } from "@/lib/stripe";
 import { envoyerEmail } from "@/lib/resend";
 import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { compteConnecte, accesClub } from "@/lib/stripe-org";
-import { resultatDepuisReponses, estMineur } from "@/lib/sante";
+import { resultatDepuisReponses, estMineur, estDateNaissanceValide } from "@/lib/sante";
+
+// Modes de paiement acceptés côté serveur. Un mode hors liste (requête forgée) ne doit
+// pas devenir « null » en silence : il est refusé (4e audit).
+const MODES_PAIEMENT = ["en_ligne", "en_ligne_echeances", "cheque", "especes"] as const;
 import { gabaritEmail } from "@/lib/email-gabarit";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
@@ -26,7 +30,7 @@ export async function inscrireAdherent(formData: FormData) {
   const verdict = await verifierSoumissionPublique(formData, slug);
   if (!verdict.ok) redirect(`/${slug}/inscription?erreur=${verdict.raison}`);
 
-  const org = await getOrganisationBySlug(slug);
+  const org = await getOrganisationPubliqueBySlug(slug);
   if (!org) redirect(`/${slug}/inscription?erreur=1`);
 
   // Abonnement du club suspendu (résilié, ou impayé au-delà de la grâce) : on ne prend
@@ -51,7 +55,8 @@ export async function inscrireAdherent(formData: FormData) {
   // Date de naissance — champ de la base commune. Stockée sur la fiche : elle
   // n'était persistée que via le questionnaire de santé, désormais optionnel.
   const dateNaissance = String(formData.get("naissance") ?? "").trim();
-  const dateValide = /^\d{4}-\d{2}-\d{2}$/.test(dateNaissance);
+  // Vraie date calendaire, pas future : `2026-99-99` ne passe plus (4e audit).
+  const dateValide = estDateNaissanceValide(dateNaissance);
   if (dateValide) infos["Date de naissance"] = dateNaissance;
 
   // La minorité est DÉDUITE de la date de naissance, jamais de la présence d'un champ
@@ -99,13 +104,23 @@ export async function inscrireAdherent(formData: FormData) {
   // un appel direct ne passe par aucun de ces contrôles : on reconstruit donc les règles
   // ici, à partir de la seule configuration du club et des données réellement reçues.
   const manque: string[] = [];
+  // Base commune : identité, cours, date calendaire, adresse, email valide, mot de passe.
+  // Le navigateur marque ces champs requis ; un appel direct ne passe par aucun de ces
+  // contrôles, on les rejoue donc ici (4e audit).
+  if (!prenom || !nom || !coursId || !dateValide) manque.push("base");
+  if (!adressePostale) manque.push("adresse");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) manque.push("email");
+  // Compte adhérent : mot de passe d'au moins 8 caractères. Sans lui, un appel direct
+  // créait une fiche sans compte réellement exploitable.
+  if (password.length < 8) manque.push("motdepasse");
+  // Mode de paiement dans la liste blanche.
+  if (!MODES_PAIEMENT.includes(mode as (typeof MODES_PAIEMENT)[number])) manque.push("mode");
   // Quand le club active le questionnaire de santé, il est OBLIGATOIRE : un appel direct
   // qui retire simplement les champs `qsante_*` ne doit plus aboutir (4e audit). Sans lui,
   // le club croirait le dossier en règle alors qu'aucune attestation n'existe.
   if (questionnaireActif && (!dateValide || !qAtteste || !signatureValide || qSignataire.length < 2)) {
     manque.push("questionnaire");
   }
-  if (!prenom || !nom || !email || !coursId || !dateValide) manque.push("base");
   // Champs personnalisés déclarés obligatoires par le club.
   for (const page of org.form_config?.pages ?? []) {
     for (const ch of page.champs) {
@@ -223,6 +238,13 @@ export async function inscrireAdherent(formData: FormData) {
   });
   if (error || !adhesionId) {
     console.error("register_adherent_avec_sante", error?.message);
+    // Le compte Auth vient d'être créé mais l'adhésion a échoué : on le supprime pour ne
+    // pas laisser un compte orphelin (email pris, aucune fiche derrière) qui bloquerait
+    // une nouvelle tentative avec « compte déjà existant » (4e audit).
+    if (userId) {
+      const { error: eDel } = await admin.auth.admin.deleteUser(userId);
+      if (eDel) console.error("rollback compte Auth", userId, eDel.message);
+    }
     redirect(`/${slug}/inscription?erreur=1`);
   }
 

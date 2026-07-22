@@ -1,12 +1,12 @@
 // Manifest PWA dynamique : une « app » par club, à ses couleurs.
 // L'adhérent installe SON club sur son téléphone et ouvre sa carte d'un tap.
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, props: { params: Promise<{ asso: string }> }) {
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) return new Response("Introuvable", { status: 404 });
 
   // Sur le domaine PROPRE d'un club, les URL visibles ne contiennent pas le slug

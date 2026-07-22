@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -19,7 +19,7 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
 export async function generateMetadata(props: { params: Promise<{ asso: string }> }): Promise<Metadata> {
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) return { title: "Association introuvable" };
 
   const description =
@@ -54,7 +54,7 @@ export default async function VitrinePage(
 ) {
   const searchParams = await props.searchParams;
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);
   const accent = org.couleur_primaire ?? "#111111";

@@ -67,6 +67,12 @@ Klubster intervient sous **deux qualités** :
 - **Données :** identifiant adhérent, date de présence.
 - **Durée :** saison en cours.
 
+### B4. Journal des emails automatiques
+- **Finalité :** éviter les envois en double et faire respecter le plafond anti-harcèlement (une relance / 7 j).
+- **Base légale :** intérêt légitime (bonne gestion des communications, protection contre le harcèlement).
+- **Données :** identifiant du club, identifiant de l'adhérent, adresse destinataire, motif, statut d'envoi, horodatage.
+- **Durée de conservation :** **13 mois** (une saison pleine + marge), puis purge automatique (`purger_emails_journal`, tâche quotidienne). L'adresse est par ailleurs effacée immédiatement à l'exercice du droit à l'effacement de l'adhérent.
+
 ---
 
 ## Sous-traitants ultérieurs (récapitulatif)
@@ -79,3 +85,24 @@ Klubster intervient sous **deux qualités** :
 
 ## Mesures de sécurité transverses
 Cloisonnement multi-tenant par `organisation_id` + Row Level Security ; fonctions privilégiées `SECURITY DEFINER` validant l'appartenance ; HTTPS ; chiffrement au repos (Supabase) ; sauvegardes ; journalisation ; procédure de notification de violation sous 72 h.
+
+## Habilitations internes au club — modèle d'accès aux dossiers adhérents
+
+**Décision assumée (22/07/2026, M. Bourdieu), à la suite du 4e audit de sécurité.**
+
+Au sein d'un même club, l'équipe est composée de **bénévoles nommément habilités par le président** (fonction « équipe » du cockpit). Les rôles et leurs droits d'**écriture** sont cloisonnés en base (RLS par rôle) :
+
+| Rôle | Écriture |
+|---|---|
+| Président (`admin_asso`) | Tout, y compris équipe et abonnement |
+| Trésorier | Paiements, encaissements, remises |
+| Secrétaire | Adhérents, dossiers, pièces, santé, messages, site |
+| Encadrant | Contrôle au scan, présences |
+| Lecture seule | Aucune |
+
+Les **données sensibles réglementées** font l'objet d'un cloisonnement de **lecture** spécifique, plus strict :
+- **questionnaires de santé** (art. 9) et **pièces justificatives** : lecture réservée au **président et au secrétaire** — jamais au trésorier, à l'encadrant ni au rôle lecture seule (RLS `qs_read_org`, `pieces_read_role`).
+
+Pour les **autres champs du dossier adhérent** (identité, coordonnées, date de naissance, adresse, responsable légal, contact d'urgence, informations administratives), la **lecture est ouverte à l'ensemble de l'équipe habilitée du club**. Ce choix est **assumé et documenté** au titre de l'art. 5.1.c (minimisation) : au sein d'une association, ces informations sont nécessaires à la vie courante du club (convocations, licences, sécurité des mineurs, contact en cas d'urgence pendant l'entraînement), et l'accès est déjà limité aux seuls bénévoles que le président a explicitement habilités, cloisonné par club, journalisé, et révocable à tout moment. Une segmentation colonne-par-colonne plus fine (encadrant limité à identité + présence, trésorier à identité + situation de paiement) reste une **évolution possible** si un club le demande ou si le volume d'équipes le justifie, mais n'est pas retenue comme mesure obligatoire à ce stade.
+
+**Base de la décision :** l'audit externe a explicitement qualifié ce point de non bloquant « si cette organisation est assumée et documentée » — ce que fait la présente section.

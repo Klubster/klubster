@@ -98,8 +98,9 @@ export async function verifierSuperAdmin() {
 export async function getStatsAdmin(): Promise<StatsAdmin> {
   const supabase = await createSupabaseServerClient();
 
-  const [orgsRes, adhesionsRes, reglementsRes, coursRes, profilsRes, presencesRes] = await Promise.all([
+  const [orgsRes, adherentsRes, adhesionsRes, reglementsRes, coursRes, profilsRes, presencesRes] = await Promise.all([
     supabase.from("organisations").select("*").order("created_at", { ascending: false }).limit(PLAFOND),
+    supabase.from("adherents").select("organisation_id").limit(PLAFOND),
     supabase.from("adhesions").select("id, organisation_id, montant_centimes, statut, created_at").limit(PLAFOND),
     supabase.from("reglements").select("organisation_id, montant_centimes, created_at").limit(PLAFOND),
     supabase.from("cours").select("id, organisation_id").limit(PLAFOND),
@@ -108,13 +109,14 @@ export async function getStatsAdmin(): Promise<StatsAdmin> {
   ]);
 
   const orgs = (orgsRes.data ?? []) as Organisation[];
+  const adherents = adherentsRes.data ?? [];
   const adhesions = adhesionsRes.data ?? [];
   const reglements = reglementsRes.data ?? [];
   const cours = coursRes.data ?? [];
   const profils = profilsRes.data ?? [];
   const presences = presencesRes.data ?? [];
 
-  const tronque = [adhesions, reglements, cours, presences].some((t) => t.length >= PLAFOND);
+  const tronque = [adherents, adhesions, reglements, cours, presences].some((t) => t.length >= PLAFOND);
 
   // Index par organisation — une seule passe sur chaque table.
   const parOrg = <T extends { organisation_id: string | null }>(rows: T[]) => {
@@ -127,6 +129,16 @@ export async function getStatsAdmin(): Promise<StatsAdmin> {
     }
     return m;
   };
+  // Effectif FACTURABLE = nombre d'adhérents du club (une personne, même inscrite à
+  // deux cours, compte pour une). C'est la définition unique du palier : la facturation
+  // réelle (stripe-actions) et la RPC `palier_abonnement` comptent aussi les adhérents.
+  // Auparavant la console comptait les ADHÉSIONS ici, surestimant le palier d'un club
+  // multi-cours (4e audit).
+  const adherentsCountPar = new Map<string, number>();
+  for (const a of adherents) {
+    if (!a.organisation_id) continue;
+    adherentsCountPar.set(a.organisation_id, (adherentsCountPar.get(a.organisation_id) ?? 0) + 1);
+  }
   const adhesionsPar = parOrg(adhesions);
   const reglementsPar = parOrg(reglements);
   const coursPar = parOrg(cours);
@@ -153,7 +165,7 @@ export async function getStatsAdmin(): Promise<StatsAdmin> {
     const encaisse = r.reduce((s, x) => s + (x.montant_centimes ?? 0), 0);
     const du = a.reduce((s, x) => s + (x.montant_centimes ?? 0), 0);
     const statut = statutAbonnement(org) as StatutAbo;
-    const prix = PALIERS[palierPourEffectif(a.length)].prixCentimes;
+    const prix = PALIERS[palierPourEffectif(adherentsCountPar.get(org.id) ?? 0)].prixCentimes;
     return {
       id: org.id,
       nom: org.nom,

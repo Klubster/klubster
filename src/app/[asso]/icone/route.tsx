@@ -6,7 +6,7 @@
 // toujours une image distante de façon fiable — avec un délai borné et un repli en cas
 // d'échec, pour ne jamais servir une icône cassée.
 import { ImageResponse } from "next/og";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,7 @@ async function logoEnDataUrl(url: string): Promise<string | null> {
 
 export async function GET(req: Request, props: { params: Promise<{ asso: string }> }) {
   const params = await props.params;
-  const org = await getOrganisationBySlug(params.asso);
+  const org = await getOrganisationPubliqueBySlug(params.asso);
   const { searchParams } = new URL(req.url);
   const brut = parseInt(searchParams.get("taille") ?? "512", 10);
   const taille = Math.min(Math.max(Number.isFinite(brut) ? brut : 512, 64), 1024);
