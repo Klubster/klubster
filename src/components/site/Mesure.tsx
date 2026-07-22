@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 /**
- * Mesure d'audience (Microsoft Clarity) et consentement.
+ * Mesure d'audience (Microsoft Clarity), en mode sans cookie.
  *
  * Trois règles tiennent ce fichier :
  *
@@ -19,16 +18,27 @@ import { usePathname } from "next/navigation";
  *    questionnaires de santé — alors que Klubster s'engage auprès des clubs, dans son
  *    contrat de sous-traitance, à ne pas faire sortir leurs données. La liste ci-dessous
  *    reste donc en place au cas où le composant serait monté ailleurs par erreur.
+ *    Cette barrière-là n'est pas négociable : elle protège les données des adhérents.
  *
- * 3. CONSENTEMENT PRÉALABLE. Les cookies de Clarity ne sont pas essentiels : la CNIL
- *    impose donc le consentement, et depuis le 31/10/2025 Microsoft lui-même le
- *    réclame pour les visiteurs de l'EEE — sans bandeau, l'outil ne collecte rien.
- *    Le refus est aussi accessible que l'acceptation, et il est mémorisé : reposer la
- *    question à chaque visite reviendrait à forcer la main.
+ * 3. PAS DE BANDEAU. Décision produit de Mathieu (21/07/2026) : sur une landing atteinte
+ *    par email à froid, un bandeau coûte plus de visiteurs qu'il n'apporte de mesure.
+ *    Le dépôt de cookies est désactivé dans les réglages du projet Clarity (Settings →
+ *    Setup), ce qui est la condition pour s'en passer.
+ *
+ *    ⚠️ Contrepartie documentée par Microsoft, à connaître avant de lire les chiffres :
+ *    depuis le 31/10/2025, sans signal de consentement, Clarity continue d'enregistrer
+ *    les sessions mais dégrade ses agrégats pour les visiteurs de l'EEE — chaque page vue
+ *    compte pour une session, tout visiteur paraît nouveau, et surtout **les tunnels
+ *    affichent un abandon total à chaque étape**. Les enregistrements de session restent
+ *    exploitables ; les entonnoirs de conversion, non.
+ *    https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-without-cookie-consent
+ *
+ *    On n'appelle volontairement PAS `clarity("consent", …)` : cette API sert à
+ *    transmettre le choix d'un visiteur à qui l'on a posé la question. Ici on ne la pose
+ *    pas, et lui passer `false` reviendrait à déclarer un refus explicite.
  */
 
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
-const CLE = "klubster-mesure-v1";
 
 /**
  * Pages de la marque. Tout le reste appartient aux clubs et à leurs adhérents.
@@ -45,17 +55,6 @@ function pageMesurable(pathname: string | null): boolean {
   return PAGES_MESUREES.some((p) => p !== "/" && (pathname === p || pathname.startsWith(`${p}/`)));
 }
 
-type Choix = "oui" | "non" | null;
-
-function lireChoix(): Choix {
-  try {
-    const v = localStorage.getItem(CLE);
-    return v === "oui" || v === "non" ? v : null;
-  } catch {
-    return null; // navigation privée verrouillée : on se comporte comme sans choix
-  }
-}
-
 function chargerClarity() {
   if (!CLARITY_ID) return;
   if (document.getElementById("kb-clarity")) return;
@@ -70,66 +69,10 @@ function chargerClarity() {
 export default function Mesure() {
   const pathname = usePathname();
   const surPageMesuree = pageMesurable(pathname);
-  // `null` tant que le composant n'a pas lu localStorage : rien ne s'affiche côté
-  // serveur, donc aucune divergence d'hydratation possible.
-  const [choix, setChoix] = useState<Choix | "inconnu">("inconnu");
 
   useEffect(() => {
-    setChoix(lireChoix());
-  }, []);
+    if (surPageMesuree) chargerClarity();
+  }, [surPageMesuree]);
 
-  useEffect(() => {
-    if (choix === "oui" && surPageMesuree) chargerClarity();
-  }, [choix, surPageMesuree]);
-
-  function decider(valeur: "oui" | "non") {
-    try {
-      localStorage.setItem(CLE, valeur);
-    } catch {
-      /* stockage indisponible : le choix vaut pour cette visite seulement */
-    }
-    setChoix(valeur);
-  }
-
-  // Sans identifiant Clarity configuré, aucun traceur n'est déposé : demander un
-  // consentement pour rien serait une friction gratuite.
-  if (!CLARITY_ID) return null;
-  if (!surPageMesuree) return null;
-  if (choix !== null) return null;
-
-  return (
-    <div
-      role="dialog"
-      aria-label="Mesure d’audience"
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-line bg-paper px-6 py-5 md:px-8"
-    >
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <p className="text-[14px] leading-relaxed text-ink-soft">
-          Nous mesurons la fréquentation de ce site pour comprendre ce qui s’y comprend mal.
-          Rien n’est mesuré dans les espaces des associations ni de leurs adhérents.{" "}
-          <Link href="/confidentialite" className="underline underline-offset-2 hover:text-ink">
-            En savoir plus
-          </Link>
-        </p>
-        <div className="flex shrink-0 gap-3">
-          {/* Refuser d'abord, et avec le même poids visuel qu'accepter : un refus qu'il
-              faut chercher n'est pas un choix libre. */}
-          <button
-            type="button"
-            onClick={() => decider("non")}
-            className="mono border border-line px-5 py-3 text-[12px] text-ink hover:border-ink"
-          >
-            REFUSER
-          </button>
-          <button
-            type="button"
-            onClick={() => decider("oui")}
-            className="mono border border-ink bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
-          >
-            ACCEPTER
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }

@@ -86,13 +86,18 @@ export default function Confidentialite() {
         Aucun cookie publicitaire n’est déposé, et Klubster ne pratique aucun profilage.
       </p>
       <p>
-        Sur les <strong>pages de présentation de Klubster</strong> (accueil, tarifs, fonctionnalités, page
-        de création d’association), et uniquement sur celles-ci, une mesure d’audience{" "}
-        <strong>Microsoft Clarity</strong> permet de comprendre ce qui se lit mal ou décourage les
-        visiteurs. Elle n’est activée <strong>qu’après votre accord</strong>, demandé par un bandeau où
-        refuser est aussi simple qu’accepter, et votre refus est conservé. Microsoft Clarity est un service
-        de Microsoft Corporation, société américaine ; les transferts s’appuient sur les clauses
-        contractuelles types et le cadre de protection des données UE–États-Unis.
+        Sur les <strong>pages de présentation de Klubster</strong> (accueil, tarifs, fonctionnalités), et
+        uniquement sur celles-ci, une mesure d’audience <strong>Microsoft Clarity</strong> permet de
+        comprendre ce qui se lit mal ou décourage les visiteurs. Elle fonctionne en{" "}
+        <strong>mode sans cookie</strong> : rien n’est déposé ni lu sur votre terminal, aucun identifiant
+        ne vous suit d’une visite à l’autre, et aucun profil n’est constitué. C’est la raison pour laquelle
+        aucun bandeau ne vous est présenté. Microsoft Clarity est un service de Microsoft Corporation,
+        société américaine ; les transferts s’appuient sur les clauses contractuelles types et le cadre de
+        protection des données UE–États-Unis.
+      </p>
+      <p>
+        La <strong>page de création d’association</strong> est exclue de cette mesure : c’est la seule page
+        de présentation où l’on saisit un nom, une adresse email et un mot de passe.
       </p>
       <p>
         <strong>Cette mesure ne s’applique jamais aux espaces des associations ni de leurs adhérents</strong>
@@ -101,8 +106,9 @@ export default function Confidentialite() {
         contiennent sont exclues de la mesure par construction.
       </p>
       <p>
-        Vous pouvez revenir sur votre choix à tout moment en effaçant les données de site de votre
-        navigateur pour klubster.fr : le bandeau vous sera de nouveau proposé.
+        Si vous ne souhaitez pas être compté dans cette mesure, l’option « Ne pas me suivre » (Do Not
+        Track) de votre navigateur, ou n’importe quel bloqueur de traceurs, suffit à l’écarter. Vous pouvez
+        aussi nous écrire : nous retirerons les enregistrements vous concernant.
       </p>
 
       <h2>9. Vos droits</h2>
