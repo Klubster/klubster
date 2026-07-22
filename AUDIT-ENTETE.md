@@ -47,14 +47,24 @@ Corrigés lors des relectures antérieures (ne pas y revenir) : RPC exécutables
 - **Codes promo** : `src/app/admin/codes/` + fonctions Stripe (`creerCodePromo`, `listerCodesPromo`, `basculerCodePromo`), réservé au super-admin.
 - **Guide d'installation PWA** : `src/app/[asso]/installer/`.
 
+## Corrigé lors du 3ᵉ audit (migrations 0008–0011) — vérifié en production
+
+- **RLS par rôle** (migration 0008) sur adherents/adhesions/cours/reglements/pieces/presences : la lecture reste large pour l'équipe, mais l'ÉCRITURE est réservée au rôle métier (reglements → président/trésorier, cours/adhérents → président/secrétaire, présences → président/encadrant) ; la LECTURE des pièces (documents sensibles) est restreinte à président/secrétaire. Cela ferme le contournement de la matrice de rôles par appel PostgREST direct.
+- **Trigger de protection de `profiles.role`/`organisation_id`** (migration 0009) — défense en profondeur (l'escalade n'était en réalité pas possible, `authenticated` n'ayant l'UPDATE que sur `nom`/`prenom`).
+- **Emails automatiques** : réservation ATOMIQUE avant l'envoi (index unique), arrêt du cron si une lecture échoue, relances filtrées à la saison courante et aux statuts actifs, clubs suspendus exclus.
+- **Redirection ouverte** fermée dans `auth/confirm` ET `auth/callback` (via `destinationSure`).
+- **PWA sur domaine propre** : `/sw.js` hors réécriture, manifest adapté à l'hôte ; pas de rechargement pendant une saisie.
+- **Journal d'emails** : FK `on delete set null` + effacement à l'anonymisation (migration 0010).
+
 ## Points ouverts, assumés — le contexte pour ne pas les compter deux fois
 
-- **Aucun test offensif n'a jamais été mené.** Tout vient de relectures de code. Un regard sur les chemins d'attaque réels est ce qui manque le plus.
-- **Le compte super-administrateur est une adresse Gmail personnelle** (2FA à confirmer). Ce compte voit la trésorerie de tous les clubs.
-- **Turnstile ne protège que le formulaire d'inscription public.** `/creer` et `/connexion` reposent sur les limites de Supabase.
-- **La limitation de débit anti-abus vit en mémoire** (`src/lib/antiabus.ts`), donc par instance serverless.
-- **`getOrganisationBySlug` fait `select("*")`** : les identifiants Stripe opérationnels (`acct_`/`cus_`/`sub_`, non secrets) sortent en lecture publique. À restreindre à une liste de colonnes ou une vue.
-- **Fichiers Storage orphelins** possibles au remplacement d'une pièce.
+- **Aucun test offensif automatisé (PostgREST direct, E2E) n'a encore été mené.** Les vérifications restent des relectures + inspection de la base réelle.
+- **Le compte super-administrateur est une adresse Gmail personnelle** (2FA à confirmer).
+- **L'effectif facturable n'est pas unifié** : le checkout compte les lignes `adherents` ; une RPC unique `effectif_facturable` (adhésions actives de la saison) reste à créer (aucun club abonné aujourd'hui).
+- **Rétention temporelle du journal d'emails** à définir (durée puis purge).
+- **Turnstile ne protège que le formulaire d'inscription** ; `/creer` et `/connexion` reposent sur les limites Supabase.
+- **`getOrganisationBySlug` fait `select("*")`** : les ids Stripe opérationnels (non secrets) sortent en lecture publique. À restreindre.
+- **La limitation de débit anti-abus vit en mémoire** (par instance serverless).
 - Deux avis `moderate` sur un `postcss` embarqué dans Next lui-même, non actionnables.
 
 ## Couverture de tests
