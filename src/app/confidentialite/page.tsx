@@ -1,7 +1,10 @@
 import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
-export const metadata = { title: "Politique de confidentialité — Klubster" };
+export const metadata = {
+  title: "Politique de confidentialité — Klubster",
+  alternates: { canonical: "/confidentialite" },
+};
 
 export default function Confidentialite() {
   return (

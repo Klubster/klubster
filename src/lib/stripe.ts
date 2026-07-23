@@ -21,10 +21,26 @@ export const stripeModeTest: boolean =
 
 const KEY = stripeModeTest ? CLE_TEST : CLE_LIVE;
 
-/** Une clé live employée en mode test (ou l'inverse) ferait des dégâts silencieux. */
+/**
+ * Version d'API épinglée. Sans en-tête `Stripe-Version`, chaque appel suit la version
+ * par défaut du COMPTE — un réglage de dashboard non versionné : la forme des réponses
+ * peut changer sous nos pieds. À renseigner avec la version affichée dans le dashboard
+ * Stripe (Workbench → API version), ex. « 2026-06-24.dahlia ». On ne code PAS de version
+ * en dur ici : épingler une version différente de celle du compte changerait les
+ * payloads (webhooks compris) sans qu'on l'ait testée.
+ */
+const VERSION_API = process.env.STRIPE_API_VERSION;
+
+/**
+ * Une clé live employée en mode test (ou l'inverse) ferait des dégâts silencieux.
+ * Les clés restreintes (`rk_`, recommandées par Stripe) sont acceptées au même titre
+ * que les clés secrètes (`sk_`) : seul le mode test/live doit concorder.
+ */
 export function stripeCleCoherente(): boolean {
   if (!KEY) return false;
-  return stripeModeTest ? KEY.startsWith("sk_test_") : KEY.startsWith("sk_live_");
+  return stripeModeTest
+    ? KEY.startsWith("sk_test_") || KEY.startsWith("rk_test_")
+    : KEY.startsWith("sk_live_") || KEY.startsWith("rk_live_");
 }
 
 /**
@@ -75,9 +91,10 @@ function toForm(obj: Dict): string {
   return params.toString();
 }
 
-async function call(method: "GET" | "POST", path: string, body?: Dict, stripeAccount?: string) {
+async function call(method: "GET" | "POST" | "DELETE", path: string, body?: Dict, stripeAccount?: string) {
   if (!KEY) throw new Error("Stripe non configuré (STRIPE_SECRET_KEY manquante).");
   const headers: Record<string, string> = { Authorization: `Bearer ${KEY}` };
+  if (VERSION_API) headers["Stripe-Version"] = VERSION_API;
   if (stripeAccount) headers["Stripe-Account"] = stripeAccount;
   const init: RequestInit = { method, headers };
   if (method === "POST") {
@@ -254,7 +271,20 @@ export async function creerCodePromo(opts: NouveauCodePromo): Promise<CodePromoA
     if (Number.isFinite(t)) promo.expires_at = t;
   }
 
-  const promoCree = await call("POST", "/promotion_codes", promo);
+  let promoCree: Record<string, unknown>;
+  try {
+    promoCree = await call("POST", "/promotion_codes", promo);
+  } catch (e) {
+    // Le coupon vient d'être créé : si le code échoue (ex. code déjà pris), on le
+    // supprime au mieux, sinon chaque tentative ratée laissait un coupon orphelin
+    // dans le dashboard. L'erreur d'origine prime sur celle du nettoyage.
+    try {
+      await call("DELETE", `/coupons/${couponCree.id}`);
+    } catch {
+      // Nettoyage best effort — tant pis.
+    }
+    throw e;
+  }
   return {
     id: promoCree.id as string,
     code: (promoCree.code as string) ?? code,
@@ -597,6 +627,18 @@ export async function planifierEcheances(subscriptionId: string, clubAccount: st
     },
     clubAccount
   );
+}
+
+/**
+ * Relit une charge avec ses remboursements, sur le compte connecté du club. Sert au
+ * webhook `charge.refunded` quand le payload n'inclut pas `refunds.data` : on n'y devine
+ * jamais un delta à partir du cumul `amount_refunded`.
+ */
+export async function getChargeAvecRefunds(chargeId: string, clubAccount: string) {
+  return call("GET", `/charges/${chargeId}?expand[]=refunds`, undefined, clubAccount) as Promise<{
+    id: string;
+    refunds?: { data?: Array<{ id?: string; amount?: number }> };
+  }>;
 }
 
 // Retrouve les métadonnées d'un abonnement (webhook facture → adhesion_id).

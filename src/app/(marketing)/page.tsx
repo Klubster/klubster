@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: "Klubster — Logiciel de gestion d'association : inscriptions, paiements, site web",
   description:
     "Le logiciel de gestion pour associations et clubs sportifs : inscriptions en ligne, paiements sans commission, relances, site web du club. Pensé pour les bénévoles, prêt en moins de 30 minutes. À partir de 9 €/mois, premier mois offert.",
+  // La canonique ne vit plus dans le layout racine (elle y contaminait toutes les pages).
+  alternates: { canonical: "/" },
 };
 
 // Les trois objections de la page sont une vraie FAQ : annotées en FAQPage,
@@ -78,7 +80,7 @@ function DoublePage({
       </div>
       <div className="flex items-center px-6 py-20 md:px-16 md:py-0">
         <Reveal className="max-w-md">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">{num}</span> — {kicker}<Cur /></p>
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand-dark">{num}</span> — {kicker}<Cur /></p>
           <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">{titre}</h2>
           <div className="mt-6 space-y-4 text-lg text-ink-soft">{children}</div>
         </Reveal>
@@ -174,6 +176,9 @@ export default function Home() {
       <section className="relative h-[80vh] min-h-[560px] w-full overflow-hidden">
         <Parallax src="/01-hero.jpg" alt="Une salle de sport vide, au lever du jour." className="absolute inset-0" strength={0.07} priority />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/35 to-ink/15" />
+        {/* Scrim haut : la nav (logo et liens paper/80) passe sur la zone claire de la
+            photo — sans ce voile, elle disparaissait sur un ciel ou un mur clair. */}
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink/50 to-transparent" />
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8 md:pb-20">
             <p className="mono text-[11px] uppercase tracking-label text-paper/75">KLUBSTER<Cur /></p>
@@ -232,7 +237,7 @@ export default function Home() {
       <section id="cockpit">
         <div className="mx-auto max-w-6xl px-6 pt-24 pb-12 md:px-8 md:pt-32 md:pb-[72px]">
           <Reveal className="max-w-2xl">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">II</span> — LE COCKPIT<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand-dark">II</span> — LE COCKPIT<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               La salle ouvre dans quinze minutes.
             </h2>
@@ -295,7 +300,7 @@ export default function Home() {
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">III</span> — TARIFS<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand-dark">III</span> — TARIFS<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">Tout est déjà inclus.</h2>
             <p className="mt-6 max-w-prose text-lg text-ink-soft">
               Pas de version Pro. Pas d’options. Pas de modules supplémentaires.<br />
@@ -321,9 +326,10 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Le geste touche le prix : c'est là qu'on décide. */}
+          {/* Le geste touche le prix : c'est là qu'on décide. Même style que les autres
+              CTA « créer » de la page : un seul geste, une seule couleur. */}
           <div className="mt-10 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
+            <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
@@ -382,7 +388,7 @@ export default function Home() {
       <section>
         <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-36 md:pb-[72px]">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">IV</span> — UNE DEMI-HEURE<Cur /></p>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand-dark">IV</span> — UNE DEMI-HEURE<Cur /></p>
             <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Une demi-heure.<br />C’est tout.
             </h2>
@@ -398,7 +404,9 @@ export default function Home() {
                 ["04", "Ouvrez les inscriptions.", "Votre site est en ligne. Les premiers dossiers peuvent arriver."],
               ].map(([n, titre, texte]) => (
                 <div key={n} className="grid grid-cols-[48px_1fr] gap-4 border-b border-line py-6 md:grid-cols-[64px_1fr]">
-                  <span className="mono text-[13px] text-brand">{n}</span>
+                  {/* Numéro d'étape = information de lecture en petit corps : brand-dark
+                      (4,5:1), le vert clair reste réservé au décoratif. */}
+                  <span className="mono text-[13px] text-brand-dark">{n}</span>
                   <div>
                     <p className="text-xl font-medium tracking-[-0.01em] md:text-2xl">{titre}</p>
                     <p className="mt-1.5 text-[15px] text-ink-soft">{texte}</p>
@@ -421,7 +429,7 @@ export default function Home() {
         <div className="flex items-center px-6 py-20 md:px-16 md:py-24">
           <div className="max-w-md">
             <Reveal>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand">V</span> — SUR LE TERRAIN<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft"><span className="text-brand-dark">V</span> — SUR LE TERRAIN<Cur /></p>
               <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[36px]">
                 Je n’ai pas inventé Klubster. J’en avais besoin.
               </h2>
@@ -440,7 +448,7 @@ export default function Home() {
                   312 = adhérents de l'USM Boxe dans Klubster (base prod, 13/07/2026).
                   À rafraîchir en début de saison. */}
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand">312</span> adhérents gérés cette saison
+                <span className="text-brand-dark">312</span> adhérents gérés cette saison
               </p>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
@@ -507,6 +515,10 @@ export default function Home() {
             </div>
             <nav className="mono flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-ink-soft">
               <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
+              {/* Maillage interne : la nav ne pointe que l'ancre #tarifs — la page
+                  /tarifs n'avait aucun lien entrant depuis la home. */}
+              <Link href="/tarifs" className="hover:text-ink">Tarifs</Link>
+              <Link href="/fonctionnalites" className="hover:text-ink">Fonctionnalités</Link>
               <Link href="/connexion" className="hover:text-ink">Espace président</Link>
               <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
               <Link href="/cgu" className="hover:text-ink">CGU</Link>

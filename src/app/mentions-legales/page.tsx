@@ -1,6 +1,9 @@
 import LegalShell from "@/components/site/LegalShell";
 
-export const metadata = { title: "Mentions légales — Klubster" };
+export const metadata = {
+  title: "Mentions légales — Klubster",
+  alternates: { canonical: "/mentions-legales" },
+};
 
 export default function MentionsLegales() {
   return (

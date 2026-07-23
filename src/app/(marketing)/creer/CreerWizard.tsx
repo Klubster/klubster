@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { THEME_TEMPLATES, THEME_MODES, fontsHrefAll, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
+import { THEME_TEMPLATES, THEME_MODES, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
 import { creerClub, creerCompteWizard, connexionWizard, type CoursInput, type CreneauInput } from "./actions";
 
 function Cur() {
@@ -255,8 +255,8 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
 
   return (
     <main className="min-h-screen text-ink">
-      {/* Polices des 6 templates, pour les aperçus de l'étape 01. */}
-      <link rel="stylesheet" href={fontsHrefAll()} />
+      {/* Polices des 6 templates (aperçus de l'étape 01) : auto-hébergées par next/font,
+          exposées par le layout de /creer — plus de <link> vers Google Fonts. */}
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
@@ -349,8 +349,9 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
             <div>
               <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 02 — IDENTITÉ<Cur /></p>
               <h1 className="mt-6 text-2xl font-medium md:text-3xl">Le nom de votre club.</h1>
-              <label className="mono mt-8 block text-[11px] uppercase tracking-label text-ink-soft">NOM DE L&apos;ASSOCIATION</label>
+              <label htmlFor="creer-nom" className="mono mt-8 block text-[11px] uppercase tracking-label text-ink-soft">NOM DE L&apos;ASSOCIATION</label>
               <input
+                id="creer-nom"
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder="Ex. USM Boxe Anglaise"
@@ -706,10 +707,13 @@ function ChampCompte({
 }
 
 function Champ({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  // Même patron que ChampCompte : label associé à l'input (a11y).
+  const id = "infos-" + label.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   return (
     <div>
-      <label className="mono block text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
+      <label htmlFor={id} className="mono block text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
       <input
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

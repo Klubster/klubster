@@ -42,6 +42,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+      {/* Sans JavaScript, les révélations au scroll (.kb-reveal { opacity: 0 }) laissaient
+          des pages entières invisibles — visiteur comme robot. Ce repli rend tout
+          visible d'emblée quand aucun script ne tournera. */}
+      <noscript>
+        <style>{`.kb-reveal,.kb-quote,.kb-cite-line{opacity:1 !important;transform:none !important}`}</style>
+      </noscript>
       {children}
       <Mesure />
     </>

@@ -9,13 +9,16 @@ export const revalidate = 3600;
 
 async function slugsPublies(): Promise<string[]> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/organisations?select=slug&publie=eq.true`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/organisations?select=slug,domaine_custom&publie=eq.true`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
-    const rows = (await res.json()) as { slug: string }[];
-    return rows.map((r) => r.slug);
+    const rows = (await res.json()) as { slug: string; domaine_custom: string | null }[];
+    // Un club branché sur son propre domaine déclare ce domaine comme canonique
+    // (generateMetadata de la vitrine) : lister klubster.fr/{slug} ici reviendrait à
+    // soumettre aux moteurs des URL qui se déclarent elles-mêmes duplicatas.
+    return rows.filter((r) => !r.domaine_custom).map((r) => r.slug);
   } catch {
     return [];
   }

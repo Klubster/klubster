@@ -1,7 +1,10 @@
 import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
-export const metadata = { title: "Contrat de sous-traitance (DPA) — Klubster" };
+export const metadata = {
+  title: "Contrat de sous-traitance (DPA) — Klubster",
+  alternates: { canonical: "/sous-traitance" },
+};
 
 export default function SousTraitance() {
   return (

@@ -4,6 +4,7 @@ import {
   webhookSecrets,
   planifierEcheances,
   getSubscription,
+  getChargeAvecRefunds,
   bornerEcheances,
   stripeModeTest,
   type StripeEvent,
@@ -181,28 +182,37 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
   // reste la seule source qui écrit l'écriture, pour ne jamais compter deux fois.
   if (event.type === "charge.refunded") {
     const obj = event.data.object as {
-      amount_refunded?: number;
+      id?: string;
       payment_intent?: string;
       metadata?: { adhesion_id?: string };
       refunds?: { data?: Array<{ id?: string; amount?: number }> };
     };
     const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
-    // On enregistre le DERNIER remboursement (delta), identifié par son propre id : plusieurs
-    // remboursements partiels sur une même charge ne sont donc pas additionnés à tort.
-    const dernier = obj.refunds?.data?.[0];
-    const montant = dernier?.amount ?? obj.amount_refunded ?? 0;
-    const ref = dernier?.id ?? event.id;
-    if (adhesionId && montant > 0) {
-      await verifierCompte(admin, adhesionId, event.account!);
-      const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
-        p_adhesion_id: adhesionId,
-        p_montant_centimes: montant,
-        p_ref: ref,
-      });
-      if (error) throw new Error(`remboursement: ${error.message}`);
-    } else {
+    if (!adhesionId) {
       console.warn("charge.refunded sans adhesion_id identifiable", event.id);
+      return;
     }
+    await verifierCompte(admin, adhesionId, event.account!);
+    // On enregistre le DERNIER remboursement (delta), identifié par son propre id (`re_…`) :
+    // plusieurs remboursements partiels sur une même charge ne sont donc pas additionnés à
+    // tort. Si le payload n'inclut pas `refunds.data`, on RELIT la charge — surtout pas de
+    // repli sur `amount_refunded` : c'est un CUMUL, pas un delta, et le référencer par
+    // `event.id` (jamais dédupliqué) faussait la trésorerie dès le 2e remboursement partiel.
+    let dernier = obj.refunds?.data?.[0];
+    if ((!dernier?.id || typeof dernier.amount !== "number") && obj.id) {
+      const charge = await getChargeAvecRefunds(obj.id, event.account!);
+      dernier = charge.refunds?.data?.[0];
+    }
+    if (!dernier?.id || typeof dernier.amount !== "number" || dernier.amount <= 0) {
+      // Plutôt qu'écrire un montant faux, on lève : Stripe redélivrera l'événement.
+      throw new Error(`charge.refunded ${event.id}: remboursement introuvable sur la charge ${obj.id ?? "?"}`);
+    }
+    const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
+      p_adhesion_id: adhesionId,
+      p_montant_centimes: dernier.amount,
+      p_ref: dernier.id,
+    });
+    if (error) throw new Error(`remboursement: ${error.message}`);
     return;
   }
 

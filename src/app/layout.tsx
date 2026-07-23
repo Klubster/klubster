@@ -22,7 +22,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: "Klubster — Toute votre association, au même endroit",
   description: DESCRIPTION,
-  alternates: { canonical: "/" },
+  // Pas de canonique globale ici : héritée par toutes les pages sans la leur, elle
+  // déclarait cgu, cgv, mentions… duplicatas de la home (audit du 23/07). Chaque page
+  // pose la sienne dans sa propre metadata.
   openGraph: {
     type: "website",
     locale: "fr_FR",

@@ -1,6 +1,10 @@
 // Templates de design des sites clubs — 6 directions typographiques, chacune en blanc ou noir.
 // Choisis à l'étape 01 de /creer, stockés sur organisations.theme_template / theme_mode,
-// appliqués à la vitrine via <ThemeVitrine> (CSS variables + Google Fonts).
+// appliqués à la vitrine via <ThemeVitrine> (CSS variables).
+// Les polices sont auto-hébergées par next/font (src/lib/polices-vitrines.ts) : les piles
+// ci-dessous référencent leurs variables CSS — plus aucune requête vers Google Fonts,
+// conformément à la promesse du layout racine et à la politique de confidentialité.
+// Inter et Space Mono viennent du layout racine (--kb-inter / --kb-space-mono).
 import type { CSSProperties } from "react";
 
 export type ThemeTemplateId = "editorial" | "classique" | "grotesque" | "rond" | "athletique" | "brut";
@@ -12,7 +16,6 @@ export interface ThemeTemplate {
   description: string;
   sans: string; // pile font-family du texte courant
   mono: string; // pile font-family des labels/chiffres
-  gf: string[]; // familles Google Fonts (segments "family=")
 }
 
 export const THEME_TEMPLATES: ThemeTemplate[] = [
@@ -20,49 +23,45 @@ export const THEME_TEMPLATES: ThemeTemplate[] = [
     id: "editorial",
     label: "Éditorial",
     description: "Magazine sobre, précis. Le style Klubster.",
-    sans: '"Inter", system-ui, sans-serif',
-    mono: '"Space Mono", ui-monospace, monospace',
-    gf: ["Inter:wght@400;500", "Space+Mono:wght@400;700"],
+    sans: 'var(--kb-inter), "Inter", system-ui, sans-serif',
+    mono: 'var(--kb-space-mono), "Space Mono", ui-monospace, monospace',
   },
   {
     id: "classique",
     label: "Classique",
     description: "Serif élégant, institutionnel, intemporel.",
-    sans: '"Source Serif 4", Georgia, serif',
-    mono: '"IBM Plex Mono", ui-monospace, monospace',
-    gf: ["Source+Serif+4:wght@400;500;600", "IBM+Plex+Mono:wght@400;600"],
+    sans: 'var(--gf-source-serif), "Source Serif 4", Georgia, serif',
+    mono: 'var(--gf-plex-mono), "IBM Plex Mono", ui-monospace, monospace',
   },
   {
     id: "grotesque",
     label: "Grotesque",
     description: "Sans-serif affirmé, contemporain, direct.",
-    sans: '"Archivo", system-ui, sans-serif',
-    mono: '"DM Mono", ui-monospace, monospace',
-    gf: ["Archivo:wght@400;500;600", "DM+Mono:wght@400;500"],
+    sans: 'var(--gf-archivo), "Archivo", system-ui, sans-serif',
+    mono: 'var(--gf-dm-mono), "DM Mono", ui-monospace, monospace',
   },
   {
     id: "rond",
+    // « Formes douces » mentait : border-radius: 0 s'applique partout (globals.css),
+    // seule la typographie est ronde. La description dit désormais ce que le club aura.
     label: "Rond",
-    description: "Formes douces, accessible, familial.",
-    sans: '"Nunito", system-ui, sans-serif',
-    mono: '"Red Hat Mono", ui-monospace, monospace',
-    gf: ["Nunito:wght@400;600;700", "Red+Hat+Mono:wght@400;700"],
+    description: "Typographie ronde, accueillante, familiale.",
+    sans: 'var(--gf-nunito), "Nunito", system-ui, sans-serif',
+    mono: 'var(--gf-red-hat-mono), "Red Hat Mono", ui-monospace, monospace',
   },
   {
     id: "athletique",
     label: "Athlétique",
     description: "Condensé, énergique, esprit compétition.",
-    sans: '"Barlow Semi Condensed", system-ui, sans-serif',
-    mono: '"IBM Plex Mono", ui-monospace, monospace',
-    gf: ["Barlow+Semi+Condensed:wght@400;500;600", "IBM+Plex+Mono:wght@400;600"],
+    sans: 'var(--gf-barlow-semi), "Barlow Semi Condensed", system-ui, sans-serif',
+    mono: 'var(--gf-plex-mono), "IBM Plex Mono", ui-monospace, monospace',
   },
   {
     id: "brut",
     label: "Brut",
     description: "Tout en mono, radical, esprit carnet.",
-    sans: '"Space Mono", ui-monospace, monospace',
-    mono: '"Space Mono", ui-monospace, monospace',
-    gf: ["Space+Mono:wght@400;700"],
+    sans: 'var(--kb-space-mono), "Space Mono", ui-monospace, monospace',
+    mono: 'var(--kb-space-mono), "Space Mono", ui-monospace, monospace',
   },
 ];
 
@@ -85,8 +84,10 @@ interface Palette {
 
 const PALETTES: Record<ThemeMode, Palette> = {
   blanc: {
+    // inkSoft porte le texte de lecture des vitrines : #8C8C88 plafonnait à 3,3:1 sur
+    // le papier (sous AA). Même valeur que le token de la plateforme (globals.css).
     ink: "17 17 17",
-    inkSoft: "#8C8C88",
+    inkSoft: "#6f6f6b",
     inkFaint: "#C2C2BD",
     paper: "252 252 250",
     bgAlt: "#F5F5F3",
@@ -127,18 +128,4 @@ export function themeStyle(templateId: string | null | undefined, modeId: string
     "--k-surface": p.surface,
     "--k-line": p.line,
   } as CSSProperties;
-}
-
-// URL Google Fonts d'un template (vitrine) ou de tous (aperçus du wizard).
-export function fontsHref(templateId: string | null | undefined): string {
-  return gfUrl(getTemplate(templateId).gf);
-}
-
-export function fontsHrefAll(): string {
-  return gfUrl(THEME_TEMPLATES.flatMap((t) => t.gf));
-}
-
-function gfUrl(families: string[]): string {
-  const uniq = Array.from(new Set(families));
-  return `https://fonts.googleapis.com/css2?${uniq.map((f) => `family=${f}`).join("&")}&display=swap`;
 }

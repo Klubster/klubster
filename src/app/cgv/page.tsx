@@ -1,7 +1,10 @@
 import Link from "next/link";
 import LegalShell from "@/components/site/LegalShell";
 
-export const metadata = { title: "Conditions générales de vente — Klubster" };
+export const metadata = {
+  title: "Conditions générales de vente — Klubster",
+  alternates: { canonical: "/cgv" },
+};
 
 export default function CGV() {
   return (

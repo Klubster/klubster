@@ -11,6 +11,18 @@ export const metadata: Metadata = {
   description:
     "Inscriptions sur mesure, dossiers sans papier, contrôle par scan, paiements jusqu’à 12 fois sans commission, données exportables. Tout est inclus, à partir de 9 €/mois.",
   alternates: { canonical: "https://klubster.fr/fonctionnalites" },
+  // twitter:card=summary_large_image (héritée du layout racine) était déclarée sans
+  // image de partage : on référence la vignette OG racine (app/opengraph-image.tsx).
+  openGraph: {
+    title: "Fonctionnalités — Klubster",
+    description:
+      "Inscriptions sur mesure, dossiers sans papier, contrôle par scan, paiements jusqu’à 12 fois sans commission, données exportables. Tout est inclus, à partir de 9 €/mois.",
+    url: "https://klubster.fr/fonctionnalites",
+    siteName: "Klubster",
+    locale: "fr_FR",
+    type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Klubster — Toute votre association, au même endroit." }],
+  },
 };
 
 function Cur() {
@@ -33,8 +45,9 @@ function Chapitre({
     <section className="border-t border-line">
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
         <Reveal>
+          {/* Numéro de chapitre = information de lecture en petit corps : brand-dark (4,5:1). */}
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-            <span className="text-brand">{num}</span> — {kicker}
+            <span className="text-brand-dark">{num}</span> — {kicker}
             <Cur />
           </p>
           <h2 className="mt-6 text-[26px] font-medium leading-[1.12] tracking-[-0.02em] sm:text-3xl sm:leading-[1.12] md:text-[40px] md:leading-[1.12]">

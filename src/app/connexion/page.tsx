@@ -99,6 +99,14 @@ function ConnexionInner() {
           </div>
         )}
 
+        {/* Vrai <form> : la touche Entrée soumet, comme partout ailleurs. */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (mode === "oubli") void envoyerLienReinitialisation();
+            else void submit();
+          }}
+        >
         <div className="space-y-4">
           {mode === "signup" && (
             <div className="grid grid-cols-2 gap-3">
@@ -106,8 +114,16 @@ function ConnexionInner() {
               <Field label="NOM" value={nom} onChange={setNom} />
             </div>
           )}
-          <Field label="EMAIL" type="email" value={email} onChange={setEmail} />
-          {mode !== "oubli" && <Field label="MOT DE PASSE" type="password" value={password} onChange={setPassword} />}
+          <Field label="EMAIL" type="email" value={email} onChange={setEmail} autoComplete="email" />
+          {mode !== "oubli" && (
+            <Field
+              label="MOT DE PASSE"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+            />
+          )}
         </div>
 
         {params.get("message") === "motdepasse" && !msg && !err ? (
@@ -129,12 +145,13 @@ function ConnexionInner() {
         {msg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{msg}</p> : null}
 
         <button
-          onClick={mode === "oubli" ? envoyerLienReinitialisation : submit}
+          type="submit"
           disabled={loading || !email || (mode !== "oubli" && !password) || (mode === "signup" && !prenom)}
           className="mono mt-8 w-full bg-ink px-6 py-4 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40"
         >
           {loading ? "…" : mode === "oubli" ? "ENVOYER LE LIEN →" : mode === "login" ? "SE CONNECTER →" : "CRÉER MON COMPTE →"}
         </button>
+        </form>
 
         {mode === "login" ? (
           <p className="mono mt-6 text-center text-[11px] text-ink-soft">
@@ -167,7 +184,20 @@ function ConnexionInner() {
               Retour à la connexion
             </button>
           ) : mode === "login" ? (
-            "Pas encore d’association ? Créez un compte."
+            <>
+              Pas encore d’association ?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setErr(null);
+                  setMsg(null);
+                  setMode("signup");
+                }}
+                className="underline underline-offset-2 hover:text-ink"
+              >
+                Créez un compte.
+              </button>
+            </>
           ) : (
             "Vous gérez déjà une association ? Connectez-vous."
           )}

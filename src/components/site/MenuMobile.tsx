@@ -24,6 +24,7 @@ export default function MenuMobile({
   const [ouvert, setOuvert] = useState(false);
   const panneauId = useId();
   const boutonRef = useRef<HTMLButtonElement>(null);
+  const panneauRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!ouvert) return;
@@ -31,6 +32,28 @@ export default function MenuMobile({
       if (e.key === "Escape") {
         setOuvert(false);
         boutonRef.current?.focus();
+      }
+      // Piège de focus : le menu couvre tout l'écran, Tab ne doit pas s'échapper vers
+      // le contenu invisible dessous. La boucle inclut le bouton (qui ferme le menu).
+      if (e.key === "Tab") {
+        const focusables = [
+          boutonRef.current,
+          ...Array.from(panneauRef.current?.querySelectorAll<HTMLElement>("a[href]") ?? []),
+        ].filter((el): el is HTMLElement => Boolean(el));
+        if (focusables.length === 0) return;
+        const premier = focusables[0];
+        const dernier = focusables[focusables.length - 1];
+        const actif = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && actif === premier) {
+          e.preventDefault();
+          dernier.focus();
+        } else if (!e.shiftKey && actif === dernier) {
+          e.preventDefault();
+          premier.focus();
+        } else if (!actif || !focusables.includes(actif)) {
+          e.preventDefault();
+          premier.focus();
+        }
       }
     };
     document.addEventListener("keydown", surTouche);
@@ -68,7 +91,14 @@ export default function MenuMobile({
       </button>
 
       {ouvert ? (
-        <div id={panneauId} className="fixed inset-0 z-40 bg-paper">
+        <div
+          id={panneauId}
+          ref={panneauRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu de navigation"
+          className="fixed inset-0 z-40 bg-paper"
+        >
           <nav className="mx-auto flex h-full max-w-6xl flex-col justify-center px-6">
             {liens.map((l) => (
               <a

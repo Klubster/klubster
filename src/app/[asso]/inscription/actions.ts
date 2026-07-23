@@ -16,7 +16,15 @@ import { gabaritEmail } from "@/lib/email-gabarit";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
-export async function inscrireAdherent(formData: FormData) {
+/**
+ * État retourné au formulaire via `useActionState`. Les erreurs sont RETOURNÉES
+ * (et plus redirigées vers `?erreur=…`) : une redirection déclenche un GET qui
+ * vide un formulaire de 20+ champs — la saisie est désormais conservée. Les
+ * succès, eux, continuent de rediriger (merci, Stripe).
+ */
+export type EtatInscription = { erreur: string } | null;
+
+export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData: FormData): Promise<EtatInscription> {
   const slug = String(formData.get("slug") ?? "");
   const prenom = String(formData.get("prenom") ?? "").trim();
   const nom = String(formData.get("nom") ?? "").trim();
@@ -28,16 +36,16 @@ export async function inscrireAdherent(formData: FormData) {
 
   // Formulaire public : on filtre les robots AVANT tout envoi d'email ou création de compte.
   const verdict = await verifierSoumissionPublique(formData, slug);
-  if (!verdict.ok) redirect(`/${slug}/inscription?erreur=${verdict.raison}`);
+  if (!verdict.ok) return { erreur: verdict.raison };
 
   const org = await getOrganisationPubliqueBySlug(slug);
-  if (!org) redirect(`/${slug}/inscription?erreur=1`);
+  if (!org) return { erreur: "1" };
 
   // Abonnement du club suspendu (résilié, ou impayé au-delà de la grâce) : on ne prend
   // plus de nouvelles inscriptions. Lecture et export restent ouverts côté cockpit ; les
   // données existantes ne sont pas touchées. Les clubs pilotes (statut « aucun ») ne sont
   // jamais concernés.
-  if (accesClub(org) === "suspendu") redirect(`/${slug}/inscription?erreur=suspendu`);
+  if (accesClub(org) === "suspendu") return { erreur: "suspendu" };
 
   // Réponses aux champs personnalisés
   const infos: Record<string, string> = {};
@@ -139,7 +147,7 @@ export async function inscrireAdherent(formData: FormData) {
   }
   if (manque.length > 0) {
     console.warn("inscription incomplète", slug, manque.join(","));
-    redirect(`/${slug}/inscription?erreur=champs`);
+    return { erreur: "champs" };
   }
 
   // RÉDUCTIONS (Pass'Sport…) — DEMANDÉES à l'inscription, APPLIQUÉES après vérification
@@ -183,7 +191,7 @@ export async function inscrireAdherent(formData: FormData) {
   const admin = createSupabaseAdminClient();
   if (!admin) {
     console.error("inscrireAdherent : service_role indisponible");
-    redirect(`/${slug}/inscription?erreur=1`);
+    return { erreur: "1" };
   }
 
   // Compte adhérent (mot de passe)
@@ -206,10 +214,10 @@ export async function inscrireAdherent(formData: FormData) {
         refresh_token: sessionAvant.session.refresh_token,
       });
     }
-    if (error) redirect(`/${slug}/inscription?erreur=compte`);
+    if (error) return { erreur: "compte" };
     // Email déjà enregistré : Supabase renvoie un faux utilisateur (anti-énumération, identities vides).
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
-      redirect(`/${slug}/inscription?erreur=compte_existant`);
+      return { erreur: "compte_existant" };
     }
     userId = data.user?.id ?? null;
   }
@@ -245,7 +253,7 @@ export async function inscrireAdherent(formData: FormData) {
       const { error: eDel } = await admin.auth.admin.deleteUser(userId);
       if (eDel) console.error("rollback compte Auth", userId, eDel.message);
     }
-    redirect(`/${slug}/inscription?erreur=1`);
+    return { erreur: "1" };
   }
 
   // La jauge a pu placer l'adhésion en liste d'attente (cours complet) : dans ce cas, on ne

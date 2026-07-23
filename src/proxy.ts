@@ -77,7 +77,9 @@ export async function proxy(request: NextRequest) {
   // hôtes, domaines personnalisés compris. Sans cette exception, la réécriture multi-
   // tenant le transformait en `/{slug}/sw.js` (inexistant → 404), et la PWA ne
   // fonctionnait pas sur le domaine propre d'un club.
-  if (pathname === "/sw.js") {
+  // Même chose pour /robots.txt et /sitemap.xml : réécrits en `/{slug}/robots.txt`
+  // (inexistant), les domaines custom répondaient 404 aux moteurs de recherche.
+  if (pathname === "/sw.js" || pathname === "/robots.txt" || pathname === "/sitemap.xml") {
     return await updateSession(request);
   }
 

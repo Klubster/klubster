@@ -15,7 +15,10 @@ export const preferredRegion = "cdg1"; // RGPD — exécution en Europe
  * pièces manquantes (30/60/90 jours) et cotisations impayées (7/21/45 jours).
  *
  * Deux garde-fous contre le harcèlement, portés par la table `emails_journal` :
- *   — un motif donné n'est jamais renvoyé deux fois à la même personne (index unique) ;
+ *   — un motif donné n'est jamais renvoyé deux fois à la même personne (index unique).
+ *     Les motifs liés à une adhésion sont suffixés par la saison (`impaye_1:2026-2027`) :
+ *     l'unicité vaut par saison, sinon un adhérent relancé en saison N ne le serait
+ *     plus jamais en N+1 (la purge du journal est à 13 mois, la saison revient à M+11) ;
  *   — au plus UN email de relance par adhérent tous les 7 jours, tous motifs confondus.
  *
  * Chaque relance obéit à une FENÊTRE (ex. 30–44 jours) plutôt qu'à un seuil : si le cron
@@ -35,6 +38,24 @@ function ageJours(iso: string): number {
 }
 function dansFenetre(age: number, [min, max]: readonly [number, number]): boolean {
   return age >= min && age <= max;
+}
+
+// PostgREST tronque SILENCIEUSEMENT toute réponse à 1 000 lignes (`db-max-rows`), quel
+// que soit `.limit()` : au-delà, des adhésions ou des lignes de journal manquaient et des
+// relances sautaient — ou repartaient. On pagine donc par `.range()`, avec un ordre
+// stable par id pour ne rien perdre ni compter deux fois entre deux pages.
+const PAGE = 1000;
+async function chargerTout<T>(
+  page: (debut: number, fin: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<{ data: T[]; error: { message: string } | null }> {
+  const lignes: T[] = [];
+  for (let debut = 0; ; debut += PAGE) {
+    const { data, error } = await page(debut, debut + PAGE - 1);
+    if (error) return { data: lignes, error };
+    const bloc = data ?? [];
+    lignes.push(...bloc);
+    if (bloc.length < PAGE) return { data: lignes, error: null };
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -70,10 +91,14 @@ async function lancer(request: NextRequest) {
 
   // Journal des 60 derniers jours : pour le plafond (7 j) et la déduplication par motif.
   const depuis = new Date(Date.now() - 60 * UN_JOUR).toISOString();
-  const { data: journalData, error: journalErr } = await admin
-    .from("emails_journal")
-    .select("organisation_id, adherent_id, motif, envoye_le, statut, lease_until")
-    .gte("envoye_le", depuis);
+  const { data: journalData, error: journalErr } = await chargerTout((debut, fin) =>
+    admin
+      .from("emails_journal")
+      .select("organisation_id, adherent_id, motif, envoye_le, statut, lease_until")
+      .gte("envoye_le", depuis)
+      .order("id")
+      .range(debut, fin)
+  );
   if (journalErr) return NextResponse.json({ error: "Lecture journal." }, { status: 500 });
   // Outbox : ne comptent comme « déjà pris » que les envois RÉUSSIS (`envoye`) ou une
   // réservation `en_cours` dont le bail court encore. Une réservation morte (crash avant
@@ -107,18 +132,26 @@ async function lancer(request: NextRequest) {
   // d'attente, les adhésions annulées et remboursées — personne dans ces états ne doit
   // recevoir « votre inscription est enregistrée, une pièce manque » ni une relance
   // d'impayé. Le tri par saison courante du club se fait ensuite, adhésion par adhésion.
-  const { data: adhData, error: adhErr } = await admin
-    .from("adhesions")
-    .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, cours(nom), adherents(prenom, email), reglements(montant_centimes)")
-    .in("statut", ["en_attente", "en_retard", "paye"]);
+  const { data: adhData, error: adhErr } = await chargerTout((debut, fin) =>
+    admin
+      .from("adhesions")
+      .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, cours(nom), adherents(prenom, email), reglements(montant_centimes)")
+      .in("statut", ["en_attente", "en_retard", "paye"])
+      .order("id")
+      .range(debut, fin)
+  );
   if (adhErr) return NextResponse.json({ error: "Lecture adhésions." }, { status: 500 });
   const adhesions = (adhData ?? []) as unknown as AdhesionLigne[];
 
   // Pièces obligatoires encore manquantes, indexées par adhérent.
-  const { data: piecesData, error: piecesErr } = await admin
-    .from("pieces_adherent")
-    .select("adherent_id, cle, statut")
-    .eq("statut", "manquante");
+  const { data: piecesData, error: piecesErr } = await chargerTout((debut, fin) =>
+    admin
+      .from("pieces_adherent")
+      .select("adherent_id, cle, statut")
+      .eq("statut", "manquante")
+      .order("id")
+      .range(debut, fin)
+  );
   if (piecesErr) return NextResponse.json({ error: "Lecture pièces." }, { status: 500 });
   const piecesManquantes = new Map<string, Set<string>>();
   for (const p of piecesData ?? []) {
@@ -152,7 +185,8 @@ async function lancer(request: NextRequest) {
     // inscriptions. Seul le club lui-même reste joignable (récap, régularisation).
     if (accesClub(org) === "suspendu") continue;
     // Seule la saison COURANTE du club compte : on ne relance pas sur une vieille adhésion.
-    if ((adh.saison ?? "") !== saisonCourante(org)) continue;
+    const saison = saisonCourante(org);
+    if ((adh.saison ?? "") !== saison) continue;
     const adherentId = adh.adherent_id;
     if (!adherentId || dejaCeTour.has(adherentId)) continue;
     const email = adh.adherents?.email ?? null;
@@ -177,10 +211,16 @@ async function lancer(request: NextRequest) {
       for (const [motif, actif] of etapes) {
         if (poussé) break;
         if (!actif) continue;
-        if (motifsEnvoyes.has(`${adherentId}:${motif}`)) continue;
+        // Motif suffixé par la saison (ex. `pieces_30:2026-2027`) : l'unicité
+        // (adherent_id, motif) du journal vaut ainsi PAR SAISON et non pour la vie
+        // entière — un adhérent relancé en saison N doit pouvoir l'être en N+1.
+        // L'ancien motif nu est aussi vérifié : à la transition, une relance déjà
+        // partie sous l'ancien format ne doit pas repartir.
+        const motifSaison = `${motif}:${saison}`;
+        if (motifsEnvoyes.has(`${adherentId}:${motifSaison}`) || motifsEnvoyes.has(`${adherentId}:${motif}`)) continue;
         if (!dansFenetre(age, FENETRE_PIECES[motif])) continue;
         aEnvoyer.push({
-          adherentId, motif, orgId: org.id, to: email, club: org,
+          adherentId, motif: motifSaison, orgId: org.id, to: email, club: org,
           objet: `Votre dossier au ${org.nom} — une pièce manque`,
           para: [
             `Bonjour ${prenom},`,
@@ -205,12 +245,14 @@ async function lancer(request: NextRequest) {
           ["impaye_3", FENETRE_IMPAYE.impaye_3],
         ];
         for (const [motif, fenetre] of etapes) {
-          if (motifsEnvoyes.has(`${adherentId}:${motif}`)) continue;
+          // Même suffixe saison que pour les pièces : unicité par saison, pas à vie.
+          const motifSaison = `${motif}:${saison}`;
+          if (motifsEnvoyes.has(`${adherentId}:${motifSaison}`) || motifsEnvoyes.has(`${adherentId}:${motif}`)) continue;
           if (!dansFenetre(age, fenetre)) continue;
           const montant = (reste / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
           const enLigne = !!compteConnecte(org);
           aEnvoyer.push({
-            adherentId, motif, orgId: org.id, to: email, club: org,
+            adherentId, motif: motifSaison, orgId: org.id, to: email, club: org,
             objet: `Cotisation ${org.nom} — il reste ${montant} € à régler`,
             para: [
               `Bonjour ${prenom},`,

@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { changerLogo, retirerLogo, changerCouleur, changerTheme } from "./actions";
-import { THEME_TEMPLATES, THEME_MODES, fontsHrefAll } from "@/lib/themes";
+import { THEME_TEMPLATES, THEME_MODES } from "@/lib/themes";
+import { classesPolicesVitrines } from "@/lib/polices-vitrines";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,8 @@ export default async function IdentitePage(
   const modeActuel = org.theme_mode ?? "blanc";
 
   return (
-    <main className="min-h-screen text-ink">
-      {/* Polices des 6 templates, pour les aperçus. */}
-      <link rel="stylesheet" href={fontsHrefAll()} />
+    // Polices des 6 templates (aperçus « Aa ») — auto-hébergées par next/font.
+    <main className={`min-h-screen text-ink ${classesPolicesVitrines}`}>
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">← AUJOURD&apos;HUI</Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">IDENTITÉ<Cur /></span>

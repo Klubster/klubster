@@ -25,6 +25,18 @@ export async function connecterDomaine(slug: string, formData: FormData) {
   }
   if (!vercelConfigured()) redirect(`/${slug}/cockpit/domaine?erreur=config`);
 
+  const supabase = await createSupabaseServerClient();
+  // Disponibilité vérifiée en base AVANT de toucher à Vercel : dans l'ordre inverse, un
+  // domaine déjà pris par un autre club laissait des domaines orphelins (domaine et son
+  // www.) rattachés au projet Vercel.
+  const { data: dejaPris } = await supabase
+    .from("organisations")
+    .select("id")
+    .eq("domaine_custom", brut)
+    .neq("id", org.id)
+    .limit(1);
+  if ((dejaPris ?? []).length > 0) redirect(`/${slug}/cockpit/domaine?erreur=deja_pris`);
+
   const res = await attacherDomaine(brut);
   if (!res.ok) {
     console.error("attacherDomaine", res.erreur);
@@ -33,9 +45,14 @@ export async function connecterDomaine(slug: string, formData: FormData) {
   // On rattache aussi www.<domaine> pour couvrir les deux écritures.
   await attacherDomaine(`www.${brut}`);
 
-  const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ domaine_custom: brut }).eq("id", org.id);
-  if (error) redirect(`/${slug}/cockpit/domaine?erreur=deja_pris`);
+  if (error) {
+    // Course perdue entre la vérification et l'écriture : on détache ce qu'on vient
+    // d'attacher chez Vercel pour ne pas laisser de domaine orphelin.
+    await detacherDomaine(`www.${brut}`);
+    await detacherDomaine(brut);
+    redirect(`/${slug}/cockpit/domaine?erreur=deja_pris`);
+  }
 
   revalidatePath(`/${slug}/cockpit/domaine`);
   redirect(`/${slug}/cockpit/domaine?ok=1`);

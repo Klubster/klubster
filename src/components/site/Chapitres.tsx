@@ -1,24 +1,46 @@
 /* Rendu des chapitres de la vitrine — layouts imposés, DA Klubster (filets, mono, 0px). */
+import Image from "next/image";
 import type { SectionCustom } from "@/types/db";
 import { LABEL_DEFAUT } from "@/lib/chapitres";
 
-function Filet({ n, label, accent }: { n: string; label: string; accent: string }) {
+// Le préfixe « SECTION nn — » était du jargon éditorial imposé aux familles du club.
+// Le filet mono et l'underscore accent — l'ADN de marque — restent.
+function Filet({ label, accent }: { label: string; accent: string }) {
   if (!label) return null;
   return (
     <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-      SECTION {n} — {label}
+      {label}
       <span style={{ color: accent }}>_</span>
     </p>
   );
 }
 
-function Img({ url, alt, className }: { url: string | null; alt: string; className: string }) {
+// Les photos de chapitres sortent du Storage telles qu'uploadées (jusqu'à 3 Mo par le
+// mode Édition) : next/image les redimensionne et les convertit (AVIF/WebP) à la volée.
+// `fill` pour les photos plein cadre (parent en position relative), `taille` (carré)
+// pour les vignettes à dimensions fixes. Un SVG n'est pas optimisable par Next : servi tel quel.
+function Img({
+  url,
+  alt,
+  className,
+  fill,
+  sizes,
+  taille = 200,
+}: {
+  url: string | null;
+  alt: string;
+  className: string;
+  fill?: boolean;
+  sizes?: string;
+  taille?: number;
+}) {
   if (!url) return null;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt={alt} className={className} />;
+  const svg = url.toLowerCase().split("?")[0].endsWith(".svg");
+  if (fill) return <Image src={url} alt={alt} fill sizes={sizes} className={className} unoptimized={svg} />;
+  return <Image src={url} alt={alt} width={taille} height={taille} className={className} unoptimized={svg} />;
 }
 
-export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; accent: string }) {
+export function ChapitreView({ s, accent }: { s: SectionCustom; accent: string }) {
   const label = (s.titre ?? LABEL_DEFAUT[s.type] ?? "Le club").toUpperCase();
   const items = s.items ?? [];
 
@@ -27,10 +49,10 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
     const signataire = items[0];
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className="mt-12 flex flex-col gap-10 md:flex-row md:items-start">
           {s.image_url ? (
-            <Img url={s.image_url} alt={signataire?.titre ?? "Le président"} className="h-28 w-28 shrink-0 border border-line object-cover md:h-36 md:w-36" />
+            <Img url={s.image_url} alt={signataire?.titre ?? "Le président"} taille={144} className="h-28 w-28 shrink-0 border border-line object-cover md:h-36 md:w-36" />
           ) : null}
           <div>
             <p className="max-w-[30ch] text-2xl font-medium leading-snug md:text-3xl">« {s.texte} »</p>
@@ -52,7 +74,7 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "chiffres") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className={`mt-12 grid grid-cols-2 gap-px border border-line bg-line ${items.length > 3 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
           {items.map((it, i) => (
             <div key={i} className="bg-paper px-6 py-8">
@@ -69,12 +91,12 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "equipe") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-3 lg:grid-cols-4">
           {items.map((it, i) => (
             <div key={i} className="bg-paper px-5 py-6">
               {it.image_url ? (
-                <Img url={it.image_url} alt={it.titre ?? "Membre de l'équipe"} className="h-24 w-24 border border-line object-cover" />
+                <Img url={it.image_url} alt={it.titre ?? "Membre de l'équipe"} taille={96} className="h-24 w-24 border border-line object-cover" />
               ) : (
                 <span className="grid h-24 w-24 place-items-center border border-line bg-bg-alt text-[24px] font-bold" style={{ color: accent }} aria-hidden>
                   {(it.titre ?? "?").charAt(0).toUpperCase()}
@@ -93,7 +115,7 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "faq") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className="mt-12 border-t border-line">
           {items.map((it, i) => (
             <div key={i} className="border-b border-line py-5">
@@ -115,11 +137,11 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "galerie") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className={`mt-12 grid grid-cols-2 gap-px border border-line bg-line ${items.length > 4 ? "md:grid-cols-3" : ""}`}>
           {items.map((it, i) => (
             <div key={i} className="relative h-52 overflow-hidden bg-paper md:h-64">
-              <Img url={it.image_url} alt={`Photo du club ${i + 1}`} className="absolute inset-0 h-full w-full object-cover" />
+              <Img url={it.image_url} alt={`Photo du club ${i + 1}`} fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover" />
             </div>
           ))}
         </div>
@@ -131,12 +153,12 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "partenaires") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         {s.texte ? <p className="mt-8 max-w-prose text-lg text-ink-soft">{s.texte}</p> : null}
         <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-3 md:grid-cols-4">
           {items.map((it, i) => (
             <div key={i} className="grid h-28 place-items-center bg-paper px-6">
-              <Img url={it.image_url} alt={it.titre ?? `Partenaire ${i + 1}`} className="max-h-16 w-auto max-w-full object-contain" />
+              <Img url={it.image_url} alt={it.titre ?? `Partenaire ${i + 1}`} taille={160} className="max-h-16 w-auto max-w-full object-contain" />
             </div>
           ))}
         </div>
@@ -148,7 +170,7 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   if (s.type === "resultats") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         <div className="mt-12 border-t border-line">
           {items.map((it, i) => (
             <div key={i} className="flex items-baseline justify-between gap-6 border-b border-line py-4">
@@ -181,13 +203,13 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
 
   /* — Texte & photo (layouts historiques) — */
   const img = (
-    <Img url={s.image_url} alt={s.titre ?? "Photo du club"} className="absolute inset-0 h-full w-full object-cover" />
+    <Img url={s.image_url} alt={s.titre ?? "Photo du club"} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
   );
 
   if (s.type === "triptyque") {
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-        <Filet n={n} label={label} accent={accent} />
+        <Filet label={label} accent={accent} />
         {s.titre ? <h2 className="mt-8 max-w-[24ch] text-3xl font-medium leading-tight md:text-4xl">{s.titre}</h2> : null}
         <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
           <p className="bg-paper px-6 py-8 text-lg leading-relaxed text-ink-soft">{s.texte}</p>
@@ -201,7 +223,7 @@ export function ChapitreView({ s, n, accent }: { s: SectionCustom; n: string; ac
   const photoDroite = s.type === "photo-droite";
   const colonneTexte = (
     <div className="px-6 py-20 md:px-8 md:py-24">
-      <Filet n={n} label={label} accent={accent} />
+      <Filet label={label} accent={accent} />
       {s.titre ? <h2 className="mt-8 max-w-[20ch] text-3xl font-medium leading-tight md:text-4xl">{s.titre}</h2> : null}
       <p className="mt-8 max-w-prose text-lg leading-relaxed text-ink-soft">{s.texte}</p>
     </div>

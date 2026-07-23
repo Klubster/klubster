@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { getMode } from "@/lib/themes";
+import { texteSur, accentLisibleSur } from "@/lib/contraste";
 import { getProfile } from "@/lib/auth";
 import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -17,6 +20,13 @@ export const dynamic = "force-dynamic";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
+// Ville extraite de l'adresse libre (« 2 rue du Stade, 82000 Montauban » → « Montauban »).
+// Il n'existe pas de colonne ville : l'adresse est le seul endroit où elle vit.
+function villeDepuisAdresse(adresse: string | null): string | null {
+  const m = adresse?.match(/\b\d{5}\s+([A-Za-zÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ'’-]+)*)/);
+  return m ? m[1].trim() : null;
+}
+
 export async function generateMetadata(props: { params: Promise<{ asso: string }> }): Promise<Metadata> {
   const params = await props.params;
   const org = await getOrganisationPubliqueBySlug(params.asso);
@@ -24,6 +34,19 @@ export async function generateMetadata(props: { params: Promise<{ asso: string }
 
   const description =
     org.accroche ?? org.presentation?.slice(0, 300) ?? `${org.nom} — inscriptions en ligne.`;
+  // Title local : un adhérent cherche « boxe à Montauban », pas « inscriptions cours
+  // planning ». Ville et sport n'entrent dans le title que s'ils existent vraiment
+  // en base — un title inventé nuirait plus qu'il ne servirait.
+  const ville = villeDepuisAdresse(org.adresse);
+  const sport = org.sport?.toLowerCase() ?? null;
+  const title =
+    sport && ville
+      ? `${org.nom} — club de ${sport} à ${ville} : inscriptions, planning`
+      : sport
+        ? `${org.nom} — club de ${sport} : inscriptions, cours & planning`
+        : ville
+          ? `${org.nom} à ${ville} — inscriptions, cours & planning`
+          : `${org.nom} — inscriptions, cours & planning`;
   // Un club joignable à la fois sur klubster.fr/son-slug et sur son propre domaine
   // existe deux fois pour un moteur de recherche. Sans canonique propre, les pages
   // héritaient de celle du layout racine (« / »), qui désigne… l'accueil de Klubster.
@@ -31,11 +54,11 @@ export async function generateMetadata(props: { params: Promise<{ asso: string }
   const canonical = org.domaine_custom ? `https://${org.domaine_custom}` : `${SITE}/${org.slug}`;
 
   return {
-    title: `${org.nom} — inscriptions, cours & planning`,
+    title,
     description,
     alternates: { canonical },
     openGraph: {
-      title: `${org.nom} — inscriptions, cours & planning`,
+      title,
       description,
       url: canonical,
       siteName: org.nom,
@@ -58,6 +81,14 @@ export default async function VitrinePage(
   if (!org) notFound();
   const cours = await getCoursByOrganisation(org.id);
   const accent = org.couleur_primaire ?? "#111111";
+  // Garde-fous de contraste : la couleur du club est un hex libre (jaune, bleu ciel…).
+  // Blanc codé en dur sur ce fond, ou l'accent posé en couleur de texte sur le papier,
+  // pouvait tomber sous 3:1 (audit du 23/07, signalé par 2 grilles). `texteSur` choisit
+  // blanc ou encre pour les boutons ; `accentLisibleSur` assombrit l'accent-texte
+  // jusqu'à 4,5:1. En mode noir, l'accent reste tel quel : l'assombrissement ne sait
+  // qu'assombrir et empirerait le contraste sur fond sombre.
+  const texteSurAccent = texteSur(accent);
+  const accentTexte = getMode(org.theme_mode) === "noir" ? accent : accentLisibleSur(accent, "#FCFCFA");
 
   // Admin de CE club (ou super-admin) : accès Cockpit + mode Édition de page.
   const profile = await getProfile();
@@ -67,10 +98,13 @@ export default async function VitrinePage(
   const edition = estAdmin && searchParams?.edition === "1";
   const pc = normaliserPageConfig(org.page_config);
 
-  function Label({ n, children }: { n: string; children: React.ReactNode }) {
+  // Le préfixe « SECTION nn — » était du jargon éditorial imposé aux familles : une
+  // maman qui cherche les horaires n'a que faire du chemin de fer du magazine. Le
+  // filet mono et l'underscore accent — l'ADN de marque — restent.
+  function Label({ children }: { children: React.ReactNode }) {
     return (
       <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-        SECTION {n} — {children}
+        {children}
         <span style={{ color: accent }}>_</span>
       </p>
     );
@@ -87,11 +121,11 @@ export default async function VitrinePage(
   };
 
   // Sections de la page, dans l'ordre choisi par le club (page_config.ordre).
-  const rendus: { cle: string; id?: string; custom: boolean; node: (n: string) => React.ReactNode }[] = [];
+  const rendus: { cle: string; id?: string; custom: boolean; node: () => React.ReactNode }[] = [];
   for (const cle of pc.ordre) {
     const sc = pc.custom.find((c) => c.id === cle);
     if (sc) {
-      rendus.push({ cle, id: sc.id, custom: true, node: (n) => <ChapitreView s={sc} n={n} accent={accent} /> });
+      rendus.push({ cle, id: sc.id, custom: true, node: () => <ChapitreView s={sc} accent={accent} /> });
       continue;
     }
     if (cle === "presentation" && org.presentation) {
@@ -99,9 +133,9 @@ export default async function VitrinePage(
         cle,
         id: "presentation",
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <Label n={n}>LE CLUB</Label>
+            <Label>LE CLUB</Label>
             <h2 className="mt-8 max-w-[20ch] text-3xl font-medium leading-tight md:text-4xl">
               À propos de {org.nom}
             </h2>
@@ -115,9 +149,9 @@ export default async function VitrinePage(
         cle,
         id: "cours",
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <Label n={n}>DISCIPLINES</Label>
+            <Label>DISCIPLINES</Label>
             <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Nos cours.</h2>
             {cours.length === 0 ? (
               <p className="mt-8 text-ink-soft">Les cours seront bientôt en ligne.</p>
@@ -132,7 +166,7 @@ export default async function VitrinePage(
                     {c.public_cible ? (
                       <div className="mt-1 text-[13px] text-ink-soft">{c.public_cible}</div>
                     ) : null}
-                    <div className="mono mt-auto pt-5 text-[26px] font-bold tracking-[-0.02em]" style={{ color: accent }}>
+                    <div className="mono mt-auto pt-5 text-[26px] font-bold tracking-[-0.02em]" style={{ color: accentTexte }}>
                       {Math.round(c.tarif_centimes / 100)}
                       <span className="text-[11px] font-normal text-ink-soft"> € /an</span>
                     </div>
@@ -154,9 +188,9 @@ export default async function VitrinePage(
         cle,
         id: "planning",
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <Label n={n}>PLANNING</Label>
+            <Label>PLANNING</Label>
             <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Créneaux de la semaine.</h2>
             <div className="mt-12">
               <PlanningGrid cours={cours} accent={accent} />
@@ -176,16 +210,16 @@ export default async function VitrinePage(
         cle,
         id: "tarifs",
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <Label n={n}>TARIFS</Label>
+            <Label>TARIFS</Label>
             <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Cotisations annuelles.</h2>
             <div className="mt-12 border-t border-line">
               {cours.map((c) => (
                 <div key={c.id} className="flex items-baseline justify-between gap-6 border-b border-line py-4">
                   <span className="text-[15px]">{c.nom}</span>
                   <span className="hidden flex-1 text-[13px] text-ink-soft sm:block">{c.public_cible ?? ""}</span>
-                  <span className="mono text-[15px] font-bold" style={{ color: accent }}>
+                  <span className="mono text-[15px] font-bold" style={{ color: accentTexte }}>
                     {formatPrix(c.tarif_centimes)}
                   </span>
                 </div>
@@ -203,9 +237,9 @@ export default async function VitrinePage(
       rendus.push({
         cle,
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
-            <Label n={n}>INFOS PRATIQUES</Label>
+            <Label>INFOS PRATIQUES</Label>
             <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Avant de venir.</h2>
             <p className="mt-8 max-w-prose text-lg leading-relaxed text-ink-soft">{org.infos_pratiques}</p>
           </div>
@@ -223,10 +257,10 @@ export default async function VitrinePage(
         cle,
         id: "contact",
         custom: false,
-        node: (n) => (
+        node: () => (
           <div className="mx-auto grid max-w-5xl grid-cols-1 md:grid-cols-2">
             <div className="px-6 py-20 md:px-8 md:py-24">
-              <Label n={n}>OÙ NOUS TROUVER</Label>
+              <Label>OÙ NOUS TROUVER</Label>
               <div className="mt-10 space-y-6">
                 {org.adresse ? (
                   <div>
@@ -237,7 +271,7 @@ export default async function VitrinePage(
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mono mt-2 inline-block text-[12px]"
-                      style={{ color: accent }}
+                      style={{ color: accentTexte }}
                     >
                       ITINÉRAIRE →
                     </a>
@@ -369,10 +403,10 @@ export default async function VitrinePage(
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
             <span className="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
               <span
-                className="inline-flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-label text-white"
-                style={{ background: accent }}
+                className="inline-flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-label"
+                style={{ background: accent, color: texteSurAccent }}
               >
-                <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse kb-dot bg-white" />
+                <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse kb-dot" style={{ background: "currentColor" }} />
                 Mode édition
               </span>
               <span className="text-ink-soft">
@@ -380,7 +414,7 @@ export default async function VitrinePage(
               </span>
             </span>
             <div className="flex items-center gap-2">
-              <a href="#ajouter" className="mono px-4 py-2 text-[12px] text-white hover:opacity-90" style={{ background: accent }}>
+              <a href="#ajouter" className="mono px-4 py-2 text-[12px] hover:opacity-90" style={{ background: accent, color: texteSurAccent }}>
                 AJOUTER UN CHAPITRE
               </a>
               <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
@@ -391,7 +425,7 @@ export default async function VitrinePage(
 
           {searchParams?.ok ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
-              <p className="mono text-[12px]" style={{ color: accent }}>
+              <p className="mono text-[12px]" style={{ color: accentTexte }}>
                 ✓{" "}
                 {searchParams.ok === "deplacee"
                   ? "Section déplacée. L’ordre est enregistré."
@@ -423,8 +457,9 @@ export default async function VitrinePage(
         <section className="border-b border-line">
           {org.actualite.image_url ? (
             <div className="relative h-64 w-full overflow-hidden md:h-80">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={org.actualite.image_url} alt="Actualité du club" className="absolute inset-0 h-full w-full object-cover" />
+              {/* Photo uploadée telle quelle (jusqu'à 3 Mo) : next/image la redimensionne
+                  et la convertit (AVIF/WebP). Pleine largeur, en haut de page → priority. */}
+              <Image src={org.actualite.image_url} alt="Actualité du club" fill priority sizes="100vw" className="object-cover" />
               {org.actualite.texte ? (
                 <div className="absolute inset-x-0 bottom-0 bg-ink/70 px-6 py-5 md:px-8">
                   <p className="mono text-[10px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
@@ -434,8 +469,13 @@ export default async function VitrinePage(
             </div>
           ) : (
             <div className="mx-auto max-w-5xl px-6 py-6 md:px-8">
-              <div className="border-l-2 pl-4" style={{ borderColor: accent }}>
-                <p className="mono text-[10px] uppercase tracking-label" style={{ color: accent }}>À LA UNE_</p>
+              {/* Fond teinté à la couleur du club (même recette que la barre d'édition),
+                  mélangé au papier du thème : lisible en blanc comme en noir. */}
+              <div
+                className="px-5 py-4"
+                style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
+              >
+                <p className="mono text-[10px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
                 <p className="mt-1 max-w-prose text-lg">{org.actualite.texte}</p>
               </div>
             </div>
@@ -457,7 +497,7 @@ export default async function VitrinePage(
           <div className={afficherLogoHero ? "grid items-center gap-12 md:grid-cols-[1fr_auto]" : ""}>
             <div>
               {org.sport ? (
-                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
+                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>
                   {org.sport}<span style={{ color: accent }}>_</span>
                 </p>
               ) : null}
@@ -479,14 +519,19 @@ export default async function VitrinePage(
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link
                   href={`/${org.slug}/inscription`}
-                  className="mono px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
-                  style={{ background: accent }}
+                  className="mono px-6 py-3 text-[13px] transition-opacity hover:opacity-90"
+                  style={{ background: accent, color: texteSurAccent }}
                 >
                   S&apos;INSCRIRE →
                 </Link>
-                <a href="#cours" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
-                  DÉCOUVRIR LES COURS
-                </a>
+                {/* Même logique que la nav : les sections retirées n'ayant pas d'ancre,
+                    un bouton vers #cours absent ne ferait rien au clic — pire que
+                    l'absence du bouton. Il ne s'affiche que si « Cours » est rendu. */}
+                {rendus.some((r) => r.id === "cours") ? (
+                  <a href="#cours" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
+                    DÉCOUVRIR LES COURS
+                  </a>
+                ) : null}
               </div>
             </div>
 
@@ -494,10 +539,14 @@ export default async function VitrinePage(
                 alors dans la couleur du site, clair comme sombre. */}
             {afficherLogoHero ? (
               <div className="order-first flex justify-start md:order-none md:justify-end">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {/* 384 px = le plus grand palier (md:h-96) : next/image sert la bonne
+                    variante au lieu du fichier original (jusqu'à 3 Mo). */}
+                <Image
                   src={org.logo_url as string}
                   alt={org.nom}
+                  width={384}
+                  height={384}
+                  sizes="(min-width: 768px) 384px, 192px"
                   className={classeLogoHero(pc)}
                 />
               </div>
@@ -534,7 +583,7 @@ export default async function VitrinePage(
               <Controles slug={org.slug} cle={r.cle} first={idx === 0} last={idx === rendus.length - 1} custom={r.custom} accent={accent} />
             </>
           ) : null}
-          {r.node(String(idx + 1).padStart(2, "0"))}
+          {r.node()}
         </section>
       ))}
 
@@ -689,8 +738,8 @@ function EditeurHero({
       ) : null}
 
       <button
-        className="mono mt-7 px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
-        style={{ background: accent }}
+        className="mono mt-7 px-6 py-3 text-[13px] transition-opacity hover:opacity-90"
+        style={{ background: accent, color: texteSur(accent) }}
       >
         ENREGISTRER L’EN-TÊTE →
       </button>

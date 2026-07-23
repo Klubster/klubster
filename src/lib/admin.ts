@@ -98,23 +98,36 @@ export async function verifierSuperAdmin() {
 export async function getStatsAdmin(): Promise<StatsAdmin> {
   const supabase = await createSupabaseServerClient();
 
-  const [orgsRes, adherentsRes, adhesionsRes, reglementsRes, coursRes, profilsRes, presencesRes] = await Promise.all([
-    supabase.from("organisations").select("*").order("created_at", { ascending: false }).limit(PLAFOND),
-    supabase.from("adherents").select("organisation_id").limit(PLAFOND),
-    supabase.from("adhesions").select("id, organisation_id, montant_centimes, statut, created_at").limit(PLAFOND),
-    supabase.from("reglements").select("organisation_id, montant_centimes, created_at").limit(PLAFOND),
-    supabase.from("cours").select("id, organisation_id").limit(PLAFOND),
-    supabase.from("profiles").select("email, prenom, nom, organisation_id, role, created_at").limit(PLAFOND),
-    supabase.from("presences").select("organisation_id, created_at").limit(PLAFOND),
+  // PostgREST tronque SILENCIEUSEMENT toute réponse à 1 000 lignes (`db-max-rows`), quel
+  // que soit `.limit()` : l'ancien `.limit(PLAFOND)` était écrasé et le garde-fou
+  // `tronque` ne pouvait JAMAIS se déclencher. On pagine donc par `.range()` (ordre
+  // stable par id, pour ne rien perdre ni compter deux fois entre deux pages), en
+  // conservant le plafond global de 50 000 lignes par table.
+  const PAGE = 1000;
+  const chargerTout = async <T>(
+    page: (debut: number, fin: number) => PromiseLike<{ data: T[] | null; error: unknown }>
+  ): Promise<T[]> => {
+    const lignes: T[] = [];
+    for (let debut = 0; debut < PLAFOND; debut += PAGE) {
+      const { data } = await page(debut, debut + PAGE - 1);
+      const bloc = data ?? [];
+      lignes.push(...bloc);
+      if (bloc.length < PAGE) break;
+    }
+    return lignes;
+  };
+
+  const [orgsBrutes, adherents, adhesions, reglements, cours, profils, presences] = await Promise.all([
+    chargerTout((d, f) => supabase.from("organisations").select("*").order("created_at", { ascending: false }).order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("adherents").select("organisation_id").order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("adhesions").select("id, organisation_id, montant_centimes, statut, created_at").order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("reglements").select("organisation_id, montant_centimes, created_at").order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("cours").select("id, organisation_id").order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("profiles").select("email, prenom, nom, organisation_id, role, created_at").order("id").range(d, f)),
+    chargerTout((d, f) => supabase.from("presences").select("organisation_id, created_at").order("id").range(d, f)),
   ]);
 
-  const orgs = (orgsRes.data ?? []) as Organisation[];
-  const adherents = adherentsRes.data ?? [];
-  const adhesions = adhesionsRes.data ?? [];
-  const reglements = reglementsRes.data ?? [];
-  const cours = coursRes.data ?? [];
-  const profils = profilsRes.data ?? [];
-  const presences = presencesRes.data ?? [];
+  const orgs = orgsBrutes as Organisation[];
 
   const tronque = [adherents, adhesions, reglements, cours, presences].some((t) => t.length >= PLAFOND);
 

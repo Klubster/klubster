@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import MenuMobile from "@/components/site/MenuMobile";
+import { texteSur } from "@/lib/contraste";
 import type { Organisation } from "@/types/db";
 
 export interface LienSection {
@@ -31,18 +33,22 @@ export function SiteHeader({
   liens?: LienSection[];
 }) {
   const accent = org.couleur_primaire ?? "#111111";
+  // La couleur du club est un hex libre : sur un accent clair (jaune, bleu ciel…),
+  // le blanc codé en dur devenait illisible. texteSur choisit blanc ou encre.
+  const texteAccent = texteSur(accent);
   const nav = liens && liens.length > 0 ? liens : LIENS_PAR_DEFAUT;
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4 md:px-8">
         <Link href={`/${org.slug}`} className="flex min-w-0 items-center gap-2.5">
           {org.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={org.logo_url} alt={org.nom} className="h-10 w-10 object-cover" />
+            // Les logos sortent du Storage tels qu'uploadés (jusqu'à 3 Mo) : next/image
+            // les redimensionne à la taille affichée (40 px) et les convertit en AVIF/WebP.
+            <Image src={org.logo_url} alt={org.nom} width={40} height={40} className="h-10 w-10 object-cover" />
           ) : (
             <span
-              className="grid h-10 w-10 place-items-center text-[16px] font-bold text-white"
-              style={{ background: accent }}
+              className="grid h-10 w-10 place-items-center text-[16px] font-bold"
+              style={{ background: accent, color: texteAccent }}
               aria-hidden
             >
               {org.nom.charAt(0)}
@@ -76,8 +82,8 @@ export function SiteHeader({
           ) : null}
           <Link
             href={`/${org.slug}/inscription`}
-            className="mono px-4 py-2 text-[12px] text-white transition-opacity hover:opacity-90"
-            style={{ background: accent }}
+            className="mono px-4 py-2 text-[12px] transition-opacity hover:opacity-90"
+            style={{ background: accent, color: texteAccent }}
           >
             S&apos;INSCRIRE →
           </Link>

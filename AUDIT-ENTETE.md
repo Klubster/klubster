@@ -1,6 +1,6 @@
 # Klubster — code source pour relecture externe
 
-Généré le 22 juillet 2026. Ce document contient l'intégralité du code source applicatif de Klubster, tel qu'il est en production, plus les tests et les migrations de base de données. **C'est la troisième relecture** : les deux précédentes ont été intégralement traitées, et cet en-tête dit précisément ce qui a changé depuis, pour ne pas re-signaler du déjà-corrigé.
+Généré le 22 juillet 2026 (2ᵉ export du jour, après traitement du 4ᵉ audit). Ce document contient l'intégralité du code source applicatif de Klubster, tel qu'il est en production, plus les tests et les migrations de base de données. **C'est la cinquième relecture** : les quatre précédentes ont été intégralement traitées, et cet en-tête dit précisément ce qui a changé depuis, pour ne pas re-signaler du déjà-corrigé.
 
 ## Ce qu'est Klubster
 
@@ -56,20 +56,38 @@ Corrigés lors des relectures antérieures (ne pas y revenir) : RPC exécutables
 - **PWA sur domaine propre** : `/sw.js` hors réécriture, manifest adapté à l'hôte ; pas de rechargement pendant une saisie.
 - **Journal d'emails** : FK `on delete set null` + effacement à l'anonymisation (migration 0010).
 
+## Corrigé lors du 4ᵉ audit (migrations 0012–0016) — vérifié en production, inutile de re-signaler
+
+Verdict du 4ᵉ audit : GO pilotes / NO-GO campagne massive tant que 6 points de lancement + les P1 non traités. **Tous traités**, chaque affirmation revérifiée dans le vrai code et la base de production avant correction ; tests offensifs PostgREST rejoués.
+
+Les P0 (migrations 0012–0013) :
+- **`pieces_adherent`** : l'UPDATE `authenticated` portait sur toutes les colonnes → un adhérent pouvait déplacer sa pièce vers un autre club. Désormais grants par colonne (`statut, chemin, updated_at` seulement) + triggers rendant `organisation_id/adherent_id/cle` immuables. (Sur `adherents`, le point était un faux positif : UPDATE déjà limité par colonnes à email/nom/prénom/téléphone.)
+- **RPC webhook** (`enregistrer_reglement_webhook`, `enregistrer_remboursement_webhook`) : elles étaient exécutables par tout `authenticated` **sans contrôle interne** (conçues pour la `service_role`) → un adhérent pouvait se marquer « payé » ou s'inscrire un remboursement. Révoquées à `anon`/`authenticated`/`public`.
+- **Questionnaire de santé** : rendu obligatoire côté serveur quand le club l'active, signature validée (image PNG base64), et enregistré dans la MÊME transaction que l'adhésion (`register_adherent_avec_sante`, rollback si le volet santé échoue).
+- **Effacement RGPD** : `anonymiser_adherent` (SQL) ne touchait ni les fichiers Storage ni le compte Auth ; l'effacement se fait maintenant en trois couches vérifiées (fichiers `pieces/…`, anonymisation SQL, suppression `auth.users` si compte non partagé).
+- **Échéancier Stripe** (`planifierEcheances`) rendu rejouable : court-circuit si déjà borné, reprise d'un échéancier existant, et **lève** si le prix est introuvable (au lieu d'un `return` silencieux laissant l'abonnement sans borne). 4 tests dédiés.
+- **Snapshot de référence** (migration 0013) : 21 RPC métier + politiques `storage.objects` versionnées avec leurs `GRANT`/`REVOKE` explicites — la base est reconstructible et auditable de bout en bout.
+
+Les P1 (migrations 0014–0016) :
+- **Webhook** : helper `exiger()` sur toutes les écritures critiques (abonnement Klubster, résolution d'adhésion, vérification de compte, marquage `traité`, clôture de litige) → une panne de base ne se déguise plus en « rien à faire ».
+- **Outbox emails** (0014) : `emails_journal` porte statut/bail/tentatives/id-fournisseur/période ; RPC atomiques `reserver_email`/`marquer_email_envoye`/`liberer_email`. Ferme le crash-avant-envoi (bail expiré → repris) et les doublons d'emails de club (unicité `organisation_id+motif+période`). Récap limité à la saison courante.
+- **Validations d'inscription** : vraie date calendaire (`estDateNaissanceValide`, `2026-99-99` refusé, pas future), mot de passe ≥ 8, adresse, mode de paiement en liste blanche, et **rollback du compte Auth** si l'adhésion échoue après `signUp`.
+- **PWA** : plus de rechargement sur `visibilitychange`/`pagehide` (changer d'onglet effaçait la saisie) ; détection élargie aux `select` et `contenteditable` ; la mise à jour s'applique à la navigation suivante.
+- **Lecture publique des organisations** (0015) : `anon` perd `abonnement_customer_id`, `abonnement_subscription_id`, `emails_config` (grants par colonne) ; nouvelle `getOrganisationPubliqueBySlug` (colonnes de vitrine) pour les pages publiques, le cockpit garde l'accès complet en authentifié.
+- **Effectif facturable unifié** : la console admin compte désormais les **adhérents** (comme le checkout et la RPC `palier_abonnement`), plus les adhésions.
+- **Rétention + rate-limit** (0016) : `purger_emails_journal` (13 mois, documenté au registre RGPD), et limitation de débit **partagée entre instances** (table `rate_limit` + RPC atomique `incrementer_rate_limit`, repli mémoire), purges branchées sur le cron quotidien.
+- **RGPD — lecture des dossiers par rôle** : choix **assumé et documenté** (registre des traitements, section « Habilitations internes au club ») plutôt qu'une refonte ; l'audit l'accepte si documenté. La lecture des données de santé et des pièces reste réservée au président et au secrétaire.
+
 ## Points ouverts, assumés — le contexte pour ne pas les compter deux fois
 
-- **Aucun test offensif automatisé (PostgREST direct, E2E) n'a encore été mené.** Les vérifications restent des relectures + inspection de la base réelle.
-- **Le compte super-administrateur est une adresse Gmail personnelle** (2FA à confirmer).
-- **L'effectif facturable n'est pas unifié** : le checkout compte les lignes `adherents` ; une RPC unique `effectif_facturable` (adhésions actives de la saison) reste à créer (aucun club abonné aujourd'hui).
-- **Rétention temporelle du journal d'emails** à définir (durée puis purge).
-- **Turnstile ne protège que le formulaire d'inscription** ; `/creer` et `/connexion` reposent sur les limites Supabase.
-- **`getOrganisationBySlug` fait `select("*")`** : les ids Stripe opérationnels (non secrets) sortent en lecture publique. À restreindre.
-- **La limitation de débit anti-abus vit en mémoire** (par instance serverless).
+- **Aucun test offensif automatisé E2E n'a encore été mené.** Des attaques PostgREST directes ciblées ont été rejouées (colonnes de pièces, RPC financières, escalade de rôle, outbox) et passent, mais il n'y a pas de suite E2E complète (parcours réels avec horloges de test Stripe).
+- **Le compte super-administrateur est une adresse Gmail personnelle** (2FA à activer — seul point de lancement encore ouvert, action hors code).
+- **Turnstile ne protège que le formulaire d'inscription** ; `/creer` et `/connexion` reposent sur les limites Supabase et, désormais, le rate-limit distribué.
 - Deux avis `moderate` sur un `postcss` embarqué dans Next lui-même, non actionnables.
 
 ## Couverture de tests
 
-133 tests unitaires (`vitest`) sur `src/lib`, volontairement limités aux fonctions pures où un bug coûte de l'argent ou laisse fuir une donnée : rôles/permissions, validation des fichiers, questionnaire de santé (dont le comptage des réponses), composition des pages, tarification, mensualités, signature des webhooks, redirection après authentification. **Aucun test de bout en bout** : les parcours réels (base + horloges de test Stripe) ne sont pas couverts.
+143 tests unitaires (`vitest`) sur `src/lib`, volontairement limités aux fonctions pures où un bug coûte de l'argent ou laisse fuir une donnée : rôles/permissions, validation des fichiers, questionnaire de santé (dont le comptage des réponses et la validité calendaire de la date de naissance), composition des pages, tarification, mensualités, **rejouabilité de l'échéancier Stripe**, signature des webhooks, redirection après authentification. **Aucun test de bout en bout** : les parcours réels (base + horloges de test Stripe) ne sont pas couverts.
 
 ## Ce qui n'est pas dans cet export
 

@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     siteName: "Klubster",
     locale: "fr_FR",
     type: "website",
+    // twitter:card=summary_large_image était déclarée… sans image : la vignette OG
+    // racine (app/opengraph-image.tsx) sert aussi ici.
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Klubster — Toute votre association, au même endroit." }],
   },
   twitter: { card: "summary_large_image", title: TITRE, description: DESCRIPTION },
 };
@@ -224,7 +227,8 @@ export default function Tarifs() {
           <div className="mt-12 border-t border-line">
             {QUESTIONS.map(([q, r], i) => (
               <div key={q} className="flex gap-5 border-b border-line py-7">
-                <span className="mono shrink-0 pt-1 text-[11px] text-brand">
+                {/* Numéro = information de lecture en petit corps : brand-dark (4,5:1). */}
+                <span className="mono shrink-0 pt-1 text-[11px] text-brand-dark">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>
