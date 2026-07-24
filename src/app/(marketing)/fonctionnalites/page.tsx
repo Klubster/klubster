@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import MenuMobile from "@/components/site/MenuMobile";
 import CockpitPreview from "@/components/site/CockpitPreview";
-import { ApercuFormulaire, ApercuScan, ApercuMessages, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
+import { ApercuFormulaire, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
 
 export const metadata: Metadata = {
   title: "Fonctionnalités — Klubster",
@@ -86,52 +85,316 @@ function Chute({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Une capture d’écran réelle, dans un cadre navigateur sobre : la preuve, pas le décor.
-    La légende est au-dessus (kicker + phrase), la nature de la capture est dite dessous. */
-function CaptureEcran({
-  src,
-  alt,
-  kicker,
-  phrase,
-  adresse,
-  mention = "CAPTURE DE L’APPLICATION · DONNÉES DE DÉMONSTRATION",
-}: {
-  src: string;
-  alt: string;
-  kicker: string;
-  phrase: string;
-  adresse?: string;
-  mention?: string;
-}) {
+/* ————————————————————————————————————————————————————————————————————————
+   Les reconstructions d’interface. Pas de captures d’écran : des écrans
+   recréés dans la typographie de la page — nets partout, jamais périmés,
+   sans données d’adhérents réels. Une seule histoire d’un bout à l’autre :
+   l’USM Boxe Anglaise, 312 adhérents, saison 2026-2027 — et Louise Martin,
+   inscrite en boxe éducative, qui règle sa cotisation en huit échéances.
+   ———————————————————————————————————————————————————————————————————— */
+
+const VERT = "#1E7A4F";
+const AMBRE = "#8A6508";
+
+/** La mention sous chaque reconstruction : dire ce qu’on regarde, sans le crier. */
+function Mention({ centre = false }: { centre?: boolean }) {
   return (
-    <figure>
-      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-        {kicker}
-        <Cur />
-      </p>
-      <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-ink-soft">{phrase}</p>
-      <a
-        href={src}
-        target="_blank"
-        rel="noreferrer"
-        title="Ouvrir la capture en grand"
-        className="mt-5 block border border-line bg-paper transition-opacity hover:opacity-90"
-      >
-        {/* La barre du navigateur : trois carrés au filet, pas de pastilles macOS. */}
-        <span className="flex items-center gap-1.5 border-b border-line px-4 py-2.5">
+    <p className={`mono mt-3 text-[10px] uppercase tracking-label text-ink-faint ${centre ? "text-center" : ""}`}>
+      APERÇU DE L’INTERFACE · DONNÉES DE DÉMONSTRATION
+    </p>
+  );
+}
+
+/** Le cadre commun des reconstructions : la barre Klubster et l’adresse, rien d’autre. */
+function Ecran({ url, children }: { url: string; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden border border-line bg-paper">
+      <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+        <span className="font-logo text-[13px] font-semibold">k<span className="text-brand">_</span></span>
+        <span className="mono truncate text-[10px] uppercase tracking-label text-ink-faint">{url}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Le cockpit : ce que le président voit en ouvrant Klubster un soir de cours. */
+function ApercuCockpit() {
+  return (
+    <Ecran url="klubster.fr/usmboxe/cockpit">
+      <div className="p-5 md:p-6">
+        <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
+          USM BOXE ANGLAISE · SAISON 2026-2027<span className="text-brand">_</span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
+          {[
+            ["312", "ADHÉRENTS"],
+            ["14", "INSCRIPTIONS À TERMINER"],
+            ["8", "DOCUMENTS MANQUANTS"],
+            ["3", "ÉCHÉANCES EN RETARD"],
+          ].map(([n, label]) => (
+            <div key={label} className="bg-paper px-4 py-3.5">
+              <div className="mono text-[20px] font-bold tracking-tight">{n}</div>
+              <div className="mono mt-1 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="border border-line">
+            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+              LES COURS DU JOUR<span className="text-brand">_</span>
+            </div>
+            <div className="px-3 py-3">
+              <p className="text-[13px] font-medium">Ce soir : Boxe éducative · 18:00–19:30</p>
+              <p className="mono mt-1 text-[10px] text-ink-faint">62 inscrits · l’appel se fait au scan</p>
+            </div>
+          </div>
+
+          <div className="border border-line">
+            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+              DERNIÈRES INSCRIPTIONS<span className="text-brand">_</span>
+            </div>
+            {[
+              ["Louise Martin", "Boxe éducative"],
+              ["Karim Benali", "Boxe loisirs"],
+              ["Emma Robert", "Boxe éducative"],
+            ].map(([nom, cours]) => (
+              <div key={nom} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2 last:border-b-0">
+                <span className="text-[12px]">{nom}</span>
+                <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{cours}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Ecran>
+  );
+}
+
+/** La fiche : le dossier de Louise, lisible en un regard — pas un formulaire. */
+function ApercuFiche() {
+  return (
+    <Ecran url="klubster.fr/usmboxe/cockpit/adherents">
+      <div className="p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-[22px] font-medium leading-tight tracking-[-0.01em]">Louise Martin</p>
+          <span className="mono text-[10px] uppercase tracking-label" style={{ color: VERT }}>Dossier complet</span>
+        </div>
+        <p className="mt-1 text-[13px] text-ink-soft">Boxe éducative · Saison 2026-2027</p>
+
+        <div className="mt-5 border border-line">
+          {[
+            "Inscription validée",
+            "Responsable légal renseigné",
+            "Questionnaire de santé signé",
+            "Certificat médical reçu",
+          ].map((l) => (
+            <div key={l} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
+              <span className="mono text-[11px]" style={{ color: VERT }}>✓</span>
+              <span className="flex-1 text-[12px]">{l}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-line px-3 py-3">
+          <div>
+            <div className="mono text-[9px] uppercase tracking-label text-ink-soft">
+              PAIEMENT<span className="text-brand">_</span>
+            </div>
+            <div className="mt-1 text-[13px]">3 échéances sur 8 réglées</div>
+          </div>
+          <div aria-hidden className="flex gap-1">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <span key={i} className={`h-2.5 w-2.5 border border-line ${i < 3 ? "bg-brand-dark" : "bg-paper"}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </Ecran>
+  );
+}
+
+/** Les paiements : l’état de la trésorerie, puis les dossiers un à un. */
+function ApercuPaiements() {
+  return (
+    <Ecran url="klubster.fr/usmboxe/cockpit/paiements">
+      <div className="p-5">
+        <div className="grid grid-cols-3 gap-px border border-line bg-line">
+          {[
+            ["12 480 €", "ENCAISSÉS"],
+            ["2 130 €", "À VENIR"],
+            ["3", "ÉCHÉANCES À RÉGULARISER"],
+          ].map(([n, label]) => (
+            <div key={label} className="bg-paper px-3 py-3.5 md:px-4">
+              <div className="mono text-[15px] font-bold tracking-tight md:text-[20px]">{n}</div>
+              <div className="mono mt-1 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 border border-line">
+          {[
+            { nom: "Louise Martin", mode: "8 échéances", etat: "À jour", ok: true },
+            { nom: "Karim Benali", mode: "Carte", etat: "Réglé", ok: true },
+            { nom: "Emma Robert", mode: "Chèque", etat: "À valider", ok: false },
+            { nom: "Lucas Bernard", mode: "Échéancier", etat: "Retard", ok: false },
+          ].map((l) => (
+            <div key={l.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
+              <span className="mono text-[11px]" style={{ color: l.ok ? VERT : AMBRE }}>{l.ok ? "✓" : "●"}</span>
+              <span className="flex-1 text-[12px]">{l.nom}</span>
+              <span className="mono hidden text-[9px] uppercase tracking-label text-ink-faint sm:inline">{l.mode}</span>
+              <span className="mono w-16 text-right text-[9px] uppercase tracking-label" style={{ color: l.ok ? VERT : AMBRE }}>
+                {l.etat}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Ecran>
+  );
+}
+
+/** Le contrôle : ce que lit le bénévole, deux secondes après le scan. */
+function ApercuControle() {
+  return (
+    <Ecran url="klubster.fr/usmboxe/cockpit/scanner">
+      <div className="p-5">
+        <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
+          CARTE SCANNÉE · 18:02<span className="text-brand">_</span>
+        </div>
+        <p className="mt-3 text-[22px] font-medium leading-tight tracking-[-0.01em]">Louise Martin</p>
+        <p className="mt-1 text-[13px] text-ink-soft">Boxe éducative · 18:00–19:30</p>
+
+        <div className="mt-5 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
+          {[
+            "Inscription valide",
+            "Paiement à jour",
+            "Documents reçus",
+            "Présence enregistrée",
+          ].map((l) => (
+            <div key={l} className="flex items-center gap-3 bg-paper px-4 py-3">
+              <span className="mono text-[11px]" style={{ color: VERT }}>✓</span>
+              <span className="text-[12px]">{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Ecran>
+  );
+}
+
+/** Les messages : à qui l’on écrit, et ce qui part tout seul. */
+function ApercuMessages() {
+  return (
+    <Ecran url="klubster.fr/usmboxe/cockpit/messages">
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="border-b border-line p-5 md:border-b-0 md:border-r">
+          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
+            DESTINATAIRES<span className="text-brand">_</span>
+          </p>
+          <div className="mt-3 border border-line px-3 py-2.5">
+            <p className="text-[13px] font-medium">Boxe éducative</p>
+            <p className="mono mt-0.5 text-[10px] text-ink-faint">62 adhérents</p>
+          </div>
+          <div className="mt-2 flex items-center gap-2.5 border border-line px-3 py-2.5">
+            <span aria-hidden className="mono flex h-3.5 w-3.5 items-center justify-center bg-ink text-[8px] leading-none text-paper">✓</span>
+            <span className="text-[12px]">Inclure les responsables légaux</span>
+          </div>
+          <p className="mono mt-3 text-[10px] text-ink-faint">Chaque message est envoyé séparément.</p>
+        </div>
+
+        <div className="bg-bg-alt p-5">
+          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
+            LES AUTOMATISMES<span className="text-brand">_</span>
+          </p>
+          <div className="mt-3 border border-line bg-paper">
+            {[
+              "Dossier incomplet",
+              "Échéance en retard",
+              "Récapitulatif hebdomadaire",
+            ].map((l) => (
+              <div key={l} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
+                <span className="text-[12px]">{l}</span>
+                <span className="mono text-[9px] uppercase tracking-label" style={{ color: VERT }}>Actif</span>
+              </div>
+            ))}
+          </div>
+          <p className="mono mt-3 text-[10px] text-ink-faint">Le club choisit ce qui part tout seul, et garde la trace des envois.</p>
+        </div>
+      </div>
+    </Ecran>
+  );
+}
+
+/** Le site public de l’USM, recomposé dans la page : un cadre navigateur, une vue mobile. */
+function ApercuSiteUsm() {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_170px] md:items-start">
+      {/* la vue navigateur : trois carrés au filet, pas de pastilles macOS */}
+      <div className="overflow-hidden border border-line bg-paper">
+        <div className="flex items-center gap-1.5 border-b border-line px-4 py-2.5">
           <span aria-hidden className="h-2 w-2 border border-line" />
           <span aria-hidden className="h-2 w-2 border border-line" />
           <span aria-hidden className="h-2 w-2 border border-line" />
-          {adresse && (
-            <span className="mono ml-3 truncate border border-line px-3 py-0.5 text-[10px] text-ink-faint">
-              {adresse}
+          <span className="mono ml-3 truncate border border-line px-3 py-0.5 text-[10px] text-ink-faint">
+            klubster.fr/usmboxe
+          </span>
+        </div>
+
+        <div className="bg-ink text-paper">
+          <div className="flex items-center justify-between gap-4 border-b border-paper/15 px-5 py-3">
+            <span className="mono text-[11px] font-bold tracking-wide">USM BOXE ANGLAISE<span className="text-brand">_</span></span>
+            <span className="mono hidden items-center gap-4 text-[9px] uppercase tracking-label text-paper/60 sm:flex">
+              <span>Les cours</span>
+              <span>Les tarifs</span>
+              <span>L’équipe</span>
+              <span className="text-paper">S’inscrire</span>
             </span>
-          )}
-        </span>
-        <Image src={src} alt={alt} width={1400} height={900} className="w-full h-auto" />
-      </a>
-      <figcaption className="mono mt-3 text-[10px] uppercase tracking-label text-ink-faint">{mention}</figcaption>
-    </figure>
+          </div>
+          <div className="px-5 py-8 md:px-6">
+            <p className="mono text-[9px] uppercase tracking-label text-paper/60">
+              MONTAUBAN · SAISON 2026-2027<span className="text-brand">_</span>
+            </p>
+            <p className="mt-3 text-[20px] font-medium leading-tight tracking-[-0.01em] md:text-[24px]">
+              La boxe anglaise,<br />pour tout le monde.
+            </p>
+            <div className="mono mt-5 inline-block bg-brand-dark px-4 py-2 text-[10px] text-white">S’INSCRIRE →</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-px border-t border-line bg-line">
+          {[
+            ["Boxe éducative", "Mer. 18:00"],
+            ["Boxe loisirs", "Mar. 19:00"],
+            ["Compétition", "Ven. 19:30"],
+          ].map(([nom, creneau]) => (
+            <div key={nom} className="bg-paper px-3 py-3">
+              <p className="text-[12px] font-medium">{nom}</p>
+              <p className="mono mt-0.5 text-[9px] uppercase tracking-label text-ink-faint">{creneau}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* la même page, dans la poche : masquée sur mobile, où l’écran est déjà un téléphone */}
+      <div className="hidden overflow-hidden border border-line bg-ink text-paper md:block">
+        <div className="mono border-b border-paper/15 px-3 py-2 text-[9px] font-bold tracking-wide">
+          USM BOXE<span className="text-brand">_</span>
+        </div>
+        <div className="px-3 py-4">
+          <p className="mono text-[7px] uppercase tracking-label text-paper/60">MONTAUBAN</p>
+          <p className="mt-1.5 text-[11px] font-medium leading-snug">La boxe anglaise, pour tout le monde.</p>
+          <div className="mono mt-3 bg-brand-dark px-2 py-1.5 text-center text-[7px] text-white">S’INSCRIRE →</div>
+          <div className="mt-3 space-y-1 border-t border-paper/15 pt-3">
+            <p className="mono text-[7px] uppercase tracking-label text-paper/60">LES COURS</p>
+            <p className="text-[9px]">Boxe éducative · Mer. 18:00</p>
+            <p className="text-[9px]">Boxe loisirs · Mar. 19:00</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -233,16 +496,20 @@ export default function Fonctionnalites() {
         </div>
       </nav>
 
-      {/* La preuve avant les chapitres : le cockpit d’un club qui existe. */}
+      {/* Avant les chapitres : le cockpit, l’écran par lequel tout commence. */}
       <section>
         <div className="mx-auto max-w-5xl px-6 py-16 md:px-8 md:py-20">
           <Reveal>
-            <CaptureEcran
-              src="/fonctionnalites/cockpit.png"
-              alt="Le cockpit Klubster d’un club réel : adhérents, encaissements et dossiers en cours."
-              kicker="LE COCKPIT D’UN VRAI CLUB"
-              phrase="Plus de 300 adhérents gérés chaque semaine avec Klubster."
-            />
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              LE COCKPIT<Cur />
+            </p>
+            <h2 className="mt-5 text-[24px] font-medium leading-[1.12] tracking-[-0.02em] md:text-[32px]">
+              L’état du club, en trois secondes.
+            </h2>
+            <div className="mt-7">
+              <ApercuCockpit />
+            </div>
+            <Mention />
           </Reveal>
         </div>
       </section>
@@ -269,6 +536,7 @@ export default function Fonctionnalites() {
           <p className="mono mt-4 text-[11px] text-ink-faint">
             À gauche, ce que vous réglez une fois. À droite, ce que l’adhérent remplit chez lui, un dimanche soir.
           </p>
+          <Mention />
         </Reveal>
 
         <Reveal>
@@ -302,12 +570,11 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal className="mt-12">
-          <CaptureEcran
-            src="/fonctionnalites/fiche-adherent.png"
-            alt="La fiche d’un adhérent dans Klubster : ses pièces, sa cotisation, ses règlements."
-            kicker="DANS L’APPLICATION"
-            phrase="Le secrétaire retrouve le dossier, les pièces et les règlements au même endroit."
-          />
+          <ApercuFiche />
+          <p className="mono mt-4 text-[11px] text-ink-faint">
+            Le dossier dit ce qui est fait, ce qui manque, et où en est le paiement. Rien à chercher.
+          </p>
+          <Mention />
         </Reveal>
 
         <Reveal>
@@ -335,12 +602,11 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal className="mt-12">
-          <CaptureEcran
-            src="/fonctionnalites/paiements.png"
-            alt="Le suivi des paiements dans Klubster : paiements en ligne, échéances, chèques et espèces."
-            kicker="LA TRÉSORERIE DU CLUB, SANS TABLEUR"
-            phrase="Paiements en ligne, échéances, chèques et espèces dans le même suivi."
-          />
+          <ApercuPaiements />
+          <p className="mono mt-4 text-[11px] text-ink-faint">
+            Paiements en ligne, échéances, chèques et espèces dans le même suivi. Sans tableur.
+          </p>
+          <Mention />
         </Reveal>
 
         <Reveal className="mt-12">
@@ -348,6 +614,7 @@ export default function Fonctionnalites() {
           <p className="mono mt-4 text-center text-[11px] text-ink-faint">
             Le bordereau de remise : cochez les chèques, imprimez, déposez. Klubster tient le compte.
           </p>
+          <Mention centre />
         </Reveal>
 
         <Reveal className="mt-12">
@@ -394,10 +661,11 @@ export default function Fonctionnalites() {
         </Reveal>
 
         <Reveal className="mt-12">
-          <ApercuScan />
+          <ApercuControle />
           <p className="mono mt-4 text-[11px] text-ink-faint">
-            Le scan ne dit pas seulement « présent ». Il dit ce qu’il faut réclamer, et à qui.
+            Le scan ne dit pas seulement « présent ». Il dit si tout est en règle — et sinon, quoi réclamer.
           </p>
+          <Mention />
         </Reveal>
 
         <Reveal>
@@ -447,8 +715,9 @@ export default function Fonctionnalites() {
         <Reveal className="mt-12">
           <ApercuMessages />
           <p className="mono mt-4 text-[11px] text-ink-faint">
-            Vous choisissez qui reçoit. Klubster envoie, chacun de son côté.
+            Vous choisissez qui reçoit. Klubster envoie, chacun de son côté — et relance tout seul si vous l’activez.
           </p>
+          <Mention />
         </Reveal>
 
         <Reveal>
@@ -485,17 +754,21 @@ export default function Fonctionnalites() {
           <p className="mono mt-4 text-[11px] text-ink-faint">
             Les sections de votre site, que vous rangez et publiez depuis votre cockpit.
           </p>
+          <Mention />
         </Reveal>
 
         <Reveal className="mt-12">
-          <CaptureEcran
-            src="/fonctionnalites/site-usm.png"
-            alt="Le site public de l’USM Boxe Anglaise, administré depuis Klubster."
-            kicker="PAS UNE MAQUETTE"
-            phrase="Ce site est réellement utilisé par l’USM Boxe Anglaise. Les cours, les créneaux, les tarifs, les actualités et les inscriptions sont administrés depuis Klubster."
-            adresse="klubster.fr/usmboxe"
-            mention="CAPTURE DU SITE PUBLIC"
-          />
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            UN VRAI CLUB, PAS UN TEMPLATE<Cur />
+          </p>
+          <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-ink-soft">
+            L’USM Boxe Anglaise utilise ce site pour présenter ses cours, son planning, ses tarifs,
+            son équipe et ses actualités, et recevoir ses inscriptions.
+          </p>
+          <div className="mt-5">
+            <ApercuSiteUsm />
+          </div>
+          <Mention />
           <Link
             href="/usmboxe"
             className="mono mt-6 inline-block border border-ink px-6 py-3 text-[13px] text-ink hover:bg-ink hover:text-paper"

@@ -1,5 +1,9 @@
 // Aperçus fidèles des écrans réels de Klubster, recréés en HTML plutôt que capturés :
 // nets sur tous les écrans, jamais périmés, et sans données d'adhérents réels.
+// L'histoire de démonstration est celle de la page /fonctionnalites : l'USM Boxe
+// Anglaise, saison 2026-2027, et Louise Martin, inscrite en boxe éducative.
+// Les autres reconstructions (cockpit, fiche, paiements, contrôle, messages, site
+// public) vivent en composants locaux dans src/app/(marketing)/fonctionnalites/page.tsx.
 
 function Fenetre({ url, children }: { url: string; children: React.ReactNode }) {
   return (
@@ -13,7 +17,7 @@ function Fenetre({ url, children }: { url: string; children: React.ReactNode }) 
   );
 }
 
-/* ——— I. Le formulaire : à gauche ce que le club règle, à droite ce que l'adhérent voit ——— */
+/* ——— Le formulaire : à gauche ce que le club règle, à droite ce que l'adhérent voit ——— */
 
 const CHAMPS = [
   { label: "Prénom, nom, email", etat: "Obligatoire" },
@@ -25,7 +29,7 @@ const CHAMPS = [
 
 export function ApercuFormulaire() {
   return (
-    <Fenetre url="klubster.fr/mon-asso/cockpit/formulaire">
+    <Fenetre url="klubster.fr/usmboxe/cockpit/formulaire">
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="border-b border-line p-5 md:border-b-0 md:border-r">
           <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
@@ -49,7 +53,7 @@ export function ApercuFormulaire() {
           <div className="mt-4 space-y-3">
             <div>
               <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Prénom</div>
-              <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px]">Camille</div>
+              <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px]">Louise</div>
             </div>
             <div>
               <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Date de naissance</div>
@@ -64,85 +68,6 @@ export function ApercuFormulaire() {
             </div>
             <div className="mono mt-4 bg-ink px-4 py-2.5 text-center text-[11px] text-paper">CONTINUER →</div>
           </div>
-        </div>
-      </div>
-    </Fenetre>
-  );
-}
-
-/* ——— II. Le contrôle : ce que le bénévole lit après avoir scanné une carte ——— */
-
-export function ApercuScan() {
-  return (
-    <Fenetre url="klubster.fr/mon-asso/cockpit/scanner">
-      <div className="p-5">
-        <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
-          CARTE SCANNÉE · 18:27<span className="text-brand">_</span>
-        </div>
-
-        <p className="mt-3 text-[22px] font-medium leading-tight tracking-[-0.01em]">Camille Fontaine</p>
-        <p className="mt-1 text-[13px] text-ink-soft">Boxe loisirs · mercredi 18:30–20:00</p>
-
-        <div className="mt-5 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
-          <div className="bg-paper px-4 py-3">
-            <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Cotisation</div>
-            <div className="mono mt-1.5 text-[13px]" style={{ color: "#1E7A4F" }}>✓ À jour · 210 €</div>
-          </div>
-          <div className="bg-paper px-4 py-3">
-            <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Dossier</div>
-            <div className="mono mt-1.5 text-[13px]" style={{ color: "#8A6508" }}>● Certificat médical manquant</div>
-          </div>
-        </div>
-
-        <div className="mono mt-5 inline-block bg-ink px-4 py-2.5 text-[11px] text-paper">MARQUER PRÉSENT</div>
-        <p className="mono mt-4 text-[10px] text-ink-faint">Aucun nom à chercher. Aucun trésorier à appeler.</p>
-      </div>
-    </Fenetre>
-  );
-}
-
-/* ——— III. La fiche : l'adhérent vu du cockpit ——— */
-
-const PIECES = [
-  { nom: "Certificat médical", ok: true },
-  { nom: "Questionnaire de santé", ok: true },
-  { nom: "Autorisation parentale", ok: false },
-];
-
-export function ApercuFiche() {
-  return (
-    <Fenetre url="klubster.fr/mon-asso/cockpit/adherents">
-      <div className="p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-[22px] font-medium leading-tight tracking-[-0.01em]">Théo Nguyên</p>
-          <span className="mono text-[10px] uppercase tracking-label" style={{ color: "#8A6508" }}>En attente</span>
-        </div>
-        <p className="mt-1 text-[13px] text-ink-soft">theo.nguyen@exemple.fr · 06 12 34 56 78</p>
-
-        <div className="mt-5 border border-line">
-          <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
-            PIÈCES DU DOSSIER<span className="text-brand">_</span>
-          </div>
-          {PIECES.map((p) => (
-            <div key={p.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-              <span className="mono text-[11px]" style={{ color: p.ok ? "#1E7A4F" : "#8A6508" }}>{p.ok ? "✓" : "○"}</span>
-              <span className="flex-1 text-[12px]">{p.nom}</span>
-              <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{p.ok ? "Reçu" : "Manquant"}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-px border border-line bg-line">
-          {[
-            ["210 €", "COTISATION"],
-            ["70 €", "DÉJÀ RÉGLÉ"],
-            ["3", "ÉCHÉANCES"],
-          ].map(([n, label]) => (
-            <div key={label} className="bg-paper px-3 py-3">
-              <div className="mono text-[15px] font-bold tracking-tight">{n}</div>
-              <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-soft">{label}</div>
-            </div>
-          ))}
         </div>
       </div>
     </Fenetre>
@@ -165,7 +90,7 @@ export function ApercuRemise() {
           <p className="text-[15px] font-medium">USM Boxe Anglaise</p>
           <p className="mono mt-0.5 text-[11px] text-ink-soft">Bordereau de remise de chèques</p>
         </div>
-        <p className="mono text-[11px] text-ink-soft">Le 10/09</p>
+        <p className="mono text-[11px] text-ink-soft">Le 10/09/2026</p>
       </div>
       <table className="mt-4 w-full text-left text-[12px]">
         <tbody>
@@ -190,52 +115,7 @@ export function ApercuRemise() {
   );
 }
 
-/* ——— IV. Les messages : à qui, quoi, envoyé ——— */
-
-const CIBLES = [
-  { nom: "Tous les adhérents", n: 312, actif: true },
-  { nom: "Parents (mineurs)", n: 74 },
-  { nom: "Dossiers incomplets", n: 9 },
-  { nom: "Boxe loisirs", n: 18 },
-];
-
-export function ApercuMessages() {
-  return (
-    <Fenetre url="klubster.fr/mon-asso/cockpit/messages">
-      <div className="grid grid-cols-1 md:grid-cols-[190px_1fr]">
-        <div className="border-b border-line p-4 md:border-b-0 md:border-r">
-          <p className="mono text-[10px] uppercase tracking-label text-ink-soft">À QUI<span className="text-brand">_</span></p>
-          <div className="mt-3 space-y-1">
-            {CIBLES.map((c) => (
-              <div
-                key={c.nom}
-                className={`flex items-center justify-between px-3 py-2 text-[12px] ${c.actif ? "bg-ink text-paper" : "text-ink-soft"}`}
-              >
-                <span>{c.nom}</span>
-                <span className="mono text-[10px] opacity-70">{c.n}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-4">
-          <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Objet</div>
-          <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px]">Cours de mercredi annulé</div>
-          <div className="mono mt-3 text-[9px] uppercase tracking-label text-ink-soft">Message</div>
-          <div className="mt-1 border border-line bg-paper px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
-            Bonjour, le cours de mercredi est annulé (salle indisponible). Reprise vendredi, horaires habituels. Sportivement.
-          </div>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="mono text-[10px] text-ink-faint">312 adhérents · en copie cachée</span>
-            <span className="mono bg-ink px-4 py-2 text-[11px] text-paper">ENVOYER →</span>
-          </div>
-        </div>
-      </div>
-    </Fenetre>
-  );
-}
-
-/* ——— V. Le site : les sections que le club range et publie lui-même ——— */
+/* ——— Le site : les sections que le club range et publie lui-même ——— */
 
 const SECTIONS = [
   { nom: "Le hero et l’actualité", note: "Photo, accroche" },
@@ -247,7 +127,7 @@ const SECTIONS = [
 
 export function ApercuSite() {
   return (
-    <Fenetre url="klubster.fr/mon-asso">
+    <Fenetre url="klubster.fr/usmboxe/cockpit/site">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_150px]">
         <div className="border-b border-line p-4 md:border-b-0 md:border-r">
           <p className="mono text-[10px] uppercase tracking-label text-ink-soft">
