@@ -97,7 +97,7 @@ export default async function IdentitePage(
               required
               className="mono max-w-full text-[12px] text-ink-soft file:mr-4 file:cursor-pointer file:border file:border-line file:bg-paper file:px-4 file:py-2 file:text-[12px] file:text-ink hover:file:border-ink"
             />
-            <button type="submit" className="mono bg-brand-dark px-5 py-2.5 text-[12px] text-white hover:opacity-90">
+            <button type="submit" className="mono w-full bg-brand-dark px-5 py-2.5 text-[12px] text-white hover:opacity-90 sm:w-auto">
               METTRE À JOUR →
             </button>
           </form>

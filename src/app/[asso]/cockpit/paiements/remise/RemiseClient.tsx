@@ -191,7 +191,7 @@ export default function RemiseClient({
       <button
         onClick={genererEtImprimer}
         disabled={enCours || selection.length === 0}
-        className="mono mt-6 bg-brand px-6 py-3 text-[12px] text-white hover:opacity-90 disabled:opacity-40"
+        className="mono mt-6 w-full bg-brand px-6 py-3 text-[12px] text-white hover:opacity-90 disabled:opacity-40 sm:w-auto"
       >
         {enCours ? "GÉNÉRATION…" : `IMPRIMER LA REMISE (${selection.length}) →`}
       </button>

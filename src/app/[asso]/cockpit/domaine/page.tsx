@@ -67,12 +67,14 @@ export default async function DomainePage(
             {vercelConfigured() ? (
               <form action={connecterAvecSlug} className="mt-10">
                 <label className="mono text-[10px] uppercase tracking-label text-ink-soft">VOTRE NOM DE DOMAINE</label>
-                <div className="mt-2 flex gap-2">
+                {/* Champ puis bouton empilés sur mobile : côte à côte, il restait
+                    à peine 12 caractères visibles pour saisir le domaine. */}
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                   <input
                     name="domaine"
                     placeholder="monclub.fr"
                     required
-                    className="mono flex-1 border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
+                    className="mono w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink sm:flex-1"
                   />
                   <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
                     CONNECTER →

@@ -113,13 +113,16 @@ export default async function Cockpit(
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
-        {/* Nav : colonne sur desktop, rail horizontal scrollable sur mobile */}
-        <nav className="flex gap-5 overflow-x-auto border-b border-line px-6 py-4 md:block md:border-b-0 md:border-r md:px-7 md:py-6">
+        {/* Nav : colonne sur desktop, rail horizontal scrollable sur mobile.
+            Scrollbar masquée (l'onglet coupé au bord suffit à dire « ça défile »),
+            padding porté par les onglets pour des zones tactiles ≥ 44 px, et filet
+            accent sous l'onglet actif — le gras seul ne se voit pas en marchant. */}
+        <nav className="flex gap-5 overflow-x-auto border-b border-line px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:block md:border-b-0 md:border-r md:px-7 md:py-6">
           {NAV.map((item) => (
             <Link
               key={item.n}
               href={item.href}
-              className={`mono whitespace-nowrap py-[10px] text-[12px] tracking-wide md:block ${item.actif ? "font-bold text-ink" : "text-ink-soft hover:text-ink"}`}
+              className={`mono whitespace-nowrap border-b-2 py-3.5 text-[12px] tracking-wide md:block md:border-b-0 md:py-[10px] ${item.actif ? "border-brand font-bold text-ink" : "border-transparent text-ink-soft hover:text-ink"}`}
             >
               {item.n} {item.label}
               {item.actif ? <Cur /> : <span className="text-ink-faint">_</span>}
@@ -433,7 +436,7 @@ export default async function Cockpit(
                         placeholder="Code promo (facultatif)"
                         spellCheck={false}
                         autoComplete="off"
-                        className="mono w-52 border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink"
+                        className="mono w-full border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink sm:w-52"
                       />
                       <BoutonAttente attente="VÉRIFICATION…" className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
                         APPLIQUER
@@ -443,9 +446,10 @@ export default async function Cockpit(
 
                   <form action={souscrireAvecSlug} className="mt-4">
                     {codePromo ? <input type="hidden" name="code" value={codePromo.code} /> : null}
+                    {/* Action principale de la page : pleine largeur au pouce. */}
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+                      className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
                     >
                       COMMENCER LE MOIS OFFERT →
                     </BoutonAttente>
@@ -471,10 +475,10 @@ export default async function Cockpit(
                       </span>
                     )}
                   </p>
-                  <form action={gererAvecSlug}>
+                  <form action={gererAvecSlug} className="w-full sm:w-auto">
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+                      className="mono w-full whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto"
                     >
                       FACTURES &amp; RÉSILIATION →
                     </BoutonAttente>
@@ -544,10 +548,10 @@ export default async function Cockpit(
                   Connectez Stripe pour encaisser les cotisations en ligne — l&apos;argent arrive
                   directement sur votre compte, <span className="text-ink">0 % de commission</span>.
                 </p>
-                <form action={connecterAvecSlug}>
+                <form action={connecterAvecSlug} className="w-full sm:w-auto">
                   <BoutonAttente
                     attente="OUVERTURE DE STRIPE…"
-                    className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+                    className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
                   >
                     CONNECTER STRIPE →
                   </BoutonAttente>
@@ -604,9 +608,11 @@ export default async function Cockpit(
               </p>
             ) : (
               <div className="mt-5 border-t border-line">
+                {/* Sur téléphone, l'horodatage passe au-dessus du texte : la colonne
+                    fixe de 110 px écrasait les événements sur une ligne de 8 mots. */}
                 {auj.evenements.map((e, i) => (
-                  <div key={i} className="flex items-baseline gap-5 border-b border-line py-3.5">
-                    <span className="mono w-[110px] shrink-0 text-[11px] text-ink-faint">{formatQuand(e.ts)}</span>
+                  <div key={i} className="flex flex-col gap-0.5 border-b border-line py-3.5 sm:flex-row sm:items-baseline sm:gap-5">
+                    <span className="mono shrink-0 text-[11px] text-ink-faint sm:w-[110px]">{formatQuand(e.ts)}</span>
                     <span className="text-[15px]">{e.texte}</span>
                   </div>
                 ))}

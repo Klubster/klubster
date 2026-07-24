@@ -205,7 +205,8 @@ export default function FormBuilder({
               Contact d&apos;urgence, autorisations, pièces à fournir : chargez une base complète,
               puis ajustez chaque champ à votre club.
             </p>
-            <div className="mt-4 flex flex-wrap gap-3">
+            {/* Empilés sur mobile : deux modèles côte à côte se coupaient à mi-mot. */}
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => setConfig(formulaireType("sportive"))}
@@ -574,9 +575,9 @@ export default function FormBuilder({
           </div>
         </div>
 
-        {/* SAVE */}
-        <div className="mt-14 flex items-center gap-5 border-t border-line pt-6">
-          <button onClick={save} disabled={state === "saving"} className="mono bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40">
+        {/* SAVE — flex-wrap : sur mobile, bouton pleine largeur puis état et lien dessous. */}
+        <div className="mt-14 flex flex-wrap items-center gap-5 border-t border-line pt-6">
+          <button onClick={save} disabled={state === "saving"} className="mono w-full bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40 sm:w-auto">
             {state === "saving" ? "ENREGISTREMENT…" : "ENREGISTRER →"}
           </button>
           {state === "ok" ? <span className="mono text-[12px] text-brand">✓ Enregistré</span> : null}

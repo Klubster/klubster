@@ -102,16 +102,18 @@ export default async function Adherents(
           <h1 className="text-3xl font-medium tracking-[-0.01em]">
             {total} adhérent{total > 1 ? "s" : ""}
           </h1>
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Empilés pleine largeur sur mobile : deux boutons longs côte à côte
+              wrappaient de travers sous le titre. */}
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <Link
               href={`/${org.slug}/cockpit/adherents/import`}
-              className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+              className="mono border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
             >
               IMPORTER UN FICHIER
             </Link>
             <Link
               href={`/${org.slug}/cockpit/adherents/nouveau`}
-              className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90"
+              className="mono bg-ink px-5 py-3 text-center text-[12px] text-paper hover:bg-ink/90"
             >
               AJOUTER UN ADHÉRENT →
             </Link>
@@ -135,7 +137,7 @@ export default async function Adherents(
                 Recrée une adhésion « en attente » pour chaque adhérent qui n’en a pas encore cette saison, avec son dernier cours.
               </p>
             </div>
-            <button className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
+            <button className="mono w-full border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto">
               RENOUVELER LA SAISON →
             </button>
           </form>

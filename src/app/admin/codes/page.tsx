@@ -35,11 +35,12 @@ export default async function CodesPromoPage(props: {
 
   return (
     <main className="min-h-screen text-ink">
-      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-10">
-        <Link href="/admin" className="mono text-[12px] text-ink-soft hover:text-ink">
-          ← Console
+      {/* Même en-tête que la fiche club : retour à gauche, kicker à droite. */}
+      <header className="flex items-center justify-between gap-3 border-b border-line px-6 py-4 md:px-10">
+        <Link href="/admin" className="mono min-w-0 truncate text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
+          ← CONSOLE
         </Link>
-        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+        <span className="mono shrink-0 text-[11px] uppercase tracking-label text-ink-soft">
           CODES PROMO<Cur />
         </span>
       </header>
@@ -157,7 +158,9 @@ export default async function CodesPromoPage(props: {
                 </div>
               </div>
 
-              <button className="mono mt-7 px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90" style={{ background: "#1E7A4F" }}>
+              {/* Encre plutôt qu'aplat vert : le vert reste un détail dans la console.
+                  Pleine largeur sur téléphone, comme les champs au-dessus. */}
+              <button className="mono mt-7 w-full bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 sm:w-auto">
                 CRÉER LE CODE →
               </button>
             </form>
@@ -173,8 +176,8 @@ export default async function CodesPromoPage(props: {
             ) : (
               <div className="mt-4 divide-y divide-line border border-line">
                 {codes.map((c) => (
-                  <div key={c.id} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                  <div key={c.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="min-w-0">
                       <span className="mono text-[15px] font-medium">{c.code}</span>
                       {!c.actif ? <span className="mono ml-2 text-[10px] uppercase text-ink-faint">désactivé</span> : null}
                       <div className="mt-1 text-[13px] text-ink-soft">
@@ -185,7 +188,7 @@ export default async function CodesPromoPage(props: {
                         {c.expireLe ? ` · expire le ${dateCourte(c.expireLe)}` : ""}
                       </div>
                     </div>
-                    <form action={basculerCodePromoAction.bind(null, c.id, !c.actif)}>
+                    <form action={basculerCodePromoAction.bind(null, c.id, !c.actif)} className="shrink-0">
                       <button className="mono border border-line px-4 py-2 text-[11px] uppercase tracking-label hover:border-ink">
                         {c.actif ? "Désactiver" : "Réactiver"}
                       </button>

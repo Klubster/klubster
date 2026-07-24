@@ -108,8 +108,8 @@ export default async function RelancesPage(
                 </p>
               </div>
               {avecEmail.length > 0 ? (
-                <form action={relancerTous}>
-                  <button className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                <form action={relancerTous} className="w-full sm:w-auto">
+                  <button className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
                     RELANCER LES {avecEmail.length} PAR EMAIL →
                   </button>
                 </form>

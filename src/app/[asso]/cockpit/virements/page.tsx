@@ -210,9 +210,10 @@ export default async function VirementsPage(
                 passent jamais par Klubster.
               </p>
               <form action={ouvrirCompteStripe.bind(null, org.slug)} className="mt-5">
+                {/* w-full mobile : ce libellé long débordait des petits écrans. */}
                 <BoutonAttente
                   attente="OUVERTURE DE STRIPE…"
-                  className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper"
+                  className="mono w-full border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper sm:w-auto"
                 >
                   MODIFIER MES COORDONNÉES BANCAIRES →
                 </BoutonAttente>

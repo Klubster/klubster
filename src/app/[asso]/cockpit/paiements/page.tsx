@@ -104,16 +104,18 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
           seul. Sélectionnez des lignes pour relancer ou exporter.
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        {/* Empilés pleine largeur sur mobile : les libellés sont longs, deux boutons
+            côte à côte finissaient l'un sur deux lignes, l'autre coupé. */}
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/${org.slug}/cockpit/paiements/remise`}
-            className="mono inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+            className="mono inline-block border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
           >
             PRÉPARER UNE REMISE DE CHÈQUES →
           </Link>
           <Link
             href={`/${org.slug}/cockpit/paiements/relances`}
-            className="mono inline-block border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+            className="mono inline-block border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
           >
             RELANCER LES IMPAYÉS →
           </Link>
@@ -184,7 +186,7 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
               <span className="mono text-[10px] uppercase tracking-label text-ink-soft">Fin</span>
               <input type="date" name="fin" defaultValue={org.saison_fin ?? ""} className="mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
             </label>
-            <button className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">ENREGISTRER</button>
+            <button className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">ENREGISTRER</button>
           </div>
           <p className="mono mt-3 text-[11px] text-ink-faint">
             Les totaux ci-dessus se limitent à cette période. Laissez vide pour compter depuis le début.

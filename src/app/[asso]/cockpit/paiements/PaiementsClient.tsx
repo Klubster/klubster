@@ -112,7 +112,9 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
         <button onClick={exporterCsv} disabled={lignes.length === 0} className="mono border border-ink px-4 py-2 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-30">
           EXPORTER CSV {selection.size > 0 ? `(${selection.size})` : ""}
         </button>
-        <span className="mono ml-auto text-[12px] text-ink-soft">
+        {/* Sur téléphone, le total prend sa propre ligne au lieu de se coincer
+            entre deux boutons ; à partir de sm il reprend sa place à droite. */}
+        <span className="mono w-full text-[12px] text-ink-soft sm:ml-auto sm:w-auto">
           SOLDE TOTAL : <span className="font-bold text-ink">{eur(totalSolde)}</span>
         </span>
       </div>
@@ -146,7 +148,9 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                 <div className="text-ink-faint">{eur(l.montantCentimes)}</div>
                 <div className="text-[15px] font-bold">reste {eur(solde)}</div>
               </div>
-              <div className="flex items-center gap-2">
+              {/* Les commandes d'encaissement occupent leur propre ligne sur mobile :
+                  mêlées au nom et aux montants, elles wrappaient n'importe où. */}
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 <input
                   value={saisie[l.id] ?? ""}
                   onChange={(e) => setSaisie((s) => ({ ...s, [l.id]: e.target.value }))}
@@ -173,8 +177,9 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                     encaisser(l, centimes, modeDe(l));
                   }}
                   /* py-3 et non py-2 : cet encaissement se fait debout, au bord du tapis,
-                     sur un téléphone — une cible de 30 px se rate une fois sur trois. */
-                  className="mono border border-ink px-4 py-3 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-40"
+                     sur un téléphone — une cible de 30 px se rate une fois sur trois.
+                     flex-1 mobile : le bouton prend la largeur restante, cible franche. */
+                  className="mono flex-1 border border-ink px-4 py-3 text-[11px] hover:bg-ink hover:text-paper disabled:opacity-40 sm:flex-none"
                   title="Sans montant saisi : encaisse le solde complet"
                 >
                   ENCAISSER →

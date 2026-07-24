@@ -141,7 +141,7 @@ export default async function EquipePage(
               placeholder="email du bénévole"
               className="min-w-[240px] flex-1 border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
             />
-            <button className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">AJOUTER →</button>
+            <button className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">AJOUTER →</button>
           </div>
         </form>
       </div>

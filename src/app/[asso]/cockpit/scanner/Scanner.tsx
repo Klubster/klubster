@@ -28,13 +28,18 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
     let raf = 0;
     let stopped = false;
     async function start() {
-      const BD = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => { detect: (v: HTMLVideoElement) => Promise<{ rawValue: string }[]> } }).BarcodeDetector;
-      if (!BD) { setCamOk(false); return; }
+      // La caméra d'abord : son absence (ou un refus d'autorisation) est la seule
+      // vraie raison d'abandonner. Le décodage, lui, a toujours une solution.
       try {
-        const detector = new BD({ formats: ["qr_code"] });
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
         setCamOk(true);
+      } catch { setCamOk(false); return; }
+
+      const BD = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => { detect: (v: HTMLVideoElement) => Promise<{ rawValue: string }[]> } }).BarcodeDetector;
+      if (BD) {
+        // Chrome/Edge Android : détection native, rapide et économe.
+        const detector = new BD({ formats: ["qr_code"] });
         const tick = async () => {
           if (stopped || !videoRef.current) return;
           try {
@@ -44,7 +49,34 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
           raf = requestAnimationFrame(tick);
         };
         tick();
-      } catch { setCamOk(false); }
+        return;
+      }
+
+      // WebKit (tous les navigateurs iPhone/iPad, Safari macOS) n'implémente PAS
+      // BarcodeDetector : l'appel au scanner affichait « Caméra non disponible »
+      // sur l'app installée du président (constaté le 24/07/2026). Repli : décodage
+      // jsQR sur un canvas — importé à la demande pour ne pas alourdir Android.
+      const jsQR = (await import("jsqr")).default;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) { setCamOk(false); return; }
+      const tick = () => {
+        if (stopped || !videoRef.current) return;
+        const video = videoRef.current;
+        if (video.readyState >= 2 && video.videoWidth > 0) {
+          // 480px suffisent à lire un QR de carte tenu devant l'objectif, et
+          // divisent par ~4 le coût du décodage par rapport au flux natif.
+          const echelle = Math.min(1, 480 / video.videoWidth);
+          canvas.width = Math.round(video.videoWidth * echelle);
+          canvas.height = Math.round(video.videoHeight * echelle);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(image.data, image.width, image.height, { inversionAttempts: "dontInvert" });
+          if (code?.data) { setCam(false); verifier(code.data.trim()); return; }
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      tick();
     }
     start();
     return () => { stopped = true; if (raf) cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach((t) => t.stop()); };
@@ -63,8 +95,9 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
 
         {/* Caméra */}
         <div className="mt-8">
+          {/* Pleine largeur sur mobile : ce bouton se vise d'une main, debout à l'accueil. */}
           {!cam ? (
-            <button onClick={() => { setCam(true); setCamOk(null); }} className="mono bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+            <button onClick={() => { setCam(true); setCamOk(null); }} className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
               SCANNER UN QR CODE →
             </button>
           ) : (
@@ -77,7 +110,9 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
             </div>
           )}
           {camOk === false ? (
-            <p className="mono mt-3 text-[11px] text-ink-faint">Caméra non disponible sur ce navigateur — utilisez la recherche par nom.</p>
+            <p className="mono mt-3 text-[11px] text-ink-faint">
+              Caméra non disponible — autorisez l&apos;accès à la caméra dans les réglages, ou utilisez la recherche par nom.
+            </p>
           ) : null}
         </div>
 
@@ -120,7 +155,7 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
                   ) : (
                     <button
                       onClick={async () => { if (currentId) { const r = await marquerPresent(slug, currentId); if (r.ok) setPresent(true); } }}
-                      className="mono px-6 py-3 text-[13px] text-white"
+                      className="mono w-full px-6 py-3 text-[13px] text-white sm:w-auto"
                       style={{ background: accent }}
                     >
                       MARQUER PRÉSENT →

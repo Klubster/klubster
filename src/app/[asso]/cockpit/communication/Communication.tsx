@@ -116,7 +116,8 @@ export default function Communication({
         <p className="mono text-[12px]" style={{ color: envoi.ok ? "#279B65" : "#B23B3B" }}>{envoi.texte}</p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-4">
+      {/* L'action d'envoi est LE geste de la page : pleine largeur au pouce. */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
         {envoiDirect ? (
           <button
             onClick={envoyer}
@@ -128,7 +129,7 @@ export default function Communication({
         ) : null}
         <a
           href={emails.length ? mailto : undefined}
-          className={`mono px-6 py-3 text-[12px] ${
+          className={`mono px-6 py-3 text-center text-[12px] ${
             envoiDirect
               ? emails.length
                 ? "border border-ink hover:bg-ink hover:text-paper"

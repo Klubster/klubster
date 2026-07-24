@@ -188,7 +188,7 @@ export default async function FicheAdherent(
               <input id="f-tel" name="telephone" type="tel" defaultValue={adherent.telephone ?? ""} autoComplete="tel" className={CHAMP} />
             </div>
           </div>
-          <button className="mono mt-6 bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90">
+          <button className="mono mt-6 w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
             ENREGISTRER LA FICHE
           </button>
         </form>

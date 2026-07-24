@@ -35,9 +35,10 @@ export default async function EmailsPage(props: {
 
   return (
     <main className="min-h-screen text-ink">
-      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-10">
+      {/* md:px-8 et « ← COCKPIT » : même gabarit d'en-tête que les autres sous-pages. */}
+      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
         <Link href={`/${asso}/cockpit`} className="mono text-[12px] text-ink-soft hover:text-ink">
-          ← Cockpit
+          ← COCKPIT
         </Link>
         <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
           EMAILS AUTOMATIQUES<span style={{ color: accent }}>_</span>
@@ -90,7 +91,7 @@ export default async function EmailsPage(props: {
           </p>
 
           <button
-            className="mono mt-2 px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
+            className="mono mt-2 w-full px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90 sm:w-auto"
             style={{ background: accent }}
           >
             ENREGISTRER →

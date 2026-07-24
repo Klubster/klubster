@@ -24,9 +24,10 @@ function dateLongue(iso: string | null): string {
 
 function Ligne({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-line py-4 sm:flex-row sm:items-baseline sm:justify-between">
-      <p className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</p>
-      <p className="text-[15px] sm:text-right">{children}</p>
+    <div className="flex flex-col gap-1 border-b border-line py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+      <p className="mono shrink-0 text-[10px] uppercase tracking-label text-ink-soft">{label}</p>
+      {/* Emails et domaines peuvent être longs : on casse le mot plutôt que la page. */}
+      <p className="min-w-0 break-words text-[15px] sm:text-right">{children}</p>
     </div>
   );
 }
@@ -46,11 +47,11 @@ export default async function FicheClubAdmin(props: { params: Promise<{ id: stri
 
   return (
     <main className="min-h-screen text-ink">
-      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-10">
-        <Link href="/admin" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
+      <header className="flex items-center justify-between gap-3 border-b border-line px-6 py-4 md:px-10">
+        <Link href="/admin" className="mono min-w-0 truncate text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
           ← CONSOLE
         </Link>
-        <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+        <span className="mono shrink-0 text-[11px] uppercase tracking-label text-ink-soft">
           FICHE CLUB<Cur />
         </span>
       </header>
@@ -64,23 +65,25 @@ export default async function FicheClubAdmin(props: { params: Promise<{ id: stri
         <h1 className="mt-5 text-3xl font-medium leading-tight md:text-4xl">{c.nom}</h1>
         <p className="mono mt-3 text-[12px] text-ink-soft">klubster.fr/{c.slug}</p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        {/* Trois actions : empilées pleine largeur sur téléphone, le flux en vrac
+            laissait un bouton orphelin sur la deuxième ligne. */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/${c.slug}`}
-            className="mono border border-line px-5 py-3 text-[12px] text-ink hover:border-ink"
+            className="mono border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink sm:text-left"
           >
             VOIR LE SITE →
           </Link>
           <Link
             href={`/${c.slug}/cockpit`}
-            className="mono border border-line px-5 py-3 text-[12px] text-ink hover:border-ink"
+            className="mono border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink sm:text-left"
           >
             OUVRIR LE COCKPIT →
           </Link>
           {c.president?.email ? (
             <a
               href={`mailto:${c.president.email}`}
-              className="mono border border-line px-5 py-3 text-[12px] text-ink hover:border-ink"
+              className="mono border border-line px-5 py-3 text-center text-[12px] text-ink hover:border-ink sm:text-left"
             >
               ÉCRIRE AU PRÉSIDENT →
             </a>

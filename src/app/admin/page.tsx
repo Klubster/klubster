@@ -32,11 +32,12 @@ function depuis(iso: string | null): string {
   return `il y a ${Math.floor(j / 365)} an${j >= 730 ? "s" : ""}`;
 }
 
-/** Chiffre clé. Le nombre d'abord, l'explication ensuite — jamais l'inverse. */
-function Chiffre({ n, label, aide }: { n: string; label: string; aide?: string }) {
+/** Chiffre clé. Le nombre d'abord, l'explication ensuite — jamais l'inverse.
+    `accent` réservé au chiffre qui décide (le MRR) : le vert reste un détail. */
+function Chiffre({ n, label, aide, accent }: { n: string; label: string; aide?: string; accent?: boolean }) {
   return (
     <div className="bg-paper px-6 py-7">
-      <p className="mono text-[28px] leading-none text-ink">{n}</p>
+      <p className={`mono text-[28px] leading-none ${accent ? "text-brand" : "text-ink"}`}>{n}</p>
       <p className="mono mt-3 text-[10px] uppercase tracking-label text-ink-soft">{label}</p>
       {aide ? <p className="mt-1.5 text-[13px] leading-snug text-ink-soft">{aide}</p> : null}
     </div>
@@ -148,15 +149,17 @@ export default async function SuperAdmin(
 
   return (
     <main className="min-h-screen text-ink">
-      <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-10">
+      <header className="flex items-center justify-between gap-3 border-b border-line px-6 py-4 md:px-10">
         <Link href="/" className="font-logo text-lg font-semibold">
           k<Cur />
         </Link>
-        <div className="flex items-center gap-5">
+        <div className="flex shrink-0 items-center gap-5">
           <Link href="/admin/codes" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
             Codes promo
           </Link>
-          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
+          {/* Sur téléphone, le logo à gauche suffit : le kicker poussait le lien
+              Codes promo hors de l'écran. */}
+          <span className="mono hidden text-[11px] uppercase tracking-label text-ink-soft sm:inline">
             CONSOLE PLATEFORME<Cur />
           </span>
         </div>
@@ -186,9 +189,10 @@ export default async function SuperAdmin(
           ) : null}
         </div>
 
-        {/* LE BUSINESS — les chiffres qui décident */}
-        <div className="grid grid-cols-2 gap-px border-b border-line bg-line md:grid-cols-4">
-          <Chiffre n={formatMontant(s.mrrCentimes)} label="REVENU MENSUEL" aide={`${formatMontant(s.arrCentimes)} sur l’année`} />
+        {/* LE BUSINESS — les chiffres qui décident. 1 colonne sur téléphone :
+            à deux colonnes, les montants à 28px se faisaient couper. */}
+        <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-2 md:grid-cols-4">
+          <Chiffre n={formatMontant(s.mrrCentimes)} label="REVENU MENSUEL" aide={`${formatMontant(s.arrCentimes)} sur l’année`} accent />
           <Chiffre n={String(s.abonnesActifs)} label="CLUBS ABONNÉS" aide={`${s.enEssai} en essai · ${s.impayes} impayé${s.impayes > 1 ? "s" : ""}`} />
           <Chiffre n={String(s.adherentsTotal)} label="ADHÉRENTS GÉRÉS" aide={`${s.inscriptions30j} inscription${s.inscriptions30j > 1 ? "s" : ""} sur 30 jours`} />
           <Chiffre
@@ -265,20 +269,22 @@ export default async function SuperAdmin(
             LES ASSOCIATIONS<Cur />
           </p>
 
-          <form method="get" action="/admin" className="mt-5 flex flex-wrap gap-3">
+          {/* Sur téléphone, chaque contrôle prend la ligne : le flux en vrac
+              laissait le bouton FILTRER orphelin au milieu des selects. */}
+          <form method="get" action="/admin" className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <input
               type="search"
               name="q"
               defaultValue={q}
               placeholder="Chercher un club, un slug, un email…"
               aria-label="Chercher une association"
-              className="min-w-[240px] flex-1 border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink"
+              className="w-full border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink sm:min-w-[240px] sm:flex-1"
             />
             <select
               name="statut"
               defaultValue={filtreStatut}
               aria-label="Filtrer par statut d’abonnement"
-              className="border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink"
+              className="w-full border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink sm:w-auto"
             >
               <option value="">Tous les statuts</option>
               <option value="actif">Abonnés</option>
@@ -291,7 +297,7 @@ export default async function SuperAdmin(
               name="tri"
               defaultValue={tri}
               aria-label="Trier"
-              className="border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink"
+              className="w-full border border-line bg-paper px-4 py-3 text-[14px] outline-none focus:border-ink sm:w-auto"
             >
               <option value="recent">Les plus récents</option>
               <option value="adherents">Le plus d’adhérents</option>
@@ -299,11 +305,11 @@ export default async function SuperAdmin(
               <option value="activite">Actifs récemment</option>
               <option value="nom">Ordre alphabétique</option>
             </select>
-            <button type="submit" className="mono border border-line px-5 py-3 text-[12px] text-ink hover:border-ink">
+            <button type="submit" className="mono w-full border border-line px-5 py-3 text-[12px] text-ink hover:border-ink sm:w-auto">
               FILTRER
             </button>
             {q || filtreStatut || tri !== "recent" ? (
-              <Link href="/admin" className="mono self-center text-[12px] text-ink-soft underline underline-offset-2 hover:text-ink">
+              <Link href="/admin" className="mono self-start text-[12px] text-ink-soft underline underline-offset-2 hover:text-ink sm:self-center">
                 Tout afficher
               </Link>
             ) : null}
@@ -340,7 +346,9 @@ export default async function SuperAdmin(
                       {c.president?.email ? ` · ${c.president.email}` : ""}
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-x-8 gap-y-2">
+                  {/* Quatre mesures : 2×2 sur téléphone plutôt qu'un flux qui
+                      laisse une cellule orpheline sur la dernière ligne. */}
+                  <div className="grid shrink-0 grid-cols-2 gap-x-6 gap-y-3 md:flex md:items-center md:gap-x-8 md:gap-y-2">
                     <div className="min-w-[80px]">
                       <p className="mono text-[15px]">{c.adherents}</p>
                       <p className="mono text-[10px] uppercase tracking-label text-ink-faint">ADHÉRENTS</p>

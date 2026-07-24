@@ -200,7 +200,7 @@ export default async function CoursPage(
                 className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
               />
             </label>
-            <button className="mono bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90">AJOUTER →</button>
+            <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">AJOUTER →</button>
           </div>
         </form>
 

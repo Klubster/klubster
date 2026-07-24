@@ -67,7 +67,7 @@ export default async function ActualitePage(
             <input type="file" name="image" accept="image/*" className="mt-2 block w-full text-[13px]" />
             <p className="mono mt-2 text-[11px] text-ink-faint">JPG ou PNG, format paysage conseillé. Remplace l&apos;image actuelle.</p>
           </div>
-          <button className="mono bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90">ENREGISTRER →</button>
+          <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">ENREGISTRER →</button>
         </form>
 
         {act ? (

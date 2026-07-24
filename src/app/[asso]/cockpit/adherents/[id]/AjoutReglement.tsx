@@ -131,7 +131,7 @@ export default function AjoutReglement({
         <button
           onClick={enregistrer}
           disabled={enCours}
-          className="mono px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="mono w-full px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-40 sm:w-auto"
           style={{ background: accent }}
         >
           {enCours ? "…" : etat === "ok" ? "ENREGISTRÉ ✓" : "ENREGISTRER"}
