@@ -1,6 +1,5 @@
 "use client";
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { startTransition, useActionState, useState } from "react";
 import { formatPrix } from "@/lib/format";
 import { texteSur } from "@/lib/contraste";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
@@ -10,7 +9,7 @@ import ResponsableLegal from "./ResponsableLegal";
 import AutorisationsMineur from "./AutorisationsMineur";
 import RemisesInscription from "./RemisesInscription";
 import { NaissanceProvider, ChampNaissance } from "./naissance";
-import Turnstile from "@/components/site/Turnstile";
+import Turnstile, { demanderJetonTurnstile } from "@/components/site/Turnstile";
 import ChoixEcheances from "@/components/site/ChoixEcheances";
 import type { Champ, Page, Piece, Remise, AutorisationMineur as Autorisation } from "@/types/form";
 
@@ -55,10 +54,38 @@ export default function FormulaireInscription({
   erreurInitiale: string | null;
   echeancesMax: number;
 }) {
-  const [etat, formAction] = useActionState(inscrireAdherent, null);
+  const [etat, formAction, enCours] = useActionState(inscrireAdherent, null);
+  const [verifEnCours, setVerifEnCours] = useState(false);
+  const [erreurJeton, setErreurJeton] = useState(false);
   // Compat : `?erreur=…` reste honoré pour les redirections venant d'ailleurs
   // (ex. retour Stripe) ; l'état de l'action, plus récent, prime.
   const erreur = etat?.erreur ?? erreurInitiale;
+
+  /**
+   * Soumission MANUELLE, pour deux raisons découvertes le 24/07/2026 :
+   *  1. React 19 réinitialise un formulaire non contrôlé soumis nativement via
+   *     `action=` dès que l'action se termine — MÊME quand elle retourne une
+   *     erreur : toute la saisie disparaissait. `preventDefault` + dispatch dans
+   *     une transition évitent ce reset.
+   *  2. Le jeton Turnstile expire en 5 min et le formulaire en prend 10-15 : on
+   *     demande donc un jeton FRAIS ici, au clic, jamais à l'affichage.
+   */
+  async function surSoumission(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    if (!form.reportValidity()) return;
+    setErreurJeton(false);
+    setVerifEnCours(true);
+    const jeton = await demanderJetonTurnstile();
+    setVerifEnCours(false);
+    if (jeton === null) {
+      setErreurJeton(true);
+      return;
+    }
+    const fd = new FormData(form);
+    if (jeton) fd.set("cf-turnstile-response", jeton);
+    startTransition(() => formAction(fd));
+  }
 
   return (
     <>
@@ -88,7 +115,7 @@ export default function FormulaireInscription({
         <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
       ) : null}
 
-      <form action={formAction} className="mt-12 space-y-10">
+      <form onSubmit={surSoumission} className="mt-12 space-y-10">
         <NaissanceProvider>
         <input type="hidden" name="slug" value={slug} />
 
@@ -240,7 +267,14 @@ export default function FormulaireInscription({
 
         <Turnstile />
 
-        <BoutonValider accent={accent} />
+        {erreurJeton ? (
+          <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+            La vérification anti-robot n&apos;a pas abouti. Vérifiez votre connexion et réessayez —
+            votre saisie est conservée.
+          </p>
+        ) : null}
+
+        <BoutonValider accent={accent} enCours={enCours || verifEnCours} />
         </NaissanceProvider>
       </form>
     </>
@@ -250,18 +284,19 @@ export default function FormulaireInscription({
 /**
  * Bouton de soumission : désactivé pendant l'action (compte + adhésion +
  * checkout Stripe = plusieurs secondes, risque de double soumission), texte
- * lisible sur la couleur du club (garde-fou de contraste).
+ * lisible sur la couleur du club (garde-fou de contraste). L'état vient de
+ * `useActionState` (3e élément) : la soumission étant manuelle (transition),
+ * `useFormStatus` ne verrait rien passer.
  */
-function BoutonValider({ accent }: { accent: string }) {
-  const { pending } = useFormStatus();
+function BoutonValider({ accent, enCours }: { accent: string; enCours: boolean }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={enCours}
       className="mono w-full px-6 py-4 text-[13px] disabled:opacity-60"
       style={{ background: accent, color: texteSur(accent) }}
     >
-      {pending ? "INSCRIPTION EN COURS…" : "VALIDER MON INSCRIPTION →"}
+      {enCours ? "INSCRIPTION EN COURS…" : "VALIDER MON INSCRIPTION →"}
     </button>
   );
 }
