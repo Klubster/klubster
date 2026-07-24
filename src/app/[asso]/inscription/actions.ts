@@ -305,14 +305,14 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
             `Bonjour ${prenom},`,
             `Le cours « ${coursNom} » est complet pour le moment : vous êtes inscrit(e) sur la liste d'attente.`,
             `Aucun paiement ne vous est demandé pour l'instant. Nous vous préviendrons dès qu'une place se libère.`,
-            `Astuce : installez l'app du club sur votre téléphone pour être prévenu(e) et retrouver votre dossier d'un tap — ${BASE}/${slug}/installer`,
+            `Astuce : installez l'app du club sur votre téléphone pour être prévenu(e) et retrouver votre dossier en un clic — ${BASE}/${slug}/installer`,
           ]
         : [
             `Bonjour ${prenom},`,
             `Votre inscription au ${org.nom} est bien enregistrée.`,
             `Cours : ${coursNom} · Cotisation : ${(montantDuCentimes / 100).toLocaleString("fr-FR")} € / an · Règlement : ${libelleMode}.`,
             `Depuis votre espace adhérent, vous suivez votre dossier, déposez vos pièces et retrouvez votre carte de membre.`,
-            `Pour un accès en un tap, installez l'app du club sur votre téléphone : ${BASE}/${slug}/installer`,
+            `Pour un accès en un clic, installez l'app du club sur votre téléphone : ${BASE}/${slug}/installer`,
             `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).`,
           ];
       const objet = enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`;

@@ -18,12 +18,18 @@ const STATUT_LABEL: Record<string, string> = {
 
 export default async function EspacePage(props: { params: Promise<{ asso: string }> }) {
   const params = await props.params;
+
+  // Connexion d'ABORD : `getOrganisationBySlug` fait un select("*") que la
+  // restriction des colonnes publiques (migration 0015) refuse à un visiteur
+  // anonyme — l'org revenait null et la page répondait « introuvable » au lieu
+  // de renvoyer vers la connexion (lien « OUVRIR MON ESPACE » des emails,
+  // constaté le 24/07/2026).
+  const user = await getUser();
+  if (!user) redirect(`/connexion?next=/${params.asso}/espace`);
+
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const accent = org.couleur_primaire ?? "#111111";
-
-  const user = await getUser();
-  if (!user) redirect(`/connexion?next=/${org.slug}/espace`);
 
   const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase

@@ -30,7 +30,7 @@ export default async function InstallerPage(props: { params: Promise<{ asso: str
           </h1>
           <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-ink-soft">
             Ajoutez le club à votre téléphone comme une application : votre carte de membre, votre dossier
-            et les inscriptions s&apos;ouvrent alors d&apos;un seul tap, sans passer par le navigateur. C&apos;est
+            et les inscriptions s&apos;ouvrent alors en un clic, sans passer par le navigateur. C&apos;est
             gratuit, ça ne prend rien sur votre téléphone, et il n&apos;y a rien à télécharger sur un store.
           </p>
 

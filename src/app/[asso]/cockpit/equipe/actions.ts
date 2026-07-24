@@ -45,7 +45,7 @@ export async function ajouterMembre(slug: string, formData: FormData) {
       `Bonjour,`,
       `Vous venez d'être ajouté(e) à l'équipe de ${org.nom} sur Klubster. Vous avez maintenant accès au cockpit du club.`,
       `Connectez-vous avec cette adresse email pour retrouver les inscriptions, les présences et le suivi du club.`,
-      `Pour l'ouvrir d'un tap depuis votre téléphone, installez l'app : ${BASE}/${slug}/installer`,
+      `Pour l'ouvrir en un clic depuis votre téléphone, installez l'app : ${BASE}/${slug}/installer`,
     ];
     try {
       await envoyerEmail({

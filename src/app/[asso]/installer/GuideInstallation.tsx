@@ -65,7 +65,7 @@ export default function GuideInstallation({ accent }: { accent: string }) {
         ))}
       </ol>
       <p className="mono mt-8 text-[12px] leading-relaxed text-ink-soft">
-        Une fois installée, l&apos;application s&apos;ouvre d&apos;un tap et se met à jour toute seule : vous
+        Une fois installée, l&apos;application s&apos;ouvre en un clic et se met à jour toute seule : vous
         n&apos;aurez jamais à la réinstaller.
       </p>
     </div>
