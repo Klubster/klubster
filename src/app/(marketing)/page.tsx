@@ -262,7 +262,7 @@ export default function Home() {
 
       {/* Reformulée le 24/07 : la version « Avant les adhérents. Avant le bruit. »
           n'était pas comprise des lecteurs — même émotion, sens immédiat. */}
-      <Citation serre lines={["Avant que les adhérents arrivent,", "il y a ceux qui font déjà vivre le club.", "Klubster est fait pour eux"]} />
+      <Citation serre longues lines={["Avant que les adhérents arrivent,", "il y a ceux qui font déjà vivre le club.", "Klubster est fait pour eux"]} />
 
       {/* II — LE COCKPIT (le produit, montré tôt) */}
       <section id="cockpit">
