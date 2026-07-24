@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: "Klubster — Toute votre association, au même endroit",
   description: DESCRIPTION,
+  // Validation Google Search Console (propriété https://klubster.fr, 24/07/2026).
+  verification: { google: "prgSedJJPy8H2YFXe6sZs6SnKroZeKipMX0L7jT4-3Y" },
   // Pas de canonique globale ici : héritée par toutes les pages sans la leur, elle
   // déclarait cgu, cgv, mentions… duplicatas de la home (audit du 23/07). Chaque page
   // pose la sienne dans sa propre metadata.
