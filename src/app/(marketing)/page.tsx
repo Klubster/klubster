@@ -201,20 +201,49 @@ export default function Home() {
       {/* L'OFFRE — sur fond blanc, sous la photo : ce qu'on lit, on le lit sur du papier. */}
       <section>
         <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
+          {/* « L'essentiel » dès le premier écran : c'est le positionnement (la
+              sélection, pas la complétude) — la version « tout ce dont une
+              association a besoin » était la seule ligne générique de la page. */}
           <p className="max-w-prose text-lg leading-relaxed text-ink md:text-xl">
-            Inscriptions, paiements, communication et site web. Tout ce dont une association a besoin,
-            réuni dans un seul outil pensé pour les bénévoles.
+            L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements,
+            relances et site du club. Sans le superflu — et moins de soirées devant le tableur.
           </p>
           <p className="mono mt-8 text-[13px] tracking-wide text-ink">
             À partir de 9 €/mois <span className="text-ink-faint">·</span> Premier mois offert
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+          <div className="mt-8">
+            <Link href="/creer" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
+                d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
+            <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">
+              Conçu par un président de club <span className="text-ink-faint">·</span> Utilisé chaque semaine avec 312 adhérents
+            </p>
+            <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* LANCEMENT — 15 CLUBS FONDATEURS. Une section éditoriale dans la DA (filets,
+          kicker mono), pas un bandeau promotionnel. Rédaction impersonnelle : le
+          « je » n'apparaît qu'en section V. Pas de compteur tant qu'il n'y a pas de
+          signatures réelles (le caractère limité doit rester vrai). */}
+      <section>
+        <div className="mx-auto max-w-6xl px-6 md:px-8">
+          <div className="border-y border-line py-8 md:py-10">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              LANCEMENT — 15 CLUBS FONDATEURS<Cur />
+            </p>
+            <p className="mt-4 max-w-prose text-ink">
+              Pour les 15 premiers clubs : mise en route accompagnée, import du fichier
+              d’adhérents et trois premiers mois offerts au lieu d’un. Sans engagement.
+            </p>
+            <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
+              CRÉER MON ASSOCIATION →
+            </Link>
           </div>
         </div>
       </section>
@@ -394,7 +423,7 @@ export default function Home() {
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               Les bénévoles n’ont pas une demi-journée à consacrer à un nouveau logiciel.
-              Alors tout est déjà prêt — il ne reste que l’essentiel.
+              Alors Klubster écarte le superflu et garde ce qui compte.
             </p>
             <div className="mt-10 border-t border-line">
               {[

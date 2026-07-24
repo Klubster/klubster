@@ -162,6 +162,22 @@ export default function Tarifs() {
             </p>
           </Reveal>
 
+          {/* OFFRE DE LANCEMENT — 15 clubs fondateurs. Distincte du « premier mois
+              offert » permanent : les fondateurs ont TROIS mois, au lieu d'un.
+              Pas de compteur tant qu'il n'y a pas de signatures réelles. */}
+          <div className="mt-10 border border-line px-7 py-7">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+              OFFRE DE LANCEMENT — 15 CLUBS FONDATEURS<Cur />
+            </p>
+            <p className="mt-4 max-w-prose text-ink">
+              Les 15 premiers clubs bénéficient d’une mise en route accompagnée, de l’import
+              de leur fichier d’adhérents et de leurs trois premiers mois offerts — au lieu d’un.
+            </p>
+            <p className="mono mt-4 text-[11px] uppercase tracking-label text-ink-faint">
+              Toutes les fonctionnalités incluses · Sans engagement
+            </p>
+          </div>
+
           <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line md:grid-cols-3">
             {PALIERS.map((p) => (
               <div key={p.capacite} className="flex flex-col bg-paper px-7 py-9">
