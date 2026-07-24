@@ -33,7 +33,9 @@ export function classeLogoHero(pc: PageConfig | null | undefined): string {
 
 // Sections standard de la vitrine, dans leur ordre par défaut.
 // Le hero et l'actualité « à la une » restent fixes en haut de page.
-export const SECTIONS_STANDARD = ["presentation", "cours", "planning", "tarifs", "infos", "contact"] as const;
+// « actualites » (La vie du club) rend le fil de la table `actualites` ; pour les clubs
+// existants, la normalisation l'ajoute en fin d'ordre — déplaçable comme les autres.
+export const SECTIONS_STANDARD = ["presentation", "cours", "planning", "tarifs", "actualites", "infos", "contact"] as const;
 export type SectionStandard = (typeof SECTIONS_STANDARD)[number];
 
 // Retourne une config toujours cohérente : ordre nettoyé (clés inconnues retirées,

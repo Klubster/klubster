@@ -93,19 +93,29 @@ export function ChapitreView({ s, accent }: { s: SectionCustom; accent: string }
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
         <Filet label={label} accent={accent} />
         <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-3 lg:grid-cols-4">
-          {items.map((it, i) => (
-            <div key={i} className="bg-paper px-5 py-6">
-              {it.image_url ? (
-                <Img url={it.image_url} alt={it.titre ?? "Membre de l'équipe"} taille={96} className="h-24 w-24 border border-line object-cover" />
-              ) : (
-                <span className="grid h-24 w-24 place-items-center border border-line bg-bg-alt text-[24px] font-bold" style={{ color: accent }} aria-hidden>
-                  {(it.titre ?? "?").charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div className="mt-4 text-[15px] font-medium">{it.titre}</div>
-              {it.texte ? <div className="mono mt-1 text-[10px] uppercase tracking-wider text-ink-soft">{it.texte}</div> : null}
-            </div>
-          ))}
+          {items.map((it, i) => {
+            // Le rôle est multi-lignes : la 1re ligne porte la fonction ou le diplôme
+            // (kicker mono), les suivantes le détail — groupes encadrés, phrase humaine.
+            // Ex. « Entraîneur — Prévôt fédéral · BPJEPS\nBaby Boxe · Boxe éducative\n… »
+            const lignes = (it.texte ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+            const [fonction, ...detail] = lignes;
+            return (
+              <div key={i} className="bg-paper px-5 py-6">
+                {it.image_url ? (
+                  <Img url={it.image_url} alt={it.titre ?? "Membre de l'équipe"} taille={96} className="h-24 w-24 border border-line object-cover" />
+                ) : (
+                  <span className="grid h-24 w-24 place-items-center border border-line bg-bg-alt text-[24px] font-bold" style={{ color: accent }} aria-hidden>
+                    {(it.titre ?? "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="mt-4 text-[15px] font-medium">{it.titre}</div>
+                {fonction ? <div className="mono mt-1 text-[11px] uppercase tracking-wider text-ink-soft">{fonction}</div> : null}
+                {detail.length > 0 ? (
+                  <div className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-ink-soft">{detail.join("\n")}</div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

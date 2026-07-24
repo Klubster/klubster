@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { saisonCourante } from "@/lib/saison";
+import { coursComplets } from "@/lib/complets";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import { compteConnecte, accesClub } from "@/lib/stripe-org";
 import FormulaireInscription from "./FormulaireInscription";
@@ -12,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function InscriptionPage(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ erreur?: string }>;
+    searchParams: Promise<{ erreur?: string; cours?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -49,24 +48,16 @@ export default async function InscriptionPage(
 
   const cours = await getCoursByOrganisation(org.id);
 
-  // Jauge : un cours dont la capacité est atteinte est signalé « complet » (→ liste d'attente).
-  const supabase = await createSupabaseServerClient();
-  const saisonAct = saisonCourante(org);
-  const [{ data: placesRows }, { data: adhCount }] = await Promise.all([
-    supabase.from("cours").select("id, places_max").eq("organisation_id", org.id),
-    supabase.from("adhesions").select("cours_id, statut, saison").eq("organisation_id", org.id),
-  ]);
-  const placesMax = new Map((placesRows ?? []).map((r) => [r.id as string, r.places_max as number | null]));
-  const actifs = new Map<string, number>();
-  for (const a of (adhCount ?? []) as { cours_id: string | null; statut: string | null; saison: string | null }[]) {
-    if (a.cours_id && a.saison === saisonAct && ["en_attente", "en_retard", "paye"].includes(a.statut ?? "")) {
-      actifs.set(a.cours_id, (actifs.get(a.cours_id) ?? 0) + 1);
-    }
-  }
-  const estComplet = (id: string) => {
-    const pm = placesMax.get(id);
-    return pm != null && pm > 0 && (actifs.get(id) ?? 0) >= pm;
-  };
+  // Jauge : un cours dont la capacité est atteinte est signalé « complet » (→ liste
+  // d'attente). Mécanisme partagé avec la vitrine (lib/complets.ts) : mêmes requêtes,
+  // même règle de saison — les deux pages disent la même chose.
+  const complets = await coursComplets(org);
+
+  // Cours présélectionné (bouton « S'inscrire à ce cours » de la vitrine) : l'id est
+  // validé contre la liste réelle — un id étranger ou périmé est simplement ignoré.
+  const coursPreselectionne = cours.some((c) => c.id === searchParams?.cours)
+    ? (searchParams!.cours as string)
+    : null;
 
   const accent = org.couleur_primaire ?? "#111111";
 
@@ -95,8 +86,9 @@ export default async function InscriptionPage(
               id: c.id,
               nom: c.nom,
               tarif_centimes: c.tarif_centimes,
-              complet: estComplet(c.id),
+              complet: complets.has(c.id),
             }))}
+            coursPreselectionne={coursPreselectionne}
             pages={org.form_config?.pages ?? []}
             pieces={org.form_config?.pieces ?? []}
             remises={org.form_config?.remises ?? []}

@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Organisation, Cours } from "@/types/db";
+import type { Organisation, Cours, ActualiteEntree } from "@/types/db";
 
 // Charge une association publiée par son slug (ex. "usmboxe").
 // La lecture publique est autorisée par la politique RLS "publie = true".
@@ -65,6 +65,41 @@ export async function getCoursByOrganisation(organisationId: string): Promise<Co
     return [];
   }
   return (data ?? []) as Cours[];
+}
+
+// Fil d'actualités du club, la plus récente d'abord (date de publication, puis date de
+// saisie pour départager deux actus publiées le même jour). Lecture publique (RLS).
+export async function getActualites(organisationId: string, limit = 3): Promise<ActualiteEntree[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("actualites")
+    .select("*")
+    .eq("organisation_id", organisationId)
+    .order("publie_le", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error("getActualites", error.message);
+    return [];
+  }
+  return (data ?? []) as ActualiteEntree[];
+}
+
+// Une actualité précise — TOUJOURS filtrée par organisation : une actu d'un autre club
+// répond 404, même avec un id valide.
+export async function getActualite(organisationId: string, id: string): Promise<ActualiteEntree | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("actualites")
+    .select("*")
+    .eq("organisation_id", organisationId)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    console.error("getActualite", error.message);
+    return null;
+  }
+  return data as ActualiteEntree | null;
 }
 
 export interface CockpitStats {

@@ -96,7 +96,7 @@ export default async function Cockpit(
     { n: "03", label: "CONTRÔLE", href: `/${org.slug}/cockpit/scanner` },
     { n: "04", label: "PAIEMENTS", href: `/${org.slug}/cockpit/paiements` },
     { n: "05", label: "MESSAGES", href: `/${org.slug}/cockpit/communication` },
-    { n: "06", label: "ACTUALITÉ", href: `/${org.slug}/cockpit/actualite` },
+    { n: "06", label: "ACTUALITÉS", href: `/${org.slug}/cockpit/actualite` },
     { n: "07", label: "SITE", href: `/${org.slug}` },
   ];
 
@@ -582,7 +582,7 @@ export default async function Cockpit(
                 <Geste titre="Mes virements" desc="Ce qui arrive sur le compte du club, et quand." href={`/${org.slug}/cockpit/virements`} action="CONSULTER" />
               ) : null}
               <Geste titre="Faire l'appel" desc="Scanner la carte ou chercher un nom." href={`/${org.slug}/cockpit/scanner`} action="SCANNER" />
-              <Geste titre="Publier une actualité" desc="À la une du site du club." href={`/${org.slug}/cockpit/actualite`} action="PUBLIER" />
+              <Geste titre="Publier une actualité" desc="À la une du site, et dans « La vie du club »." href={`/${org.slug}/cockpit/actualite`} action="PUBLIER" />
               <Geste titre="Modifier le site" desc="Sections, photos, textes de la vitrine." href={`/${org.slug}?edition=1`} action="ÉDITER" />
               <Geste titre="Formulaire d'inscription" desc="Champs, pièces demandées, questionnaire." href={`/${org.slug}/cockpit/formulaire`} action="CONFIGURER" />
               <Geste titre="Logo &amp; couleur" desc="Le visage du club, modifiable quand vous voulez." href={`/${org.slug}/cockpit/identite`} action="AJUSTER" />

@@ -141,9 +141,11 @@ export async function ajouterChapitre(slug: string, type: SectionCustomType, for
     }
     if (items.length === 0) redirect(`/${slug}?edition=1&erreur=vide`);
   } else if (type === "equipe") {
-    for (let i = 0; i < 6; i++) {
+    // 8 membres : un bureau + des entraîneurs ne tiennent pas en 6. Le rôle est
+    // multi-lignes (fonction, puis groupes, puis une phrase) — d'où la limite élargie.
+    for (let i = 0; i < 8; i++) {
       const prenom = champ(formData, `item_titre_${i}`, 60);
-      const role = champ(formData, `item_texte_${i}`, 80);
+      const role = champ(formData, `item_texte_${i}`, 300);
       if (!prenom) continue;
       const url = await uploaderImage(org.id, formData.get(`item_photo_${i}`), "equipe");
       items.push({ titre: prenom, texte: role, image_url: url });

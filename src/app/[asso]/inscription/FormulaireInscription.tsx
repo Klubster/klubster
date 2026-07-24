@@ -31,6 +31,7 @@ export default function FormulaireInscription({
   slug,
   accent,
   cours,
+  coursPreselectionne,
   pages,
   pieces,
   remises,
@@ -44,6 +45,8 @@ export default function FormulaireInscription({
   slug: string;
   accent: string;
   cours: CoursInscription[];
+  /** Cours à présélectionner (bouton « S'inscrire à ce cours » de la vitrine), déjà validé côté serveur. */
+  coursPreselectionne?: string | null;
   pages: Page[];
   pieces: Piece[];
   remises: Remise[];
@@ -158,7 +161,13 @@ export default function FormulaireInscription({
           <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">COURS<span style={{ color: accent }}>_</span></legend>
           <div className="mt-4 border border-line bg-paper px-5 py-4">
             <label htmlFor="cours" className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
-            <select id="cours" name="cours" required className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink">
+            <select
+              id="cours"
+              name="cours"
+              required
+              defaultValue={coursPreselectionne ?? undefined}
+              className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+            >
               {cours.map((c) => (
                 // data-tarif : lu par le sélecteur de mensualités pour afficher le vrai montant.
                 (<option key={c.id} value={c.id} data-tarif={c.tarif_centimes}>

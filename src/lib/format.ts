@@ -49,6 +49,19 @@ export function planningParJour(cours: Cours[]): { jour: string; creneaux: Crene
   }));
 }
 
+// Créneaux d'UN cours, triés pour l'affichage carte (ordre des jours puis heure) —
+// même ordre de lecture que la grille planning, mais par cours et non par jour.
+export function creneauxTries(creneaux: Creneau[] | null | undefined): Creneau[] {
+  return [...(creneaux ?? [])].sort(
+    (a, b) => JOURS_ORDRE.indexOf(a.jour) - JOURS_ORDRE.indexOf(b.jour) || a.debut.localeCompare(b.debut)
+  );
+}
+
+// « Lundi · 17:00–17:45 » — un créneau par ligne sur les cartes de cours.
+export function formatCreneau(cr: Creneau): string {
+  return `${capitalize(cr.jour)} · ${cr.debut}–${cr.fin}`;
+}
+
 // Lien Google Maps (carte "où nous trouver") à partir d'une adresse.
 export function lienCarte(adresse: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(adresse)}`;

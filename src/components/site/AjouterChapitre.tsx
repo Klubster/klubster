@@ -148,10 +148,21 @@ function FormulaireChapitre({
       <form action={ajouterChapitre.bind(null, slug, type)} className="space-y-5">
         <input name="titre" placeholder="Titre du chapitre (optionnel) — ex. Nos entraîneurs" className={CHAMP} />
         <div className="space-y-2">
-          {[0, 1, 2, 3, 4, 5].map((i) => (
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
             <div key={i} className="grid grid-cols-1 gap-2 border border-line bg-paper p-3 sm:grid-cols-[1fr_1fr_auto]">
               <input name={`item_titre_${i}`} placeholder={i === 0 ? "Prénom — ex. Karim" : ""} className={CHAMP_SM} />
-              <input name={`item_texte_${i}`} placeholder={i === 0 ? "Rôle — ex. Entraîneur diplômé" : ""} className={CHAMP_SM} />
+              {/* Rôle multi-lignes : la 1re ligne s'affiche en fonction (petites capitales),
+                  les suivantes en texte normal sous le nom. */}
+              <textarea
+                name={`item_texte_${i}`}
+                rows={3}
+                placeholder={
+                  i === 0
+                    ? "1re ligne : fonction ou diplôme — ex. Entraîneur — Prévôt fédéral\n2e ligne : ses groupes — ex. Baby Boxe · Boxe éducative\n3e ligne : une phrase sur la personne"
+                    : ""
+                }
+                className={CHAMP_SM}
+              />
               <input type="file" name={`item_photo_${i}`} accept="image/*" className="mono self-center text-[11px] text-ink-soft" />
             </div>
           ))}

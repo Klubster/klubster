@@ -111,9 +111,22 @@ export interface PageConfig {
 }
 
 // Actualité « à la une » affichée dans le hero de la vitrine du club.
+// Ancien modèle (organisations.actualite, une seule actu) : encore lu en repli par le
+// bandeau, mais plus géré par le cockpit — remplacé par la table `actualites`.
 export interface Actualite {
   texte: string | null;
   image_url: string | null;
+}
+
+// Une actualité datée du fil « La vie du club » (table public.actualites).
+export interface ActualiteEntree {
+  id: string;
+  organisation_id: string;
+  titre: string;
+  texte: string;
+  image_url: string | null;
+  publie_le: string; // date "2026-07-24"
+  created_at: string;
 }
 
 export interface Cours {

@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
+import { getOrganisationPubliqueBySlug, getCoursByOrganisation, getActualites } from "@/lib/queries";
 import { getMode } from "@/lib/themes";
 import { texteSur, accentLisibleSur } from "@/lib/contraste";
 import { getProfile } from "@/lib/auth";
-import { formatPrix, embedCarte, lienCarte } from "@/lib/format";
+import { formatPrix, embedCarte, lienCarte, creneauxTries, formatCreneau } from "@/lib/format";
+import { coursComplets } from "@/lib/complets";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
@@ -25,6 +26,20 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 function villeDepuisAdresse(adresse: string | null): string | null {
   const m = adresse?.match(/\b\d{5}\s+([A-Za-zÀ-ÖØ-öø-ÿ'’-]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ'’-]+)*)/);
   return m ? m[1].trim() : null;
+}
+
+// Résumé d'une actu sur sa carte : ~140 caractères, coupés au mot — jamais au milieu
+// d'un. Le texte complet vit sur la page de détail (LIRE →).
+function resumeActu(texte: string, max = 140): string {
+  if (texte.length <= max) return texte;
+  const coupe = texte.slice(0, max + 1);
+  const dernierEspace = coupe.lastIndexOf(" ");
+  return `${(dernierEspace > 60 ? coupe.slice(0, dernierEspace) : coupe.slice(0, max)).trimEnd()}…`;
+}
+
+// « 4 septembre 2026 » — publie_le est une date (AAAA-MM-JJ), sans fuseau à gérer.
+function dateActu(d: string): string {
+  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
 export async function generateMetadata(props: { params: Promise<{ asso: string }> }): Promise<Metadata> {
@@ -79,7 +94,12 @@ export default async function VitrinePage(
   const params = await props.params;
   const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) notFound();
-  const cours = await getCoursByOrganisation(org.id);
+  // Cours, jauges et fil d'actualités en parallèle : trois lectures indépendantes.
+  const [cours, complets, actus] = await Promise.all([
+    getCoursByOrganisation(org.id),
+    coursComplets(org),
+    getActualites(org.id),
+  ]);
   const accent = org.couleur_primaire ?? "#111111";
   // Garde-fous de contraste : la couleur du club est un hex libre (jaune, bleu ciel…).
   // Blanc codé en dur sur ce fond, ou l'accent posé en couleur de texte sur le papier,
@@ -117,6 +137,7 @@ export default async function VitrinePage(
     cours: "Cours",
     planning: "Planning",
     tarifs: "Tarifs",
+    actualites: "La vie du club",
     contact: "Contact",
   };
 
@@ -166,10 +187,28 @@ export default async function VitrinePage(
                     {c.public_cible ? (
                       <div className="mt-1 text-[13px] text-ink-soft">{c.public_cible}</div>
                     ) : null}
+                    {/* Horaires du cours, un créneau par ligne : la carte répond aux deux
+                        questions d'une famille (« pour qui ? quand ? ») sans aller au planning. */}
+                    {(c.creneaux ?? []).length > 0 ? (
+                      <div className="mt-3">
+                        {creneauxTries(c.creneaux).map((cr, j) => (
+                          <p key={j} className="mono text-[12px] leading-relaxed text-ink-soft">{formatCreneau(cr)}</p>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="mono mt-auto pt-5 text-[26px] font-bold tracking-[-0.02em]" style={{ color: accentTexte }}>
                       {Math.round(c.tarif_centimes / 100)}
                       <span className="text-[11px] font-normal text-ink-soft"> € /an</span>
                     </div>
+                    {/* Le lien porte le cours : le formulaire d'inscription le présélectionne.
+                        Complet = même lien, libellé honnête — l'inscription bascule d'elle-même
+                        en liste d'attente (mécanisme partagé, lib/complets.ts). */}
+                    <Link
+                      href={`/${org.slug}/inscription?cours=${c.id}`}
+                      className="mono mt-5 inline-block border border-ink px-4 py-2.5 text-center text-[12px] hover:bg-ink hover:text-paper"
+                    >
+                      {complets.has(c.id) ? "LISTE D’ATTENTE →" : "S’INSCRIRE À CE COURS →"}
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -229,6 +268,56 @@ export default async function VitrinePage(
               Paiement en ligne sécurisé, en une fois ou en plusieurs échéances. Pass&apos;Sport et
               réductions acceptés.
             </p>
+          </div>
+        ),
+      });
+    }
+    // Fil d'actualités (table `actualites`) : jusqu'à 3 cartes datées. Comme le
+    // planning : invisible pour le public tant qu'il est vide, visible en édition
+    // pour que l'admin sache qu'il existe et où le remplir.
+    if (cle === "actualites" && (actus.length > 0 || edition)) {
+      rendus.push({
+        cle,
+        id: "actualites",
+        custom: false,
+        node: () => (
+          <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
+            <Label>LA VIE DU CLUB</Label>
+            <h2 className="mt-8 text-3xl font-medium leading-tight md:text-4xl">Dernières actualités.</h2>
+            {actus.length > 0 ? (
+              <div
+                className={`mt-12 grid grid-cols-1 gap-px border border-line bg-line ${
+                  actus.length >= 3 ? "md:grid-cols-3" : actus.length === 2 ? "md:grid-cols-2" : ""
+                }`}
+              >
+                {actus.map((a) => (
+                  <article key={a.id} className="flex flex-col bg-paper">
+                    {a.image_url ? (
+                      <div className="relative h-44 overflow-hidden border-b border-line">
+                        <Image src={a.image_url} alt={a.titre} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
+                      </div>
+                    ) : null}
+                    <div className="flex flex-1 flex-col px-6 py-6">
+                      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{dateActu(a.publie_le)}</p>
+                      <h3 className="mt-3 text-[16px] font-medium leading-snug">{a.titre}</h3>
+                      <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">{resumeActu(a.texte)}</p>
+                      <Link
+                        href={`/${org.slug}/actualites/${a.id}`}
+                        className="mono mt-auto inline-block pt-5 text-[12px]"
+                        style={{ color: accentTexte }}
+                      >
+                        LIRE →
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="mono mt-6 text-[12px] leading-relaxed text-ink-soft">
+                Publiez vos actualités depuis le cockpit, rubrique Actualité. Ce chapitre reste
+                invisible pour vos visiteurs tant qu&apos;il est vide.
+              </p>
+            )}
           </div>
         ),
       });
@@ -452,8 +541,30 @@ export default async function VitrinePage(
         </div>
       ) : null}
 
-      {/* ACTUALITÉ À LA UNE (éditable par le club) */}
-      {org.actualite && (org.actualite.texte || org.actualite.image_url) ? (
+      {/* ACTUALITÉ À LA UNE — la plus récente du fil (table `actualites`) quand il y en
+          a ; sinon repli sur l'ancien champ organisations.actualite (clubs existants). */}
+      {actus.length > 0 ? (
+        <section className="border-b border-line">
+          <div className="mx-auto max-w-5xl px-6 py-6 md:px-8">
+            {/* Même recette de fond teinté que le bandeau legacy : lisible en blanc comme en noir. */}
+            <div
+              className="px-5 py-4"
+              style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
+            >
+              <p className="mono text-[10px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
+              <p className="mt-1 max-w-prose text-lg font-medium">{actus[0].titre}</p>
+              <p className="mt-1 max-w-prose text-[14px] text-ink-soft">{resumeActu(actus[0].texte)}</p>
+              <Link
+                href={`/${org.slug}/actualites/${actus[0].id}`}
+                className="mono mt-2 inline-block text-[12px]"
+                style={{ color: accentTexte }}
+              >
+                LIRE →
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : org.actualite && (org.actualite.texte || org.actualite.image_url) ? (
         <section className="border-b border-line">
           {org.actualite.image_url ? (
             <div className="relative h-64 w-full overflow-hidden md:h-80">
