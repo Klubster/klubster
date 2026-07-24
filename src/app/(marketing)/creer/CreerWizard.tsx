@@ -122,9 +122,10 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
   const precedent = () => setEtape((e) => Math.max(e - 1, 0));
   const dernier = etape === ETAPES.length - 1;
   const surCompte = etape === etapeCompte;
+  // Indices alignés sur le nouvel ordre : 0 = IDENTITÉ (nom requis), 1 = TEMPLATE.
   const peutContinuer =
-    (etape === 0 && !template) ||
-    (etape === 1 && !nom.trim()) ||
+    (etape === 0 && !nom.trim()) ||
+    (etape === 1 && !template) ||
     (surCompte && (!cEmail.trim() || !cMdp || (compteMode === "signup" && !cPrenom.trim())))
       ? false
       : true;
