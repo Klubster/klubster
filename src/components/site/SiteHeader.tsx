@@ -36,7 +36,13 @@ export function SiteHeader({
   // La couleur du club est un hex libre : sur un accent clair (jaune, bleu ciel…),
   // le blanc codé en dur devenait illisible. texteSur choisit blanc ou encre.
   const texteAccent = texteSur(accent);
-  const nav = liens && liens.length > 0 ? liens : LIENS_PAR_DEFAUT;
+  // « Espace adhérent » ferme la nav : un adhérent qui revient sur le site du club
+  // doit retrouver son dossier sans repasser par l'email de confirmation
+  // (demande de Mathieu, 24/07/2026). La page redirige vers la connexion si besoin.
+  const nav: LienSection[] = [
+    ...(liens && liens.length > 0 ? liens : LIENS_PAR_DEFAUT),
+    { href: `/${org.slug}/espace`, label: "Espace adhérent" },
+  ];
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4 md:px-8">
