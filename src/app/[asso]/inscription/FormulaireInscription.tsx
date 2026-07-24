@@ -101,6 +101,8 @@ export default function FormulaireInscription({
       ) : erreur === "robot" ? (
         <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
           Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
+          {/* Sonde temporaire (diagnostic 24/07) : code exact du refus Cloudflare. */}
+          {etat?.detail ? <span className="block opacity-70">[{etat.detail}]</span> : null}
         </p>
       ) : erreur === "suspendu" ? (
         <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>

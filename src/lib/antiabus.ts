@@ -75,15 +75,18 @@ async function ip(): Promise<string> {
   return (fwd ? fwd.split(",")[0] : h.get("x-real-ip") ?? "inconnue").trim();
 }
 
-async function turnstileValide(token: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return true; // non configuré : on ne bloque pas
+/** `ok` — ou les codes d'erreur siteverify, remontés jusqu'au client le temps du
+ * diagnostic (24/07/2026 : refus « robot » sur jetons frais et humains). */
+type ResultatTurnstile = { ok: true } | { ok: false; codes: string };
 
-  // Le jeton est produit en moins d'une seconde à l'affichage du widget : une soumission
-  // sans jeton n'est pas un cas légitime.
+async function turnstileValide(token: string): Promise<ResultatTurnstile> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return { ok: true }; // non configuré : on ne bloque pas
+
+  // Le jeton est produit au moment de la soumission : son absence n'est pas un cas légitime.
   if (!token) {
     console.warn("[antiabus] Aucun jeton Turnstile — soumission refusée.");
-    return false;
+    return { ok: false, codes: "jeton-absent" };
   }
 
   try {
@@ -93,10 +96,11 @@ async function turnstileValide(token: string): Promise<boolean> {
       body: JSON.stringify({ secret, response: token }),
     });
     const data = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
-    if (data.success === true) return true;
+    if (data.success === true) return { ok: true };
 
     const codes = data["error-codes"] ?? [];
     console.warn("[antiabus] Turnstile refusé :", codes.join(", ") || "aucun code");
+    const detail = codes.join(",") || "aucun-code";
 
     // « timeout-or-duplicate » = jeton expiré (valable 5 min) ou DÉJÀ consommé.
     // Cloudflare est explicite : ce résultat doit être traité comme un échec exigeant un
@@ -104,7 +108,7 @@ async function turnstileValide(token: string): Promise<boolean> {
     // passe permanent — rejouable depuis des IP variées et des instances serverless
     // différentes, exactement ce dont un robot d'inscription a besoin (audit du
     // 21/07/2026). Le widget se régénère au rechargement : un humain retente sans peine.
-    if (codes.includes("timeout-or-duplicate")) return false;
+    if (codes.includes("timeout-or-duplicate")) return { ok: false, codes: detail };
 
     // Secret manquant ou invalide = NOTRE configuration est cassée. En développement on
     // laisse passer pour ne pas bloquer les tests ; en production on refuse, car « laisser
@@ -112,28 +116,31 @@ async function turnstileValide(token: string): Promise<boolean> {
     if (codes.includes("invalid-input-secret") || codes.includes("missing-input-secret")) {
       const prod = process.env.NODE_ENV === "production";
       console.error("[antiabus] Secret Turnstile invalide ou manquant.", prod ? "Refusé (prod)." : "Toléré (dev).");
-      return !prod;
+      return prod ? { ok: false, codes: detail } : { ok: true };
     }
 
-    return false;
+    return { ok: false, codes: detail };
   } catch {
     // Cloudflare réellement injoignable (erreur réseau) : on n'annule pas les inscriptions
     // du soir pour une panne d'un tiers. Le pot de miel et la limitation de débit restent
     // en place comme filet. C'est le SEUL cas où l'on accepte en mode dégradé.
     console.warn("[antiabus] Turnstile injoignable — accepté en mode dégradé (pot de miel + rate limit actifs).");
-    return true;
+    return { ok: true };
   }
 }
 
-export type Verdict = { ok: true } | { ok: false; raison: "robot" | "trop_de_tentatives" };
+export type Verdict =
+  | { ok: true }
+  | { ok: false; raison: "robot" | "trop_de_tentatives"; detail?: string };
 
 export async function verifierSoumissionPublique(formData: FormData, slug: string): Promise<Verdict> {
   // 1. Pot de miel — champ caché, invisible pour un humain.
-  if (String(formData.get("site_web") ?? "").trim() !== "") return { ok: false, raison: "robot" };
+  if (String(formData.get("site_web") ?? "").trim() !== "") return { ok: false, raison: "robot", detail: "pot-de-miel" };
 
   // 2. Turnstile, si configuré.
   const token = String(formData.get("cf-turnstile-response") ?? "");
-  if (!(await turnstileValide(token))) return { ok: false, raison: "robot" };
+  const resultat = await turnstileValide(token);
+  if (!resultat.ok) return { ok: false, raison: "robot", detail: resultat.codes };
 
   // 3. Limitation de débit — partagée entre instances (repli mémoire si base indisponible).
   if (await tropDistribue(`ip:${await ip()}`, MAX_PAR_IP)) return { ok: false, raison: "trop_de_tentatives" };

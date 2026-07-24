@@ -22,7 +22,7 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
  * vide un formulaire de 20+ champs — la saisie est désormais conservée. Les
  * succès, eux, continuent de rediriger (merci, Stripe).
  */
-export type EtatInscription = { erreur: string } | null;
+export type EtatInscription = { erreur: string; detail?: string } | null;
 
 export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData: FormData): Promise<EtatInscription> {
   const slug = String(formData.get("slug") ?? "");
@@ -36,7 +36,7 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
 
   // Formulaire public : on filtre les robots AVANT tout envoi d'email ou création de compte.
   const verdict = await verifierSoumissionPublique(formData, slug);
-  if (!verdict.ok) return { erreur: verdict.raison };
+  if (!verdict.ok) return { erreur: verdict.raison, detail: verdict.detail };
 
   const org = await getOrganisationPubliqueBySlug(slug);
   if (!org) return { erreur: "1" };
