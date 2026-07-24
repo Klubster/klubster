@@ -11,8 +11,11 @@ function Cur() {
 // Sans compte, une étape COMPTE s'insère juste avant PUBLIER : le visiteur construit
 // d'abord son club (il investit), le compte n'arrive qu'au moment où il devient
 // nécessaire. Connecté, le parcours reste identique à avant.
-const ETAPES_BASE = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
-const ETAPES_AVEC_COMPTE = ["TEMPLATE", "IDENTITÉ", "COULEURS", "INFOS", "COURS & TARIFS", "COMPTE", "PUBLIER"];
+// IDENTITÉ avant TEMPLATE : le nom est demandé en premier (question facile,
+// engagement) pour que les aperçus des templates se rendent AVEC le nom du club
+// — sinon ils affichent tous « Mon association » et le choix reste abstrait.
+const ETAPES_BASE = ["IDENTITÉ", "TEMPLATE", "COULEURS", "INFOS", "COURS & TARIFS", "PUBLIER"];
+const ETAPES_AVEC_COMPTE = ["IDENTITÉ", "TEMPLATE", "COULEURS", "INFOS", "COURS & TARIFS", "COMPTE", "PUBLIER"];
 
 // Brouillon du wizard (localStorage) : si Supabase exige la confirmation d'email,
 // le visiteur part cliquer le lien et revient sur /creer — sans ça, tout son travail
@@ -284,9 +287,9 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
         </div>
 
         <div className="border border-line bg-paper p-8 md:p-10">
-          {etape === 0 && (
+          {etape === 1 && (
             <div>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 01 — TEMPLATE<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 02 — TEMPLATE<Cur /></p>
               <h1 className="mt-6 text-2xl font-medium md:text-3xl">Le design de votre site.</h1>
               <p className="mt-3 text-ink-soft">Six directions typographiques, en blanc ou en noir. Modifiable plus tard.</p>
 
@@ -345,9 +348,9 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
             </div>
           )}
 
-          {etape === 1 && (
+          {etape === 0 && (
             <div>
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 02 — IDENTITÉ<Cur /></p>
+              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 01 — IDENTITÉ<Cur /></p>
               <h1 className="mt-6 text-2xl font-medium md:text-3xl">Le nom de votre club.</h1>
               <label htmlFor="creer-nom" className="mono mt-8 block text-[11px] uppercase tracking-label text-ink-soft">NOM DE L&apos;ASSOCIATION</label>
               <input
