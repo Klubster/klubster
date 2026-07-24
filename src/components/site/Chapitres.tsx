@@ -89,10 +89,17 @@ export function ChapitreView({ s, accent }: { s: SectionCustom; accent: string }
 
   /* — Entraîneurs & bénévoles — */
   if (s.type === "equipe") {
+    // La grille s'adapte au nombre de membres : figée à 4 colonnes, un club avec
+    // un seul entraîneur laissait trois cases de vide (demande de Mathieu, 24/07).
+    const colonnes =
+      items.length === 1 ? "max-w-md grid-cols-1"
+      : items.length === 2 ? "sm:grid-cols-2"
+      : items.length === 3 ? "grid-cols-2 md:grid-cols-3"
+      : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
     return (
       <div className="mx-auto max-w-5xl px-6 py-20 md:px-8 md:py-28">
         <Filet label={label} accent={accent} />
-        <div className="mt-12 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-3 lg:grid-cols-4">
+        <div className={`mt-12 grid gap-px border border-line bg-line ${colonnes}`}>
           {items.map((it, i) => {
             // Le rôle est multi-lignes : la 1re ligne porte la fonction ou le diplôme
             // (kicker mono), les suivantes le détail — groupes encadrés, phrase humaine.
