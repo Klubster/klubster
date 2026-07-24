@@ -36,7 +36,9 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
 
   // Formulaire public : on filtre les robots AVANT tout envoi d'email ou création de compte.
   const verdict = await verifierSoumissionPublique(formData, slug);
-  if (!verdict.ok) return { erreur: verdict.raison, detail: verdict.detail };
+  // `detail` (codes siteverify) reste loggé côté serveur mais n'est plus affiché :
+  // la sonde du 24/07 a servi à diagnostiquer le TURNSTILE_SECRET_KEY invalide.
+  if (!verdict.ok) return { erreur: verdict.raison };
 
   const org = await getOrganisationPubliqueBySlug(slug);
   if (!org) return { erreur: "1" };
