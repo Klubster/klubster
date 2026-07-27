@@ -21,7 +21,9 @@ export default function ChatCockpit({ slug }: { slug: string }) {
   const [pending, start] = useTransition();
   const finRef = useRef<HTMLDivElement>(null);
   const ouvertRef = useRef(false);
-  ouvertRef.current = ouvert;
+  useEffect(() => {
+    ouvertRef.current = ouvert;
+  }, [ouvert]);
 
   function versLeBas() {
     requestAnimationFrame(() => finRef.current?.scrollIntoView({ behavior: "smooth" }));

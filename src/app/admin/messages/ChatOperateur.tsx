@@ -19,7 +19,9 @@ export default function ChatOperateur({ initial }: { initial: ConversationOp[] }
   const [pending, start] = useTransition();
   const selRef = useRef<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
-  selRef.current = selId;
+  useEffect(() => {
+    selRef.current = selId;
+  }, [selId]);
 
   const selected = convs.find((c) => c.id === selId) ?? null;
 

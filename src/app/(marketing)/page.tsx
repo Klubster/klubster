@@ -241,6 +241,10 @@ export default function Home() {
               Pour les 15 premiers clubs : mise en route accompagnée, import de votre fichier
               d’adhérents si besoin, et trois premiers mois offerts au lieu d’un. Sans engagement.
             </p>
+            <p className="mt-3 max-w-prose text-ink-soft">
+              Et une fois lancé, une aide directe : depuis leur cockpit, ils écrivent au créateur de
+              Klubster, qui leur répond en personne.
+            </p>
             <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
               DEVENIR CLUB FONDATEUR →
             </Link>
