@@ -154,6 +154,9 @@ export default async function SuperAdmin(
           k<Cur />
         </Link>
         <div className="flex shrink-0 items-center gap-5">
+          <Link href="/admin/messages" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
+            Messages
+          </Link>
           <Link href="/admin/codes" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
             Codes promo
           </Link>
