@@ -43,6 +43,11 @@ export function SiteHeader({
     ...(liens && liens.length > 0 ? liens : LIENS_PAR_DEFAUT),
     { href: `/${org.slug}/espace`, label: "Espace adhérent" },
   ];
+  // Le burger ajoute une porte « côté coulisses » : l'espace bénévole (le cockpit). Un
+  // bénévole qui revient sur le site du club y accède sans connaître l'URL — la page le
+  // redirige vers la connexion si besoin. Réservé au menu mobile : le desktop garde le
+  // bouton « COCKPIT → » pour les admins connectés.
+  const liensMobile: LienSection[] = [...nav, { href: `/${org.slug}/cockpit`, label: "Espace bénévole" }];
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4 md:px-8">
@@ -93,7 +98,7 @@ export function SiteHeader({
           >
             S&apos;INSCRIRE →
           </Link>
-          <MenuMobile ton="sombre" liens={nav} />
+          <MenuMobile ton="sombre" liens={liensMobile} />
         </div>
       </div>
     </header>
