@@ -51,7 +51,7 @@ interface CoursRow {
 
 const ROW_VIDE: CoursRow = { nom: "", public_cible: "", tarif: "", creneaux: [] };
 
-export default function CreerWizard({ connecte: connecteInitial = true }: { connecte?: boolean }) {
+export default function CreerWizard({ connecte: connecteInitial = true, fondateur = false }: { connecte?: boolean; fondateur?: boolean }) {
   const [connecte, setConnecte] = useState(connecteInitial);
   const [etape, setEtape] = useState(0);
   const [template, setTemplate] = useState<ThemeTemplateId | null>(null);
@@ -267,6 +267,16 @@ export default function CreerWizard({ connecte: connecteInitial = true }: { conn
           ÉTAPE {String(etape + 1).padStart(2, "0")}/{String(ETAPES.length).padStart(2, "0")} — {ETAPES[etape]}<Cur />
         </span>
       </header>
+
+      {/* Rappel de l'offre de lancement quand on arrive via « Devenir club fondateur »
+          (home → /creer?offre=fondateur) : l'offre ne se perd plus dans le tunnel. */}
+      {fondateur ? (
+        <div className="border-b border-line bg-brand-dark px-6 py-3 text-center text-paper md:px-8">
+          <p className="mono text-[12px] uppercase tracking-label">
+            Offre Club fondateur — 3 mois offerts, accompagnement &amp; import inclus<span className="text-paper">_</span>
+          </p>
+        </div>
+      ) : null}
 
       <div className="mx-auto max-w-3xl px-6 py-12 md:px-8 md:py-16">
         <div

@@ -215,6 +215,11 @@ export default function Home() {
             <Link href="/creer" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON ASSOCIATION →
             </Link>
+            {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
+                exemple concret avant de créer le sien. */}
+            <Link href="/usmboxe" className="mono mt-4 block text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
+              Voir un club créé avec Klubster →
+            </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
             <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">
@@ -245,7 +250,7 @@ export default function Home() {
               Et une fois lancé, une aide directe : depuis leur cockpit, ils écrivent au créateur de
               Klubster, qui leur répond en personne.
             </p>
-            <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
+            <Link href="/creer?offre=fondateur" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
               DEVENIR CLUB FONDATEUR →
             </Link>
           </div>

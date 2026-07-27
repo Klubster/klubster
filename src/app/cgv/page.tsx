@@ -35,6 +35,15 @@ export default function CGV() {
         résilier à tout moment pendant le mois offert : aucune somme ne sera prélevée. Le palier tarifaire
         est déterminé par le nombre d’adhérents enregistrés dans le Club.
       </p>
+      <p>
+        <strong>Offre de lancement — Clubs fondateurs.</strong> Les quinze premiers clubs éligibles
+        bénéficient de <strong>trois mois d’abonnement offerts</strong>, en remplacement du premier mois
+        offert habituel, ainsi que d’un accompagnement à la mise en route et, s’ils le souhaitent, de
+        l’import de leur fichier d’adhérents. Cette offre est sans engagement et valable dans la limite des
+        quinze places disponibles ; au terme des trois mois offerts, l’abonnement est prélevé mensuellement
+        dans les conditions prévues ci-dessus. L’éligibilité et la disponibilité des places sont appréciées
+        par l’éditeur.
+      </p>
 
       <h2>3. Souscription</h2>
       <p>

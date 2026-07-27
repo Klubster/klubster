@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 // qu'au moment où il devient nécessaire — juste avant la publication. Un visiteur qui a
 // déjà choisi son template et tapé le nom de son club a investi ; il finira son compte.
 // (Avant : redirect("/connexion?next=/creer") — le point de friction n°1 du funnel.)
-export default async function CreerPage() {
+export default async function CreerPage({ searchParams }: { searchParams: Promise<{ offre?: string }> }) {
+  const sp = await searchParams;
+  const fondateur = sp?.offre === "fondateur";
   const user = await getUser();
 
   // Un compte qui gère déjà une association n'a rien à faire ici : la base refuse de
@@ -22,5 +24,5 @@ export default async function CreerPage() {
     if (profile?.organisation_id) redirect(await destinationApresConnexion());
   }
 
-  return <CreerWizard connecte={Boolean(user)} />;
+  return <CreerWizard connecte={Boolean(user)} fondateur={fondateur} />;
 }
