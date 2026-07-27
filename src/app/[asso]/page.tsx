@@ -411,9 +411,15 @@ export default async function VitrinePage(
   // sections vides sont masquées, une nav figée annonçait « Planning » ou « Contact »
   // vers une ancre absente : le clic ne faisait rien, ce qui est pire que l'absence
   // du lien. Les chapitres personnalisés restent hors nav, comme avant.
-  const liensNav = rendus
-    .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle])
-    .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] }));
+  // « La vie du club » (actualites) est retirée de la nav à la demande de Mathieu :
+  // la section reste sur la page, mais on la remplace dans le header par un retour
+  // vers le site Klubster. URL absolue pour marcher aussi sur les domaines personnalisés.
+  const liensNav = [
+    ...rendus
+      .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle] && r.cle !== "actualites")
+      .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] })),
+    { href: "https://klubster.fr", label: "Accueil Klubster" },
+  ];
 
   // Logo dans le hero : seulement s'il y en a un ET si le club n'a pas choisi de le
   // masquer. Certains logos portent déjà le nom du club : le répéter sous le titre

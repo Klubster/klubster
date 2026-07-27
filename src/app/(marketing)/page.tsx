@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import CockpitPreview from "@/components/site/CockpitPreview";
@@ -138,6 +139,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold text-paper drop-shadow">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-paper/80 md:flex">
+            <Link href="/" className="hover:text-paper">Accueil</Link>
             <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
             <Link href="/usmboxe" className="hover:text-paper">Voir un club</Link>
@@ -158,6 +160,7 @@ export default function Home() {
             <MenuMobile
               ton="clair"
               liens={[
+                { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
@@ -558,8 +561,15 @@ export default function Home() {
       {/* SIGNATURE — le grand k_, une seule fois */}
       <section className="border-y border-line">
         <div className="flex flex-col items-center justify-center py-24 md:py-32">
-          <span className="kb-float font-logo text-[110px] leading-none text-brand md:text-[190px]">k_</span>
-          <span className="mono mt-5 text-[12px] uppercase tracking-label text-ink-soft">klubster.fr</span>
+          <Image
+            src="/logos/logo-complet.png"
+            alt="Klubster"
+            width={989}
+            height={472}
+            priority={false}
+            className="kb-float h-auto w-[190px] md:w-[300px]"
+          />
+          <span className="mono mt-8 text-[12px] uppercase tracking-label text-ink-soft">klubster.fr</span>
         </div>
       </section>
 

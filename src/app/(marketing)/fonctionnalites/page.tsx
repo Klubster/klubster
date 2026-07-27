@@ -406,6 +406,7 @@ export default function Fonctionnalites() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold">k<Cur /></Link>
           <nav className="mono hidden items-center gap-7 text-[12px] tracking-wide text-ink-soft md:flex">
+            <Link href="/" className="hover:text-ink">Accueil</Link>
             <Link href="/fonctionnalites" className="text-ink">Fonctionnalités</Link>
             <Link href="/tarifs" className="hover:text-ink">Tarifs</Link>
             <Link href="/usmboxe" className="hover:text-ink">Voir un club</Link>
@@ -418,6 +419,7 @@ export default function Fonctionnalites() {
             <MenuMobile
               ton="sombre"
               liens={[
+                { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },

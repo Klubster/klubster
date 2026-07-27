@@ -114,6 +114,9 @@ export default function Tarifs() {
             k<Cur />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
+            <Link href="/" className="mono text-[12px] text-ink-soft hover:text-ink">
+              Accueil
+            </Link>
             <Link href="/fonctionnalites" className="mono text-[12px] text-ink-soft hover:text-ink">
               Fonctionnalités
             </Link>
@@ -134,6 +137,7 @@ export default function Tarifs() {
             <MenuMobile
               ton="sombre"
               liens={[
+                { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
                 { href: "/usmboxe", label: "Voir un club" },
