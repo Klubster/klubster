@@ -238,8 +238,8 @@ export default function Home() {
               LANCEMENT — 15 CLUBS FONDATEURS<Cur />
             </p>
             <p className="mt-4 max-w-prose text-ink">
-              Pour les 15 premiers clubs : mise en route accompagnée, import du fichier
-              d’adhérents et trois premiers mois offerts au lieu d’un. Sans engagement.
+              Pour les 15 premiers clubs : mise en route accompagnée, import de votre fichier
+              d’adhérents si besoin, et trois premiers mois offerts au lieu d’un. Sans engagement.
             </p>
             <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
               DEVENIR CLUB FONDATEUR →
@@ -343,8 +343,8 @@ export default function Home() {
               que personne n’a eu le temps de vérifier. On s’en aperçoit à la fin — trop tard.
             </p>
             <p className="mt-5 text-lg text-ink-soft">
-              Avec Klubster, la carte de l’adhérent suffit : un scan, et vous voyez aussitôt s’il est
-              à jour et si son dossier est complet.
+              Avec Klubster, l’adhérent présente sa carte depuis son téléphone, un bénévole la scanne
+              depuis le sien — et son règlement comme l’état de son dossier apparaissent aussitôt.
             </p>
 
             {/* Écho fidèle des deux pastilles du scanner réel (cockpit/scanner/Scanner.tsx). */}
@@ -360,8 +360,8 @@ export default function Home() {
             </div>
 
             <p className="mt-8 text-lg text-ink-soft">
-              Aucun matériel à acheter : le scan se fait depuis le téléphone de n’importe quel bénévole —
-              et à plusieurs en même temps, chacun sur le sien, les soirs de forte affluence.
+              Aucune carte plastique, aucun lecteur à acheter : n’importe quel bénévole peut le faire,
+              et plusieurs à la fois les soirs de forte affluence.
             </p>
 
             <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
