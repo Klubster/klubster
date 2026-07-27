@@ -27,10 +27,10 @@ function admin() {
 export type PushSub = { endpoint: string; keys: { p256dh: string; auth: string } };
 export type PushPayload = { title: string; body: string; url?: string };
 
-export async function saveSubscription(sub: PushSub, label?: string) {
+export async function saveSubscription(sub: PushSub, label?: string): Promise<{ ok: boolean; error?: string }> {
   const sb = admin();
-  if (!sb) return;
-  await sb.from("push_subscriptions").upsert(
+  if (!sb) return { ok: false, error: "SERVICE_ROLE_KEY manquante côté serveur" };
+  const { error } = await sb.from("push_subscriptions").upsert(
     {
       endpoint: sub.endpoint,
       p256dh: sub.keys.p256dh,
@@ -40,6 +40,7 @@ export async function saveSubscription(sub: PushSub, label?: string) {
     },
     { onConflict: "endpoint" },
   );
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function removeSubscription(endpoint: string) {

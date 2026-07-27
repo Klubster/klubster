@@ -19,6 +19,7 @@ type State = "hidden" | "off" | "on" | "denied" | "busy";
 
 export default function PushSetup() {
   const [state, setState] = useState<State>("hidden");
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!VAPID) return;
@@ -37,6 +38,7 @@ export default function PushSetup() {
 
   async function enable() {
     setState("busy");
+    setErr(null);
     try {
       const perm = await Notification.requestPermission();
       if (perm !== "granted") {
@@ -49,9 +51,15 @@ export default function PushSetup() {
         applicationServerKey: urlBase64ToUint8Array(VAPID),
       });
       const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
-      await subscribePush({ endpoint: json.endpoint, keys: json.keys }, navigator.userAgent.slice(0, 80));
+      const r = await subscribePush({ endpoint: json.endpoint, keys: json.keys }, navigator.userAgent.slice(0, 80));
+      if (!r?.ok) {
+        setErr(r?.error ?? "Enregistrement refusé");
+        setState("off");
+        return;
+      }
       setState("on");
-    } catch {
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Erreur d'abonnement");
       setState("off");
     }
   }
@@ -80,8 +88,11 @@ export default function PushSetup() {
       </button>
     );
   return (
-    <button onClick={enable} disabled={state === "busy"} className="mono border border-line px-2.5 py-1 text-[11px] hover:border-ink disabled:opacity-40">
-      Activer les notifications
-    </button>
+    <span className="inline-flex items-center gap-2">
+      <button onClick={enable} disabled={state === "busy"} className="mono border border-line px-2.5 py-1 text-[11px] hover:border-ink disabled:opacity-40">
+        Activer les notifications
+      </button>
+      {err ? <span className="mono text-[10px] text-danger">{err}</span> : null}
+    </span>
   );
 }
