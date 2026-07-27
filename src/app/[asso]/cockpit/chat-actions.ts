@@ -5,6 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { envoyerEmail } from "@/lib/resend";
+import { sendToAll } from "@/lib/push";
 import type { ChatMessage } from "@/lib/chat";
 
 const COLS = "id,conversation_id,sender,corps,created_at";
@@ -76,6 +77,9 @@ export async function envoyerMessageClub(slug: string, corps: string): Promise<{
     .insert({ conversation_id: conv.id, sender: "club", corps: texte, auteur: ctx.profile.id })
     .select(COLS)
     .single();
+
+  // Notification push à chaque message (temps réel sur le téléphone de l'éditeur).
+  await sendToAll({ title: `💬 ${ctx.org.nom}`, body: texte.slice(0, 140), url: "/admin/messages" }).catch(() => {});
 
   const premierNonLu = (conv.non_lus_operateur ?? 0) === 0;
   await sb

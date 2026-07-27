@@ -1,3 +1,4 @@
+import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { PALIERS, palierPourEffectif } from "@/lib/stripe";
@@ -92,6 +93,18 @@ function plusRecent(...dates: (string | null | undefined)[]): string | null {
 export async function verifierSuperAdmin() {
   const profile = await getProfile();
   if (!profile || profile.role !== "super_admin") return null;
+  return profile;
+}
+
+/**
+ * Garde de page : redirige vers la connexion si personne n'est connecté (utile quand la
+ * PWA /admin est ouverte avec une session expirée), et renvoie un 404 si la personne est
+ * connectée mais n'est pas l'éditeur (on ne révèle pas l'existence de la console).
+ */
+export async function exigerSuperAdmin(nextPath = "/admin") {
+  const profile = await getProfile();
+  if (!profile) redirect(`/connexion?next=${encodeURIComponent(nextPath)}`);
+  if (profile.role !== "super_admin") notFound();
   return profile;
 }
 

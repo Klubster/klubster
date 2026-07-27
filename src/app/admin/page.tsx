@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getStatsAdmin, verifierSuperAdmin, type ClubAdmin, type StatsAdmin } from "@/lib/admin";
+import { getStatsAdmin, exigerSuperAdmin, type ClubAdmin, type StatsAdmin } from "@/lib/admin";
 import { formatMontant } from "@/lib/format";
+import PushSetup from "@/components/site/PushSetup";
 
 export const dynamic = "force-dynamic";
 
@@ -99,8 +99,7 @@ export default async function SuperAdmin(
   const searchParams = await props.searchParams;
   // Réservé au super-admin. Une page inexistante pour tous les autres : on ne
   // révèle même pas qu'elle existe.
-  const profile = await verifierSuperAdmin();
-  if (!profile) notFound();
+  const profile = await exigerSuperAdmin();
 
   const s = await getStatsAdmin();
 
@@ -160,6 +159,7 @@ export default async function SuperAdmin(
           <Link href="/admin/codes" className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">
             Codes promo
           </Link>
+          <PushSetup />
           {/* Sur téléphone, le logo à gauche suffit : le kicker poussait le lien
               Codes promo hors de l'écran. */}
           <span className="mono hidden text-[11px] uppercase tracking-label text-ink-soft sm:inline">

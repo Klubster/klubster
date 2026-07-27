@@ -38,6 +38,8 @@ export async function getProfile(): Promise<Profile | null> {
 export async function destinationApresConnexion(): Promise<string> {
   const profile = await getProfile();
   if (!profile) return "/connexion";
+  // L'éditeur atterrit sur la console plateforme, pas sur le cockpit de son propre club.
+  if (profile.role === "super_admin") return "/admin";
   if (!profile.organisation_id) {
     // Un adhérent sans organisation n'a rien à faire dans l'assistant de création.
     return profile.role === "adherent" ? "/" : "/creer";

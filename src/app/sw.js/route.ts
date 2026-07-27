@@ -81,6 +81,39 @@ self.addEventListener("fetch", (e) => {
   // Tout le reste (données, réponses personnelles, API) : on ne touche pas, le navigateur
   // va directement au réseau. Rien de personnel n'est mis en cache, donc rien de périmé.
 });
+
+// Web Push : notification de l'éditeur (nouveau message d'un club). Le payload est envoyé
+// par lib/push (sendToAll). Sur iOS, l'icône affichée est celle de la PWA installée.
+self.addEventListener("push", (e) => {
+  let p = {};
+  try { p = e.data ? e.data.json() : {}; } catch (err) { p = {}; }
+  const title = p.title || "Klubster";
+  const options = {
+    body: p.body || "",
+    icon: "/admin-icon.png",
+    badge: "/admin-icon.png",
+    data: { url: p.url || "/admin/messages" },
+    tag: p.tag || "klubster-chat",
+    renotify: true,
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Clic sur la notification : focalise un onglet /admin déjà ouvert, sinon en ouvre un.
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/admin/messages";
+  e.waitUntil((async () => {
+    const fenetres = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of fenetres) {
+      if (c.url.indexOf("/admin") !== -1 && "focus" in c) {
+        if ("navigate" in c) { try { c.navigate(url); } catch (err) {} }
+        return c.focus();
+      }
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(url);
+  })());
+});
 `;
 
   return new Response(js, {
