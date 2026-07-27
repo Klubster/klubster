@@ -16,10 +16,15 @@ export interface LienMenu {
 export default function MenuMobile({
   liens,
   ton = "clair",
+  seuil = "md",
 }: {
   liens: LienMenu[];
   /** "clair" = texte blanc (au-dessus d'une photo) · "sombre" = texte encre (sur papier) */
   ton?: "clair" | "sombre";
+  /** Largeur à partir de laquelle le burger disparaît au profit de la nav inline.
+   *  "md" (768) par défaut ; "lg" (1024) pour les en-têtes chargés (nom long + boutons
+   *  admin) qui débordent avant 1024 — cas des clubs comme l'USM. */
+  seuil?: "md" | "lg";
 }) {
   const [ouvert, setOuvert] = useState(false);
   const panneauId = useId();
@@ -68,7 +73,7 @@ export default function MenuMobile({
   const couleurTrait = ton === "clair" ? "bg-paper" : "bg-ink";
 
   return (
-    <div className="md:hidden">
+    <div className={seuil === "lg" ? "lg:hidden" : "md:hidden"}>
       <button
         ref={boutonRef}
         type="button"

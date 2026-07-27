@@ -67,7 +67,7 @@ export function SiteHeader({
           )}
           <span className="mono truncate text-[14px] font-bold tracking-tight">{org.nom}</span>
         </Link>
-        <nav className="mono hidden items-center gap-6 text-[12px] tracking-wide text-ink-soft md:flex">
+        <nav className="mono hidden items-center gap-5 text-[12px] tracking-wide text-ink-soft lg:flex">
           {nav.map((l) => (
             <a key={l.href} href={l.href} className="hover:text-ink">
               {l.label}
@@ -85,7 +85,7 @@ export function SiteHeader({
               </Link>
               <Link
                 href={`/${org.slug}/cockpit`}
-                className="mono hidden border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper sm:block"
+                className="mono hidden border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper lg:block"
               >
                 COCKPIT →
               </Link>
@@ -98,7 +98,7 @@ export function SiteHeader({
           >
             S&apos;INSCRIRE →
           </Link>
-          <MenuMobile ton="sombre" liens={liensMobile} />
+          <MenuMobile ton="sombre" seuil="lg" liens={liensMobile} />
         </div>
       </div>
     </header>
