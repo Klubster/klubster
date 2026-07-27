@@ -218,7 +218,7 @@ export default function Home() {
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
             <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">
-              Conçu par un président de club <span className="text-ink-faint">·</span> Utilisé chaque semaine avec 312 adhérents
+              Conçu par un président de club <span className="text-ink-faint">·</span> Déjà utilisé chaque semaine pour gérer 312 adhérents
             </p>
             <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
@@ -242,7 +242,7 @@ export default function Home() {
               d’adhérents et trois premiers mois offerts au lieu d’un. Sans engagement.
             </p>
             <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
-              CRÉER MON ASSOCIATION →
+              DEVENIR CLUB FONDATEUR →
             </Link>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function Home() {
             </p>
 
             <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
-              Rattrapez-en un seul dans la saison,<br />et Klubster est déjà remboursé<span className="cur">_</span>
+              Repérez un seul dossier ou paiement oublié,<br />et Klubster est déjà remboursé<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
@@ -523,7 +523,7 @@ export default function Home() {
                   312 = adhérents de l'USM Boxe dans Klubster (base prod, 13/07/2026).
                   À rafraîchir en début de saison. */}
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand-dark">312</span> adhérents gérés cette saison
+                <span className="text-brand-dark">312</span> adhérents gérés avec Klubster
               </p>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>

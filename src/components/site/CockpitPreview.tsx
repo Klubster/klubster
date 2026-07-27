@@ -1,11 +1,18 @@
 // Aperçu fidèle du vrai « Aujourd'hui_ » (données de démonstration, lexique et layout réels).
+// Un cockpit ne sert pas à montrer que tout va bien : il montre d'abord ce qui demande une action.
 const NAV = ["AUJOURD’HUI", "INSCRIPTIONS", "CONTRÔLE", "PAIEMENTS", "MESSAGES", "ACTUALITÉ", "SITE"];
 
-const POINTS: { ok?: boolean; texte: string }[] = [
+const POINTS: { ok?: boolean; warn?: boolean; texte: string }[] = [
   { ok: true, texte: "3 nouvelles inscriptions cette semaine" },
-  { ok: true, texte: "Tous les paiements sont à jour" },
-  { ok: true, texte: "Aucun dossier en attente" },
+  { ok: true, texte: "14 paiements reçus cette semaine" },
+  { warn: true, texte: "2 dossiers à compléter" },
   { texte: "Ce soir : Boxe loisirs 18:30–20:00 · 18 inscrits" },
+];
+
+const TUILES: { n: string; label: string; warn?: boolean }[] = [
+  { n: "2", label: "DOSSIERS À TERMINER", warn: true },
+  { n: "0", label: "COTISATION À RELANCER" },
+  { n: "3", label: "INSCRIPTIONS · 7 JOURS" },
 ];
 
 export default function CockpitPreview() {
@@ -28,15 +35,15 @@ export default function CockpitPreview() {
           ))}
         </nav>
 
-        {/* main — l'état du club, pas un tableau de bord */}
+        {/* main — l'état du club : d'abord ce qui demande une action */}
         <div className="p-4 md:p-6">
           <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
             BONSOIR, CLAIRE · MERCREDI 4 SEPTEMBRE<span className="text-brand">_</span>
           </div>
           <p className="mt-3 text-[22px] font-medium leading-tight tracking-[-0.01em] md:text-[26px]">
-            Le club est prêt.
+            Le club est presque prêt.
           </p>
-          <p className="mt-1.5 text-[13px] text-ink-soft">Tout est à jour pour le cours de ce soir.</p>
+          <p className="mt-1.5 text-[13px] text-ink-soft">Deux dossiers à compléter avant ce soir — le reste est à jour.</p>
 
           <div className="mt-4 border border-line">
             <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
@@ -44,21 +51,17 @@ export default function CockpitPreview() {
             </div>
             {POINTS.map((l) => (
               <div key={l.texte} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-                <span className={`mono text-[11px] ${l.ok ? "text-brand" : "text-ink-faint"}`}>{l.ok ? "✓" : "●"}</span>
+                <span className={`mono text-[11px] ${l.ok ? "text-brand" : l.warn ? "text-warning" : "text-ink-faint"}`}>{l.ok ? "✓" : l.warn ? "⚠" : "●"}</span>
                 <span className="flex-1 text-[12px]">{l.texte}</span>
               </div>
             ))}
           </div>
 
           <div className="mt-4 grid grid-cols-3 gap-px border border-line bg-line">
-            {[
-              ["0", "DOSSIER À TERMINER"],
-              ["0", "COTISATION À RELANCER"],
-              ["3", "INSCRIPTIONS · 7 JOURS"],
-            ].map(([n, label]) => (
-              <div key={label} className="bg-paper px-3 py-3">
-                <div className="mono text-[16px] font-bold tracking-tight md:text-[18px]">{n}</div>
-                <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
+            {TUILES.map((t) => (
+              <div key={t.label} className="bg-paper px-3 py-3">
+                <div className={`mono text-[16px] font-bold tracking-tight md:text-[18px] ${t.warn ? "text-warning" : ""}`}>{t.n}</div>
+                <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-faint">{t.label}</div>
               </div>
             ))}
           </div>
