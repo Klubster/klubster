@@ -274,7 +274,7 @@ export default function Home() {
             </h2>
             <p className="mt-6 text-lg text-ink-soft">
               Vous ouvrez Klubster.<br />
-              Tout est prêt.
+              Vous voyez tout de suite ce qui reste à faire.
             </p>
           </Reveal>
 
