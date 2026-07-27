@@ -6,6 +6,7 @@ import Parallax from "@/components/site/Parallax";
 import CockpitPreview from "@/components/site/CockpitPreview";
 import Citation from "@/components/site/Citation";
 import MenuMobile from "@/components/site/MenuMobile";
+import ChatSite from "@/components/site/ChatSite";
 
 // SEO : le title du layout portait la voix (« Toute votre association, au même endroit »)
 // mais aucune requête réelle. Un président tape « logiciel gestion association » ou
@@ -624,6 +625,8 @@ export default function Home() {
           <p className="mono mt-12 text-[11px] text-ink-faint">© {new Date().getFullYear()} KLUBSTER</p>
         </div>
       </footer>
+
+      <ChatSite />
     </main>
   );
 }
