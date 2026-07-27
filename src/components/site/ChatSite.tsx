@@ -86,18 +86,23 @@ export default function ChatSite() {
   return (
     <>
       {/* Bouton flottant */}
+      {!ouvert && (
+        <span className="mono fixed bottom-[26px] right-20 z-40 hidden bg-ink px-3 py-2 text-[11px] text-paper shadow-lg sm:block">
+          Une question ?<span className="text-brand">_</span>
+        </span>
+      )}
       <button
         type="button"
         onClick={() => setOuvert((o) => !o)}
         aria-label={ouvert ? "Fermer le chat" : "Discuter avec Klubster"}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center bg-ink text-paper shadow-lg transition-transform hover:scale-105"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center bg-brand-dark text-white shadow-lg transition-transform hover:scale-105"
       >
         {ouvert ? (
           <span className="text-2xl leading-none">×</span>
         ) : (
-          <span className="font-logo text-xl leading-none">
-            k<span className="text-brand">_</span>
-          </span>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
         )}
       </button>
 
