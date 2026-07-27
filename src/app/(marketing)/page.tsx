@@ -327,6 +327,50 @@ export default function Home() {
         </div>
       </section>
 
+      {/* LE CONTRÔLE — le scanner recadré : conformité, pas pointeuse. Fonctionnalité
+          RÉELLE (cockpit/scanner : au scan, pastilles RÈGLEMENT + DOSSIER). Placé juste
+          avant les tarifs : il donne une raison chiffrable de payer. ROI honnête, sans
+          montant en euros (la cotisation varie d'un club à l'autre). */}
+      <section>
+        <div className="mx-auto max-w-3xl px-6 pt-24 pb-12 md:px-8 md:pt-32 md:pb-[72px]">
+          <Reveal>
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LE CONTRÔLE<Cur /></p>
+            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+              Chaque saison, au moins un passe entre les mailles.
+            </h2>
+            <p className="mt-6 text-lg text-ink-soft">
+              Un adhérent qui s’entraîne toute l’année sans avoir réglé. Un dossier resté incomplet
+              que personne n’a eu le temps de vérifier. On s’en aperçoit à la fin — trop tard.
+            </p>
+            <p className="mt-5 text-lg text-ink-soft">
+              Avec Klubster, la carte de l’adhérent suffit : un scan, et vous voyez aussitôt s’il est
+              à jour et si son dossier est complet.
+            </p>
+
+            {/* Écho fidèle des deux pastilles du scanner réel (cockpit/scanner/Scanner.tsx). */}
+            <div className="mt-8 grid max-w-md grid-cols-2 gap-px border border-line bg-line">
+              <div className="bg-paper px-5 py-4">
+                <div className="mono text-[10px] uppercase tracking-label text-ink-soft">RÈGLEMENT</div>
+                <div className="mono mt-2 text-[15px] font-bold text-brand-dark">✓ À jour</div>
+              </div>
+              <div className="bg-paper px-5 py-4">
+                <div className="mono text-[10px] uppercase tracking-label text-ink-soft">DOSSIER</div>
+                <div className="mono mt-2 text-[15px] font-bold" style={{ color: "#B23B3B" }}>✕ 1 pièce manquante</div>
+              </div>
+            </div>
+
+            <p className="mt-8 text-lg text-ink-soft">
+              Aucun matériel à acheter : le scan se fait depuis le téléphone de n’importe quel bénévole —
+              et à plusieurs en même temps, chacun sur le sien, les soirs de forte affluence.
+            </p>
+
+            <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
+              Rattrapez-en un seul dans la saison,<br />et Klubster est déjà remboursé<span className="cur">_</span>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
       {/* III — TARIFS : tôt, lisibles, sans astérisque */}
       <section id="tarifs">
         <div className="mx-auto max-w-5xl px-6 pt-12 pb-12 md:px-8 md:pt-[72px] md:pb-[72px]">
