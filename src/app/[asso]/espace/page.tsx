@@ -172,10 +172,10 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                         name="file"
                         className="mono w-full max-w-[240px] text-[11px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[11px] file:text-ink"
                       />
-                      <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">TÉLÉVERSER</button>
+                      <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
                     </form>
                     <form action={marquerPieceEmail.bind(null, org.slug, p.id)}>
-                      <button className="mono text-[11px] text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">ou par email</button>
+                      <button className="mono text-[11px] text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">ou envoyer par email</button>
                     </form>
                   </div>
                 )}
