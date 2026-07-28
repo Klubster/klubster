@@ -6,7 +6,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deconnexion } from "@/app/connexion/actions";
-import { updateInfos, marquerPieceEmail, uploadPiece } from "./actions";
+import { updateInfos, uploadPiece } from "./actions";
 import { formatPrix } from "@/lib/format";
 import { texteAttestation, type QSType, type QSResultat } from "@/lib/sante";
 
@@ -161,38 +161,20 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                 <span className="flex-1 text-[15px]">{p.label}</span>
                 {p.statut === "fournie" ? (
                   <span className="mono text-[13px]" style={{ color: accent }}>✓ FOURNIE</span>
-                ) : p.statut === "par_email" ? (
-                  <span className="mono text-[12px] text-ink-soft">ENVOYÉE PAR EMAIL</span>
                 ) : (
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <form action={uploadPiece.bind(null, org.slug)} className="flex min-w-0 flex-wrap items-center gap-2">
-                      <input type="hidden" name="pieceId" value={p.id} />
-                      <input
-                        type="file"
-                        name="file"
-                        className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
-                      />
-                      <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
-                    </form>
-                    <form action={marquerPieceEmail.bind(null, org.slug, p.id)}>
-                      <button className="mono text-[12px] text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">ou envoyer par email</button>
-                    </form>
-                  </div>
+                  <form action={uploadPiece.bind(null, org.slug)} className="flex min-w-0 flex-wrap items-center gap-2">
+                    <input type="hidden" name="pieceId" value={p.id} />
+                    <input
+                      type="file"
+                      name="file"
+                      className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
+                    />
+                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
+                  </form>
                 )}
               </div>
             ))}
           </div>
-          {/* Sans cette ligne, « envoyer par email » ne disait à personne où écrire :
-              l'adhérent déclarait un envoi qui n'avait aucune destination. */}
-          {org.email_contact ? (
-            <p className="mono mt-3 text-[12px] leading-relaxed text-ink-soft">
-              Par email, adressez vos pièces à{" "}
-              <a href={`mailto:${org.email_contact}`} className="underline decoration-line underline-offset-4 hover:text-ink">
-                {org.email_contact}
-              </a>
-              , puis signalez l&apos;envoi ci-dessus.
-            </p>
-          ) : null}
         </div>
       ) : null}
       {/* QUESTIONNAIRE DE SANTÉ */}

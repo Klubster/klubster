@@ -470,19 +470,11 @@ export default function FormBuilder({
         {/* PIÈCES */}
         <div className="mt-14">
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<Cur /></p>
-          {/* Sans cette explication, le menu déroulant (« Télécharger / Envoi par email »)
-              ne dit pas qui fait quoi : le club croit devoir déposer les pièces lui-même. */}
           <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-ink-soft">
-            L&apos;adhérent fournit ces pièces depuis son espace, après son inscription. Vous choisissez comment&nbsp;:
-          </p>
-          <ul className="mt-2 max-w-2xl space-y-1 text-[14px] leading-relaxed text-ink-soft">
-            <li><strong>Télécharger</strong> — il dépose le fichier en ligne (PDF, JPG ou PNG).</li>
-            <li><strong>Envoi par email</strong> — il vous envoie la pièce jointe par email depuis sa propre boîte, puis signale l&apos;envoi d&apos;un clic.</li>
-            <li><strong>Les deux</strong> — il choisit la solution qui l&apos;arrange.</li>
-          </ul>
-          <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-ink-soft">
-            Vous pouvez aussi joindre un modèle vierge (un certificat médical à faire remplir, par exemple)&nbsp;:
-            l&apos;adhérent le téléchargera depuis son espace.
+            L&apos;adhérent télécharge ces pièces depuis son espace, après son inscription
+            (PDF, JPG ou PNG). Vous pouvez joindre un modèle vierge — un certificat médical
+            à faire remplir, par exemple&nbsp;: il lui est envoyé par email avec sa confirmation
+            d&apos;inscription, et reste téléchargeable depuis son espace.
           </p>
           {modeleErr ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{modeleErr}</p> : null}
           <div className="mt-6 divide-y divide-line border border-line bg-paper">
@@ -497,15 +489,6 @@ export default function FormBuilder({
                   placeholder="Ex. Certificat médical"
                   className="min-w-[180px] flex-1 border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
                 />
-                <select
-                  value={pc.mode}
-                  onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, mode: e.target.value as Piece["mode"] } : p)))}
-                  className="border border-line bg-paper px-2 py-2 text-[13px] outline-none focus:border-ink"
-                >
-                  <option value="upload">Télécharger</option>
-                  <option value="email">Envoi par email</option>
-                  <option value="deux">Les deux</option>
-                </select>
                 <select
                   value={pc.cours_id ?? ""}
                   onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, cours_id: e.target.value || null } : p)))}
@@ -557,7 +540,7 @@ export default function FormBuilder({
             ))}
           </div>
           <button
-            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true, mode: "deux" }])}
+            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true }])}
             className="mono mt-6 border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
           >
             + AJOUTER UNE PIÈCE

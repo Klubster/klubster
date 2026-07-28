@@ -202,7 +202,7 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
     ...(pieces.data ?? []).map((r) => ({
       ts: (r.updated_at ?? "") as string,
       type: "piece" as const,
-      texte: `${r.statut === "par_email" ? "Pièce annoncée par email" : "Pièce déposée"} — ${r.label ?? "document"} (${nomDe(r.adherents)})`,
+      texte: `Pièce déposée — ${r.label ?? "document"} (${nomDe(r.adherents)})`,
     })),
   ]
     .filter((e) => e.ts)

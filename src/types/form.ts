@@ -16,7 +16,6 @@ export interface Piece {
   id: string;
   label: string;
   obligatoire: boolean;
-  mode: "upload" | "email" | "deux";
   cours_id?: string | null; // pièce demandée uniquement pour ce cours (null/absent = tous)
   /** Fichier modèle à télécharger par l'adhérent (ex. certificat médical vierge). */
   modele_url?: string | null;

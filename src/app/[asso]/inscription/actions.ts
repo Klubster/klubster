@@ -305,11 +305,6 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   const modeles = piecesDemandees
     .filter((p) => p.modele_url)
     .map((p) => ({ nom: p.modele_nom || `${p.label}.pdf`, url: p.modele_url as string }));
-  // Où envoyer une pièce quand le club accepte l'email : sans cette adresse, l'option
-  // « par email » ne disait à personne où écrire.
-  const emailClub = org.email_contact ?? null;
-  const parEmailAccepte = piecesDemandees.some((p) => p.mode === "email" || p.mode === "deux");
-
   try {
     if (email) {
       // Corps commun aux deux cas : on liste ce qui est utile, et on invite à installer
@@ -342,11 +337,7 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
               : `Les ${modeles.length} documents à faire remplir sont joints à cet email.`
           );
         }
-        para.push(
-          parEmailAccepte && emailClub
-            ? `Déposez vos pièces depuis votre espace adhérent, ou renvoyez-les par email à ${emailClub}.`
-            : `Déposez vos pièces depuis votre espace adhérent : ${BASE}/${slug}/espace`
-        );
+        para.push(`Téléchargez vos pièces depuis votre espace adhérent : ${BASE}/${slug}/espace`);
       }
       const objet = enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`;
       await envoyerEmail({

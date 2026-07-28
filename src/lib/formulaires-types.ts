@@ -60,8 +60,8 @@ export function formulaireType(type: TypeAssociation): FormConfig {
         },
       ],
       pieces: [
-        { id: uid(), label: "Certificat médical de non contre-indication", obligatoire: true, mode: "deux" },
-        { id: uid(), label: "Photo d'identité", obligatoire: false, mode: "deux" },
+        { id: uid(), label: "Certificat médical de non contre-indication", obligatoire: true },
+        { id: uid(), label: "Photo d'identité", obligatoire: false },
       ],
       mineur: {
         autorisations: [
@@ -107,7 +107,7 @@ export function formulaireType(type: TypeAssociation): FormConfig {
       },
     ],
     pieces: [
-      { id: uid(), label: "Photo d'identité", obligatoire: false, mode: "deux" },
+      { id: uid(), label: "Photo d'identité", obligatoire: false },
     ],
     mineur: {
       autorisations: [autorisationsCommunes.medical, autorisationsCommunes.sortieSeul],

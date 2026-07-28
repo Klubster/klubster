@@ -223,7 +223,7 @@ export default function FormulaireInscription({
                       ) : null}
                     </span>
                     <span className="mono text-[11px] uppercase tracking-wider text-ink-faint">
-                      {pc.mode === "email" ? "PAR EMAIL" : pc.mode === "upload" ? "À TÉLÉCHARGER" : "TÉLÉCHARGER OU EMAIL"}
+                      À TÉLÉCHARGER
                     </span>
                   </div>
                 );
