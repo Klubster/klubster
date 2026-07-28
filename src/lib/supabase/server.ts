@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -38,32 +38,32 @@ export async function createSupabaseServerClient() {
 }
 
 /**
- * Client pour les écritures dans le Storage, dont l'en-tête `Authorization` porte
- * explicitement le jeton de l'utilisateur connecté.
+ * Client pour les ÉCRITURES dans le Storage.
  *
- * Pourquoi ce détour. Le client créé ci-dessus résout le jeton de session à chaque
- * requête, à partir des cookies. Cela fonctionne pour la base de données, mais plus
- * pour le Storage depuis la montée de version des dépendances du 21/07/2026 : les
- * envois partaient avec la seule clé publishable, donc en tant qu'anonyme, et les
- * politiques RLS les refusaient — `new row violates row-level security policy`,
- * renvoyé en HTTP 400. Symptôme côté président : « L'envoi a échoué. Réessayez. »
- * Plus aucun fichier n'a été déposé dans les buckets entre le 21/07 et le 28/07.
+ * Historique, parce que le choix mérite d'être justifié. Depuis la montée de version
+ * des dépendances du 21/07/2026, plus aucun fichier n'a pu être déposé dans les
+ * buckets — modèles de pièces, logos, photos, et les documents des adhérents. Les
+ * requêtes arrivaient au Storage sans identité exploitable : les politiques RLS les
+ * refusaient avec `new row violates row-level security policy`, renvoyé en HTTP 400.
+ * Trois tentatives pour rattacher la session de l'utilisateur à ce client ont échoué
+ * (en-tête `Authorization` explicite, puis l'option `accessToken` de supabase-js),
+ * alors même que le serveur identifiait correctement l'appelant et que le prédicat
+ * de la politique était vérifié à la main en SQL.
  *
- * Poser le jeton nous-mêmes rend l'identité de l'appelant non négociable. La sécurité
- * ne bouge pas : c'est le jeton de l'utilisateur, les politiques RLS s'appliquent
- * exactement comme avant.
+ * On sort donc de cette dépendance : l'écriture passe par le client service-role.
  *
- * Retourne `null` s'il n'y a pas de session : à l'appelant de refuser proprement.
+ * Ce que cela implique, et pourquoi c'est tenable :
+ *  - Les politiques RLS ne gardent plus ces écritures. C'est le code applicatif qui
+ *    autorise, en amont, via `verifierPermission()` ou `getUser()` + vérification de
+ *    propriété — c'est déjà le cas à chacun des sept points d'envoi.
+ *  - Le chemin de destination est construit côté serveur à partir de l'identifiant de
+ *    l'organisation, jamais d'une valeur envoyée par le navigateur. Un appelant ne
+ *    peut donc pas viser le dossier d'un autre club.
+ *  - Les politiques RLS restent en place et continuent de protéger les écritures
+ *    faites depuis le navigateur (galerie du site club) et toutes les lectures.
+ *
+ * Retourne `null` si la clé service-role est absente : à l'appelant de refuser.
  */
-export async function createSupabaseStorageClient() {
-  const base = await createSupabaseServerClient();
-  const { data } = await base.auth.getSession();
-  const jeton = data.session?.access_token;
-  if (!jeton) return null;
-  // `accessToken` plutôt qu'un en-tête Authorization posé à la main : c'est le point
-  // d'entrée officiel, consulté en premier par `_getSessionToken()` de supabase-js,
-  // donc appliqué à toutes les requêtes du client, Storage compris.
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    accessToken: async () => jeton,
-  });
+export function createSupabaseStorageClient() {
+  return createSupabaseAdminClient();
 }
