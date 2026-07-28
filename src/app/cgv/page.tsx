@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function CGV() {
   return (
-    <LegalShell kicker="LÉGAL" titre="Conditions générales de vente" maj="30 juin 2026">
+    <LegalShell kicker="LÉGAL" titre="Conditions générales de vente" maj="28 juillet 2026">
       <h2>1. Objet</h2>
       <p>
         Les présentes conditions (« CGV ») encadrent l’abonnement au service Klubster souscrit par une
@@ -27,7 +27,12 @@ export default function CGV() {
         <li><strong>19 €/mois</strong> — de 301 à 500 adhérents.</li>
         <li><strong>29 €/mois</strong> — plus de 500 adhérents.</li>
       </ul>
-      <p>Prix hors taxes le cas échéant. L’éditeur peut faire évoluer ses tarifs avec un préavis raisonnable.</p>
+      <p>
+        <strong>Les tarifs indiqués sont des tarifs nets : ils correspondent au montant réellement prélevé.</strong>{" "}
+        TVA non applicable, article 293 B du Code général des impôts (franchise en base). Si l’éditeur venait à
+        sortir de ce régime, la TVA applicable serait ajoutée aux tarifs et le Club en serait informé au préalable.
+        L’éditeur peut faire évoluer ses tarifs avec un préavis raisonnable.
+      </p>
       <p>
         <strong>Le premier mois est offert.</strong> Aucun prélèvement n’intervient pendant les trente
         premiers jours. À l’issue de cette période, l’abonnement est prélevé mensuellement sur le moyen de

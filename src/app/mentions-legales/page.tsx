@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function MentionsLegales() {
   return (
-    <LegalShell kicker="LÉGAL" titre="Mentions légales" maj="30 juin 2026">
+    <LegalShell kicker="LÉGAL" titre="Mentions légales" maj="28 juillet 2026">
       <h2>Éditeur du site</h2>
       <p>
         Le site et le service <strong>Klubster</strong> sont édités par <strong>Mathieu Bourdieu</strong>,
@@ -17,21 +17,33 @@ export default function MentionsLegales() {
       <ul>
         <li>Directeur de la publication : Mathieu Bourdieu</li>
         <li>Contact : <a href="mailto:contact@klubster.fr">contact@klubster.fr</a></li>
-        <li>TVA non applicable — article 293 B du CGI (franchise en base).</li>
+        <li>Téléphone : <a href="tel:+33631838417">06 31 83 84 17</a></li>
+        <li>TVA non applicable — article 293 B du CGI (franchise en base). Les tarifs affichés sont des tarifs nets.</li>
       </ul>
 
       <h2>Hébergement</h2>
       <p>
-        Les données applicatives (base de données, authentification, fichiers) sont hébergées par
-        <strong> Supabase</strong>, sur l’infrastructure d’<strong>Amazon Web Services</strong>, au sein de
-        l’Union européenne (région Europe, Irlande). L’application web est déployée et servie par
-        <strong> Vercel Inc.</strong> Les paiements sont opérés par <strong>Stripe</strong>.
+        Conformément à l’article 1-1 de la loi du 21 juin 2004 pour la confiance dans l’économie numérique,
+        l’hébergeur du site est distingué des prestataires assurant le stockage des données traitées.
       </p>
-      <ul>
-        <li>Supabase — Supabase, Inc., 970 Toa Payoh North, Singapour / infrastructure AWS UE.</li>
-        <li>Vercel — Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis.</li>
-        <li>Stripe — Stripe Payments Europe, Ltd., 1 Grand Canal Street Lower, Dublin, Irlande.</li>
-      </ul>
+      <p>
+        <strong>Hébergeur du site.</strong> L’application web est déployée et servie par <strong>Vercel Inc.</strong>,
+        440 N Barranca Avenue #4133, Covina, CA 91723, États-Unis. Vercel ne publie pas de ligne téléphonique
+        de contact ; le prestataire est joignable via <a href="https://vercel.com/contact">vercel.com/contact</a> et
+        à l’adresse <a href="mailto:privacy@vercel.com">privacy@vercel.com</a>.
+      </p>
+      <p>
+        <strong>Stockage des données traitées.</strong> Les données applicatives (base de données,
+        authentification, fichiers) sont hébergées par <strong>Supabase, Inc.</strong>, sur l’infrastructure
+        d’<strong>Amazon Web Services</strong>, au sein de l’Union européenne (région Europe, Irlande).
+        Supabase ne publie pas de ligne téléphonique de contact ; le prestataire est joignable via
+        <a href="https://supabase.com/contact-us"> supabase.com/contact-us</a> et à l’adresse
+        <a href="mailto:privacy@supabase.com"> privacy@supabase.com</a>.
+      </p>
+      <p>
+        <strong>Paiements.</strong> Les paiements sont opérés par <strong>Stripe Payments Europe, Ltd.</strong>,
+        1 Grand Canal Street Lower, Dublin 2, Irlande.
+      </p>
 
       <h2>Propriété intellectuelle</h2>
       <p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import MenuMobile from "@/components/site/MenuMobile";
+import SiteFooter from "@/components/site/SiteFooter";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
@@ -195,6 +196,11 @@ export default function Tarifs() {
             ))}
           </div>
 
+          {/* Prix « clair et non ambigu » (LCEN art. 19) : franchise en base, rien ne s'ajoute. */}
+          <p className="mono mt-5 text-[11px] text-ink-faint">
+            Tarifs nets — TVA non applicable, article 293 B du CGI.
+          </p>
+
           <div className="mt-10 flex flex-wrap items-center gap-5">
             <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
               CRÉER MON ASSOCIATION →
@@ -279,28 +285,7 @@ export default function Tarifs() {
         </div>
       </section>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:px-8">
-          <div className="flex flex-col gap-8 md:flex-row md:justify-between">
-            <div>
-              <Link href="/" className="font-logo text-lg font-semibold">
-                k<Cur />
-              </Link>
-              <p className="mono mt-4 max-w-xs text-[11px] leading-relaxed text-ink-soft">
-                Développé à Montauban. Utilisé chaque semaine à l’USM Boxe.
-              </p>
-            </div>
-            <nav className="mono flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-ink-soft">
-              <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
-              <Link href="/fonctionnalites" className="hover:text-ink">Fonctionnalités</Link>
-              <Link href="/connexion" className="hover:text-ink">Espace président</Link>
-              <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
-              <Link href="/cgv" className="hover:text-ink">CGV</Link>
-              <Link href="/confidentialite" className="hover:text-ink">Confidentialité</Link>
-            </nav>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

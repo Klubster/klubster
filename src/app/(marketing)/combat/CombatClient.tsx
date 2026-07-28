@@ -397,9 +397,16 @@ export default function CombatClient() {
             <Link href="/creer">Créer mon club</Link>
             <Link href="/connexion">Espace président</Link>
             <Link href="/mentions-legales">Mentions légales</Link>
+            <Link href="/cgu">CGU</Link>
             <Link href="/cgv">CGV</Link>
             <Link href="/confidentialite">Confidentialité</Link>
           </div>
+          {/* Contact direct : LCEN art. 19 impose email + téléphone accessibles. */}
+          <p style={{ marginTop: 14, fontSize: 15, color: "#4f645a" }}>
+            <a href="mailto:contact@klubster.fr">contact@klubster.fr</a>
+            {" · "}
+            <a href="tel:+33631838417">06 31 83 84 17</a>
+          </p>
           <p className="cmb-badge"><b>●</b> Développé à Montauban. Conçu entre deux entraînements, à l’USM Boxe.</p>
           <p style={{ marginTop: 14, fontSize: 15, color: "#4f645a" }}>© 2026 KLUBSTER</p>
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
 import Parallax from "@/components/site/Parallax";
 import MenuMobile from "@/components/site/MenuMobile";
+import SiteFooter from "@/components/site/SiteFooter";
 import CockpitPreview from "@/components/site/CockpitPreview";
 import { ApercuFormulaire, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
 
@@ -877,25 +878,7 @@ export default function Fonctionnalites() {
         </div>
       </section>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:px-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="font-logo text-lg font-semibold">k<Cur /></span>
-              <p className="mono mt-3 text-[11px] text-ink-soft">Développé à Montauban. Utilisé chaque semaine à l’USM Boxe.</p>
-            </div>
-            <nav className="mono flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-ink-soft">
-              <Link href="/" className="hover:text-ink">Accueil</Link>
-              <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
-              <Link href="/connexion" className="hover:text-ink">Espace président</Link>
-              <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
-              <Link href="/cgv" className="hover:text-ink">CGV</Link>
-              <Link href="/confidentialite" className="hover:text-ink">Confidentialité</Link>
-            </nav>
-          </div>
-          <p className="mono mt-12 text-[11px] text-ink-faint">© {new Date().getFullYear()} KLUBSTER</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

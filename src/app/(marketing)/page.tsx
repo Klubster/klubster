@@ -7,6 +7,7 @@ import CockpitPreview from "@/components/site/CockpitPreview";
 import Citation from "@/components/site/Citation";
 import MenuMobile from "@/components/site/MenuMobile";
 import ChatSite from "@/components/site/ChatSite";
+import SiteFooter from "@/components/site/SiteFooter";
 
 // SEO : le title du layout portait la voix (« Toute votre association, au même endroit »)
 // mais aucune requête réelle. Un président tape « logiciel gestion association » ou
@@ -414,6 +415,12 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Prix « clair et non ambigu » (LCEN art. 19) : en franchise en base, le tarif
+              affiché est le tarif prélevé — pas de TVA ajoutée au moment du paiement. */}
+          <p className="mono mt-5 text-[11px] text-ink-faint">
+            Tarifs nets — TVA non applicable, article 293 B du CGI.
+          </p>
+
           {/* Le geste touche le prix : c'est là qu'on décide. Même style que les autres
               CTA « créer » de la page : un seul geste, une seule couleur. */}
           <div className="mt-10 flex flex-wrap items-center gap-5">
@@ -600,31 +607,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER — minimal. Les mentions vivent ici. */}
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:px-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <span className="font-logo text-lg font-semibold">k<Cur /></span>
-              <p className="mono mt-3 text-[11px] text-ink-soft">Développé à Montauban. Utilisé chaque semaine à l’USM Boxe.</p>
-            </div>
-            <nav className="mono flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-ink-soft">
-              <Link href="/creer" className="hover:text-ink">Créer mon association</Link>
-              {/* Maillage interne : la nav ne pointe que l'ancre #tarifs — la page
-                  /tarifs n'avait aucun lien entrant depuis la home. */}
-              <Link href="/tarifs" className="hover:text-ink">Tarifs</Link>
-              <Link href="/fonctionnalites" className="hover:text-ink">Fonctionnalités</Link>
-              <Link href="/connexion" className="hover:text-ink">Espace président</Link>
-              <Link href="/mentions-legales" className="hover:text-ink">Mentions légales</Link>
-              <Link href="/cgu" className="hover:text-ink">CGU</Link>
-              <Link href="/cgv" className="hover:text-ink">CGV</Link>
-              <Link href="/confidentialite" className="hover:text-ink">Confidentialité</Link>
-              <Link href="/sous-traitance" className="hover:text-ink">Sous-traitance</Link>
-            </nav>
-          </div>
-          <p className="mono mt-12 text-[11px] text-ink-faint">© {new Date().getFullYear()} KLUBSTER</p>
-        </div>
-      </footer>
+      {/* FOOTER — source unique : src/components/site/SiteFooter.tsx.
+          Contact + mentions légales y vivent (LCEN art. 19 : email et téléphone). */}
+      <SiteFooter />
 
       <ChatSite />
     </main>
