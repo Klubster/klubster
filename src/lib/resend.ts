@@ -16,6 +16,12 @@ export interface EnvoiResultat {
 // Email transactionnel simple (confirmation d'inscription, notification club, bienvenue…).
 // Le HTML est optionnel : quand il est fourni, le texte reste envoyé en parallèle, pour
 // les clients qui n'affichent pas le HTML et pour la délivrabilité.
+/** Fichier joint à un email : Resend va le chercher lui-même à l'URL indiquée. */
+export interface PieceJointe {
+  nom: string;
+  url: string;
+}
+
 export async function envoyerEmail(opts: {
   to: string;
   objet: string;
@@ -23,9 +29,19 @@ export async function envoyerEmail(opts: {
   html?: string;
   fromNom?: string; // ex. le nom du club — défaut : Klubster
   replyTo?: string | null;
+  /** Modèles à faire parvenir à l'adhérent (certificat médical vierge, etc.). */
+  piecesJointes?: PieceJointe[];
 }): Promise<boolean> {
   if (!KEY) return false;
   const from = `${(opts.fromNom ?? "Klubster").replace(/["<>]/g, "").slice(0, 60)} <inscriptions@klubster.fr>`;
+  // Resend accepte `path` : il télécharge le fichier lui-même, on n'a pas à le
+  // charger en mémoire côté serveur ni à l'encoder en base64. Les modèles vivent
+  // dans un bucket public, l'URL suffit. Plafonné à 5 fichiers : au-delà, l'email
+  // devient lourd et la délivrabilité se dégrade.
+  const jointes = (opts.piecesJointes ?? [])
+    .filter((p) => p.url)
+    .slice(0, 5)
+    .map((p) => ({ filename: p.nom.replace(/[\r\n"]/g, "").slice(0, 120) || "document", path: p.url }));
   try {
     const res = await fetch(`${API}/emails`, {
       method: "POST",
@@ -37,6 +53,7 @@ export async function envoyerEmail(opts: {
         text: opts.texte,
         ...(opts.html ? { html: opts.html } : {}),
         ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+        ...(jointes.length ? { attachments: jointes } : {}),
       }),
     });
     return res.ok;

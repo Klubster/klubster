@@ -296,6 +296,20 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
     : mode === "en_ligne" ? "En ligne (carte bancaire)"
     : mode === "cheque" ? "Par chèque, à remettre au club"
     : "En espèces, à remettre au club";
+  // Pièces demandées pour CE cours (une pièce sans cours_id vaut pour tous).
+  const piecesDemandees = (org.form_config?.pieces ?? []).filter(
+    (p) => !p.cours_id || p.cours_id === coursId
+  );
+  // Les modèles vierges partent en pièce jointe : l'adhérent les a sous la main dans
+  // sa boîte, sans avoir à retourner sur le site (demande de Mathieu, 28/07/2026).
+  const modeles = piecesDemandees
+    .filter((p) => p.modele_url)
+    .map((p) => ({ nom: p.modele_nom || `${p.label}.pdf`, url: p.modele_url as string }));
+  // Où envoyer une pièce quand le club accepte l'email : sans cette adresse, l'option
+  // « par email » ne disait à personne où écrire.
+  const emailClub = org.email_contact ?? null;
+  const parEmailAccepte = piecesDemandees.some((p) => p.mode === "email" || p.mode === "deux");
+
   try {
     if (email) {
       // Corps commun aux deux cas : on liste ce qui est utile, et on invite à installer
@@ -315,12 +329,32 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
             `Pour un accès en un clic, installez l'app du club sur votre téléphone : ${BASE}/${slug}/installer`,
             `Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).`,
           ];
+      // Pièces à fournir : on les nomme, on annonce les modèles joints, et on dit où
+      // écrire si le club accepte l'envoi par email.
+      if (!enListeAttente && piecesDemandees.length > 0) {
+        para.push(
+          `Pièces à fournir : ${piecesDemandees.map((p) => p.label + (p.obligatoire ? "" : " (facultative)")).join(", ")}.`
+        );
+        if (modeles.length > 0) {
+          para.push(
+            modeles.length === 1
+              ? `Le document à faire remplir est joint à cet email.`
+              : `Les ${modeles.length} documents à faire remplir sont joints à cet email.`
+          );
+        }
+        para.push(
+          parEmailAccepte && emailClub
+            ? `Déposez vos pièces depuis votre espace adhérent, ou renvoyez-les par email à ${emailClub}.`
+            : `Déposez vos pièces depuis votre espace adhérent : ${BASE}/${slug}/espace`
+        );
+      }
       const objet = enListeAttente ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`;
       await envoyerEmail({
         to: email,
         fromNom: `${org.nom} via Klubster`,
         replyTo: org.email_contact,
         objet,
+        piecesJointes: enListeAttente ? [] : modeles,
         texte: para.join("\n\n") + `\n\nSportivement,\n${org.nom}`,
         html: gabaritEmail({
           club: org.nom,

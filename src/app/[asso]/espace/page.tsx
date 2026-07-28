@@ -182,6 +182,17 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
               </div>
             ))}
           </div>
+          {/* Sans cette ligne, « envoyer par email » ne disait à personne où écrire :
+              l'adhérent déclarait un envoi qui n'avait aucune destination. */}
+          {org.email_contact ? (
+            <p className="mono mt-3 text-[12px] leading-relaxed text-ink-soft">
+              Par email, adressez vos pièces à{" "}
+              <a href={`mailto:${org.email_contact}`} className="underline decoration-line underline-offset-4 hover:text-ink">
+                {org.email_contact}
+              </a>
+              , puis signalez l&apos;envoi ci-dessus.
+            </p>
+          ) : null}
         </div>
       ) : null}
       {/* QUESTIONNAIRE DE SANTÉ */}
