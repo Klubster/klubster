@@ -82,13 +82,17 @@ interface Palette {
   line: string;
 }
 
+// inkFaint portait des numéros de cours, des dates et des mentions courtes — du texte
+// que l'on est censé lire. Il plafonnait à 1,74:1 sur le papier blanc et 2,12:1 sur le
+// papier noir, très loin des 4,5:1 exigés par WCAG AA : d'où l'impression de police
+// « trop fine », signalée sur le site de l'USM Boxe (template Éditorial, mode noir),
+// où le contraste est le plus dur. Les deux modes passent désormais AA, et inkSoft
+// reste plus lisible qu'inkFaint pour que la hiérarchie survive.
 const PALETTES: Record<ThemeMode, Palette> = {
   blanc: {
-    // inkSoft porte le texte de lecture des vitrines : #8C8C88 plafonnait à 3,3:1 sur
-    // le papier (sous AA). Même valeur que le token de la plateforme (globals.css).
     ink: "17 17 17",
-    inkSoft: "#6f6f6b",
-    inkFaint: "#C2C2BD",
+    inkSoft: "#5F5F5B", // 6,24:1
+    inkFaint: "#75756F", // 4,51:1
     paper: "252 252 250",
     bgAlt: "#F5F5F3",
     surface: "#FFFFFF",
@@ -96,8 +100,8 @@ const PALETTES: Record<ThemeMode, Palette> = {
   },
   noir: {
     ink: "244 244 241",
-    inkSoft: "#9C9C97",
-    inkFaint: "#4B4B47",
+    inkSoft: "#9C9C97", // 6,74:1
+    inkFaint: "#7E7E79", // 4,56:1
     paper: "19 19 18",
     bgAlt: "#1C1C1A",
     surface: "#161615",

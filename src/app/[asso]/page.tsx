@@ -180,7 +180,7 @@ export default async function VitrinePage(
               <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
                 {cours.map((c, i) => (
                   <div key={c.id} className="flex flex-col bg-paper px-6 py-7" style={{ minHeight: 168 }}>
-                    <span className="mono text-[10px] tracking-wider text-ink-faint">
+                    <span className="mono text-[11px] tracking-wider text-ink-faint">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="mt-4 text-[16px] font-medium">{c.nom}</div>
@@ -353,7 +353,7 @@ export default async function VitrinePage(
               <div className="mt-10 space-y-6">
                 {org.adresse ? (
                   <div>
-                    <p className="mono text-[10px] uppercase tracking-label text-ink-soft">ADRESSE</p>
+                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ADRESSE</p>
                     <p className="mt-2 text-ink">{org.adresse}</p>
                     <a
                       href={lienCarte(org.adresse)}
@@ -368,7 +368,7 @@ export default async function VitrinePage(
                 ) : null}
                 {org.email_contact ? (
                   <div>
-                    <p className="mono text-[10px] uppercase tracking-label text-ink-soft">EMAIL</p>
+                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">EMAIL</p>
                     <a href={`mailto:${org.email_contact}`} className="mt-2 inline-block text-ink hover:underline">
                       {org.email_contact}
                     </a>
@@ -376,7 +376,7 @@ export default async function VitrinePage(
                 ) : null}
                 {org.telephone ? (
                   <div>
-                    <p className="mono text-[10px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</p>
+                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</p>
                     <a href={`tel:${org.telephone.replace(/\s/g, "")}`} className="mt-2 inline-block text-ink hover:underline">
                       {org.telephone}
                     </a>
@@ -498,7 +498,7 @@ export default async function VitrinePage(
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
             <span className="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
               <span
-                className="inline-flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-label"
+                className="inline-flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-label"
                 style={{ background: accent, color: texteSurAccent }}
               >
                 <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse kb-dot" style={{ background: "currentColor" }} />
@@ -557,7 +557,7 @@ export default async function VitrinePage(
               className="px-5 py-4"
               style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
             >
-              <p className="mono text-[10px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
+              <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
               <p className="mt-1 max-w-prose text-lg font-medium">{actus[0].titre}</p>
               <p className="mt-1 max-w-prose text-[14px] text-ink-soft">{resumeActu(actus[0].texte)}</p>
               <Link
@@ -579,7 +579,7 @@ export default async function VitrinePage(
               <Image src={org.actualite.image_url} alt="Actualité du club" fill priority sizes="100vw" className="object-cover" />
               {org.actualite.texte ? (
                 <div className="absolute inset-x-0 bottom-0 bg-ink/70 px-6 py-5 md:px-8">
-                  <p className="mono text-[10px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
+                  <p className="mono text-[11px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
                   <p className="mt-1 max-w-prose text-paper md:text-lg">{org.actualite.texte}</p>
                 </div>
               ) : null}
@@ -592,7 +592,7 @@ export default async function VitrinePage(
                 className="px-5 py-4"
                 style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
               >
-                <p className="mono text-[10px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
+                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
                 <p className="mt-1 max-w-prose text-lg">{org.actualite.texte}</p>
               </div>
             </div>
@@ -604,7 +604,7 @@ export default async function VitrinePage(
       <section className={`border-b border-line ${edition ? "kb-editable relative" : ""}`}>
         {edition ? (
           <span
-            className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[10px] uppercase tracking-label"
+            className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[11px] uppercase tracking-label"
             style={{ borderColor: accent, color: accent }}
           >
             En-tête
@@ -692,7 +692,7 @@ export default async function VitrinePage(
           {edition ? (
             <>
               <span
-                className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[10px] uppercase tracking-label"
+                className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[11px] uppercase tracking-label"
                 style={{ borderColor: accent, color: accent }}
               >
                 {r.custom ? "Chapitre" : NOMS_SECTIONS[r.cle] ?? r.cle}
@@ -781,7 +781,7 @@ function EditeurHero({
         MODIFIER L’EN-TÊTE<span className="cur">_</span>
       </p>
 
-      <label className="mono mt-6 block text-[10px] uppercase tracking-label text-ink-soft">
+      <label className="mono mt-6 block text-[11px] uppercase tracking-label text-ink-soft">
         ACCROCHE — LA PHRASE EN GRAND
       </label>
       <input
@@ -792,7 +792,7 @@ function EditeurHero({
         className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[15px] outline-none focus:border-ink"
       />
 
-      <label className="mono mt-5 block text-[10px] uppercase tracking-label text-ink-soft">
+      <label className="mono mt-5 block text-[11px] uppercase tracking-label text-ink-soft">
         PRÉSENTATION — LE PARAGRAPHE SOUS L’ACCROCHE
       </label>
       <textarea
@@ -821,7 +821,7 @@ function EditeurHero({
           qui laisserait poser un logo écrasant le titre. */}
       {org.logo_url ? (
         <>
-          <label className="mono mt-5 block text-[10px] uppercase tracking-label text-ink-soft">
+          <label className="mono mt-5 block text-[11px] uppercase tracking-label text-ink-soft">
             TAILLE DU LOGO
           </label>
           <div className="mt-2 flex flex-wrap gap-2">
