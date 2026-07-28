@@ -2,7 +2,7 @@
 // Actions du mode « Édition de page » de la vitrine (admin du club uniquement).
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { normaliserPageConfig, SECTIONS_STANDARD, tailleLogoSure } from "@/lib/page-config";
@@ -70,16 +70,18 @@ export async function ajouterSection(slug: string, formData: FormData) {
   if (file && typeof file === "object" && "size" in file) {
     const f = file as File;
     if (f.size > 0 && f.size <= 3 * 1024 * 1024 && (f.type ?? "").startsWith("image/")) {
-      const supabase = await createSupabaseServerClient();
+      // Client au jeton explicite (voir createSupabaseStorageClient).
+      const stockage = await createSupabaseStorageClient();
+      if (!stockage) redirect(`/connexion?next=/${slug}`);
       const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
       const path = `${org.id}/section-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
+      const { error: upErr } = await stockage.storage
         .from("sections")
         .upload(path, f, { upsert: true, contentType: f.type || undefined });
       if (upErr) {
         console.error("upload section", upErr.message);
         redirect(`/${slug}?edition=1&erreur=photo`);
-      } else imageUrl = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
+      } else imageUrl = stockage.storage.from("sections").getPublicUrl(path).data.publicUrl;
     }
   }
   if (!imageUrl && !texte) redirect(`/${slug}?edition=1&erreur=vide`); // section vide : on ne crée rien
@@ -95,15 +97,16 @@ async function uploaderImage(orgId: string, file: unknown, prefixe: string): Pro
   if (!file || typeof file !== "object" || !("size" in file)) return null;
   const f = file as File;
   if (f.size <= 0 || f.size > 3 * 1024 * 1024 || !(f.type ?? "").startsWith("image/")) return null;
-  const supabase = await createSupabaseServerClient();
+  const stockage = await createSupabaseStorageClient();
+  if (!stockage) return null;
   const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const path = `${orgId}/${prefixe}-${Date.now()}-${Math.floor(Math.random() * 1e6)}.${ext}`;
-  const { error } = await supabase.storage.from("sections").upload(path, f, { upsert: true, contentType: f.type || undefined });
+  const { error } = await stockage.storage.from("sections").upload(path, f, { upsert: true, contentType: f.type || undefined });
   if (error) {
     console.error("upload chapitre", error.message);
     return null;
   }
-  return supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
+  return stockage.storage.from("sections").getPublicUrl(path).data.publicUrl;
 }
 
 const champ = (fd: FormData, nom: string, max = 300) => String(fd.get(nom) ?? "").trim().slice(0, max) || null;

@@ -1,6 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { validerDocument } from "@/lib/upload";
 
@@ -77,10 +77,13 @@ export async function uploadPiece(slug: string, formData: FormData) {
   const alea = crypto.randomUUID();
   const path = `${piece.organisation_id}/${piece.adherent_id}/${alea}.${v.ext}`;
 
-  const supabase = await createSupabaseServerClient();
+  // Client au jeton explicite : sans lui, l'envoi part en anonyme et les politiques
+  // RLS le refusent (voir createSupabaseStorageClient).
+  const stockage = await createSupabaseStorageClient();
+  if (!stockage) redirect(`/connexion?next=/${slug}/espace`);
   // upsert désactivé : deux dépôts créent deux objets distincts, on n'écrase jamais
   // un fichier existant depuis une requête entrante.
-  const { error } = await supabase.storage
+  const { error } = await stockage.storage
     .from("pieces")
     .upload(path, file as File, { upsert: false, contentType: v.contentType });
   if (error) {
@@ -88,6 +91,7 @@ export async function uploadPiece(slug: string, formData: FormData) {
     redirect(`/${slug}/espace?erreur=envoi`);
   }
 
+  const supabase = await createSupabaseServerClient();
   await supabase
     .from("pieces_adherent")
     .update({ statut: "fournie", chemin: path, updated_at: new Date().toISOString() })

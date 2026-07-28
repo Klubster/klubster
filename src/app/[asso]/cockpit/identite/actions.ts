@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { verifierPermission } from "@/lib/garde";
 import { validerImage } from "@/lib/upload";
 
@@ -34,14 +34,18 @@ export async function changerLogo(slug: string, fd: FormData) {
   if (!v.ok) redirect(`/${slug}/cockpit/identite?erreur=image`);
 
   const path = `${org.id}/logo-${Date.now()}.${v.ext}`;
-  const { error: upErr } = await supabase.storage
+  // Client au jeton explicite : sans lui l'envoi part en anonyme (voir
+  // createSupabaseStorageClient).
+  const stockage = await createSupabaseStorageClient();
+  if (!stockage) redirect(`/connexion?next=/${slug}/cockpit/identite`);
+  const { error: upErr } = await stockage.storage
     .from("logos")
     .upload(path, file as File, { upsert: true, contentType: v.contentType });
   if (upErr) {
     console.error("changerLogo upload", upErr.message);
     redirect(`/${slug}/cockpit/identite?erreur=envoi`);
   }
-  const url = supabase.storage.from("logos").getPublicUrl(path).data.publicUrl;
+  const url = stockage.storage.from("logos").getPublicUrl(path).data.publicUrl;
   const { error } = await supabase.from("organisations").update({ logo_url: url }).eq("id", org.id);
   if (error) {
     console.error("changerLogo update", error.message);

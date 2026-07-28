@@ -1,6 +1,6 @@
 "use server";
 import { verifierPermission } from "@/lib/garde";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import type { FormConfig } from "@/types/form";
 
 export async function saveFormConfig(slug: string, config: FormConfig): Promise<{ ok?: boolean; error?: string }> {
@@ -41,14 +41,15 @@ export async function uploaderModelePiece(
   const ext = estPdf ? "pdf" : estPng ? "png" : "jpg";
   const contentType = estPdf ? "application/pdf" : estPng ? "image/png" : "image/jpeg";
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseStorageClient();
+  if (!supabase) return { error: "Session expirée. Reconnectez-vous, puis réessayez." };
   const path = `${org.id}/modele-piece-${Date.now()}.${ext}`;
   const { error: upErr } = await supabase.storage
     .from("sections")
     .upload(path, f, { upsert: true, contentType });
   if (upErr) {
     console.error("uploaderModelePiece", upErr.message);
-    return { error: "L'envoi a échoué. Réessayez." };
+    return { error: `L'envoi a échoué (${upErr.message}).` };
   }
   const url = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
   return { url, nom: f.name || `modele.${ext}` };

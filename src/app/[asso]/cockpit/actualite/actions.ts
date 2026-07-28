@@ -4,7 +4,7 @@
 // encore en repli tant que le club n'a rien publié dans la table, c'est tout.
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { exigerPermission } from "@/lib/garde";
 import { validerImage } from "@/lib/upload";
 
@@ -43,13 +43,15 @@ export async function ajouterActualite(slug: string, formData: FormData) {
     const v = await validerImage(f);
     if (!v.ok) redirect(`/${slug}/cockpit/actualite?erreur=image`);
     const path = `${org.id}/actu-${Date.now()}.${v.ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("actualites")
-      .upload(path, f, { upsert: true, contentType: v.contentType });
+    // Client au jeton explicite (voir createSupabaseStorageClient).
+    const stockage = await createSupabaseStorageClient();
+    const { error: upErr } = stockage
+      ? await stockage.storage.from("actualites").upload(path, f, { upsert: true, contentType: v.contentType })
+      : { error: { message: "session absente" } };
     if (upErr) {
       console.error("upload actualite", upErr.message);
-    } else {
-      imageUrl = supabase.storage.from("actualites").getPublicUrl(path).data.publicUrl;
+    } else if (stockage) {
+      imageUrl = stockage.storage.from("actualites").getPublicUrl(path).data.publicUrl;
     }
   }
 

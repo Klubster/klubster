@@ -1,6 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { envoyerEmail } from "@/lib/resend";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
@@ -164,13 +164,15 @@ export async function creerClub(input: CreerInput, logoFd?: FormData | null) {
       const { data: org } = await supabase.from("organisations").select("id").eq("slug", slug).single();
       if (org) {
         const path = `${org.id}/logo-${Date.now()}.${v.ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("logos")
-          .upload(path, f, { upsert: true, contentType: v.contentType });
-        if (upErr) {
-          console.error("upload logo", upErr.message); // le club est créé, on n'échoue pas pour un logo
+        // Client au jeton explicite (voir createSupabaseStorageClient).
+        const stockage = await createSupabaseStorageClient();
+        const { error: upErr } = stockage
+          ? await stockage.storage.from("logos").upload(path, f, { upsert: true, contentType: v.contentType })
+          : { error: { message: "session absente" } };
+        if (upErr || !stockage) {
+          console.error("upload logo", upErr?.message); // le club est créé, on n'échoue pas pour un logo
         } else {
-          const url = supabase.storage.from("logos").getPublicUrl(path).data.publicUrl;
+          const url = stockage.storage.from("logos").getPublicUrl(path).data.publicUrl;
           await supabase.from("organisations").update({ logo_url: url }).eq("id", org.id);
         }
       }
