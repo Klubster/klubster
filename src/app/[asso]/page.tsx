@@ -123,7 +123,7 @@ export default async function VitrinePage(
   // filet mono et l'underscore accent — l'ADN de marque — restent.
   function Label({ children }: { children: React.ReactNode }) {
     return (
-      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+      <p className="mono text-[12px] uppercase tracking-label text-ink-soft">
         {children}
         <span style={{ color: accent }}>_</span>
       </p>
@@ -180,32 +180,32 @@ export default async function VitrinePage(
               <div className="mt-12 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
                 {cours.map((c, i) => (
                   <div key={c.id} className="flex flex-col bg-paper px-6 py-7" style={{ minHeight: 168 }}>
-                    <span className="mono text-[11px] tracking-wider text-ink-faint">
+                    <span className="mono text-[12px] tracking-wider text-ink-faint">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="mt-4 text-[16px] font-medium">{c.nom}</div>
                     {c.public_cible ? (
-                      <div className="mt-1 text-[13px] text-ink-soft">{c.public_cible}</div>
+                      <div className="mt-1 text-[14px] text-ink-soft">{c.public_cible}</div>
                     ) : null}
                     {/* Horaires du cours, un créneau par ligne : la carte répond aux deux
                         questions d'une famille (« pour qui ? quand ? ») sans aller au planning. */}
                     {(c.creneaux ?? []).length > 0 ? (
                       <div className="mt-3">
                         {creneauxTries(c.creneaux).map((cr, j) => (
-                          <p key={j} className="mono text-[12px] leading-relaxed text-ink-soft">{formatCreneau(cr)}</p>
+                          <p key={j} className="mono text-[13px] leading-relaxed text-ink-soft">{formatCreneau(cr)}</p>
                         ))}
                       </div>
                     ) : null}
                     <div className="mono mt-auto pt-5 text-[26px] font-bold tracking-[-0.02em]" style={{ color: accentTexte }}>
                       {Math.round(c.tarif_centimes / 100)}
-                      <span className="text-[11px] font-normal text-ink-soft"> € /an</span>
+                      <span className="text-[12px] font-normal text-ink-soft"> € /an</span>
                     </div>
                     {/* Le lien porte le cours : le formulaire d'inscription le présélectionne.
                         Complet = même lien, libellé honnête — l'inscription bascule d'elle-même
                         en liste d'attente (mécanisme partagé, lib/complets.ts). */}
                     <Link
                       href={`/${org.slug}/inscription?cours=${c.id}`}
-                      className="mono mt-5 inline-block border border-ink px-4 py-2.5 text-center text-[12px] hover:bg-ink hover:text-paper"
+                      className="mono mt-5 inline-block border border-ink px-4 py-2.5 text-center text-[13px] hover:bg-ink hover:text-paper"
                     >
                       {complets.has(c.id) ? "LISTE D’ATTENTE →" : "S’INSCRIRE À CE COURS →"}
                     </Link>
@@ -235,7 +235,7 @@ export default async function VitrinePage(
               <PlanningGrid cours={cours} accent={accent} />
             </div>
             {aucunCreneau ? (
-              <p className="mono mt-6 text-[12px] leading-relaxed text-ink-soft">
+              <p className="mono mt-6 text-[13px] leading-relaxed text-ink-soft">
                 Ajoutez les horaires de vos cours depuis le cockpit, rubrique Cours et tarifs.
                 Ce chapitre reste invisible pour vos visiteurs tant qu&apos;il est vide.
               </p>
@@ -256,9 +256,9 @@ export default async function VitrinePage(
             <div className="mt-12 border-t border-line">
               {cours.map((c) => (
                 <div key={c.id} className="flex items-baseline justify-between gap-6 border-b border-line py-4">
-                  <span className="text-[15px]">{c.nom}</span>
-                  <span className="hidden flex-1 text-[13px] text-ink-soft sm:block">{c.public_cible ?? ""}</span>
-                  <span className="mono text-[15px] font-bold" style={{ color: accentTexte }}>
+                  <span className="text-[16px]">{c.nom}</span>
+                  <span className="hidden flex-1 text-[14px] text-ink-soft sm:block">{c.public_cible ?? ""}</span>
+                  <span className="mono text-[16px] font-bold" style={{ color: accentTexte }}>
                     {formatPrix(c.tarif_centimes)}
                   </span>
                 </div>
@@ -298,12 +298,12 @@ export default async function VitrinePage(
                       </div>
                     ) : null}
                     <div className="flex flex-1 flex-col px-6 py-6">
-                      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{dateActu(a.publie_le)}</p>
+                      <p className="mono text-[12px] uppercase tracking-label text-ink-soft">{dateActu(a.publie_le)}</p>
                       <h3 className="mt-3 text-[16px] font-medium leading-snug">{a.titre}</h3>
-                      <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">{resumeActu(a.texte)}</p>
+                      <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{resumeActu(a.texte)}</p>
                       <Link
                         href={`/${org.slug}/actualites/${a.id}`}
-                        className="mono mt-auto inline-block pt-5 text-[12px]"
+                        className="mono mt-auto inline-block pt-5 text-[13px]"
                         style={{ color: accentTexte }}
                       >
                         LIRE →
@@ -313,7 +313,7 @@ export default async function VitrinePage(
                 ))}
               </div>
             ) : (
-              <p className="mono mt-6 text-[12px] leading-relaxed text-ink-soft">
+              <p className="mono mt-6 text-[13px] leading-relaxed text-ink-soft">
                 Publiez vos actualités depuis le cockpit, rubrique Actualité. Ce chapitre reste
                 invisible pour vos visiteurs tant qu&apos;il est vide.
               </p>
@@ -353,13 +353,13 @@ export default async function VitrinePage(
               <div className="mt-10 space-y-6">
                 {org.adresse ? (
                   <div>
-                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">ADRESSE</p>
+                    <p className="mono text-[12px] uppercase tracking-label text-ink-soft">ADRESSE</p>
                     <p className="mt-2 text-ink">{org.adresse}</p>
                     <a
                       href={lienCarte(org.adresse)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mono mt-2 inline-block text-[12px]"
+                      className="mono mt-2 inline-block text-[13px]"
                       style={{ color: accentTexte }}
                     >
                       ITINÉRAIRE →
@@ -368,7 +368,7 @@ export default async function VitrinePage(
                 ) : null}
                 {org.email_contact ? (
                   <div>
-                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">EMAIL</p>
+                    <p className="mono text-[12px] uppercase tracking-label text-ink-soft">EMAIL</p>
                     <a href={`mailto:${org.email_contact}`} className="mt-2 inline-block text-ink hover:underline">
                       {org.email_contact}
                     </a>
@@ -376,14 +376,14 @@ export default async function VitrinePage(
                 ) : null}
                 {org.telephone ? (
                   <div>
-                    <p className="mono text-[11px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</p>
+                    <p className="mono text-[12px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</p>
                     <a href={`tel:${org.telephone.replace(/\s/g, "")}`} className="mt-2 inline-block text-ink hover:underline">
                       {org.telephone}
                     </a>
                   </div>
                 ) : null}
                 {contactVide ? (
-                  <p className="mono text-[12px] leading-relaxed text-ink-soft">
+                  <p className="mono text-[13px] leading-relaxed text-ink-soft">
                     Adresse, email, téléphone : à renseigner dans le cockpit, rubrique Identité.
                     Ce chapitre reste invisible pour vos visiteurs tant qu&apos;il est vide.
                   </p>
@@ -496,9 +496,9 @@ export default async function VitrinePage(
           style={{ borderColor: accent, background: `color-mix(in srgb, ${accent} 10%, #FCFCFA)` }}
         >
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
-            <span className="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+            <span className="mono flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
               <span
-                className="inline-flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-label"
+                className="inline-flex items-center gap-2 px-2 py-1 text-[12px] uppercase tracking-label"
                 style={{ background: accent, color: texteSurAccent }}
               >
                 <span aria-hidden className="inline-block h-1.5 w-1.5 animate-pulse kb-dot" style={{ background: "currentColor" }} />
@@ -509,10 +509,10 @@ export default async function VitrinePage(
               </span>
             </span>
             <div className="flex items-center gap-2">
-              <a href="#ajouter" className="mono px-4 py-2 text-[12px] hover:opacity-90" style={{ background: accent, color: texteSurAccent }}>
+              <a href="#ajouter" className="mono px-4 py-2 text-[13px] hover:opacity-90" style={{ background: accent, color: texteSurAccent }}>
                 AJOUTER UN CHAPITRE
               </a>
-              <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[12px] hover:bg-ink hover:text-paper">
+              <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[13px] hover:bg-ink hover:text-paper">
                 TERMINER →
               </Link>
             </div>
@@ -520,7 +520,7 @@ export default async function VitrinePage(
 
           {searchParams?.ok ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
-              <p className="mono text-[12px]" style={{ color: accentTexte }}>
+              <p className="mono text-[13px]" style={{ color: accentTexte }}>
                 ✓{" "}
                 {searchParams.ok === "deplacee"
                   ? "Section déplacée. L’ordre est enregistré."
@@ -533,7 +533,7 @@ export default async function VitrinePage(
 
           {searchParams?.erreur ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
-              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
                 {searchParams.erreur === "photo"
                   ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (3 Mo maximum par photo)."
                   : searchParams.erreur === "vide"
@@ -557,12 +557,12 @@ export default async function VitrinePage(
               className="px-5 py-4"
               style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
             >
-              <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
+              <p className="mono text-[12px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
               <p className="mt-1 max-w-prose text-lg font-medium">{actus[0].titre}</p>
-              <p className="mt-1 max-w-prose text-[14px] text-ink-soft">{resumeActu(actus[0].texte)}</p>
+              <p className="mt-1 max-w-prose text-[15px] text-ink-soft">{resumeActu(actus[0].texte)}</p>
               <Link
                 href={`/${org.slug}/actualites/${actus[0].id}`}
-                className="mono mt-2 inline-block text-[12px]"
+                className="mono mt-2 inline-block text-[13px]"
                 style={{ color: accentTexte }}
               >
                 LIRE →
@@ -579,7 +579,7 @@ export default async function VitrinePage(
               <Image src={org.actualite.image_url} alt="Actualité du club" fill priority sizes="100vw" className="object-cover" />
               {org.actualite.texte ? (
                 <div className="absolute inset-x-0 bottom-0 bg-ink/70 px-6 py-5 md:px-8">
-                  <p className="mono text-[11px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
+                  <p className="mono text-[12px] uppercase tracking-label text-paper/70">À LA UNE<span style={{ color: accent }}>_</span></p>
                   <p className="mt-1 max-w-prose text-paper md:text-lg">{org.actualite.texte}</p>
                 </div>
               ) : null}
@@ -592,7 +592,7 @@ export default async function VitrinePage(
                 className="px-5 py-4"
                 style={{ background: `color-mix(in srgb, ${accent} 10%, rgb(var(--k-paper)))` }}
               >
-                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
+                <p className="mono text-[12px] uppercase tracking-label" style={{ color: accentTexte }}>À LA UNE_</p>
                 <p className="mt-1 max-w-prose text-lg">{org.actualite.texte}</p>
               </div>
             </div>
@@ -604,7 +604,7 @@ export default async function VitrinePage(
       <section className={`border-b border-line ${edition ? "kb-editable relative" : ""}`}>
         {edition ? (
           <span
-            className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[11px] uppercase tracking-label"
+            className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[12px] uppercase tracking-label"
             style={{ borderColor: accent, color: accent }}
           >
             En-tête
@@ -614,7 +614,7 @@ export default async function VitrinePage(
           <div className={afficherLogoHero ? "grid items-center gap-12 md:grid-cols-[1fr_auto]" : ""}>
             <div>
               {org.sport ? (
-                <p className="mono text-[11px] uppercase tracking-label" style={{ color: accentTexte }}>
+                <p className="mono text-[12px] uppercase tracking-label" style={{ color: accentTexte }}>
                   {org.sport}<span style={{ color: accent }}>_</span>
                 </p>
               ) : null}
@@ -636,7 +636,7 @@ export default async function VitrinePage(
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link
                   href={`/${org.slug}/inscription`}
-                  className="mono px-6 py-3 text-[13px] transition-opacity hover:opacity-90"
+                  className="mono px-6 py-3 text-[14px] transition-opacity hover:opacity-90"
                   style={{ background: accent, color: texteSurAccent }}
                 >
                   S&apos;INSCRIRE →
@@ -645,7 +645,7 @@ export default async function VitrinePage(
                     un bouton vers #cours absent ne ferait rien au clic — pire que
                     l'absence du bouton. Il ne s'affiche que si « Cours » est rendu. */}
                 {rendus.some((r) => r.id === "cours") ? (
-                  <a href="#cours" className="mono border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
+                  <a href="#cours" className="mono border border-ink px-6 py-3 text-[14px] hover:bg-bg-alt">
                     DÉCOUVRIR LES COURS
                   </a>
                 ) : null}
@@ -692,7 +692,7 @@ export default async function VitrinePage(
           {edition ? (
             <>
               <span
-                className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[11px] uppercase tracking-label"
+                className="mono absolute left-3 top-3 z-20 border bg-paper px-2 py-1 text-[12px] uppercase tracking-label"
                 style={{ borderColor: accent, color: accent }}
               >
                 {r.custom ? "Chapitre" : NOMS_SECTIONS[r.cle] ?? r.cle}
@@ -709,16 +709,16 @@ export default async function VitrinePage(
       {edition && masquees.length > 0 ? (
         <section className="border-b border-line bg-bg-alt">
           <div className="mx-auto max-w-5xl px-6 py-8 md:px-8">
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            <p className="mono text-[12px] uppercase tracking-label text-ink-soft">
               CHAPITRES RETIRÉS DE LA PAGE<span style={{ color: accent }}>_</span>
             </p>
-            <p className="mt-3 text-[14px] text-ink-soft">
+            <p className="mt-3 text-[15px] text-ink-soft">
               Ils ne sont plus visibles par vos visiteurs. Rien n’est perdu : réaffichez-les quand vous voulez.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {masquees.map((cle) => (
                 <form key={cle} action={restaurerSection.bind(null, org.slug, cle)}>
-                  <button className="mono border border-line bg-paper px-4 py-3 text-[12px] hover:border-ink">
+                  <button className="mono border border-line bg-paper px-4 py-3 text-[13px] hover:border-ink">
                     ↺ Réafficher « {NOMS_SECTIONS[cle]} »
                   </button>
                 </form>
@@ -736,12 +736,12 @@ export default async function VitrinePage(
       {/* FOOTER — signature Klubster */}
       <footer>
         <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-4 px-6 py-12 md:flex-row md:items-center md:px-8">
-          <span className="mono text-[12px] text-ink-soft">© {new Date().getFullYear()} {org.nom}</span>
+          <span className="mono text-[13px] text-ink-soft">© {new Date().getFullYear()} {org.nom}</span>
           <div className="flex items-center gap-6">
-            <Link href={`/${org.slug}/cockpit`} className="mono text-[12px] text-ink-faint hover:text-ink">
+            <Link href={`/${org.slug}/cockpit`} className="mono text-[13px] text-ink-faint hover:text-ink">
               Admin
             </Link>
-            <a href="https://klubster.fr" className="mono text-[12px] text-ink-soft hover:text-ink">
+            <a href="https://klubster.fr" className="mono text-[13px] text-ink-soft hover:text-ink">
               Créé avec <span className="font-logo font-semibold text-ink">k<span className="cur">_</span></span>
             </a>
           </div>
@@ -777,11 +777,11 @@ function EditeurHero({
       className="mt-12 border border-line bg-paper p-6 md:p-8"
       style={{ borderColor: accent }}
     >
-      <p className="mono text-[11px] uppercase tracking-label" style={{ color: accent }}>
+      <p className="mono text-[12px] uppercase tracking-label" style={{ color: accent }}>
         MODIFIER L’EN-TÊTE<span className="cur">_</span>
       </p>
 
-      <label className="mono mt-6 block text-[11px] uppercase tracking-label text-ink-soft">
+      <label className="mono mt-6 block text-[12px] uppercase tracking-label text-ink-soft">
         ACCROCHE — LA PHRASE EN GRAND
       </label>
       <input
@@ -789,10 +789,10 @@ function EditeurHero({
         defaultValue={org.accroche ?? ""}
         maxLength={160}
         placeholder={org.nom}
-        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[15px] outline-none focus:border-ink"
+        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[16px] outline-none focus:border-ink"
       />
 
-      <label className="mono mt-5 block text-[11px] uppercase tracking-label text-ink-soft">
+      <label className="mono mt-5 block text-[12px] uppercase tracking-label text-ink-soft">
         PRÉSENTATION — LE PARAGRAPHE SOUS L’ACCROCHE
       </label>
       <textarea
@@ -801,15 +801,15 @@ function EditeurHero({
         maxLength={2000}
         rows={5}
         placeholder="Qui vous êtes, depuis quand, pour qui."
-        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-ink"
+        className="mt-2 w-full border border-line bg-paper px-4 py-3 text-[16px] leading-relaxed outline-none focus:border-ink"
       />
 
       {org.logo_url ? (
-        <label className="mt-5 flex cursor-pointer items-start gap-3 text-[14px]">
+        <label className="mt-5 flex cursor-pointer items-start gap-3 text-[15px]">
           <input type="checkbox" name="logo" defaultChecked={afficherLogo} className="mt-1" />
           <span>
             Afficher le logo à droite du titre.
-            <span className="mono mt-1 block text-[11px] text-ink-soft">
+            <span className="mono mt-1 block text-[12px] text-ink-soft">
               Un PNG détouré (sans fond) s’intègre le mieux. Le logo se change dans le cockpit, rubrique Identité.
             </span>
           </span>
@@ -821,14 +821,14 @@ function EditeurHero({
           qui laisserait poser un logo écrasant le titre. */}
       {org.logo_url ? (
         <>
-          <label className="mono mt-5 block text-[11px] uppercase tracking-label text-ink-soft">
+          <label className="mono mt-5 block text-[12px] uppercase tracking-label text-ink-soft">
             TAILLE DU LOGO
           </label>
           <div className="mt-2 flex flex-wrap gap-2">
             {(Object.keys(TAILLES_LOGO) as TailleLogo[]).map((t) => (
               <label
                 key={t}
-                className="mono cursor-pointer border border-line px-4 py-2 text-[12px] hover:bg-bg-alt has-[:checked]:border-ink has-[:checked]:bg-bg-alt"
+                className="mono cursor-pointer border border-line px-4 py-2 text-[13px] hover:bg-bg-alt has-[:checked]:border-ink has-[:checked]:bg-bg-alt"
               >
                 <input
                   type="radio"
@@ -841,21 +841,21 @@ function EditeurHero({
               </label>
             ))}
           </div>
-          <p className="mono mt-2 text-[11px] text-ink-soft">
+          <p className="mono mt-2 text-[12px] text-ink-soft">
             Sur mobile, le logo passe au-dessus du titre et reste plus petit dans tous les cas.
           </p>
         </>
       ) : null}
 
       {!org.logo_url ? (
-        <p className="mono mt-5 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mono mt-5 text-[12px] leading-relaxed text-ink-soft">
           Aucun logo pour l’instant. Ajoutez-en un depuis le cockpit, rubrique Identité : il s’affichera ici,
           à droite du titre.
         </p>
       ) : null}
 
       <button
-        className="mono mt-7 px-6 py-3 text-[13px] transition-opacity hover:opacity-90"
+        className="mono mt-7 px-6 py-3 text-[14px] transition-opacity hover:opacity-90"
         style={{ background: accent, color: texteSur(accent) }}
       >
         ENREGISTRER L’EN-TÊTE →
@@ -887,7 +887,7 @@ function Controles({
           disabled={first}
           title="Remonter cette section"
           aria-label="Remonter cette section"
-          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
         >
           ↑ <span className="hidden sm:inline">Monter</span>
         </button>
@@ -897,7 +897,7 @@ function Controles({
           disabled={last}
           title="Descendre cette section"
           aria-label="Descendre cette section"
-          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide hover:bg-bg-alt disabled:opacity-25"
         >
           ↓ <span className="hidden sm:inline">Descendre</span>
         </button>
@@ -909,7 +909,7 @@ function Controles({
         <button
           title={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page (réversible)"}
           aria-label={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page"}
-          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[11px] uppercase tracking-wide hover:bg-bg-alt"
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide hover:bg-bg-alt"
           style={{ color: "#B23B3B" }}
         >
           × <span className="hidden sm:inline">{custom ? "Supprimer" : "Retirer"}</span>

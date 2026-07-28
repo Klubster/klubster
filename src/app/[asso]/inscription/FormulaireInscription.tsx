@@ -94,28 +94,28 @@ export default function FormulaireInscription({
     <>
       {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici. */}
       {erreur === "compte" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
           Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe ({LONGUEUR_MIN_MDP} caractères minimum), puis réessayez dans quelques minutes.
         </p>
       ) : erreur === "trop_de_tentatives" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
           Trop de tentatives d&apos;inscription depuis cet appareil. Patientez quelques minutes, puis réessayez.
         </p>
       ) : erreur === "robot" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
           Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
         </p>
       ) : erreur === "suspendu" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
           Les inscriptions en ligne de ce club sont momentanément fermées. Rapprochez-vous directement du club.
         </p>
       ) : erreur === "champs" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
           Le formulaire est incomplet : vérifiez les champs obligatoires. Pour un mineur, les coordonnées du
           responsable légal et les autorisations requises doivent être renseignées.
         </p>
       ) : erreur && erreur !== "compte_existant" ? (
-        <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
+        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
       ) : null}
 
       <form onSubmit={surSoumission} className="mt-12 space-y-10">
@@ -130,7 +130,7 @@ export default function FormulaireInscription({
 
         {/* IDENTITÉ (base verrouillée) */}
         <fieldset>
-          <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">IDENTITÉ<span style={{ color: accent }}>_</span></legend>
+          <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">IDENTITÉ<span style={{ color: accent }}>_</span></legend>
           <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2">
             <Field label="PRÉNOM" name="prenom" required autoComplete="given-name" />
             <Field label="NOM" name="nom" required autoComplete="family-name" />
@@ -158,9 +158,9 @@ export default function FormulaireInscription({
 
         {/* COURS */}
         <fieldset>
-          <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">COURS<span style={{ color: accent }}>_</span></legend>
+          <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">COURS<span style={{ color: accent }}>_</span></legend>
           <div className="mt-4 border border-line bg-paper px-5 py-4">
-            <label htmlFor="cours" className="mono text-[10px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
+            <label htmlFor="cours" className="mono text-[11px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
             <select
               id="cours"
               name="cours"
@@ -182,7 +182,7 @@ export default function FormulaireInscription({
         {pages.map((page) => (
           page.champs.length === 0 ? null : (
             <fieldset key={page.id}>
-              <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">{(page.titre || "INFORMATIONS").toUpperCase()}<span style={{ color: accent }}>_</span></legend>
+              <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">{(page.titre || "INFORMATIONS").toUpperCase()}<span style={{ color: accent }}>_</span></legend>
               <div className="mt-4 space-y-px border border-line bg-line">
                 {page.champs.map((ch) => <ChampInput key={ch.id} champ={ch} />)}
               </div>
@@ -196,7 +196,7 @@ export default function FormulaireInscription({
         {/* PIÈCES (info) */}
         {pieces.length > 0 ? (
           <fieldset>
-            <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
+            <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
               {pieces.map((pc) => {
                 const coursLie = pc.cours_id ? cours.find((c) => c.id === pc.cours_id) : null;
@@ -205,7 +205,7 @@ export default function FormulaireInscription({
                     <span>
                       {pc.label}{pc.obligatoire ? " *" : ""}
                       {coursLie ? (
-                        <span className="mono ml-2 text-[10px] uppercase tracking-wider" style={{ color: accent }}>
+                        <span className="mono ml-2 text-[11px] uppercase tracking-wider" style={{ color: accent }}>
                           {coursLie.nom} uniquement
                         </span>
                       ) : null}
@@ -215,21 +215,21 @@ export default function FormulaireInscription({
                           href={pc.modele_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="mono ml-2 text-[10px] uppercase tracking-wider underline underline-offset-2"
+                          className="mono ml-2 text-[11px] uppercase tracking-wider underline underline-offset-2"
                           style={{ color: accent }}
                         >
                           TÉLÉCHARGER LE MODÈLE ↓
                         </a>
                       ) : null}
                     </span>
-                    <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
+                    <span className="mono text-[11px] uppercase tracking-wider text-ink-faint">
                       {pc.mode === "email" ? "PAR EMAIL" : pc.mode === "upload" ? "À TÉLÉCHARGER" : "TÉLÉCHARGER OU EMAIL"}
                     </span>
                   </div>
                 );
               })}
             </div>
-            <p className="mono mt-2 text-[11px] text-ink-faint">À déposer dans votre espace adhérent après inscription.</p>
+            <p className="mono mt-2 text-[12px] text-ink-faint">À déposer dans votre espace adhérent après inscription.</p>
           </fieldset>
         ) : null}
 
@@ -246,17 +246,17 @@ export default function FormulaireInscription({
 
         {/* COMPTE */}
         <fieldset>
-          <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">VOTRE COMPTE<span style={{ color: accent }}>_</span></legend>
+          <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">VOTRE COMPTE<span style={{ color: accent }}>_</span></legend>
           <div className="mt-4 border border-line bg-paper px-5 py-4">
-            <label htmlFor="password" className="mono text-[10px] uppercase tracking-label text-ink-soft">MOT DE PASSE *</label>
+            <label htmlFor="password" className="mono text-[11px] uppercase tracking-label text-ink-soft">MOT DE PASSE *</label>
             <input id="password" name="password" type="password" required minLength={LONGUEUR_MIN_MDP} autoComplete="new-password" className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
-            <p className="mono mt-2 text-[11px] text-ink-soft">{LONGUEUR_MIN_MDP} caractères minimum. Pour accéder à votre espace adhérent.</p>
+            <p className="mono mt-2 text-[12px] text-ink-soft">{LONGUEUR_MIN_MDP} caractères minimum. Pour accéder à votre espace adhérent.</p>
           </div>
         </fieldset>
 
         {/* PAIEMENT */}
         <fieldset>
-          <legend className="mono text-[11px] uppercase tracking-label text-ink-soft">PAIEMENT<span style={{ color: accent }}>_</span></legend>
+          <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">PAIEMENT<span style={{ color: accent }}>_</span></legend>
           <div className="mt-4 divide-y divide-line border border-line bg-paper">
             {/* Le paiement en ligne n'est proposé que si le club a connecté Stripe. */}
             {paiementEnLigne ? (
@@ -277,7 +277,7 @@ export default function FormulaireInscription({
         <Turnstile />
 
         {erreurJeton ? (
-          <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
             La vérification anti-robot n&apos;a pas abouti. Vérifiez votre connexion et réessayez —
             votre saisie est conservée.
           </p>
@@ -302,7 +302,7 @@ function BoutonValider({ accent, enCours }: { accent: string; enCours: boolean }
     <button
       type="submit"
       disabled={enCours}
-      className="mono w-full px-6 py-4 text-[13px] disabled:opacity-60"
+      className="mono w-full px-6 py-4 text-[14px] disabled:opacity-60"
       style={{ background: accent, color: texteSur(accent) }}
     >
       {enCours ? "INSCRIPTION EN COURS…" : "VALIDER MON INSCRIPTION →"}
@@ -313,10 +313,10 @@ function BoutonValider({ accent, enCours }: { accent: string; enCours: boolean }
 function Field({ label, name, type = "text", required, autoComplete, messageErreur }: { label: string; name: string; type?: string; required?: boolean; autoComplete?: string; messageErreur?: string }) {
   return (
     <div className="bg-paper px-5 py-4">
-      <label htmlFor={name} className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
+      <label htmlFor={name} className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
       <input id={name} name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
       {messageErreur ? (
-        <p className="mono mt-2 text-[11px]" style={{ color: "#B23B3B" }}>{messageErreur}</p>
+        <p className="mono mt-2 text-[12px]" style={{ color: "#B23B3B" }}>{messageErreur}</p>
       ) : null}
     </div>
   );
@@ -327,7 +327,7 @@ function ChampInput({ champ }: { champ: Champ }) {
   const base = "mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink";
   return (
     <div className="bg-paper px-5 py-4">
-      <label htmlFor={name} className="mono text-[10px] uppercase tracking-label text-ink-soft">{champ.label || "Champ"}{champ.obligatoire ? " *" : ""}</label>
+      <label htmlFor={name} className="mono text-[11px] uppercase tracking-label text-ink-soft">{champ.label || "Champ"}{champ.obligatoire ? " *" : ""}</label>
       {champ.type === "zone" ? (
         <textarea id={name} name={name} required={champ.obligatoire} rows={3} className={base} />
       ) : champ.type === "choix" ? (
@@ -355,7 +355,7 @@ function Radio({ name, value, label, hint, defaultChecked }: { name: string; val
     <label className="flex cursor-pointer items-center gap-3 px-5 py-4">
       <input type="radio" name={name} value={value} defaultChecked={defaultChecked} />
       <span className="flex-1 text-[15px]">{label}</span>
-      <span className="mono text-[11px] text-ink-faint">{hint}</span>
+      <span className="mono text-[12px] text-ink-faint">{hint}</span>
     </label>
   );
 }

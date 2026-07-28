@@ -40,7 +40,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
       <Shell org={org} accent={accent}>
         <h1 className="mt-6 text-3xl font-medium">Aucun dossier ici.</h1>
         <p className="mt-4 text-ink-soft">Ce compte n&apos;est pas rattaché à un adhérent de {org.nom}.</p>
-        <Link href={`/${org.slug}/inscription`} className="mono mt-8 inline-block px-6 py-3 text-[12px] text-white" style={{ background: accent }}>S&apos;INSCRIRE →</Link>
+        <Link href={`/${org.slug}/inscription`} className="mono mt-8 inline-block px-6 py-3 text-[13px] text-white" style={{ background: accent }}>S&apos;INSCRIRE →</Link>
       </Shell>
     );
   }
@@ -70,7 +70,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
 
   return (
     <Shell org={org} accent={accent} deconnexion>
-      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MON ESPACE<span style={{ color: accent }}>_</span></p>
+      <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MON ESPACE<span style={{ color: accent }}>_</span></p>
       <h1 className="mt-4 text-3xl font-medium md:text-4xl">Bonjour, {a.prenom}.</h1>
       {manquantes > 0 ? (
         <p className="mt-3">
@@ -85,20 +85,20 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
           ouvre à l'accueil pour l'appel. Inversée (bg-ink/text-paper), elle ressort
           sur les deux modes de thème puisque ink et paper permutent avec lui. */}
       <div className="mt-10">
-        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">CARTE DE MEMBRE<span style={{ color: accent }}>_</span></p>
+        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">CARTE DE MEMBRE<span style={{ color: accent }}>_</span></p>
         <div className="mt-4 bg-ink text-paper">
           <div aria-hidden style={{ background: accent, height: 3 }} />
           <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
             <div className="min-w-0">
-              <div className="mono text-[10px] uppercase tracking-label text-paper/60">{org.nom}</div>
+              <div className="mono text-[11px] uppercase tracking-label text-paper/60">{org.nom}</div>
               <div className="mt-2 text-2xl font-medium leading-tight">{a.prenom} {a.nom}</div>
-              <div className="mono mt-1 text-[12px] uppercase tracking-wide text-paper/60">Saison {saisonCourante(org)}</div>
-              <p className="mono mt-5 max-w-[36ch] text-[11px] leading-relaxed text-paper/50">
+              <div className="mono mt-1 text-[13px] uppercase tracking-wide text-paper/60">Saison {saisonCourante(org)}</div>
+              <p className="mono mt-5 max-w-[36ch] text-[12px] leading-relaxed text-paper/50">
                 Présentez ce code à l&apos;accueil pour l&apos;appel.
               </p>
               <Link
                 href={`/${org.slug}/espace/facture`}
-                className="mono mt-5 inline-block border border-paper/40 px-4 py-2 text-[12px] hover:bg-paper hover:text-ink"
+                className="mono mt-5 inline-block border border-paper/40 px-4 py-2 text-[13px] hover:bg-paper hover:text-ink"
               >
                 VOIR MON REÇU →
               </Link>
@@ -117,7 +117,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
       </div>
       {/* ADHÉSION */}
       <div className="mt-12">
-        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MON ADHÉSION<span style={{ color: accent }}>_</span></p>
+        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MON ADHÉSION<span style={{ color: accent }}>_</span></p>
         <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
           <Kpi label="COURS" value={coursNom || "—"} />
           <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
@@ -126,7 +126,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
       </div>
       {/* INFOS */}
       <div className="mt-12">
-        <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MES INFORMATIONS<span style={{ color: accent }}>_</span></p>
+        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MES INFORMATIONS<span style={{ color: accent }}>_</span></p>
         <form action={updateInfos.bind(null, org.slug, a.id)} className="mt-4 border border-line bg-paper">
           <div className="grid grid-cols-1 gap-px bg-line sm:grid-cols-2">
             <Champ label="EMAIL" name="email" type="email" defaultValue={a.email ?? ""} />
@@ -145,14 +145,14 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
             </div>
           ) : null}
           <div className="border-t border-line px-5 py-3">
-            <button className="mono bg-ink px-5 py-2.5 text-[12px] text-paper hover:bg-ink/90">ENREGISTRER →</button>
+            <button className="mono bg-ink px-5 py-2.5 text-[13px] text-paper hover:bg-ink/90">ENREGISTRER →</button>
           </div>
         </form>
       </div>
       {/* PIÈCES */}
       {pieces.length > 0 ? (
         <div className="mt-12" id="pieces">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">MES PIÈCES<span style={{ color: accent }}>_</span></p>
+          <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MES PIÈCES<span style={{ color: accent }}>_</span></p>
           <div className="mt-4 divide-y divide-line border border-line bg-paper">
             {pieces.map((p) => (
               // Une ligne = une pièce. Sur téléphone, le libellé au-dessus et les
@@ -160,9 +160,9 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
               <div key={p.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
                 <span className="flex-1 text-[15px]">{p.label}</span>
                 {p.statut === "fournie" ? (
-                  <span className="mono text-[12px]" style={{ color: accent }}>✓ FOURNIE</span>
+                  <span className="mono text-[13px]" style={{ color: accent }}>✓ FOURNIE</span>
                 ) : p.statut === "par_email" ? (
-                  <span className="mono text-[11px] text-ink-soft">ENVOYÉE PAR EMAIL</span>
+                  <span className="mono text-[12px] text-ink-soft">ENVOYÉE PAR EMAIL</span>
                 ) : (
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     <form action={uploadPiece.bind(null, org.slug)} className="flex min-w-0 flex-wrap items-center gap-2">
@@ -170,12 +170,12 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                       <input
                         type="file"
                         name="file"
-                        className="mono w-full max-w-[240px] text-[11px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[11px] file:text-ink"
+                        className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                       />
-                      <button className="mono border border-ink px-3 py-1.5 text-[11px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
+                      <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
                     </form>
                     <form action={marquerPieceEmail.bind(null, org.slug, p.id)}>
-                      <button className="mono text-[11px] text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">ou envoyer par email</button>
+                      <button className="mono text-[12px] text-ink-soft underline decoration-line underline-offset-4 hover:text-ink">ou envoyer par email</button>
                     </form>
                   </div>
                 )}
@@ -187,10 +187,10 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
       {/* QUESTIONNAIRE DE SANTÉ */}
       {qsante ? (
         <div className="mt-12">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">QUESTIONNAIRE DE SANTÉ<span style={{ color: accent }}>_</span></p>
+          <p className="mono text-[12px] uppercase tracking-label text-ink-soft">QUESTIONNAIRE DE SANTÉ<span style={{ color: accent }}>_</span></p>
           <div className="mt-4 border border-line bg-paper px-5 py-5" style={{ borderLeftWidth: 3, borderLeftColor: accent }}>
             <p className="text-[14px] leading-relaxed">{texteAttestation(qsante.type, qsante.resultat)}</p>
-            <div className="mono mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[11px] text-ink-soft">
+            <div className="mono mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-[12px] text-ink-soft">
               <span>{qsante.type === "mineur" ? "MINEUR" : "MAJEUR"}</span>
               {qsante.signataire_nom ? <span>SIGNÉ : {qsante.signataire_nom}</span> : null}
               <span>{new Date(qsante.created_at).toLocaleDateString("fr-FR")}</span>
@@ -210,14 +210,14 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
   return (
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4 md:px-8">
-        <Link href={`/${org.slug}`} className="mono min-w-0 truncate text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
+        <Link href={`/${org.slug}`} className="mono min-w-0 truncate text-[13px] text-ink-soft hover:text-ink">← {org.nom}</Link>
         <div className="flex shrink-0 items-center gap-5">
           {/* Sur téléphone, le nom du club à gauche suffit : le kicker redondant
               poussait le bouton de déconnexion hors de l'écran. */}
-          <span className="mono hidden text-[11px] uppercase tracking-label text-ink-soft sm:inline">ESPACE ADHÉRENT<span style={{ color: accent }}>_</span></span>
+          <span className="mono hidden text-[12px] uppercase tracking-label text-ink-soft sm:inline">ESPACE ADHÉRENT<span style={{ color: accent }}>_</span></span>
           {withLogout ? (
             <form action={deconnexion}>
-              <button className="mono text-[11px] uppercase tracking-label text-ink-soft hover:text-ink">DÉCONNEXION</button>
+              <button className="mono text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">DÉCONNEXION</button>
             </form>
           ) : null}
         </div>
@@ -225,7 +225,7 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
       <div className="mx-auto max-w-2xl px-6 py-14 md:px-8">
         {children}
         <div className="mt-14 border-t border-line pt-6">
-          <Link href={`/${org.slug}/installer`} className="mono text-[12px] text-ink-soft hover:text-ink">
+          <Link href={`/${org.slug}/installer`} className="mono text-[13px] text-ink-soft hover:text-ink">
             Installer l&apos;app sur mon téléphone →
           </Link>
         </div>
@@ -237,7 +237,7 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
 function Kpi({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="bg-paper px-5 py-5">
-      <div className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
+      <div className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</div>
       <div className="mt-2 text-[18px] font-medium" style={accent ? { color: accent } : undefined}>{value}</div>
     </div>
   );
@@ -246,7 +246,7 @@ function Kpi({ label, value, accent }: { label: string; value: string; accent?: 
 function Champ({ label, name, type, defaultValue }: { label: string; name: string; type: string; defaultValue: string }) {
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</label>
+      <label className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
       <input name={name} type={type} defaultValue={defaultValue} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
     </div>
   );

@@ -27,8 +27,8 @@ export default async function InscriptionPage(
       <ThemeVitrine org={org}>
         <main className="min-h-screen text-ink">
           <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
-            <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
-            <span className="mono text-[11px] uppercase tracking-label text-ink-soft">INSCRIPTION<span style={{ color: accentF }}>_</span></span>
+            <Link href={`/${org.slug}`} className="mono text-[13px] text-ink-soft hover:text-ink">← {org.nom}</Link>
+            <span className="mono text-[12px] uppercase tracking-label text-ink-soft">INSCRIPTION<span style={{ color: accentF }}>_</span></span>
           </header>
           <div className="mx-auto max-w-2xl px-6 py-20 text-center md:px-8">
             <h1 className="text-2xl font-medium md:text-3xl">Les inscriptions en ligne sont momentanément fermées.</h1>
@@ -36,7 +36,7 @@ export default async function InscriptionPage(
               Rapprochez-vous directement de {org.nom} pour connaître les modalités d&apos;adhésion.
             </p>
             {org.email_contact ? (
-              <a href={`mailto:${org.email_contact}`} className="mono mt-8 inline-block border border-ink px-6 py-3 text-[13px] hover:bg-bg-alt">
+              <a href={`mailto:${org.email_contact}`} className="mono mt-8 inline-block border border-ink px-6 py-3 text-[14px] hover:bg-bg-alt">
                 CONTACTER LE CLUB
               </a>
             ) : null}
@@ -65,12 +65,12 @@ export default async function InscriptionPage(
     <ThemeVitrine org={org}>
       <main className="min-h-screen text-ink">
         <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
-          <Link href={`/${org.slug}`} className="mono text-[12px] text-ink-soft hover:text-ink">← {org.nom}</Link>
-          <span className="mono text-[11px] uppercase tracking-label text-ink-soft">INSCRIPTION<span style={{ color: accent }}>_</span></span>
+          <Link href={`/${org.slug}`} className="mono text-[13px] text-ink-soft hover:text-ink">← {org.nom}</Link>
+          <span className="mono text-[12px] uppercase tracking-label text-ink-soft">INSCRIPTION<span style={{ color: accent }}>_</span></span>
         </header>
 
         <div className="mx-auto max-w-2xl px-6 py-14 md:px-8">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SECTION 01 — ADHÉSION<span style={{ color: accent }}>_</span></p>
+          <p className="mono text-[12px] uppercase tracking-label text-ink-soft">SECTION 01 — ADHÉSION<span style={{ color: accent }}>_</span></p>
           <h1 className="mt-6 text-3xl font-medium md:text-4xl">Rejoindre {org.nom}.</h1>
           <p className="mt-4 max-w-prose text-ink-soft">
             Créez votre compte adhérent : vous pourrez ensuite suivre votre dossier, déposer vos pièces

@@ -82,30 +82,36 @@ interface Palette {
   line: string;
 }
 
+// Contraste des sites clubs — repris deux fois, le 28/07/2026.
+//
 // inkFaint portait des numéros de cours, des dates et des mentions courtes — du texte
 // que l'on est censé lire. Il plafonnait à 1,74:1 sur le papier blanc et 2,12:1 sur le
 // papier noir, très loin des 4,5:1 exigés par WCAG AA : d'où l'impression de police
 // « trop fine », signalée sur le site de l'USM Boxe (template Éditorial, mode noir),
-// où le contraste est le plus dur. Les deux modes passent désormais AA, et inkSoft
-// reste plus lisible qu'inkFaint pour que la hiérarchie survive.
+// où le contraste est le plus dur.
+//
+// Premier réglage à AA tout juste ; Mathieu a redemandé plus. Les valeurs actuelles
+// visent AAA (7:1) pour le texte secondaire et dépassent largement AA pour le texte
+// tertiaire, et les filets sont un peu plus francs. La hiérarchie tient toujours :
+// ink > inkSoft > inkFaint.
 const PALETTES: Record<ThemeMode, Palette> = {
   blanc: {
     ink: "17 17 17",
-    inkSoft: "#5F5F5B", // 6,24:1
-    inkFaint: "#75756F", // 4,51:1
+    inkSoft: "#4A4A46", // 8,67:1 — au-delà d'AAA
+    inkFaint: "#63635F", // 5,87:1
     paper: "252 252 250",
     bgAlt: "#F5F5F3",
     surface: "#FFFFFF",
-    line: "rgba(17,17,17,0.07)",
+    line: "rgba(17,17,17,0.10)",
   },
   noir: {
     ink: "244 244 241",
-    inkSoft: "#9C9C97", // 6,74:1
-    inkFaint: "#7E7E79", // 4,56:1
+    inkSoft: "#B4B4AF", // 8,93:1
+    inkFaint: "#949490", // 6,11:1
     paper: "19 19 18",
     bgAlt: "#1C1C1A",
     surface: "#161615",
-    line: "rgba(244,244,241,0.14)",
+    line: "rgba(244,244,241,0.18)",
   },
 };
 
