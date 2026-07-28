@@ -48,8 +48,11 @@ export async function uploaderModelePiece(
     .from("sections")
     .upload(path, f, { upsert: true, contentType });
   if (upErr) {
-    console.error("uploaderModelePiece", upErr.message);
-    return { error: `L'envoi a échoué (${upErr.message}).` };
+    // Diagnostic temporaire (28/07/2026) : deux causes déjà corrigées n'ont pas suffi,
+    // il faut savoir qui écrit réellement. À retirer dès que l'envoi refonctionne.
+    const trace = `${ctx.profile.role}/${ctx.profile.id.slice(0, 8)} org=${(ctx.profile.organisation_id ?? "aucune").slice(0, 8)} cible=${org.id.slice(0, 8)}`;
+    console.error("uploaderModelePiece", upErr.message, trace);
+    return { error: `L'envoi a échoué (${upErr.message}) [${trace}]` };
   }
   const url = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
   return { url, nom: f.name || `modele.${ext}` };

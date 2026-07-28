@@ -60,8 +60,10 @@ export async function createSupabaseStorageClient() {
   const { data } = await base.auth.getSession();
   const jeton = data.session?.access_token;
   if (!jeton) return null;
+  // `accessToken` plutôt qu'un en-tête Authorization posé à la main : c'est le point
+  // d'entrée officiel, consulté en premier par `_getSessionToken()` de supabase-js,
+  // donc appliqué à toutes les requêtes du client, Storage compris.
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${jeton}` } },
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    accessToken: async () => jeton,
   });
 }
