@@ -260,7 +260,9 @@ export default function CasUsmBoxe() {
             </p>
             <div className="mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
               <p>
-                La reprise d’un fichier de {USM_ADHERENTS} lignes n’a pas nécessité de ressaisie, ni de
+                {/* &nbsp; : voir clubs-fondateurs — l'espace de tête d'un texte JSX
+                    multiligne suivant une expression est supprimé à la compilation. */}
+                La reprise d’un fichier de {USM_ADHERENTS}&nbsp;lignes n’a pas nécessité de ressaisie, ni de
                 mise au format préalable&nbsp;: c’est le tableur du club qui a été importé,
                 tel qu’il existait.
               </p>

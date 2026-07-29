@@ -274,7 +274,10 @@ export default function ClubsFondateurs() {
             </h2>
             <div className="mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
               <p>
-                Je préside l’USM Boxe Anglaise, à Montauban. {USM_ADHERENTS} adhérents, six cours,
+                {/* &nbsp; et non une espace simple : quand le texte qui suit une expression
+                    JSX court sur plusieurs lignes, le compilateur en supprime l'espace de
+                    tête — « 313adhérents » relevé sur la préversion du 29/07/2026. */}
+                Je préside l’USM Boxe Anglaise, à Montauban. {USM_ADHERENTS}&nbsp;adhérents, six cours,
                 une poignée de bénévoles. Chaque rentrée ressemblait à la précédente&nbsp;: des
                 dossiers incomplets, des paiements en plusieurs fois impossibles à suivre, et
                 des soirées entières devant un tableur.

@@ -207,11 +207,6 @@ export default function Home() {
       {/* L'OFFRE — sur fond blanc, sous la photo : ce qu'on lit, on le lit sur du papier. */}
       <section>
         <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
-          {/* « L'essentiel » dès le premier écran : c'est le positionnement (la
-              sélection, pas la complétude) — la version « tout ce dont une
-              association a besoin » était la seule ligne générique de la page. */}
-          <p className="mt-6 max-w-prose text-lg leading-relaxed text-ink-soft md:text-xl">
-            L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements,
           {/* La promesse, en clair, juste sous le hero. Le H1 porte la voix (« Toute votre
               association, au même endroit ») ; cette ligne dit ce que ça change concrètement.
               Placée ici et non dans le hero : le premier écran est calibré au pixel près
@@ -220,6 +215,11 @@ export default function Home() {
           <p className="max-w-prose text-xl font-medium leading-snug text-ink md:text-2xl">
             Sachez immédiatement qui est inscrit, qui a payé et quel dossier reste incomplet.
           </p>
+          {/* « L'essentiel » dès le premier écran : c'est le positionnement (la
+              sélection, pas la complétude) — la version « tout ce dont une
+              association a besoin » était la seule ligne générique de la page. */}
+          <p className="mt-6 max-w-prose text-lg leading-relaxed text-ink-soft md:text-xl">
+            L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements,
             relances et site du club. Sans le superflu — et moins de soirées devant le tableur.
           </p>
           <p className="mono mt-8 text-[13px] tracking-wide text-ink">
@@ -555,14 +555,14 @@ export default function Home() {
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand-dark">{USM_ADHERENTS}</span> adhérents repris dans Klubster pour préparer la saison 2026-2027
               </p>
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono mt-3 inline-block text-[12px] text-brand-dark hover:underline">
+                LIRE LE CAS DU PREMIER CLUB →
+              </Link>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
               </p>
             </Reveal>
             <Reveal className="mt-12">
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono mt-3 inline-block text-[12px] text-brand-dark hover:underline">
-                LIRE LE CAS DU PREMIER CLUB →
-              </Link>
               <p className="mono text-[13px] leading-loose tracking-wide text-ink-soft">
                 {DISCIPLINES.map((d, i) => (
                   <span key={d}>
