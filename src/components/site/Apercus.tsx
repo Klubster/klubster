@@ -10,7 +10,7 @@ function Fenetre({ url, children }: { url: string; children: React.ReactNode }) 
     <div className="overflow-hidden border border-line bg-paper">
       <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
         <span className="font-logo text-[13px] font-semibold">k<span className="text-brand">_</span></span>
-        <span className="mono truncate text-[10px] uppercase tracking-label text-ink-faint">{url}</span>
+        <span className="mono truncate text-[10px] uppercase tracking-label text-ink-soft">{url}</span>
       </div>
       {children}
     </div>
@@ -39,7 +39,7 @@ export function ApercuFormulaire() {
             {CHAMPS.map((c) => (
               <div key={c.label} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
                 <span className="text-[13px]">{c.label}</span>
-                <span className="mono whitespace-nowrap text-[9px] uppercase tracking-label text-ink-faint">{c.etat}</span>
+                <span className="mono whitespace-nowrap text-[10px] uppercase tracking-label text-ink-soft">{c.etat}</span>
               </div>
             ))}
           </div>
@@ -52,15 +52,15 @@ export function ApercuFormulaire() {
           </p>
           <div className="mt-4 space-y-3">
             <div>
-              <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Prénom</div>
+              <div className="mono text-[10px] uppercase tracking-label text-ink-soft">Prénom</div>
               <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px]">Louise</div>
             </div>
             <div>
-              <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Date de naissance</div>
+              <div className="mono text-[10px] uppercase tracking-label text-ink-soft">Date de naissance</div>
               <div className="mt-1 border border-line bg-paper px-3 py-2 text-[13px] text-ink-faint">jj/mm/aaaa</div>
             </div>
             <div>
-              <div className="mono text-[9px] uppercase tracking-label text-ink-soft">Certificat médical</div>
+              <div className="mono text-[10px] uppercase tracking-label text-ink-soft">Certificat médical</div>
               <div className="mt-1 flex items-center justify-between border border-dashed border-line bg-paper px-3 py-2">
                 <span className="text-[13px] text-ink-faint">Déposer un fichier</span>
                 <span className="mono text-[10px] text-ink-soft">PARCOURIR</span>
@@ -138,7 +138,7 @@ export function ApercuSite() {
               <div key={s.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
                 <span className="mono text-[11px] text-ink-faint">⋮⋮</span>
                 <span className="flex-1 text-[12px]">{s.nom}</span>
-                <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{s.note}</span>
+                <span className="mono text-[10px] uppercase tracking-label text-ink-soft">{s.note}</span>
               </div>
             ))}
           </div>
@@ -147,7 +147,7 @@ export function ApercuSite() {
 
         {/* miniature de la vitrine publiée */}
         <div className="flex flex-col bg-bg-alt p-3">
-          <div className="mono text-[8px] uppercase tracking-label text-ink-soft">Aperçu</div>
+          <div className="mono text-[10px] uppercase tracking-label text-ink-soft">Aperçu</div>
           <div className="mt-2 flex-1 overflow-hidden border border-line bg-ink">
             <div className="h-10 bg-brand-dark" />
             <div className="space-y-1.5 p-2">
@@ -157,7 +157,7 @@ export function ApercuSite() {
               <div className="h-1.5 w-2/3 bg-paper/40" />
             </div>
           </div>
-          <div className="mono mt-2 text-center text-[8px] uppercase tracking-label text-brand">En ligne</div>
+          <div className="mono mt-2 text-center text-[10px] uppercase tracking-label text-brand">En ligne</div>
         </div>
       </div>
     </Fenetre>

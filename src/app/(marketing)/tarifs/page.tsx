@@ -7,8 +7,10 @@ import SiteFooter from "@/components/site/SiteFooter";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://klubster.fr";
 
 const TITRE = "Tarifs — Klubster : 9, 19 ou 29 €/mois, tout inclus";
+// 155 caractères maximum : au-delà, Google coupe. L'ancienne version en faisait 210 et
+// perdait le « 0 % de commission », qui est l'argument différenciant (audit du 29/07/2026).
 const DESCRIPTION =
-  "Une seule offre, tout est inclus : site, inscriptions, paiements, documents, présences, messages. 9 €/mois jusqu’à 300 adhérents. Premier mois offert, sans carte bancaire. 0 % de commission sur les cotisations.";
+  "Une seule offre, tout inclus : 9 €/mois jusqu’à 300 adhérents. 0 % de commission sur les cotisations. Premier mois offert, sans carte bancaire.";
 
 // La nav « Tarifs » pointait une ancre de la home : suffisant pour naviguer, insuffisant
 // pour une campagne. Un lien collé dans une réponse d'email, un partage entre bénévoles
@@ -106,7 +108,7 @@ const FAQ_JSON_LD = {
 
 export default function Tarifs() {
   return (
-    <main className="text-ink">
+    <main id="contenu" className="text-ink">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }} />
 
       <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
@@ -132,8 +134,8 @@ export default function Tarifs() {
             <Link href="/connexion" className="mono hidden text-[11px] uppercase tracking-label text-ink-soft hover:text-ink md:block">
               ESPACE PRÉSIDENT
             </Link>
-            <Link href="/creer" className="mono hidden bg-brand px-5 py-2.5 text-[12px] uppercase tracking-wide text-white hover:bg-brand-dark md:block">
-              CRÉER MON ASSOCIATION
+            <Link href="/creer?offre=fondateur" className="mono hidden bg-brand px-5 py-2.5 text-[12px] uppercase tracking-wide text-white hover:bg-brand-dark md:block">
+              CRÉER MON CLUB
             </Link>
             <MenuMobile
               ton="sombre"
@@ -143,7 +145,7 @@ export default function Tarifs() {
                 { href: "/tarifs", label: "Tarifs" },
                 { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
                 { href: "/connexion", label: "Espace président" },
-                { href: "/creer", label: "Créer mon association" },
+                { href: "/creer?offre=fondateur", label: "Créer mon club" },
               ]}
             />
           </div>
@@ -202,8 +204,8 @@ export default function Tarifs() {
           </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono bg-ink px-7 py-3.5 text-[13px] text-paper hover:bg-ink/90">
+              CRÉER MON CLUB →
             </Link>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               Prêt en moins de 30 minutes · Sans engagement<span className="text-brand">_</span>
@@ -259,7 +261,7 @@ export default function Tarifs() {
                 </span>
                 <div>
                   <p className="text-xl font-medium tracking-[-0.01em]">{q}</p>
-                  <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{r}</p>
+                  <p className="mt-2.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{r}</p>
                 </div>
               </div>
             ))}
@@ -275,8 +277,8 @@ export default function Tarifs() {
             Une soirée de paperasse en moins<span className="cur">_</span>
           </p>
           <div className="mt-10">
-            <Link href="/creer" className="mono inline-block bg-brand px-8 py-4 text-[13px] uppercase tracking-wide text-white hover:bg-brand-dark">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono inline-block bg-brand px-8 py-4 text-[13px] uppercase tracking-wide text-white hover:bg-brand-dark">
+              CRÉER MON CLUB →
             </Link>
           </div>
           <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">

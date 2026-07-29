@@ -21,7 +21,7 @@ export default function CockpitPreview() {
       {/* barre de fenêtre */}
       <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
         <span className="font-logo text-[13px] font-semibold">k<span className="text-brand">_</span></span>
-        <span className="mono text-[10px] uppercase tracking-label text-ink-faint">klubster.fr/mon-club/cockpit</span>
+        <span className="mono text-[10px] uppercase tracking-label text-ink-soft">klubster.fr/mon-club/cockpit</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-[128px_1fr] md:grid-cols-[168px_1fr]">
@@ -46,7 +46,7 @@ export default function CockpitPreview() {
           <p className="mt-1.5 text-[13px] text-ink-soft">Deux dossiers à compléter avant ce soir — le reste est à jour.</p>
 
           <div className="mt-4 border border-line">
-            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+            <div className="mono border-b border-line px-3 py-2 text-[10px] uppercase tracking-label text-ink-soft">
               LE CLUB AUJOURD’HUI<span className="text-brand">_</span>
             </div>
             {POINTS.map((l) => (
@@ -61,7 +61,7 @@ export default function CockpitPreview() {
             {TUILES.map((t) => (
               <div key={t.label} className="bg-paper px-3 py-3">
                 <div className={`mono text-[16px] font-bold tracking-tight md:text-[18px] ${t.warn ? "text-warning" : ""}`}>{t.n}</div>
-                <div className="mono mt-0.5 text-[8px] uppercase tracking-label text-ink-faint">{t.label}</div>
+                <div className="mono mt-0.5 text-[10px] uppercase tracking-label text-ink-soft">{t.label}</div>
               </div>
             ))}
           </div>

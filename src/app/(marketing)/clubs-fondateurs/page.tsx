@@ -120,7 +120,7 @@ const LIENS_NAV: { href: string; label: string }[] = [
 
 export default function ClubsFondateurs() {
   return (
-    <main className="text-ink">
+    <main id="contenu" className="text-ink">
       <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold">
@@ -178,7 +178,7 @@ export default function ClubsFondateurs() {
               >
                 CRÉER MON CLUB →
               </Link>
-              <a href="#mecanisme" className="mono text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              <a href="#mecanisme" className="mono py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
                 VOIR COMMENT ÇA FONCTIONNE →
               </a>
             </div>
@@ -249,7 +249,7 @@ export default function ClubsFondateurs() {
                 <span className="mono pt-1 text-[13px] text-brand-dark">{String(i + 1).padStart(2, "0")}</span>
                 <div>
                   <p className="text-xl font-medium tracking-[-0.01em]">{titre}</p>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{texte}</p>
+                  <p className="mt-1.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{texte}</p>
                 </div>
               </div>
             ))}
@@ -268,8 +268,11 @@ export default function ClubsFondateurs() {
       <section className="border-t border-line">
         <div className="mx-auto max-w-3xl px-6 py-20 md:px-8 md:py-28">
           <Reveal>
-            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LA PREUVE<Cur /></p>
-            <h2 className="mt-7 text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
+            {/* Pas de kicker ici, volontairement. Quatre sections sur cinq en portaient
+                un : la mécanique devenait prévisible, et c'est justement la section la
+                plus personnelle de la page. La rupture de rythme la met en avant.
+                (Audit du 29/07/2026.) */}
+            <h2 className="text-3xl font-medium leading-tight tracking-[-0.01em] md:text-[40px]">
               Je n’ai pas inventé Klubster. J’en avais besoin.
             </h2>
             <div className="mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
@@ -290,10 +293,10 @@ export default function ClubsFondateurs() {
               Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-8">
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono text-[13px] text-brand-dark hover:underline">
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono py-3 text-[13px] text-brand-dark hover:underline">
                 LIRE LE CAS DU PREMIER CLUB →
               </Link>
-              <Link href="/usmboxe" className="mono text-[13px] text-brand-dark hover:underline">
+              <Link href="/usmboxe" className="mono py-3 text-[13px] text-brand-dark hover:underline">
                 VOIR SON SITE PUBLIC →
               </Link>
             </div>
@@ -335,7 +338,7 @@ export default function ClubsFondateurs() {
           <p className="mono mt-5 text-[11px] text-ink-faint">
             Tarifs nets — TVA non applicable, article 293 B du CGI.
           </p>
-          <Link href="/tarifs" className="mono mt-6 inline-block text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+          <Link href="/tarifs" className="mono mt-3 inline-block py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
             Le détail des tarifs et les questions d’argent →
           </Link>
 

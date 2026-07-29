@@ -99,9 +99,28 @@ body {
 /* Les cibles d'ancre ne collent pas au bord haut. */
 [id] { scroll-margin-top: 2.5rem; }
 
-/* Focus clavier visible et sobre (accessibilité — WCAG). */
-:focus-visible { outline: 2px solid #279B65; outline-offset: 3px; }
+/* Focus clavier visible et sobre (accessibilité — WCAG).
+   brand-dark et non brand : le vert clair mesurait 3,06:1 sur papier blanc, soit le
+   seuil de 3:1 des éléments non textuels franchi de justesse (audit du 29/07/2026).
+   Le vert foncé passe à 5,6:1 et reste dans la palette. */
+:focus-visible { outline: 2px solid #1E7A4F; outline-offset: 3px; }
 :focus:not(:focus-visible) { outline: none; }
+
+/* Lien d'évitement — WCAG 2.4.1 (niveau A). Hors écran tant qu'il n'a pas le focus,
+   puis posé en haut à gauche par-dessus l'en-tête collante. */
+.kb-evitement {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: rgb(var(--k-ink));
+  color: rgb(var(--k-paper));
+  padding: 0.75rem 1.25rem;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+.kb-evitement:focus { left: 0; }
 
 /* Titres : police d'affichage distinctive + équilibrage des retours à la ligne.
    Les titres explicitement en .mono / font-mono gardent le mono (classe > élément). */

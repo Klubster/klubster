@@ -258,7 +258,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
   }
 
   return (
-    <main className="min-h-screen text-ink">
+    <main id="contenu" className="min-h-screen text-ink">
       {/* Polices des 6 templates (aperçus de l'étape 01) : auto-hébergées par next/font,
           exposées par le layout de /creer — plus de <link> vers Google Fonts. */}
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
@@ -292,7 +292,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
               <div className="mono text-[10px]" style={{ color: i <= etape ? "#279B65" : undefined }}>
                 {String(i + 1).padStart(2, "0")}
               </div>
-              <div className="mono mt-1 hidden truncate text-[9px] uppercase tracking-wider text-ink-soft sm:block">{label}</div>
+              <div className="mono mt-1 hidden truncate text-[10px] uppercase tracking-wider text-ink-soft sm:block">{label}</div>
             </button>
           ))}
         </div>

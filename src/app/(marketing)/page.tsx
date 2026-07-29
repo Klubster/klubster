@@ -14,10 +14,14 @@ import { USM_ADHERENTS } from "@/lib/preuves";
 // mais aucune requête réelle. Un président tape « logiciel gestion association » ou
 // « logiciel club sportif » — la catégorie doit être dans le title. La voix reste
 // dans le H1 et l'OG (partages sociaux), qui ne sont pas des surfaces de requête.
+// Longueurs calibrées sur ce que Google affiche réellement : ~60 caractères pour le
+// titre, ~155 pour la description. L'ancienne paire mesurait 79 et 236 : le titre
+// perdait « site web » et la description perdait sa fin, dont « premier mois offert »,
+// qui est justement l'argument de clic (audit du 29/07/2026).
 export const metadata: Metadata = {
-  title: "Klubster — Logiciel de gestion d'association : inscriptions, paiements, site web",
+  title: "Klubster — Logiciel de gestion d'association et de club",
   description:
-    "Le logiciel de gestion pour associations et clubs sportifs : inscriptions en ligne, paiements sans commission, relances, site web du club. Pensé pour les bénévoles, prêt en moins de 30 minutes. À partir de 9 €/mois, premier mois offert.",
+    "Inscriptions en ligne, cotisations sans commission, dossiers et site du club. Pensé pour les bénévoles. Dès 9 €/mois, premier mois offert.",
   // La canonique ne vit plus dans le layout racine (elle y contaminait toutes les pages).
   alternates: { canonical: "/" },
 };
@@ -135,7 +139,7 @@ const OBJECTIONS: [string, string][] = [
 
 export default function Home() {
   return (
-    <main className="text-ink">
+    <main id="contenu" className="text-ink">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }} />
       {/* NAV */}
       <header className="absolute inset-x-0 top-0 z-40">
@@ -156,8 +160,16 @@ export default function Home() {
             >
               ESPACE PRÉSIDENT
             </Link>
-            <Link href="/creer" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
-              <span className="hidden sm:inline">CRÉER MON ASSOCIATION</span>
+            {/* CAMPAGNE CLUBS FONDATEURS — tous les CTA d'action de la home mènent à
+                l'offre. Tant que les quinze places existent, elle EST le parcours normal,
+                pas une seconde porte : deux boutons pour la même intention faisaient
+                hésiter (audit du 29/07/2026). À rebasculer sur /creer une fois les
+                quinze clubs pris.
+                « Club » et non « association » : le mot d'action s'adresse à qui l'on
+                démarche. Le H1 et le pied de page gardent « association », qui est la
+                promesse et couvre aussi la danse, la musique ou le théâtre. */}
+            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
+              <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
             </Link>
             <MenuMobile
@@ -220,18 +232,18 @@ export default function Home() {
               association a besoin » était la seule ligne générique de la page. */}
           <p className="mt-6 max-w-prose text-lg leading-relaxed text-ink-soft md:text-xl">
             L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements,
-            relances et site du club. Sans le superflu — et moins de soirées devant le tableur.
+            relances et site du club. Sans le superflu — et moins de soirées à courir après les dossiers.
           </p>
           <p className="mono mt-8 text-[13px] tracking-wide text-ink">
             À partir de 9 €/mois <span className="text-ink-faint">·</span> Premier mois offert
           </p>
           <div className="mt-8">
-            <Link href="/creer" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+              CRÉER MON CLUB →
             </Link>
             {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
                 exemple concret avant de créer le sien. */}
-            <Link href="/usmboxe" className="mono mt-4 block text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
+            <Link href="/usmboxe" className="mono mt-1 block py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
               Voir le site public d’un club →
             </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
@@ -264,7 +276,7 @@ export default function Home() {
               Et une fois lancé, une aide directe : depuis leur cockpit, ils écrivent au créateur de
               Klubster, qui leur répond en personne.
             </p>
-            <Link href="/creer?offre=fondateur" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
+            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3 text-[13px] text-brand-dark hover:underline">
               DEVENIR CLUB FONDATEUR →
             </Link>
           </div>
@@ -435,8 +447,8 @@ export default function Home() {
           {/* Le geste touche le prix : c'est là qu'on décide. Même style que les autres
               CTA « créer » de la page : un seul geste, une seule couleur. */}
           <div className="mt-10 flex flex-wrap items-center gap-5">
-            <Link href="/creer" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+              CRÉER MON CLUB →
             </Link>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               Premier mois offert · Sans engagement<span className="text-brand">_</span>
@@ -482,7 +494,7 @@ export default function Home() {
               {OBJECTIONS.map(([question, reponse]) => (
                 <div key={question} className="border-b border-line py-7">
                   <p className="text-xl font-medium tracking-[-0.01em]">{question}</p>
-                  <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{reponse}</p>
+                  <p className="mt-2.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{reponse}</p>
                 </div>
               ))}
             </div>
@@ -555,7 +567,7 @@ export default function Home() {
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand-dark">{USM_ADHERENTS}</span> adhérents repris dans Klubster pour préparer la saison 2026-2027
               </p>
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono mt-3 inline-block text-[12px] text-brand-dark hover:underline">
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono inline-block py-3 text-[12px] text-brand-dark hover:underline">
                 LIRE LE CAS DU PREMIER CLUB →
               </Link>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
@@ -610,8 +622,8 @@ export default function Home() {
             <h2 className="mt-16 text-3xl font-medium leading-tight md:text-[40px]">
               Ouvrez la prochaine saison avec Klubster.
             </h2>
-            <Link href="/creer" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+              CRÉER MON CLUB →
             </Link>
             <p className="mono mt-6 text-[11px] uppercase tracking-label text-paper/70">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
