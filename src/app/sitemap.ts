@@ -32,6 +32,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE}/fonctionnalites`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/tarifs`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE}/combat`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.8 },
+    // Étude de cas du premier club. /clubs-fondateurs n'y figure PAS : c'est une page de
+    // campagne en noindex, la soumettre au sitemap serait se contredire.
+    { url: `${SITE}/cas-clients/usm-boxe-anglaise`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE}/mentions-legales`, lastModified: maintenant, priority: 0.2 },
     { url: `${SITE}/cgu`, lastModified: maintenant, priority: 0.2 },
     { url: `${SITE}/cgv`, lastModified: maintenant, priority: 0.2 },

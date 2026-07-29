@@ -8,6 +8,7 @@ import Citation from "@/components/site/Citation";
 import MenuMobile from "@/components/site/MenuMobile";
 import ChatSite from "@/components/site/ChatSite";
 import SiteFooter from "@/components/site/SiteFooter";
+import { USM_ADHERENTS } from "@/lib/preuves";
 
 // SEO : le title du layout portait la voix (« Toute votre association, au même endroit »)
 // mais aucune requête réelle. Un président tape « logiciel gestion association » ou
@@ -206,10 +207,18 @@ export default function Home() {
       {/* L'OFFRE — sur fond blanc, sous la photo : ce qu'on lit, on le lit sur du papier. */}
       <section>
         <div className="mx-auto max-w-6xl px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
+          {/* La promesse, en clair, juste sous le hero. Le H1 porte la voix (« Toute votre
+              association, au même endroit ») ; cette ligne dit ce que ça change concrètement.
+              Placée ici et non dans le hero : le premier écran est calibré au pixel près
+              (LCP, ligne de flottaison à 80vh) et une ligne de plus par-dessus la photo
+              repoussait le prix et le bouton sous le pli. */}
+          <p className="max-w-prose text-xl font-medium leading-snug text-ink md:text-2xl">
+            Une vue claire sur chaque adhérent, sans rouvrir un tableur.
+          </p>
           {/* « L'essentiel » dès le premier écran : c'est le positionnement (la
               sélection, pas la complétude) — la version « tout ce dont une
               association a besoin » était la seule ligne générique de la page. */}
-          <p className="max-w-prose text-lg leading-relaxed text-ink md:text-xl">
+          <p className="mt-6 max-w-prose text-lg leading-relaxed text-ink-soft md:text-xl">
             L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements,
             relances et site du club. Sans le superflu — et moins de soirées devant le tableur.
           </p>
@@ -228,7 +237,7 @@ export default function Home() {
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
             <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">
-              Conçu par un président de club <span className="text-ink-faint">·</span> Déjà utilisé chaque semaine pour gérer 312 adhérents
+              Conçu par un président de club <span className="text-ink-faint">·</span> Conçu et testé avec un club de {USM_ADHERENTS} adhérents
             </p>
             <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
               Prêt en moins de 30 minutes<span className="text-brand">_</span>
@@ -357,8 +366,9 @@ export default function Home() {
               que personne n’a eu le temps de vérifier. On s’en aperçoit à la fin — trop tard.
             </p>
             <p className="mt-5 text-lg text-ink-soft">
-              Avec Klubster, l’adhérent présente sa carte depuis son téléphone, un bénévole la scanne
-              depuis le sien — et son règlement comme l’état de son dossier apparaissent aussitôt.
+              L’adhérent ouvre son Espace adhérent et affiche son QR code personnel. Depuis son
+              propre téléphone, un bénévole autorisé ouvre le scanner Klubster et scanne le QR
+              code&nbsp;: l’état du règlement et du dossier apparaît immédiatement.
             </p>
 
             {/* Écho fidèle des deux pastilles du scanner réel (cockpit/scanner/Scanner.tsx). */}
@@ -374,12 +384,13 @@ export default function Home() {
             </div>
 
             <p className="mt-8 text-lg text-ink-soft">
-              Aucune carte plastique, aucun lecteur à acheter : n’importe quel bénévole peut le faire,
-              et plusieurs à la fois les soirs de forte affluence.
+              Aucune carte plastique, aucun lecteur à acheter : tout bénévole autorisé peut le faire,
+              et plusieurs bénévoles peuvent contrôler les adhérents simultanément les soirs de forte
+              affluence.
             </p>
 
             <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
-              Repérez un seul dossier ou paiement oublié,<br />et Klubster est déjà remboursé<span className="cur">_</span>
+              Un seul paiement oublié peut suffire<br />à rentabiliser Klubster pour toute une saison<span className="cur">_</span>
             </p>
           </Reveal>
         </div>
@@ -510,7 +521,7 @@ export default function Home() {
               ))}
             </div>
             <p className="mono mt-10 text-[11px] uppercase tracking-label text-ink-soft">
-              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Testé en conditions réelles à l’USM Boxe</span>
+              PRÊT EN MOINS DE 30 MINUTES<span className="text-brand">_</span> <span className="text-ink-faint">· Développé et préparé avec l’USM Boxe Anglaise</span>
             </p>
             <p className="mono mt-12 text-lg font-normal leading-[1.2] tracking-[-0.02em] text-ink sm:text-2xl sm:leading-[1.2] md:text-[32px] md:leading-[1.2]">
               Vous ne configurez pas<br />un logiciel.<br />Vous ouvrez votre association<span className="cur">_</span>
@@ -537,14 +548,16 @@ export default function Home() {
               </p>
               <p className="mt-5 text-lg leading-relaxed text-ink">Klubster est né de ce besoin.</p>
               <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand">●</span> Développé et utilisé chaque semaine à l’USM Boxe Anglaise
+                <span className="text-brand">●</span> Développé et testé au sein de l’USM Boxe Anglaise
               </p>
               {/* Preuve sociale : un chiffre réel, vérifiable, plutôt qu'un slogan.
-                  312 = adhérents de l'USM Boxe dans Klubster (base prod, 13/07/2026).
-                  À rafraîchir en début de saison. */}
+                  Source unique : src/lib/preuves.ts (relevé en base de production). */}
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
-                <span className="text-brand-dark">312</span> adhérents gérés avec Klubster
+                <span className="text-brand-dark">{USM_ADHERENTS}</span> adhérents repris dans Klubster pour préparer la saison 2026-2027
               </p>
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono mt-3 inline-block text-[12px] text-brand-dark hover:underline">
+                LIRE LE CAS DU PREMIER CLUB →
+              </Link>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
               </p>
