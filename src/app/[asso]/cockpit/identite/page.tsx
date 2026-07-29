@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
-import { changerLogo, retirerLogo, changerCouleur, changerTheme } from "./actions";
+import { changerLogo, retirerLogo, changerCouleur, changerTheme, changerSaison } from "./actions";
+import { saisonCourante } from "@/lib/saison";
 import { THEME_TEMPLATES, THEME_MODES } from "@/lib/themes";
 import { classesPolicesVitrines } from "@/lib/polices-vitrines";
 
@@ -32,7 +33,10 @@ export default async function IdentitePage(
   const retirerLogoAvecSlug = retirerLogo.bind(null, org.slug);
   const changerCouleurAvecSlug = changerCouleur.bind(null, org.slug);
   const changerThemeAvecSlug = changerTheme.bind(null, org.slug);
+  const changerSaisonAvecSlug = changerSaison.bind(null, org.slug);
   const couleur = org.couleur_primaire ?? "#279B65";
+  const saisonActuelle = saisonCourante(org);
+  const saisonDeduite = !org.saison_debut || !org.saison_fin;
   const templateActuel = org.theme_template ?? "editorial";
   const modeActuel = org.theme_mode ?? "blanc";
 
@@ -58,6 +62,8 @@ export default async function IdentitePage(
           <p className="mono mt-6 text-[12px] text-brand">✓ Couleur mise à jour sur tout votre site.</p>
         ) : searchParams?.ok === "theme" ? (
           <p className="mono mt-6 text-[12px] text-brand">✓ Police et fond mis à jour sur tout votre site.</p>
+        ) : searchParams?.ok === "saison" ? (
+          <p className="mono mt-6 text-[12px] text-brand">✓ Saison enregistrée.</p>
         ) : null}
         {searchParams?.erreur === "image" ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Image non reconnue ou trop lourde (PNG, JPG ou WebP, 3 Mo max).</p>
@@ -65,6 +71,10 @@ export default async function IdentitePage(
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Choisissez d&apos;abord un fichier.</p>
         ) : searchParams?.erreur === "couleur" ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Code couleur invalide (ex. attendu : #1A6FB5).</p>
+        ) : searchParams?.erreur === "saison_incomplete" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Renseignez les deux dates, ou laissez les deux vides.</p>
+        ) : searchParams?.erreur === "saison_ordre" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>La fin de saison doit venir après le début.</p>
         ) : searchParams?.erreur ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>L&apos;enregistrement a échoué. Réessayez.</p>
         ) : null}
@@ -167,6 +177,61 @@ export default async function IdentitePage(
           </form>
           <p className="mt-3 text-[13px] text-ink-soft">
             Collez le code hexadécimal de votre couleur (logo, maillot…). Elle s&apos;applique en touches d&apos;accent.
+          </p>
+        </section>
+
+        {/* SAISON — réglage remonté ici depuis « Paiements » (relevé du 29/07/2026).
+            Il ne bornait là-bas que les totaux de trésorerie ; il décide en réalité de
+            ce que voient les jauges de cours, les relances et l'espace de l'adhérent. */}
+        <section className="mt-6 border border-line bg-paper p-6">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">SAISON DU CLUB<Cur /></p>
+
+          <p className="mt-4 text-[13px] text-ink-soft">
+            Saison en cours&nbsp;: <span className="mono text-ink">{saisonActuelle}</span>
+            {saisonDeduite ? (
+              <> — déduite d&apos;une rentrée de septembre, faute de dates renseignées.</>
+            ) : (
+              <> — d&apos;après vos dates.</>
+            )}
+          </p>
+
+          {saisonDeduite && (
+            <p className="mt-3 max-w-prose border-l-2 border-warning pl-4 text-[13px] leading-relaxed text-ink">
+              Si vous ouvrez vos inscriptions <strong>avant le 1<sup>er</sup> septembre</strong> —
+              au forum des associations, par exemple — elles seront rattachées à la saison
+              précédente, puis disparaîtront de vos cours et de l&apos;espace de vos adhérents
+              au changement de saison. Renseignez vos dates pour l&apos;éviter.
+            </p>
+          )}
+
+          <form action={changerSaisonAvecSlug} className="mt-5 flex flex-wrap items-end gap-4">
+            <label className="block">
+              <span className="mono text-[11px] uppercase tracking-label text-ink-soft">Début</span>
+              <input
+                type="date"
+                name="saison_debut"
+                defaultValue={org.saison_debut ?? ""}
+                className="mono mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+              />
+            </label>
+            <label className="block">
+              <span className="mono text-[11px] uppercase tracking-label text-ink-soft">Fin</span>
+              <input
+                type="date"
+                name="saison_fin"
+                defaultValue={org.saison_fin ?? ""}
+                className="mono mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+              />
+            </label>
+            <button type="submit" className="mono border border-line px-5 py-2.5 text-[12px] text-ink hover:border-ink">
+              ENREGISTRER →
+            </button>
+          </form>
+
+          <p className="mt-3 max-w-prose text-[13px] text-ink-soft">
+            Par exemple du 1<sup>er</sup> août 2026 au 31 juillet 2027. Ces dates décident de ce
+            qui compte dans vos cours, dans vos relances et dans l&apos;espace de vos adhérents.
+            Laissez vide pour vous en remettre à une rentrée de septembre.
           </p>
         </section>
       </div>

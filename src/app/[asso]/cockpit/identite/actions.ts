@@ -96,3 +96,43 @@ export async function changerCouleur(slug: string, fd: FormData) {
   revalidatePath(`/${slug}`);
   redirect(`/${slug}/cockpit/identite?ok=couleur`);
 }
+
+/**
+ * Dates de saison du club.
+ *
+ * Le réglage existait déjà, mais uniquement dans « Paiements », où il ne bornait que
+ * les totaux de trésorerie. Or la saison décide de bien plus que ça : `saisonCourante()`
+ * filtre les jauges de cours (`src/lib/complets.ts`), les relances automatiques
+ * (`api/cron/relances`), la vue des cours du cockpit ET ce que l'adhérent voit dans son
+ * espace. Un club qui ne l'a pas réglée retombe sur une bascule au 1ᵉʳ septembre : les
+ * inscriptions prises au forum des associations fin août sont étiquetées sur la saison
+ * PRÉCÉDENTE, et disparaissent de toutes ces vues le 1ᵉʳ septembre (relevé du 29/07/2026).
+ *
+ * D'où sa présence ici, dans les réglages du club, où un président le cherchera.
+ * L'action de « Paiements » reste en place : deux entrées, un seul couple de colonnes.
+ *
+ * Permission « site » comme le reste de cette page — c'est un réglage de club, pas une
+ * écriture financière.
+ */
+export async function changerSaison(slug: string, fd: FormData) {
+  const ctx = await organisationAutorisee(slug);
+  if (!ctx) redirect(`/connexion?next=/${slug}/cockpit/identite`);
+  const { supabase, org } = ctx;
+
+  const debut = String(fd.get("saison_debut") ?? "").trim() || null;
+  const fin = String(fd.get("saison_fin") ?? "").trim() || null;
+
+  // Les deux ensemble, ou aucune : une seule des deux ne suffit pas à déduire un
+  // libellé de saison, et `saison_courante()` retomberait silencieusement sur la
+  // bascule de septembre — soit exactement le défaut qu'on cherche à éviter.
+  if ((debut && !fin) || (!debut && fin)) redirect(`/${slug}/cockpit/identite?erreur=saison_incomplete`);
+  if (debut && fin && new Date(debut) >= new Date(fin)) redirect(`/${slug}/cockpit/identite?erreur=saison_ordre`);
+
+  const { error } = await supabase
+    .from("organisations")
+    .update({ saison_debut: debut, saison_fin: fin })
+    .eq("id", org.id);
+  if (error) redirect(`/${slug}/cockpit/identite?erreur=enregistrement`);
+  revalidatePath(`/${slug}`);
+  redirect(`/${slug}/cockpit/identite?ok=saison`);
+}
