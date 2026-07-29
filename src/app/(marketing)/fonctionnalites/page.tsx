@@ -6,6 +6,7 @@ import MenuMobile from "@/components/site/MenuMobile";
 import SiteFooter from "@/components/site/SiteFooter";
 import CockpitPreview from "@/components/site/CockpitPreview";
 import { ApercuFormulaire, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
+import { USM_ADHERENTS } from "@/lib/preuves";
 
 export const metadata: Metadata = {
   title: "Fonctionnalités — Klubster",
@@ -90,7 +91,7 @@ function Chute({ children }: { children: React.ReactNode }) {
    Les reconstructions d’interface. Pas de captures d’écran : des écrans
    recréés dans la typographie de la page — nets partout, jamais périmés,
    sans données d’adhérents réels. Une seule histoire d’un bout à l’autre :
-   l’USM Boxe Anglaise, 312 adhérents, saison 2026-2027 — et Louise Martin,
+   l’USM Boxe Anglaise (effectif réel : src/lib/preuves.ts), saison 2026-2027 — et Louise Martin,
    inscrite en boxe éducative, qui règle sa cotisation en huit échéances.
    ———————————————————————————————————————————————————————————————————— */
 
@@ -130,7 +131,7 @@ function ApercuCockpit() {
 
         <div className="mt-4 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
           {[
-            ["312", "ADHÉRENTS"],
+            [String(USM_ADHERENTS), "ADHÉRENTS"],
             ["14", "INSCRIPTIONS À TERMINER"],
             ["8", "DOCUMENTS MANQUANTS"],
             ["3", "ÉCHÉANCES EN RETARD"],

@@ -24,6 +24,9 @@ const LIENS_PRODUIT: [string, string][] = [
   ["/creer", "Créer mon association"],
   ["/tarifs", "Tarifs"],
   ["/fonctionnalites", "Fonctionnalités"],
+  // Sans ce lien, l'étude de cas est une page orpheline : aucune page du site n'y mène,
+  // donc aucun robot ne la découvre. C'est pourtant le seul contenu indexable du lancement.
+  ["/cas-clients/usm-boxe-anglaise", "Le premier club"],
   ["/connexion", "Espace président"],
 ];
 
@@ -45,7 +48,7 @@ export default function SiteFooter() {
               k<Cur />
             </Link>
             <p className="mono mt-3 max-w-xs text-[11px] leading-relaxed text-ink-soft">
-              Développé à Montauban. Utilisé chaque semaine à l’USM Boxe.
+              Développé à Montauban, au sein de l’USM Boxe Anglaise.
             </p>
             <p className="mono mt-5 text-[11px] leading-relaxed text-ink-soft">
               Une question avant de vous lancer&nbsp;?
