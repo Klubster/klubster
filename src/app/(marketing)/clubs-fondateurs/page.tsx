@@ -178,7 +178,7 @@ export default function ClubsFondateurs() {
               >
                 CRÉER MON CLUB →
               </Link>
-              <a href="#mecanisme" className="mono py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              <a href="#mecanisme" className="mono py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
                 VOIR COMMENT ÇA FONCTIONNE →
               </a>
             </div>
@@ -293,10 +293,10 @@ export default function ClubsFondateurs() {
               Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-8">
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono py-3 text-[13px] text-brand-dark hover:underline">
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono py-3.5 text-[13px] text-brand-dark hover:underline">
                 LIRE LE CAS DU PREMIER CLUB →
               </Link>
-              <Link href="/usmboxe" className="mono py-3 text-[13px] text-brand-dark hover:underline">
+              <Link href="/usmboxe" className="mono py-3.5 text-[13px] text-brand-dark hover:underline">
                 VOIR SON SITE PUBLIC →
               </Link>
             </div>
@@ -338,7 +338,7 @@ export default function ClubsFondateurs() {
           <p className="mono mt-5 text-[11px] text-ink-faint">
             Tarifs nets — TVA non applicable, article 293 B du CGI.
           </p>
-          <Link href="/tarifs" className="mono mt-3 inline-block py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+          <Link href="/tarifs" className="mono mt-3 inline-block py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
             Le détail des tarifs et les questions d’argent →
           </Link>
 

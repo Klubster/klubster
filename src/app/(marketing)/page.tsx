@@ -168,7 +168,7 @@ export default function Home() {
                 « Club » et non « association » : le mot d'action s'adresse à qui l'on
                 démarche. Le H1 et le pied de page gardent « association », qui est la
                 promesse et couvre aussi la danse, la musique ou le théâtre. */}
-            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
+            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-3 text-[12px] text-white hover:opacity-90">
               <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
             </Link>
@@ -243,7 +243,7 @@ export default function Home() {
             </Link>
             {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
                 exemple concret avant de créer le sien. */}
-            <Link href="/usmboxe" className="mono mt-1 block py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
+            <Link href="/usmboxe" className="mono mt-1 block py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
               Voir le site public d’un club →
             </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
@@ -276,7 +276,7 @@ export default function Home() {
               Et une fois lancé, une aide directe : depuis leur cockpit, ils écrivent au créateur de
               Klubster, qui leur répond en personne.
             </p>
-            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3 text-[13px] text-brand-dark hover:underline">
+            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3.5 text-[13px] text-brand-dark hover:underline">
               DEVENIR CLUB FONDATEUR →
             </Link>
           </div>
@@ -567,7 +567,7 @@ export default function Home() {
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand-dark">{USM_ADHERENTS}</span> adhérents repris dans Klubster pour préparer la saison 2026-2027
               </p>
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono inline-block py-3 text-[12px] text-brand-dark hover:underline">
+              <Link href="/cas-clients/usm-boxe-anglaise" className="mono inline-block py-3.5 text-[12px] text-brand-dark hover:underline">
                 LIRE LE CAS DU PREMIER CLUB →
               </Link>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">

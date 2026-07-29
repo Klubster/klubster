@@ -217,7 +217,7 @@ export default function CasUsmBoxe() {
                 </span>
               ))}
             </p>
-            <Link href="/usmboxe" className="mono mt-3 inline-block py-3 text-[13px] text-brand-dark hover:underline">
+            <Link href="/usmboxe" className="mono mt-3 inline-block py-3.5 text-[13px] text-brand-dark hover:underline">
               VOIR LE SITE PUBLIC DU CLUB →
             </Link>
           </Reveal>
@@ -282,7 +282,7 @@ export default function CasUsmBoxe() {
               >
                 DEVENIR CLUB FONDATEUR →
               </Link>
-              <Link href="/tarifs" className="mono py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              <Link href="/tarifs" className="mono py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
                 Voir les tarifs →
               </Link>
             </div>

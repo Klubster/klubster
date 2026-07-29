@@ -416,7 +416,7 @@ export default function Fonctionnalites() {
             <Link href="/cas-clients/usm-boxe-anglaise" className="hover:text-ink">Le premier club</Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
+            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-3 text-[12px] text-white hover:opacity-90">
               <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
             </Link>
@@ -851,7 +851,7 @@ export default function Fonctionnalites() {
               Pour les 15 premiers clubs : mise en route accompagnée, import du fichier
               d’adhérents et trois premiers mois offerts au lieu d’un. Sans engagement.
             </p>
-            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3 text-[13px] text-brand-dark hover:underline">
+            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3.5 text-[13px] text-brand-dark hover:underline">
               CRÉER MON CLUB →
             </Link>
           </div>
