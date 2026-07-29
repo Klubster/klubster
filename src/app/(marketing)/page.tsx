@@ -213,7 +213,7 @@ export default function Home() {
               (LCP, ligne de flottaison à 80vh) et une ligne de plus par-dessus la photo
               repoussait le prix et le bouton sous le pli. */}
           <p className="max-w-prose text-xl font-medium leading-snug text-ink md:text-2xl">
-            Sachez immédiatement qui est inscrit, qui a payé et quel dossier reste incomplet.
+            Une vue claire sur chaque adhérent, sans rouvrir un tableur.
           </p>
           {/* « L'essentiel » dès le premier écran : c'est le positionnement (la
               sélection, pas la complétude) — la version « tout ce dont une
