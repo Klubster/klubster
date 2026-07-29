@@ -115,7 +115,7 @@ body {
   z-index: 100;
   background: rgb(var(--k-ink));
   color: rgb(var(--k-paper));
-  padding: 0.75rem 1.25rem;
+  padding: 0.85rem 1.25rem;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
