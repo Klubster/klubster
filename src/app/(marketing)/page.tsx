@@ -232,7 +232,7 @@ export default function Home() {
             {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
                 exemple concret avant de créer le sien. */}
             <Link href="/usmboxe" className="mono mt-4 block text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
-              Voir un club créé avec Klubster →
+              Voir le site public d’un club →
             </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
