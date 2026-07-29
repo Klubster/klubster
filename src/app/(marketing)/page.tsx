@@ -145,7 +145,7 @@ export default function Home() {
             <Link href="/" className="hover:text-paper">Accueil</Link>
             <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
-            <Link href="/usmboxe" className="hover:text-paper">Voir un club</Link>
+            <Link href="/cas-clients/usm-boxe-anglaise" className="hover:text-paper">Le premier club</Link>
           </nav>
           <div className="flex items-center gap-3">
             {/* Le président qui revient chercher son cockpit : le lien n'existait
@@ -166,7 +166,7 @@ export default function Home() {
                 { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
-                { href: "/usmboxe", label: "Voir un club" },
+                { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
                 { href: "/connexion", label: "Espace président" },
               ]}
             />
@@ -232,7 +232,7 @@ export default function Home() {
             {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
                 exemple concret avant de créer le sien. */}
             <Link href="/usmboxe" className="mono mt-4 block text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
-              Voir un club créé avec Klubster →
+              Voir le site public d’un club →
             </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
