@@ -93,7 +93,7 @@ export function SiteHeader({
           ) : null}
           <Link
             href={`/${org.slug}/inscription`}
-            className="mono px-4 py-2 text-[12px] transition-opacity hover:opacity-90"
+            className="mono px-4 py-3 text-[12px] transition-opacity hover:opacity-90"
             style={{ background: accent, color: texteAccent }}
           >
             S&apos;INSCRIRE →

@@ -64,16 +64,16 @@ export default function SiteFooter() {
           </div>
 
           <div className="flex flex-col gap-8 sm:flex-row sm:gap-16">
-            <nav className="mono flex flex-col gap-2 text-[11px] text-ink-soft">
+            <nav className="mono flex flex-col text-[11px] text-ink-soft">
               {LIENS_PRODUIT.map(([href, label]) => (
-                <Link key={href} href={href} className="hover:text-ink">
+                <Link key={href} href={href} className="py-2 hover:text-ink">
                   {label}
                 </Link>
               ))}
             </nav>
-            <nav className="mono flex flex-col gap-2 text-[11px] text-ink-soft">
+            <nav className="mono flex flex-col text-[11px] text-ink-soft">
               {LIENS_LEGAUX.map(([href, label]) => (
-                <Link key={href} href={href} className="hover:text-ink">
+                <Link key={href} href={href} className="py-2 hover:text-ink">
                   {label}
                 </Link>
               ))}

@@ -205,7 +205,7 @@ export default async function VitrinePage(
                         en liste d'attente (mécanisme partagé, lib/complets.ts). */}
                     <Link
                       href={`/${org.slug}/inscription?cours=${c.id}`}
-                      className="mono mt-5 inline-block border border-ink px-4 py-2.5 text-center text-[13px] hover:bg-ink hover:text-paper"
+                      className="mono mt-5 inline-block border border-ink px-4 py-3.5 text-center text-[13px] hover:bg-ink hover:text-paper"
                     >
                       {complets.has(c.id) ? "LISTE D’ATTENTE →" : "S’INSCRIRE À CE COURS →"}
                     </Link>
@@ -303,7 +303,7 @@ export default async function VitrinePage(
                       <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{resumeActu(a.texte)}</p>
                       <Link
                         href={`/${org.slug}/actualites/${a.id}`}
-                        className="mono mt-auto inline-block pt-5 text-[13px]"
+                        className="mono mt-auto inline-block pb-3 pt-5 text-[13px]"
                         style={{ color: accentTexte }}
                       >
                         LIRE →
@@ -359,7 +359,7 @@ export default async function VitrinePage(
                       href={lienCarte(org.adresse)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mono mt-2 inline-block text-[13px]"
+                      className="mono mt-2 inline-block py-3 text-[13px]"
                       style={{ color: accentTexte }}
                     >
                       ITINÉRAIRE →
@@ -562,7 +562,7 @@ export default async function VitrinePage(
               <p className="mt-1 max-w-prose text-[15px] text-ink-soft">{resumeActu(actus[0].texte)}</p>
               <Link
                 href={`/${org.slug}/actualites/${actus[0].id}`}
-                className="mono mt-2 inline-block text-[13px]"
+                className="mono mt-2 inline-block py-3 text-[13px]"
                 style={{ color: accentTexte }}
               >
                 LIRE →

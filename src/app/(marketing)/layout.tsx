@@ -48,6 +48,17 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <noscript>
         <style>{`.kb-reveal,.kb-quote,.kb-cite-line{opacity:1 !important;transform:none !important}`}</style>
       </noscript>
+      {/* Lien d'évitement — WCAG 2.4.1 « Contournement de blocs », niveau A. C'était le
+          seul manquement de niveau A du site (audit du 29/07/2026) : au clavier ou au
+          lecteur d'écran, il fallait traverser les quatre à six liens de navigation à
+          chaque page avant d'atteindre le contenu.
+          Invisible tant qu'il n'a pas le focus (.kb-evitement dans globals.css), donc
+          sans incidence sur la mise en page. Il vise #contenu, l'ancre posée sur le
+          <main> de chaque page ; à défaut d'ancre, le navigateur ne bouge pas — le lien
+          ne casse jamais rien. */}
+      <a href="#contenu" className="kb-evitement mono">
+        Aller au contenu
+      </a>
       {children}
       <Mesure />
     </>

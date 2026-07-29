@@ -94,7 +94,7 @@ const LIENS_NAV: { href: string; label: string }[] = [
 
 export default function CasUsmBoxe() {
   return (
-    <main className="text-ink">
+    <main id="contenu" className="text-ink">
       <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-8">
           <Link href="/" className="font-logo text-lg font-semibold">
@@ -177,7 +177,7 @@ export default function CasUsmBoxe() {
                 <span className="mono pt-1 text-[13px] text-brand-dark">{String(i + 1).padStart(2, "0")}</span>
                 <div>
                   <p className="text-xl font-medium tracking-[-0.01em]">{titre}</p>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{texte}</p>
+                  <p className="mt-1.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{texte}</p>
                 </div>
               </div>
             ))}
@@ -201,7 +201,7 @@ export default function CasUsmBoxe() {
                 <span className="mono pt-1.5 text-[13px] text-brand">✓</span>
                 <div>
                   <p className="text-xl font-medium tracking-[-0.01em]">{titre}</p>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{texte}</p>
+                  <p className="mt-1.5 max-w-prose text-[15px] leading-relaxed text-ink-soft">{texte}</p>
                 </div>
               </div>
             ))}
@@ -217,7 +217,7 @@ export default function CasUsmBoxe() {
                 </span>
               ))}
             </p>
-            <Link href="/usmboxe" className="mono mt-6 inline-block text-[13px] text-brand-dark hover:underline">
+            <Link href="/usmboxe" className="mono mt-3 inline-block py-3.5 text-[13px] text-brand-dark hover:underline">
               VOIR LE SITE PUBLIC DU CLUB →
             </Link>
           </Reveal>
@@ -282,7 +282,7 @@ export default function CasUsmBoxe() {
               >
                 DEVENIR CLUB FONDATEUR →
               </Link>
-              <Link href="/tarifs" className="mono text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              <Link href="/tarifs" className="mono py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
                 Voir les tarifs →
               </Link>
             </div>

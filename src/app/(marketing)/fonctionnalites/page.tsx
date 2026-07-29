@@ -8,15 +8,17 @@ import CockpitPreview from "@/components/site/CockpitPreview";
 import { ApercuFormulaire, ApercuSite, ApercuRemise } from "@/components/site/Apercus";
 import { USM_ADHERENTS } from "@/lib/preuves";
 
+// « Fonctionnalités — Klubster » ne contenait aucune requête réelle : personne ne tape
+// ça. Le titre porte désormais ce qu'un président cherche (audit du 29/07/2026).
 export const metadata: Metadata = {
-  title: "Fonctionnalités — Klubster",
+  title: "Inscriptions, cotisations et présences d’un club — Klubster",
   description:
     "Inscriptions sur mesure, dossiers sans papier, contrôle par scan, paiements jusqu’à 12 fois sans commission, données exportables. Tout est inclus, à partir de 9 €/mois.",
   alternates: { canonical: "https://klubster.fr/fonctionnalites" },
   // twitter:card=summary_large_image (héritée du layout racine) était déclarée sans
   // image de partage : on référence la vignette OG racine (app/opengraph-image.tsx).
   openGraph: {
-    title: "Fonctionnalités — Klubster",
+    title: "Inscriptions, cotisations et présences d’un club — Klubster",
     description:
       "Inscriptions sur mesure, dossiers sans papier, contrôle par scan, paiements jusqu’à 12 fois sans commission, données exportables. Tout est inclus, à partir de 9 €/mois.",
     url: "https://klubster.fr/fonctionnalites",
@@ -101,7 +103,7 @@ const AMBRE = "#8A6508";
 /** La mention sous chaque reconstruction : dire ce qu’on regarde, sans le crier. */
 function Mention({ centre = false }: { centre?: boolean }) {
   return (
-    <p className={`mono mt-3 text-[10px] uppercase tracking-label text-ink-faint ${centre ? "text-center" : ""}`}>
+    <p className={`mono mt-3 text-[10px] uppercase tracking-label text-ink-soft ${centre ? "text-center" : ""}`}>
       APERÇU DE L’INTERFACE · DONNÉES DE DÉMONSTRATION
     </p>
   );
@@ -113,7 +115,7 @@ function Ecran({ url, children }: { url: string; children: React.ReactNode }) {
     <div className="overflow-hidden border border-line bg-paper">
       <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
         <span className="font-logo text-[13px] font-semibold">k<span className="text-brand">_</span></span>
-        <span className="mono truncate text-[10px] uppercase tracking-label text-ink-faint">{url}</span>
+        <span className="mono truncate text-[10px] uppercase tracking-label text-ink-soft">{url}</span>
       </div>
       {children}
     </div>
@@ -138,24 +140,24 @@ function ApercuCockpit() {
           ].map(([n, label]) => (
             <div key={label} className="bg-paper px-4 py-3.5">
               <div className="mono text-[20px] font-bold tracking-tight">{n}</div>
-              <div className="mono mt-1 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
+              <div className="mono mt-1 text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
             </div>
           ))}
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="border border-line">
-            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+            <div className="mono border-b border-line px-3 py-2 text-[10px] uppercase tracking-label text-ink-soft">
               LES COURS DU JOUR<span className="text-brand">_</span>
             </div>
             <div className="px-3 py-3">
               <p className="text-[13px] font-medium">Ce soir : Boxe éducative · 18:00–19:30</p>
-              <p className="mono mt-1 text-[10px] text-ink-faint">62 inscrits · l’appel se fait au scan</p>
+              <p className="mono mt-1 text-[10px] text-ink-soft">62 inscrits · l’appel se fait au scan</p>
             </div>
           </div>
 
           <div className="border border-line">
-            <div className="mono border-b border-line px-3 py-2 text-[9px] uppercase tracking-label text-ink-soft">
+            <div className="mono border-b border-line px-3 py-2 text-[10px] uppercase tracking-label text-ink-soft">
               DERNIÈRES INSCRIPTIONS<span className="text-brand">_</span>
             </div>
             {[
@@ -165,7 +167,7 @@ function ApercuCockpit() {
             ].map(([nom, cours]) => (
               <div key={nom} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2 last:border-b-0">
                 <span className="text-[12px]">{nom}</span>
-                <span className="mono text-[9px] uppercase tracking-label text-ink-faint">{cours}</span>
+                <span className="mono text-[10px] uppercase tracking-label text-ink-soft">{cours}</span>
               </div>
             ))}
           </div>
@@ -202,7 +204,7 @@ function ApercuFiche() {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-line px-3 py-3">
           <div>
-            <div className="mono text-[9px] uppercase tracking-label text-ink-soft">
+            <div className="mono text-[10px] uppercase tracking-label text-ink-soft">
               PAIEMENT<span className="text-brand">_</span>
             </div>
             <div className="mt-1 text-[13px]">3 échéances sur 8 réglées</div>
@@ -231,7 +233,7 @@ function ApercuPaiements() {
           ].map(([n, label]) => (
             <div key={label} className="bg-paper px-3 py-3.5 md:px-4">
               <div className="mono text-[15px] font-bold tracking-tight md:text-[20px]">{n}</div>
-              <div className="mono mt-1 text-[8px] uppercase tracking-label text-ink-faint">{label}</div>
+              <div className="mono mt-1 text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
             </div>
           ))}
         </div>
@@ -246,8 +248,8 @@ function ApercuPaiements() {
             <div key={l.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
               <span className="mono text-[11px]" style={{ color: l.ok ? VERT : AMBRE }}>{l.ok ? "✓" : "●"}</span>
               <span className="flex-1 text-[12px]">{l.nom}</span>
-              <span className="mono hidden text-[9px] uppercase tracking-label text-ink-faint sm:inline">{l.mode}</span>
-              <span className="mono w-16 text-right text-[9px] uppercase tracking-label" style={{ color: l.ok ? VERT : AMBRE }}>
+              <span className="mono hidden text-[10px] uppercase tracking-label text-ink-soft sm:inline">{l.mode}</span>
+              <span className="mono w-16 text-right text-[10px] uppercase tracking-label" style={{ color: l.ok ? VERT : AMBRE }}>
                 {l.etat}
               </span>
             </div>
@@ -298,13 +300,13 @@ function ApercuMessages() {
           </p>
           <div className="mt-3 border border-line px-3 py-2.5">
             <p className="text-[13px] font-medium">Boxe éducative</p>
-            <p className="mono mt-0.5 text-[10px] text-ink-faint">62 adhérents</p>
+            <p className="mono mt-0.5 text-[10px] text-ink-soft">62 adhérents</p>
           </div>
           <div className="mt-2 flex items-center gap-2.5 border border-line px-3 py-2.5">
-            <span aria-hidden className="mono flex h-3.5 w-3.5 items-center justify-center bg-ink text-[8px] leading-none text-paper">✓</span>
+            <span aria-hidden className="mono flex h-3.5 w-3.5 items-center justify-center bg-ink text-[10px] leading-none text-paper">✓</span>
             <span className="text-[12px]">Inclure les responsables légaux</span>
           </div>
-          <p className="mono mt-3 text-[10px] text-ink-faint">Chaque message est envoyé séparément.</p>
+          <p className="mono mt-3 text-[10px] text-ink-soft">Chaque message est envoyé séparément.</p>
         </div>
 
         <div className="bg-bg-alt p-5">
@@ -319,11 +321,11 @@ function ApercuMessages() {
             ].map((l) => (
               <div key={l} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
                 <span className="text-[12px]">{l}</span>
-                <span className="mono text-[9px] uppercase tracking-label" style={{ color: VERT }}>Actif</span>
+                <span className="mono text-[10px] uppercase tracking-label" style={{ color: VERT }}>Actif</span>
               </div>
             ))}
           </div>
-          <p className="mono mt-3 text-[10px] text-ink-faint">Le club choisit ce qui part tout seul, et garde la trace des envois.</p>
+          <p className="mono mt-3 text-[10px] text-ink-soft">Le club choisit ce qui part tout seul, et garde la trace des envois.</p>
         </div>
       </div>
     </Ecran>
@@ -340,7 +342,7 @@ function ApercuSiteUsm() {
           <span aria-hidden className="h-2 w-2 border border-line" />
           <span aria-hidden className="h-2 w-2 border border-line" />
           <span aria-hidden className="h-2 w-2 border border-line" />
-          <span className="mono ml-3 truncate border border-line px-3 py-0.5 text-[10px] text-ink-faint">
+          <span className="mono ml-3 truncate border border-line px-3 py-0.5 text-[10px] text-ink-soft">
             klubster.fr/usmboxe
           </span>
         </div>
@@ -348,7 +350,7 @@ function ApercuSiteUsm() {
         <div className="bg-ink text-paper">
           <div className="flex items-center justify-between gap-4 border-b border-paper/15 px-5 py-3">
             <span className="mono text-[11px] font-bold tracking-wide">USM BOXE ANGLAISE<span className="text-brand">_</span></span>
-            <span className="mono hidden items-center gap-4 text-[9px] uppercase tracking-label text-paper/60 sm:flex">
+            <span className="mono hidden items-center gap-4 text-[10px] uppercase tracking-label text-paper/60 sm:flex">
               <span>Les cours</span>
               <span>Les tarifs</span>
               <span>L’équipe</span>
@@ -356,7 +358,7 @@ function ApercuSiteUsm() {
             </span>
           </div>
           <div className="px-5 py-8 md:px-6">
-            <p className="mono text-[9px] uppercase tracking-label text-paper/60">
+            <p className="mono text-[10px] uppercase tracking-label text-paper/60">
               MONTAUBAN · SAISON 2026-2027<span className="text-brand">_</span>
             </p>
             <p className="mt-3 text-[20px] font-medium leading-tight tracking-[-0.01em] md:text-[24px]">
@@ -374,7 +376,7 @@ function ApercuSiteUsm() {
           ].map(([nom, creneau]) => (
             <div key={nom} className="bg-paper px-3 py-3">
               <p className="text-[12px] font-medium">{nom}</p>
-              <p className="mono mt-0.5 text-[9px] uppercase tracking-label text-ink-faint">{creneau}</p>
+              <p className="mono mt-0.5 text-[10px] uppercase tracking-label text-ink-soft">{creneau}</p>
             </div>
           ))}
         </div>
@@ -382,7 +384,7 @@ function ApercuSiteUsm() {
 
       {/* la même page, dans la poche : masquée sur mobile, où l’écran est déjà un téléphone */}
       <div className="hidden overflow-hidden border border-line bg-ink text-paper md:block">
-        <div className="mono border-b border-paper/15 px-3 py-2 text-[9px] font-bold tracking-wide">
+        <div className="mono border-b border-paper/15 px-3 py-2 text-[10px] font-bold tracking-wide">
           USM BOXE<span className="text-brand">_</span>
         </div>
         <div className="px-3 py-4">
@@ -391,8 +393,8 @@ function ApercuSiteUsm() {
           <div className="mono mt-3 bg-brand-dark px-2 py-1.5 text-center text-[7px] text-white">S’INSCRIRE →</div>
           <div className="mt-3 space-y-1 border-t border-paper/15 pt-3">
             <p className="mono text-[7px] uppercase tracking-label text-paper/60">LES COURS</p>
-            <p className="text-[9px]">Boxe éducative · Mer. 18:00</p>
-            <p className="text-[9px]">Boxe loisirs · Mar. 19:00</p>
+            <p className="text-[10px]">Boxe éducative · Mer. 18:00</p>
+            <p className="text-[10px]">Boxe loisirs · Mar. 19:00</p>
           </div>
         </div>
       </div>
@@ -402,7 +404,7 @@ function ApercuSiteUsm() {
 
 export default function Fonctionnalites() {
   return (
-    <main className="text-ink">
+    <main id="contenu" className="text-ink">
       {/* NAV — identique à la home, mais sur fond clair */}
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-8">
@@ -414,8 +416,8 @@ export default function Fonctionnalites() {
             <Link href="/cas-clients/usm-boxe-anglaise" className="hover:text-ink">Le premier club</Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/creer" className="mono bg-brand-dark px-4 py-2 text-[12px] text-white hover:opacity-90">
-              <span className="hidden sm:inline">CRÉER MON ASSOCIATION</span>
+            <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-3 text-[12px] text-white hover:opacity-90">
+              <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
             </Link>
             <MenuMobile
@@ -453,8 +455,8 @@ export default function Fonctionnalites() {
                 Deux sorties : créer, ou aller voir le produit en service dans un vrai club. */}
             <div className="mt-8">
               <div className="flex flex-wrap items-center gap-3">
-                <Link href="/creer" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-                  CRÉER MON ASSOCIATION →
+                <Link href="/creer?offre=fondateur" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+                  CRÉER MON CLUB →
                 </Link>
                 <Link
                   href="/usmboxe"
@@ -849,8 +851,8 @@ export default function Fonctionnalites() {
               Pour les 15 premiers clubs : mise en route accompagnée, import du fichier
               d’adhérents et trois premiers mois offerts au lieu d’un. Sans engagement.
             </p>
-            <Link href="/creer" className="mono mt-5 inline-block text-[13px] text-brand-dark hover:underline">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono mt-2 inline-block py-3.5 text-[13px] text-brand-dark hover:underline">
+              CRÉER MON CLUB →
             </Link>
           </div>
         </div>
@@ -869,8 +871,8 @@ export default function Fonctionnalites() {
               Les inscriptions, les dossiers, les paiements, les messages et le site de
               l’association réunis dans un outil pensé pour les bénévoles.
             </p>
-            <Link href="/creer" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
-              CRÉER MON ASSOCIATION →
+            <Link href="/creer?offre=fondateur" className="mono mt-10 inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
+              CRÉER MON CLUB →
             </Link>
             <p className="mono mt-6 text-[11px] uppercase tracking-label text-paper/70">
               À partir de 9 €/mois · Trois mois offerts pour les clubs fondateurs · Sans engagement<span className="text-brand">_</span>

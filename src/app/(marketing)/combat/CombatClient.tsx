@@ -97,7 +97,7 @@ export default function CombatClient() {
   }
 
   return (
-    <div className="cmb">
+    <div id="contenu" className="cmb">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Press+Start+2P&display=swap');
         .cmb{--grn:#33c47d;--grnd:#279B65;--amb:#ffcc33;--red:#ff4d5e;--bg:#080c0a;--ink:#e9f2ec;
