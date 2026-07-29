@@ -165,7 +165,7 @@ export default function Tarifs() {
               Seule la taille de votre association fait évoluer le tarif.
             </p>
             <p className="mono mt-6 text-[12px] uppercase tracking-label text-ink">
-              Premier mois offert · Sans carte bancaire<span className="text-brand">_</span>
+              Trois mois offerts pour les 15 premiers clubs · Sans carte bancaire<span className="text-brand">_</span>
             </p>
           </Reveal>
 
@@ -282,7 +282,7 @@ export default function Tarifs() {
             </Link>
           </div>
           <p className="mono mt-5 text-[11px] uppercase tracking-label text-ink-soft">
-            Premier mois offert · Sans carte bancaire<span className="text-brand">_</span>
+            Trois mois offerts pour les 15 premiers clubs · Sans carte bancaire<span className="text-brand">_</span>
           </p>
         </div>
       </section>

@@ -166,8 +166,10 @@ export default function Home() {
                 hésiter (audit du 29/07/2026). À rebasculer sur /creer une fois les
                 quinze clubs pris.
                 « Club » et non « association » : le mot d'action s'adresse à qui l'on
-                démarche. Le H1 et le pied de page gardent « association », qui est la
-                promesse et couvre aussi la danse, la musique ou le théâtre. */}
+                démarche. Seul le H1 garde « association » — c'est la promesse, et elle
+                couvre aussi la danse, la musique ou le théâtre. Le pied de page a suivi
+                les boutons : il ne vit que sur les pages marketing, donc rien n'y
+                justifiait un vocabulaire différent. */}
             <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-3 text-[12px] text-white hover:opacity-90">
               <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
@@ -235,7 +237,7 @@ export default function Home() {
             relances et site du club. Sans le superflu — et moins de soirées à courir après les dossiers.
           </p>
           <p className="mono mt-8 text-[13px] tracking-wide text-ink">
-            À partir de 9 €/mois <span className="text-ink-faint">·</span> Premier mois offert
+            À partir de 9 €/mois <span className="text-ink-faint">·</span> Trois mois offerts pour les 15 premiers clubs
           </p>
           <div className="mt-8">
             <Link href="/creer?offre=fondateur" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
@@ -451,7 +453,7 @@ export default function Home() {
               CRÉER MON CLUB →
             </Link>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-              Premier mois offert · Sans engagement<span className="text-brand">_</span>
+              Trois mois offerts pour les 15 premiers clubs · Sans engagement<span className="text-brand">_</span>
             </p>
           </div>
 
