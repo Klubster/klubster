@@ -124,8 +124,8 @@ export default function Tarifs() {
             <Link href="/tarifs" className="mono text-[12px] text-ink">
               Tarifs
             </Link>
-            <Link href="/usmboxe" className="mono text-[12px] text-ink-soft hover:text-ink">
-              Voir un club
+            <Link href="/cas-clients/usm-boxe-anglaise" className="mono text-[12px] text-ink-soft hover:text-ink">
+              Le premier club
             </Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -141,7 +141,7 @@ export default function Tarifs() {
                 { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
-                { href: "/usmboxe", label: "Voir un club" },
+                { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
                 { href: "/connexion", label: "Espace président" },
                 { href: "/creer", label: "Créer mon association" },
               ]}

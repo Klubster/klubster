@@ -145,7 +145,7 @@ export default function Home() {
             <Link href="/" className="hover:text-paper">Accueil</Link>
             <Link href="/fonctionnalites" className="hover:text-paper">Fonctionnalités</Link>
             <a href="#tarifs" className="hover:text-paper">Tarifs</a>
-            <Link href="/usmboxe" className="hover:text-paper">Voir un club</Link>
+            <Link href="/cas-clients/usm-boxe-anglaise" className="hover:text-paper">Le premier club</Link>
           </nav>
           <div className="flex items-center gap-3">
             {/* Le président qui revient chercher son cockpit : le lien n'existait
@@ -166,7 +166,7 @@ export default function Home() {
                 { href: "/", label: "Accueil" },
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
-                { href: "/usmboxe", label: "Voir un club" },
+                { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
                 { href: "/connexion", label: "Espace président" },
               ]}
             />
