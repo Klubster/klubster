@@ -21,7 +21,11 @@ function Cur() {
 }
 
 const LIENS_PRODUIT: [string, string][] = [
-  ["/creer", "Créer mon association"],
+  // CAMPAGNE — ce pied de page ne vit que sur les cinq pages marketing (les légales
+  // ont LegalShell, les vitrines leur propre footer) : il n'y a donc aucune surface
+  // hors campagne à ménager, et laisser « Créer mon association » ici contredisait les
+  // boutons de la même page. À rebasculer sur /creer avec les quinze places prises.
+  ["/creer?offre=fondateur", "Créer mon club"],
   ["/tarifs", "Tarifs"],
   ["/fonctionnalites", "Fonctionnalités"],
   // Sans ce lien, l'étude de cas est une page orpheline : aucune page du site n'y mène,
