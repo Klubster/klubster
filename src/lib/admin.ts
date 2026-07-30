@@ -31,7 +31,11 @@ export interface ClubAdmin {
   publie: boolean;
   sport: string | null;
   domaineCustom: string | null;
-  /** Adhérents de la saison en cours (adhésions), pas la base historique. */
+  /**
+   * Nombre d'ADHÉRENTS du club — une personne inscrite à deux cours compte pour une.
+   * Même définition que l'effectif facturable, pour que la console et la facture ne
+   * puissent pas se contredire.
+   */
   adherents: number;
   cours: number;
   /** Ce que le club a encaissé via Klubster, tous moyens de paiement confondus. */
@@ -221,7 +225,14 @@ export async function getStatsAdmin(): Promise<StatsAdmin> {
       publie: !!org.publie,
       sport: org.sport ?? null,
       domaineCustom: org.domaine_custom ?? null,
-      adherents: a.length,
+      // Le nombre d'ADHÉRENTS, pas d'adhésions — `a` porte les adhésions, dont une
+      // personne inscrite à deux cours en compte deux. Le 4e audit avait corrigé le
+      // palier de facturation (ligne du dessus) mais laissé l'affichage sur `a.length` :
+      // la console annonçait donc un effectif que la facturation contredisait dès qu'un
+      // club acceptait le multi-cours — cas courant en yoga ou en danse. Écart nul sur
+      // les deux clubs actuels (relevé du 30/07/2026), ce qui explique qu'il soit passé
+      // inaperçu. Même source que le palier : une seule définition de l'effectif.
+      adherents: adherentsCountPar.get(org.id) ?? 0,
       cours: (coursPar.get(org.id) ?? []).length,
       encaisseCentimes: encaisse,
       resteDuCentimes: Math.max(0, du - encaisse),
