@@ -4,6 +4,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Communication from "./Communication";
+import Historique, { type CampagneListe } from "./Historique";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,18 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
     .eq("organisation_id", org.id);
   const { data: insData } = await supabase.from("adhesions").select("adherent_id, cours_id").eq("organisation_id", org.id);
   const { data: coursData } = await supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
+
+  // Historique des campagnes. La RLS restreint déjà à l'organisation ; le filtre explicite
+  // sur `organisation_id` est une seconde barrière, pas une redondance inutile.
+  const { data: campData } = await supabase
+    .from("message_campaigns")
+    .select(
+      "id, objet, groupe_libelle, auteur_nom, statut, nombre_destinataires, nombre_acceptes, nombre_distribues, nombre_retardes, nombre_echecs, nombre_plaintes, created_at"
+    )
+    .eq("organisation_id", org.id)
+    .order("created_at", { ascending: false })
+    .limit(25);
+  const campagnes = (campData ?? []) as CampagneListe[];
   // Dossiers incomplets : les adhérents dont une pièce n'est pas encore reçue.
   const { data: piecesData } = await supabase
     .from("pieces_adherent")
@@ -87,6 +100,8 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
             envoiDirect={!!process.env.RESEND_API_KEY}
           />
         )}
+
+        <Historique campagnes={campagnes} slug={org.slug} />
       </div>
     </main>
   );
