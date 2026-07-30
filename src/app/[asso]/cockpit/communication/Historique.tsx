@@ -28,10 +28,13 @@ export type CampagneListe = {
   created_at: string;
 };
 
+// « Envoi terminé » et non « Envoyé » : le statut `envoye` dit seulement que tous les
+// lots ont été acceptés par Resend. Ce sont les compteurs, en dessous, qui racontent ce
+// qui est réellement arrivé.
 const ETAT: Record<string, { texte: string; classe: string }> = {
   preparation: { texte: "En préparation", classe: "text-ink-soft" },
   en_cours: { texte: "Envoi en cours", classe: "text-warning" },
-  envoye: { texte: "Envoyé", classe: "text-brand-dark" },
+  envoye: { texte: "Envoi terminé", classe: "text-brand-dark" },
   partiel: { texte: "Partiellement envoyé", classe: "text-warning" },
   echec: { texte: "Échec", classe: "text-danger" },
 };

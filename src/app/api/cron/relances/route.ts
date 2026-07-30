@@ -426,6 +426,9 @@ async function lancer(request: NextRequest) {
   try {
     await admin.rpc("purger_questionnaires_sante");
     await admin.rpc("purger_emails_journal");
+    // Adresses des destinataires de campagnes au-delà de 13 mois : la ligne survit, donc
+    // les compteurs restent exacts, mais l'adresse et le lien vers l'adhérent partent.
+    await admin.rpc("purger_destinataires_campagnes");
     await admin.rpc("purger_rate_limit");
   } catch (e) {
     console.error("purge entretien", e);

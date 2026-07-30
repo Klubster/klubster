@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
+import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Communication from "./Communication";
 import Historique, { type CampagneListe } from "./Historique";
@@ -29,17 +30,23 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
   const { data: insData } = await supabase.from("adhesions").select("adherent_id, cours_id").eq("organisation_id", org.id);
   const { data: coursData } = await supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
 
-  // Historique des campagnes. La RLS restreint déjà à l'organisation ; le filtre explicite
-  // sur `organisation_id` est une seconde barrière, pas une redondance inutile.
-  const { data: campData } = await supabase
-    .from("message_campaigns")
-    .select(
-      "id, objet, groupe_libelle, auteur_nom, statut, nombre_destinataires, nombre_acceptes, nombre_distribues, nombre_retardes, nombre_echecs, nombre_plaintes, created_at"
-    )
-    .eq("organisation_id", org.id)
-    .order("created_at", { ascending: false })
-    .limit(25);
-  const campagnes = (campData ?? []) as CampagneListe[];
+  // L'historique n'est chargé QUE si le profil a la permission « messages ». La RLS le
+  // refuserait de toute façon depuis la 0025, mais on ne lance pas une requête dont on
+  // sait qu'elle ne doit rien rendre — et l'absence de section vaut mieux qu'une section
+  // vide qui laisserait croire qu'aucun message n'a jamais été envoyé.
+  const peutVoirHistorique = !!(await verifierPermission(params.asso, "messages"));
+  let campagnes: CampagneListe[] = [];
+  if (peutVoirHistorique) {
+    const { data: campData } = await supabase
+      .from("message_campaigns")
+      .select(
+        "id, objet, groupe_libelle, auteur_nom, statut, nombre_destinataires, nombre_acceptes, nombre_distribues, nombre_retardes, nombre_echecs, nombre_plaintes, created_at"
+      )
+      .eq("organisation_id", org.id)
+      .order("created_at", { ascending: false })
+      .limit(25);
+    campagnes = (campData ?? []) as CampagneListe[];
+  }
   // Dossiers incomplets : les adhérents dont une pièce n'est pas encore reçue.
   const { data: piecesData } = await supabase
     .from("pieces_adherent")
@@ -101,7 +108,7 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
           />
         )}
 
-        <Historique campagnes={campagnes} slug={org.slug} />
+        {peutVoirHistorique ? <Historique campagnes={campagnes} slug={org.slug} /> : null}
       </div>
     </main>
   );

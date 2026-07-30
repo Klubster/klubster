@@ -31,6 +31,7 @@ const ETAT_LIGNE: Record<string, { texte: string; classe: string }> = {
  */
 export default async function DetailCampagne(props: {
   params: Promise<{ asso: string; id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { asso, id } = await props.params;
   const org = await getOrganisationBySlug(asso);
@@ -56,13 +57,26 @@ export default async function DetailCampagne(props: {
     nombre_plaintes: number; created_at: string; derniere_erreur: string | null;
   };
 
-  const { data: destData } = await supabase
+  // Pagination : PostgREST tronque SILENCIEUSEMENT à 1 000 lignes (`db-max-rows`) — un
+  // club de 1 200 adhérents aurait affiché une liste amputée sans le dire. Et 1 200
+  // lignes sur un téléphone, c'est une page qui ne s'ouvre pas. Même écueil que
+  // `getStatsAdmin`, réglé de la même façon : par `range()`.
+  const PAR_PAGE = 50;
+  const sp = await props.searchParams;
+  const page = Math.max(1, Number(sp?.page ?? "1") || 1);
+  const debut = (page - 1) * PAR_PAGE;
+
+  const { data: destData, count } = await supabase
     .from("message_recipients")
-    .select("id, email, statut, erreur")
+    .select("id, email, statut, erreur", { count: "exact" })
     .eq("campaign_id", id)
     .eq("organisation_id", org.id)
-    .order("statut");
+    .order("statut")
+    .order("id")
+    .range(debut, debut + PAR_PAGE - 1);
   const destinataires = (destData ?? []) as Array<{ id: string; email: string | null; statut: string; erreur: string | null }>;
+  const total = count ?? destinataires.length;
+  const pages = Math.max(1, Math.ceil(total / PAR_PAGE));
 
   const d = new Date(c.created_at);
 
@@ -86,12 +100,16 @@ export default async function DetailCampagne(props: {
           {c.auteur_nom ? ` · ${c.auteur_nom}` : ""}
         </p>
 
-        <div className="mt-8 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-4">
+        {/* Les plaintes ne sont PAS agrégées aux échecs : un message signalé comme
+            indésirable a bien été distribué. Les confondre ferait croire à un problème
+            d'acheminement là où il y a un problème de contenu ou de fréquence. */}
+        <div className="mt-8 grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
           {[
             [c.nombre_destinataires, "DESTINATAIRES", false],
             [c.nombre_acceptes, "ACCEPTÉS", false],
             [c.nombre_distribues, "DISTRIBUÉS", false],
-            [c.nombre_echecs + c.nombre_plaintes, "ÉCHECS", true],
+            [c.nombre_echecs, "ÉCHECS", true],
+            [c.nombre_plaintes, "SIGNALÉS", true],
           ].map(([n, label, alerte]) => (
             <div key={label as string} className="bg-paper px-4 py-4">
               <div className={`mono text-[20px] leading-none ${alerte && (n as number) > 0 ? "text-danger" : "text-ink"}`}>{n as number}</div>
@@ -126,6 +144,27 @@ export default async function DetailCampagne(props: {
               );
             })}
           </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="mono text-[11px] text-ink-faint">
+              {debut + 1}–{Math.min(debut + PAR_PAGE, total)} sur {total}
+            </p>
+            {pages > 1 ? (
+              <div className="mono flex items-center gap-4 text-[12px]">
+                {page > 1 ? (
+                  <Link href={`?page=${page - 1}`} className="py-3 text-brand-dark hover:underline">
+                    ← Précédents
+                  </Link>
+                ) : null}
+                <span className="text-ink-soft">page {page} / {pages}</span>
+                {page < pages ? (
+                  <Link href={`?page=${page + 1}`} className="py-3 text-brand-dark hover:underline">
+                    Suivants →
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
           {destinataires.some((r) => r.erreur) ? (
             <p className="mono mt-3 text-[11px] text-ink-faint">
               Les rejets viennent le plus souvent d’une adresse erronée ou d’une boîte pleine.
