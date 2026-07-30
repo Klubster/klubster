@@ -140,6 +140,108 @@ export async function envoyerLotPersonnalise(opts: {
   return { ok: true, envoyes };
 }
 
+/**
+ * Envoi d'un lot de campagne, avec récupération des identifiants Resend.
+ *
+ * DIFFÉRENCE AVEC `envoyerAuxAdherents` : celle-ci LIT la réponse. L'ancienne comptait
+ * `lot.length` dès que la requête était acceptée et jetait le corps — il était donc
+ * impossible de rattacher le moindre événement de webhook à un destinataire.
+ *
+ * `Idempotency-Key` : indispensable. Sans elle, un délai d'attente côté Klubster suivi
+ * d'un nouvel essai renverrait le lot entier une seconde fois — 100 adhérents recevant
+ * deux fois le même message. Resend reconnaît la clé et ne réexécute pas.
+ *
+ * Les étiquettes (`tags`) permettent de retrouver un envoi depuis le tableau de bord
+ * Resend sans passer par nos tables, ce qui compte le jour où l'on diagnostique une
+ * plainte pour spam.
+ */
+export interface LotCampagne {
+  destinataireId: string;
+  to: string;
+}
+
+export interface ResultatLot {
+  ok: boolean;
+  /** id de destinataire → identifiant Resend, dans l'ordre renvoyé par l'API. */
+  identifiants: Map<string, string>;
+  erreur?: string;
+  /** Vrai quand le refus vient d'un quota : l'appelant doit s'arrêter, pas réessayer. */
+  quotaAtteint?: boolean;
+}
+
+export async function envoyerLotCampagne(opts: {
+  nomClub: string;
+  replyTo: string | null;
+  objet: string;
+  texte: string;
+  lot: LotCampagne[];
+  campaignId: string;
+  organisationId: string;
+  numeroLot: number;
+}): Promise<ResultatLot> {
+  const identifiants = new Map<string, string>();
+  if (!KEY) return { ok: false, identifiants, erreur: "Envoi non configuré (RESEND_API_KEY manquante)." };
+
+  const from = `${opts.nomClub.replace(/["<>]/g, "").slice(0, 60)} via Klubster <clubs@klubster.fr>`;
+  const pied = `\n\n—\n${opts.nomClub} · envoyé avec Klubster (klubster.fr)`;
+
+  const corps = opts.lot.map((d) => ({
+    from,
+    to: [d.to],
+    subject: opts.objet,
+    text: opts.texte + pied,
+    ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+    tags: [
+      { name: "category", value: "club_message" },
+      { name: "campaign_id", value: opts.campaignId },
+      { name: "recipient_id", value: d.destinataireId },
+      { name: "organisation_id", value: opts.organisationId },
+    ],
+  }));
+
+  let res: Response;
+  try {
+    res = await fetch(`${API}/emails/batch`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${KEY}`,
+        "Content-Type": "application/json",
+        // Propre au lot : rejouer le lot 3 ne renvoie pas les lots 1 et 2.
+        "Idempotency-Key": `message-campaign/${opts.campaignId}/batch/${opts.numeroLot}`,
+      },
+      body: JSON.stringify(corps),
+    });
+  } catch {
+    // Réseau injoignable : on ne sait PAS si Resend a reçu la requête. L'appelant doit
+    // marquer le lot en échec sans le réessayer — la clé d'idempotence protégerait un
+    // nouvel essai, mais rien ne presse et un doute vaut mieux qu'un doublon.
+    return { ok: false, identifiants, erreur: "Service d’envoi injoignable." };
+  }
+
+  if (!res.ok) {
+    const detail = (await res.json().catch(() => null)) as { message?: string } | null;
+    const quota = res.status === 429;
+    return {
+      ok: false,
+      identifiants,
+      quotaAtteint: quota,
+      erreur: quota
+        ? "Limite d’envoi du compte atteinte."
+        : detail?.message ?? `Erreur d’envoi (${res.status}).`,
+    };
+  }
+
+  // Resend renvoie `{ data: [{ id }, …] }`, dans l'ordre des emails soumis.
+  const json = (await res.json().catch(() => null)) as { data?: Array<{ id?: string }> } | null;
+  const lignes = json?.data ?? [];
+  lignes.forEach((l, i) => {
+    const cible = opts.lot[i];
+    if (cible && l?.id) identifiants.set(cible.destinataireId, l.id);
+  });
+
+  return { ok: true, identifiants };
+}
+
 // Envoie le même message à chaque destinataire (un email individuel par adhérent,
 // personne ne voit les autres). Batch API : 100 emails max par appel.
 export async function envoyerAuxAdherents(opts: {

@@ -1,8 +1,11 @@
 "use server";
 // Envoi direct de la messagerie du club via Resend (clubs@klubster.fr, reply-to club).
+import { revalidatePath } from "next/cache";
 import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { envoyerAuxAdherents, resendConfigured, type EnvoiResultat } from "@/lib/resend";
+import { getProfile } from "@/lib/auth";
+import { resendConfigured, type EnvoiResultat } from "@/lib/resend";
+import { envoyerCampagne } from "@/lib/campagnes";
 
 /** Un adhérent est mineur s'il est né il y a moins de 18 ans. */
 function estMineur(dateNaissance: string | null): boolean {
@@ -74,14 +77,54 @@ export async function envoyerMessage(
     cibles = cibles.filter((a) => ids.has(a.id));
   }
 
-  const emails = Array.from(new Set(cibles.map((a) => a.email.trim().toLowerCase()).filter(Boolean)));
-  if (emails.length === 0) return { ok: false, envoyes: 0, erreur: "Aucun destinataire avec un email." };
+  // Déduplication par adresse : deux adhérents d'une même famille peuvent partager une
+  // boîte, et personne ne doit recevoir le message deux fois. On garde le premier
+  // adhérent rencontré pour l'adresse, afin que la ligne reste rattachable.
+  const parEmail = new Map<string, { adherentId: string | null; email: string }>();
+  for (const a of cibles) {
+    const email = a.email.trim().toLowerCase();
+    if (!email || parEmail.has(email)) continue;
+    parEmail.set(email, { adherentId: a.id, email });
+  }
+  const destinataires = Array.from(parEmail.values());
+  if (destinataires.length === 0) return { ok: false, envoyes: 0, erreur: "Aucun destinataire avec un email." };
 
-  return envoyerAuxAdherents({
+  // Libellé du groupe photographié maintenant : un cours renommé ou supprimé ne doit pas
+  // rendre l'historique incompréhensible six mois plus tard.
+  let groupeLibelle = "Tous les adhérents";
+  if (groupe === "parents") groupeLibelle = "Responsables légaux des mineurs";
+  else if (groupe === "incomplet") groupeLibelle = "Dossiers incomplets";
+  else if (groupe !== "tous") {
+    const { data: c } = await supabase.from("cours").select("nom").eq("id", groupe).maybeSingle();
+    groupeLibelle = (c as { nom?: string } | null)?.nom ?? "Cours";
+  }
+
+  const profile = await getProfile();
+
+  const res = await envoyerCampagne({
+    supabase,
+    organisationId: org.id,
     nomClub: org.nom,
     replyTo: org.email_contact,
-    destinataires: emails,
+    auteurProfileId: profile?.id ?? null,
+    auteurNom: [profile?.prenom, profile?.nom].filter(Boolean).join(" ") || null,
+    groupe,
+    groupeLibelle,
     objet: objetNet,
-    texte: texteNet,
+    corps: texteNet,
+    cibles: destinataires,
   });
+
+  revalidatePath(`/${slug}/cockpit/communication`);
+
+  // « envoyés » signifie ici ACCEPTÉS par Resend — jamais « arrivés ». La nuance est
+  // portée par l'écran d'historique, qui distingue les deux.
+  return {
+    ok: res.ok,
+    envoyes: res.acceptes,
+    erreur:
+      res.statut === "partiel"
+        ? `Envoi partiel : ${res.acceptes} sur ${res.destinataires} acceptés.${res.erreur ? " " + res.erreur : ""}`
+        : res.erreur,
+  };
 }
