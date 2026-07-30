@@ -78,8 +78,14 @@ export default async function FicheAdherent(
   const listePieces = (pieces ?? []) as unknown as Piece[];
   const questionnaire = ((sante ?? []) as unknown as Sante[])[0];
 
+  // Depuis la migration 0026, `reglements` n'est lisible que par les rôles portant la
+  // permission « paiements ». On ne lance donc pas une requête dont on sait qu'elle ne
+  // rendra rien — et surtout, on N'AFFICHE PAS les blocs financiers à un rôle qui ne
+  // peut pas les lire : un « Réglé : 0 € · Reste 313 € » causé par une RLS serait
+  // indiscernable d'un adhérent qui n'a rien payé. Absence plutôt que faux.
+  const peutVoirArgent = peut(profile.role, "paiements");
   const idsAdhesions = listeAdhesions.map((a) => a.id);
-  const { data: reglements } = idsAdhesions.length
+  const { data: reglements } = peutVoirArgent && idsAdhesions.length
     ? await supabase
         .from("reglements")
         .select("id, adhesion_id, montant_centimes, mode, note, created_at")
@@ -238,14 +244,22 @@ export default async function FicheAdherent(
                 </div>
               ))}
               <div className="bg-bg-alt px-5 py-4">
-                <p className="mono text-[12px]">
-                  Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
-                  {reste > 0 ? (
-                    <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
-                  ) : (
-                    <span style={{ color: "#1E7A4F" }}> · Soldé</span>
-                  )}
-                </p>
+                {peutVoirArgent ? (
+                  <p className="mono text-[12px]">
+                    Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
+                    {reste > 0 ? (
+                      <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
+                    ) : (
+                      <span style={{ color: "#1E7A4F" }}> · Soldé</span>
+                    )}
+                  </p>
+                ) : (
+                  // Dire pourquoi la ligne est absente. Un blanc silencieux ferait croire
+                  // à un bug ; cette phrase dit que c'est un choix, et lequel.
+                  <p className="mono text-[12px] text-ink-faint">
+                    Le suivi des règlements est réservé au président et au trésorier.
+                  </p>
+                )}
               </div>
             </div>
           )}

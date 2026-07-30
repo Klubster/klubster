@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
+import { peut } from "@/lib/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import RemiseClient, { type Cheque } from "./RemiseClient";
 
@@ -18,6 +19,13 @@ export default async function RemisePage(props: { params: Promise<{ asso: string
   const profile = await getProfile();
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${org.slug}/cockpit/paiements/remise`);
+  }
+  // Cet écran affiche le carnet de chèques du club : noms des payeurs, montants, dates.
+  // Les deux autres écrans de trésorerie exigeaient déjà cette permission ; celui-ci ne
+  // vérifiait que l'appartenance au club, et laissait donc un encadrant ou un accès en
+  // lecture seule ouvrir la liste — et cliquer sur « déjà déposé ».
+  if (!peut(profile.role, "paiements")) {
+    redirect(`/${org.slug}/cockpit?acces=refuse`);
   }
 
   const supabase = await createSupabaseServerClient();

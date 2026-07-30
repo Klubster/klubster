@@ -9,6 +9,7 @@ import type { CodePromo } from "@/lib/stripe";
 import BoutonAttente from "@/components/BoutonAttente";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
+import { peut, libelleRole } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ function Cur() {
 export default async function Cockpit(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ stripe?: string; bienvenue?: string; abonnement?: string; code?: string }>;
+    searchParams: Promise<{ stripe?: string; bienvenue?: string; abonnement?: string; code?: string; acces?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -87,6 +88,9 @@ export default async function Cockpit(
         ? `Tout est à jour pour ${coursCeSoir.length > 1 ? "les cours" : "le cours"} de ce ${jourSemaine}.`
         : "Tous les dossiers sont à jour."
       : "Le détail est juste en dessous — rien ne prend plus de quelques minutes.";
+
+  // Trésorerie : encaissements, remises, virements. Sert à masquer les portes fermées.
+  const peutPaiements = peut(profile?.role, "paiements");
 
   const NAV: { n: string; label: string; href: string; actif?: boolean }[] = [
     { n: "01", label: "AUJOURD'HUI", href: `/${org.slug}/cockpit`, actif: true },
@@ -326,15 +330,33 @@ export default async function Cockpit(
             </div>
           </div>
 
-          {/* À FAIRE — l'action avant la statistique */}
+          {/* Refus d'accès. Huit redirections du cockpit posaient déjà `?acces=refuse`,
+              que PERSONNE ne lisait : le bénévole revenait sur cette page sans un mot,
+              persuadé d'avoir mal cliqué. Un échec muet est indiscernable d'un bug — et
+              c'est le point d'abandon n°1 relevé sur l'authentification. */}
+          {searchParams?.acces === "refuse" ? (
+            <div className="border-b border-line px-6 py-5 md:px-10" style={{ background: "#FBEDED" }}>
+              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+                Cette page n’est pas accessible avec votre rôle ({libelleRole(profile?.role)}).
+                Demandez au président de vous l’ouvrir depuis « Votre équipe ».
+              </p>
+            </div>
+          ) : null}
+
+          {/* À FAIRE — l'action avant la statistique.
+              Les deux cartes qui mènent aux encaissements ne s'affichent qu'aux rôles qui
+              peuvent y entrer : sans cela, un encadrant clique et tombe sur un refus.
+              Proposer une porte fermée est une façon de mentir sur ce qu'on offre. */}
           <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-3">
-            <Carte
-              n={String(s.enAttente)}
-              label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
-              href={`/${org.slug}/cockpit/paiements`}
-              action="OUVRIR"
-              vide={s.enAttente === 0}
-            />
+            {peutPaiements ? (
+              <Carte
+                n={String(s.enAttente)}
+                label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
+                href={`/${org.slug}/cockpit/paiements`}
+                action="OUVRIR"
+                vide={s.enAttente === 0}
+              />
+            ) : null}
             <Carte
               n={String(s.enRetard)}
               label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
@@ -342,13 +364,15 @@ export default async function Cockpit(
               action="RELANCER"
               vide={s.enRetard === 0}
             />
-            <Carte
-              n={String(auj.nouvelles7j)}
-              label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
-              href={`/${org.slug}/cockpit/paiements`}
-              action="VÉRIFIER"
-              vide={auj.nouvelles7j === 0}
-            />
+            {peutPaiements ? (
+              <Carte
+                n={String(auj.nouvelles7j)}
+                label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
+                href={`/${org.slug}/cockpit/paiements`}
+                action="VÉRIFIER"
+                vide={auj.nouvelles7j === 0}
+              />
+            ) : null}
           </div>
 
           {/* PAIEMENTS / STRIPE */}
@@ -495,12 +519,14 @@ export default async function Cockpit(
                     directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
                     0 % de commission.
                   </p>
-                  <Link
-                    href={`/${org.slug}/cockpit/virements`}
-                    className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
-                  >
-                    MES VIREMENTS →
-                  </Link>
+                  {peutPaiements ? (
+                    <Link
+                      href={`/${org.slug}/cockpit/virements`}
+                      className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
+                    >
+                      MES VIREMENTS →
+                    </Link>
+                  ) : null}
                 </div>
 
                 {/* Le club fixe le plafond ; l'adhérent choisit dans cette limite. */}
@@ -577,8 +603,10 @@ export default async function Cockpit(
               <Geste titre="Gérer les adhérents" desc="Chercher, consulter, modifier une fiche." href={`/${org.slug}/cockpit/adherents`} action="OUVRIR" />
               <Geste titre="Cours et tarifs" desc="Horaires, tarifs, nouvelle activité." href={`/${org.slug}/cockpit/cours`} action="MODIFIER" />
               <Geste titre="Envoyer un message" desc="Aux adhérents, par groupe ou par cours." href={`/${org.slug}/cockpit/communication`} action="OUVRIR" />
-              <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
-              {stripeConnecte ? (
+              {peutPaiements ? (
+                <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
+              ) : null}
+              {stripeConnecte && peutPaiements ? (
                 <Geste titre="Mes virements" desc="Ce qui arrive sur le compte du club, et quand." href={`/${org.slug}/cockpit/virements`} action="CONSULTER" />
               ) : null}
               <Geste titre="Faire l'appel" desc="Scanner la carte ou chercher un nom." href={`/${org.slug}/cockpit/scanner`} action="SCANNER" />
