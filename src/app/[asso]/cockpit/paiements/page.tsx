@@ -46,17 +46,26 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
   const saisonAvecSlug = definirSaison.bind(null, org.slug);
 
   // Litiges bancaires (chargebacks) ouverts : à traiter en priorité, on les remonte en tête.
+  // `litige_le` n'est plus lisible par requête directe depuis la 0027 — il passe par
+  // `adhesions_finance`, qui vérifie le rôle en base plutôt que de faire confiance au
+  // garde de cette page. Les deux se disent la même chose ; seule la base fait foi.
   const { data: litigesData } = await supabase
-    .from("adhesions")
-    .select("adherent_id, litige_le, adherents(prenom, nom)")
-    .eq("organisation_id", org.id)
+    .rpc("adhesions_finance", { p_org: org.id })
     .not("litige_le", "is", null)
     .order("litige_le", { ascending: false });
-  const litiges = (litigesData ?? []) as unknown as Array<{
-    adherent_id: string;
-    litige_le: string;
-    adherents: { prenom: string; nom: string } | null;
-  }>;
+  const litigesBruts = (litigesData ?? []) as unknown as Array<{ adherent_id: string; litige_le: string }>;
+  // La RPC rend la ligne d'adhésion seule : on va chercher les noms à part.
+  const { data: nomsData } = litigesBruts.length
+    ? await supabase.from("adherents").select("id, prenom, nom").in("id", litigesBruts.map((l) => l.adherent_id))
+    : { data: [] };
+  const nomParId = new Map(
+    ((nomsData ?? []) as { id: string; prenom: string; nom: string }[]).map((a) => [a.id, a])
+  );
+  const litiges = litigesBruts.map((l) => ({
+    adherent_id: l.adherent_id,
+    litige_le: l.litige_le,
+    adherents: nomParId.get(l.adherent_id) ?? null,
+  }));
   const { data } = await supabase
     .from("adhesions")
     .select("id, montant_centimes, mode_paiement, statut, created_at, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")

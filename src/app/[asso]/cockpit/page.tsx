@@ -89,8 +89,14 @@ export default async function Cockpit(
         : "Tous les dossiers sont à jour."
       : "Le détail est juste en dessous — rien ne prend plus de quelques minutes.";
 
-  // Trésorerie : encaissements, remises, virements. Sert à masquer les portes fermées.
+  // DEUX permissions, et pas une. La confusion des deux est ce qui laissait un encadrant
+  // lire « 48 190 € encaissés cette saison ».
+  //   `peutPaiements` — la trésorerie DU CLUB : encaissements, remises, virements.
+  //   `estPresident`  — l'abonnement KLUBSTER et la configuration Stripe. Ce que le club
+  //                     paie à son prestataire ne regarde pas son trésorier, et les
+  //                     Server Actions correspondantes exigent déjà le président.
   const peutPaiements = peut(profile?.role, "paiements");
+  const estPresident = profile?.role === "admin_asso" || profile?.role === "super_admin";
 
   const NAV: { n: string; label: string; href: string; actif?: boolean }[] = [
     { n: "01", label: "AUJOURD'HUI", href: `/${org.slug}/cockpit`, actif: true },
@@ -357,13 +363,19 @@ export default async function Cockpit(
                 vide={s.enAttente === 0}
               />
             ) : null}
-            <Carte
-              n={String(s.enRetard)}
-              label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
-              href={`/${org.slug}/cockpit/communication`}
-              action="RELANCER"
-              vide={s.enRetard === 0}
-            />
+            {/* « 9 cotisations à relancer » est un chiffre de trésorerie, même s'il mène
+                à la messagerie. Un secrétaire garde son entrée par le geste « Envoyer un
+                message » ; il n'a pas besoin de savoir combien de familles doivent de
+                l'argent au club. */}
+            {peutPaiements ? (
+              <Carte
+                n={String(s.enRetard)}
+                label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
+                href={`/${org.slug}/cockpit/communication`}
+                action="RELANCER"
+                vide={s.enRetard === 0}
+              />
+            ) : null}
             {peutPaiements ? (
               <Carte
                 n={String(auj.nouvelles7j)}
@@ -375,7 +387,14 @@ export default async function Cockpit(
             ) : null}
           </div>
 
-          {/* PAIEMENTS / STRIPE */}
+          {/* PAIEMENTS / STRIPE — président uniquement.
+              Cette section mêle deux choses, et les deux lui appartiennent : la
+              configuration Stripe du club, et l'ABONNEMENT KLUBSTER — son prix, son
+              état, le bouton de résiliation, le code promo. Un trésorier gère l'argent
+              des cotisations ; il n'a pas à voir ce que le club paie à son prestataire,
+              ni à pouvoir cliquer sur des formulaires que les Server Actions lui
+              refuseront de toute façon. Le total encaissé de la saison vit ici aussi. */}
+          {estPresident ? (
           <div id="paiements" className="border-b border-line px-6 py-7 md:px-10">
             {/* Retours de l'abonnement Klubster. Sans ces messages, un échec de
                 souscription rechargeait la page à l'identique : le bouton semblait
@@ -595,6 +614,7 @@ export default async function Cockpit(
               </p>
             ) : null}
           </div>
+          ) : null}
 
           {/* ACTIONS RAPIDES — des gestes, pas des raccourcis */}
           <div className="border-b border-line px-6 py-8 md:px-10">

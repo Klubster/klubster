@@ -16,6 +16,16 @@ import { ROLES, peut } from "@/lib/roles";
  * Un garde de page ne protège que la page — une requête PostgREST directe rendait le
  * carnet de chèques complet à un encadrant. Même famille que la faille des campagnes
  * (migration 0025), sur une autre table.
+ *
+ * ⚠️ PORTÉE DE CES TESTS — À LIRE AVANT DE S'EN CONTENTER
+ * Ce sont des tests STATIQUES : ils lisent le texte des migrations et des pages, et
+ * vérifient que ce qui y est écrit dit la même chose que la matrice de rôles. Ils ne
+ * jouent AUCUNE requête contre une base Supabase, avec une session par rôle. Ils
+ * prouvent donc que la politique est correctement ÉCRITE, pas qu'un vrai encadrant se
+ * fait refuser par un vrai PostgREST.
+ *
+ * Ce qui manque : une base de test dans la CI, sept sessions, et un jeu de requêtes
+ * directes. C'est un chantier en soi ; il est ouvert, pas oublié.
  */
 
 const lire = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
@@ -150,19 +160,119 @@ describe("export RGPD — complet ou refusé", () => {
   });
 });
 
-describe("cockpit — aucune porte fermée affichée", () => {
+describe("cockpit — aucune porte fermée, aucun chiffre de trésorerie", () => {
   const HUB = lire("src/app/[asso]/cockpit/page.tsx");
 
-  it("les liens vers la trésorerie dépendent du rôle", () => {
+  it("deux permissions distinctes : la trésorerie du club, l’abonnement Klubster", () => {
+    // Leur confusion est ce qui laissait un encadrant lire « 48 190 € encaissés ».
     expect(HUB).toMatch(/const peutPaiements = peut\(profile\?\.role, "paiements"\)/);
+    expect(HUB).toMatch(/const estPresident = profile\?\.role === "admin_asso" \|\| profile\?\.role === "super_admin"/);
+  });
+
+  it("les liens vers la trésorerie dépendent du rôle", () => {
     expect(HUB).toMatch(/\{peutPaiements \? \([\s\S]*?MES VIREMENTS/);
     expect(HUB).toMatch(/\{peutPaiements \? \([\s\S]*?Encaisser une cotisation/);
   });
+
+  it("le nombre de cotisations en retard est un chiffre de trésorerie", () => {
+    expect(HUB).toMatch(/\{peutPaiements \? \([\s\S]*?À RELANCER/);
+  });
+
+  it("le total encaissé et l’abonnement Klubster sont réservés au président", () => {
+    // `tresorerieCentimes` ne doit apparaître qu'à l'intérieur du bloc `estPresident`.
+    const ouverture = HUB.indexOf("{estPresident ? (");
+    const fermeture = HUB.indexOf(") : null}\n\n          {/* ACTIONS RAPIDES");
+    const total = HUB.indexOf("s.tresorerieCentimes");
+    expect(ouverture).toBeGreaterThan(0);
+    expect(fermeture).toBeGreaterThan(ouverture);
+    expect(total).toBeGreaterThan(ouverture);
+    expect(total).toBeLessThan(fermeture);
+  });
+
+  it.each(["souscrireAvecSlug", "gererAvecSlug", "definirEcheancesAvecSlug", "connecterAvecSlug"])(
+    "le formulaire %s n’est pas proposé hors présidence",
+    (action) => {
+      const ouverture = HUB.indexOf("{estPresident ? (");
+      const fermeture = HUB.indexOf(") : null}\n\n          {/* ACTIONS RAPIDES");
+      const usage = HUB.indexOf(`action={${action}}`);
+      expect(usage).toBeGreaterThan(ouverture);
+      expect(usage).toBeLessThan(fermeture);
+    }
+  );
 
   it("le refus d’accès est enfin affiché, et nomme le rôle", () => {
     // Huit redirections posaient `?acces=refuse` sans que personne ne le lise :
     // le bénévole revenait au cockpit sans un mot.
     expect(HUB).toMatch(/searchParams\?\.acces === "refuse"/);
     expect(HUB).toMatch(/libelleRole\(profile\?\.role\)/);
+  });
+});
+
+describe("colonnes financières d’adhesions — grants par colonne et RPC", () => {
+  const SQL27 = lire("supabase/migrations/0027_adhesions_colonnes_financieres.sql");
+
+  it("le droit de lecture est retiré de la table, puis rendu colonne par colonne", () => {
+    // Un GRANT au niveau table couvre toute colonne, y compris future : on ne peut pas
+    // en révoquer une seule. Le motif est donc revoke-puis-grant, comme pieces_adherent.
+    expect(SQL27).toMatch(/revoke select on public\.adhesions from authenticated/);
+    expect(SQL27).toMatch(/grant select \([\s\S]*?\) on public\.adhesions to authenticated/);
+  });
+
+  it.each(["litige_le", "stripe_payment_intent", "derniere_relance"])(
+    "%s n’est PAS rendue à authenticated",
+    (colonne) => {
+      const grant = SQL27.match(/grant select \(([\s\S]*?)\) on public\.adhesions/)?.[1] ?? "";
+      expect(grant).not.toContain(colonne);
+    }
+  );
+
+  it.each(["cours_id", "saison", "montant_centimes", "statut", "mode_paiement"])(
+    "%s reste lisible : dossier, tarif public, ou espace adhérent",
+    (colonne) => {
+      const grant = SQL27.match(/grant select \(([\s\S]*?)\) on public\.adhesions/)?.[1] ?? "";
+      expect(grant).toContain(colonne);
+    }
+  );
+
+  it("la RPC financière exige le rôle ET le cloisonnement par organisation", () => {
+    const fn = SQL27.match(/create or replace function public\.adhesions_finance[\s\S]*?\$\$;/)?.[0] ?? "";
+    expect(fn).toMatch(/a_role_asso\(array\['admin_asso','tresorier'\]\)/);
+    expect(fn).toMatch(/organisation_id = current_org_id\(\) or is_super_admin\(\)/);
+    expect(fn).toMatch(/security definer/);
+  });
+
+  it("la RPC nomme exactement les rôles de la matrice", () => {
+    const fn = SQL27.match(/create or replace function public\.adhesions_finance[\s\S]*?\$\$;/)?.[0] ?? "";
+    for (const role of AUTORISES) expect(fn).toContain(`'${role}'`);
+    for (const role of REFUSES) expect(fn).not.toContain(`'${role}'`);
+  });
+
+  it("anon ne peut pas l’appeler", () => {
+    expect(SQL27).toMatch(/revoke execute on function public\.adhesions_finance\(uuid\) from anon, public/);
+  });
+});
+
+describe("les colonnes financières ne sont plus lues en direct", () => {
+  it.each([
+    ["src/app/[asso]/cockpit/adherents/[id]/page.tsx", "litige_le"],
+    ["src/app/[asso]/cockpit/paiements/page.tsx", "litige_le"],
+    ["src/app/[asso]/cockpit/paiements/relances/page.tsx", "derniere_relance"],
+    ["src/app/[asso]/cockpit/adherents/actions.ts", "stripe_payment_intent"],
+  ])("%s passe par adhesions_finance", (chemin) => {
+    const src = lire(chemin);
+    expect(src).toMatch(/rpc\("adhesions_finance"/);
+    // Et ne redemande plus la colonne dans un `select()` sur la table.
+    const selects = src.match(/\.from\("adhesions"\)[\s\S]{0,220}?\.select\([^)]*\)/g) ?? [];
+    for (const s of selects) {
+      expect(s).not.toMatch(/litige_le|stripe_payment_intent|derniere_relance/);
+    }
+  });
+
+  it("l’espace adhérent lit encore son propre mode de paiement", () => {
+    // C'est la raison pour laquelle `mode_paiement` reste dans les grants : le
+    // révoquer aurait cassé l'espace adhérent, qui partage le rôle `authenticated`.
+    const espace = lire("src/app/[asso]/espace/page.tsx");
+    expect(espace).toMatch(/mode_paiement/);
+    expect(espace).not.toMatch(/rpc\("adhesions_finance"/);
   });
 });
