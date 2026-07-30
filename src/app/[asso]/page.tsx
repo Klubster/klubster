@@ -12,6 +12,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { PlanningGrid } from "@/components/site/PlanningGrid";
 import { ThemeVitrine } from "@/components/site/ThemeVitrine";
 import { normaliserPageConfig, classeLogoHero, TAILLES_LOGO, tailleLogoSure } from "@/lib/page-config";
+import { estVitrineKlubster } from "@/lib/vitrines-klubster";
 import { deplacerSection, supprimerSection, restaurerSection, modifierHero } from "./edition-actions";
 import type { Organisation, TailleLogo } from "@/types/db";
 import { ChapitreView } from "@/components/site/Chapitres";
@@ -412,13 +413,17 @@ export default async function VitrinePage(
   // vers une ancre absente : le clic ne faisait rien, ce qui est pire que l'absence
   // du lien. Les chapitres personnalisés restent hors nav, comme avant.
   // « La vie du club » (actualites) est retirée de la nav à la demande de Mathieu :
-  // la section reste sur la page, mais on la remplace dans le header par un retour
-  // vers le site Klubster. URL absolue pour marcher aussi sur les domaines personnalisés.
+  // la section reste sur la page, mais elle ne figure plus dans le header.
+  //
+  // « Accueil Klubster » n'apparaît QUE sur les vitrines de démonstration de Klubster
+  // (voir src/lib/vitrines-klubster.ts). Il était jusqu'ici ajouté à tous les clubs :
+  // le site qu'une association paie affichait un lien vers son prestataire dans sa
+  // propre navigation. URL absolue, pour marcher aussi sur les domaines personnalisés.
   const liensNav = [
     ...rendus
       .filter((r) => !r.custom && r.id && NOMS_SECTIONS[r.cle] && r.cle !== "actualites")
       .map((r) => ({ href: `#${r.id}`, label: NOMS_SECTIONS[r.cle] })),
-    { href: "https://klubster.fr", label: "Accueil Klubster" },
+    ...(estVitrineKlubster(org.slug) ? [{ href: "https://klubster.fr", label: "Accueil Klubster" }] : []),
   ];
 
   // Logo dans le hero : seulement s'il y en a un ET si le club n'a pas choisi de le

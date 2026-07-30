@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { etatMfa } from "@/lib/mfa";
 import { PALIERS, palierPourEffectif } from "@/lib/stripe";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import type { Organisation } from "@/types/db";
@@ -97,14 +98,34 @@ export async function verifierSuperAdmin() {
 }
 
 /**
- * Garde de page : redirige vers la connexion si personne n'est connecté (utile quand la
- * PWA /admin est ouverte avec une session expirée), et renvoie un 404 si la personne est
- * connectée mais n'est pas l'éditeur (on ne révèle pas l'existence de la console).
+ * Garde de page SANS second facteur. Réservée aux écrans qui doivent rester joignables
+ * pour justement présenter ce facteur — sinon la page de vérification exigerait d'être
+ * déjà vérifié pour s'afficher, et la console deviendrait inaccessible.
+ *
+ * Toute autre page de la console passe par `exigerSuperAdmin`.
  */
-export async function exigerSuperAdmin(nextPath = "/admin") {
+export async function exigerSuperAdminSansFacteur(nextPath = "/admin") {
   const profile = await getProfile();
   if (!profile) redirect(`/connexion?next=${encodeURIComponent(nextPath)}`);
   if (profile.role !== "super_admin") notFound();
+  return profile;
+}
+
+/**
+ * Garde de page : redirige vers la connexion si personne n'est connecté (utile quand la
+ * PWA /admin est ouverte avec une session expirée), et renvoie un 404 si la personne est
+ * connectée mais n'est pas l'éditeur (on ne révèle pas l'existence de la console).
+ *
+ * Depuis le 29/07/2026, elle exige aussi le second facteur — mais uniquement si le compte
+ * en a enrôlé un (voir `src/lib/mfa.ts` pour le motif « opt-in » et le pourquoi du TOTP).
+ * Une session au niveau `aal1` alors qu'un facteur vérifié existe est renvoyée vers
+ * l'écran de vérification, jamais déconnectée : perdre son travail parce qu'un onglet
+ * est resté ouvert trop longtemps n'apporte aucune sécurité.
+ */
+export async function exigerSuperAdmin(nextPath = "/admin") {
+  const profile = await exigerSuperAdminSansFacteur(nextPath);
+  const { satisfait } = await etatMfa();
+  if (!satisfait) redirect(`/admin/securite?next=${encodeURIComponent(nextPath)}`);
   return profile;
 }
 
