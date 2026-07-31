@@ -1,9 +1,12 @@
 // @vitest-environment happy-dom
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { render, screen, act } from "@testing-library/react";
 import { useState } from "react";
 import { DemoProvider, useDemo } from "@/components/demo/DemoProvider";
+import DemoLayout from "@/app/demo/layout";
 import { chiffresDuClub } from "@/lib/demo/selecteurs";
 
 /**
@@ -170,6 +173,91 @@ describe("un rechargement remet tout à zéro", () => {
 
     a.unmount();
     b.unmount();
+  });
+});
+
+/**
+ * ——— LE TEST QUI VERROUILLE VRAIMENT ———————————————————————————————————————————
+ *
+ * Tout ce qui précède monte une `Coque` écrite ici même, qui contient elle-même le bon
+ * placement du provider. Ces tests prouvent donc qu'un provider bien placé fait ce qu'on
+ * attend — pas que l'application le place bien. Déplacer demain `DemoProvider` hors de
+ * `src/app/demo/layout.tsx` ne les aurait pas fait tomber.
+ *
+ * Ceux qui suivent importent le VRAI layout. `rerender` avec un enfant différent
+ * reproduit ce que fait Next à un changement de route : le layout reste monté, l'enfant
+ * est remplacé.
+ */
+describe("le vrai layout de /demo", () => {
+  it("conserve l’état d’un écran à l’autre", () => {
+    const vue = render(
+      <DemoLayout>
+        <EcranAdherents />
+      </DemoLayout>
+    );
+    expect(screen.getByText(/^adherents:/).textContent).toBe("adherents:34");
+
+    clic("ajouter");
+    expect(screen.getByText(/^adherents:/).textContent).toBe("adherents:35");
+
+    vue.rerender(
+      <DemoLayout>
+        <EcranPaiements />
+      </DemoLayout>
+    );
+    expect(screen.getByText(/^paiements:/).textContent).toContain("paiements:35");
+
+    // Démontage complet = rechargement de la page. Rien ne doit survivre.
+    vue.unmount();
+
+    render(
+      <DemoLayout>
+        <EcranAdherents />
+      </DemoLayout>
+    );
+    expect(screen.getByText(/^adherents:/).textContent).toBe("adherents:34");
+  });
+
+  it("porte le bandeau permanent et son bouton de réinitialisation", () => {
+    render(
+      <DemoLayout>
+        <EcranAdherents />
+      </DemoLayout>
+    );
+    expect(screen.getByText(/CLUB FICTIF · AUCUNE DONNÉE RÉELLE/)).toBeTruthy();
+    expect(screen.getByText("RÉINITIALISER")).toBeTruthy();
+  });
+
+  it("la réinitialisation du bandeau agit sur l’état de l’écran", () => {
+    // Le bandeau vit dans le layout, l'écran dans les enfants : la preuve qu'ils
+    // partagent bien le même état est que le bouton de l'un modifie l'autre.
+    render(
+      <DemoLayout>
+        <EcranAdherents />
+      </DemoLayout>
+    );
+    clic("ajouter");
+    expect(screen.getByText(/^adherents:/).textContent).toBe("adherents:35");
+    clic("RÉINITIALISER");
+    expect(screen.getByText(/^adherents:/).textContent).toBe("adherents:34");
+  });
+});
+
+describe("le fichier du layout, lu tel quel", () => {
+  const SOURCE = readFileSync(join(process.cwd(), "src/app/demo/layout.tsx"), "utf8");
+  const sansCommentaires = SOURCE.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it("monte DemoProvider", () => {
+    expect(sansCommentaires).toMatch(/import \{ DemoProvider \}/);
+    expect(sansCommentaires).toMatch(/<DemoProvider>/);
+  });
+
+  it("n’importe aucun rail ni navigation numérotée", () => {
+    // Le rail appartient à `/demo/page.tsx`, comme dans le vrai cockpit où il est
+    // défini dans `cockpit/page.tsx`. Ici, il suivrait le visiteur sur toutes les
+    // sous-pages — et aucune d'elles n'en a dans le produit.
+    expect(sansCommentaires).not.toMatch(/NavDemo|RailDemo|<nav\b/);
+    expect(sansCommentaires).not.toMatch(/AUJOURD’HUI|INSCRIPTIONS|CONTRÔLE/);
   });
 });
 
