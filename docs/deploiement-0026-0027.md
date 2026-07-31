@@ -96,6 +96,16 @@ Le contrôle qui compte n'est pas SQL : c'est de se connecter et de regarder. Si
 
 Les tests d'aujourd'hui sont statiques : cette passe à la main est, pour l'instant, la **seule** vérification qui prouve quoi que ce soit sur le comportement réel.
 
+### Le seul parcours non exercé
+
+> **L'affichage du remboursement Stripe n'a pas pu être testé visuellement en production, aucune adhésion ne possédant actuellement de `stripe_payment_intent`.** La RPC et son filtrage par rôle et par organisation ont été testés directement.
+
+Mesuré le 31/07/2026, sur toute la base : `stripe_payment_intent` non nul = **0 ligne**, `litige_le` non nul = **0 ligne**, `derniere_relance` non nul = **0 ligne**. Personne n'a encore payé par carte, aucun paiement n'a été contesté, aucune relance n'a été horodatée.
+
+On n'a délibérément **pas** fabriqué de fausse référence Stripe pour se rassurer : elle n'aurait prouvé que l'affichage conditionnel d'un bouton, et aurait laissé dans une base réelle une référence invalide qu'un clic malheureux aurait tenté de rembourser.
+
+À la place, `tests/remboursement-fusion.test.ts` exerce la logique sur une adhésion fictive portant un `stripe_payment_intent` — c'est-à-dire précisément ce que la migration pouvait casser : la fusion entre les colonnes de dossier, lues sur la table, et les colonnes financières, lues par la RPC.
+
 Comptes dédiés (`+audit`, `+tresorier`, `+secretaire`…), sur un club de test, supprimés ensuite. **Jamais sur les données d'une association réelle.**
 
 ---
