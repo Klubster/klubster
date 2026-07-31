@@ -19,36 +19,42 @@ Fenêtre concernée : le temps du déploiement Vercel, quelques minutes. C'est p
 
 ## La séquence, en trois temps
 
-### Temps 1 — EXPAND : créer la RPC, sans rien retirer
+### Temps 1 — EXPAND : créer la RPC, **hors du mécanisme de migration**
 
-**Ne jouer que la seconde moitié de `0027`** : la fonction `adhesions_finance` et ses `grant`/`revoke execute`. **Pas** le `revoke select` ni les `grant select` par colonne.
+Exécuter à la main, en SQL direct, **uniquement** :
 
-À ce stade :
+- le `create or replace function public.adhesions_finance(…)` ;
+- ses `revoke execute … from anon, public` et `grant execute … to authenticated`.
 
-- la RPC existe et fonctionne ;
-- les colonnes restent lisibles en direct ;
-- **le code en production continue de marcher sans modification.**
+Aucun droit de colonne n'est retiré. Aucune migration n'est enregistrée.
 
-Rien n'est protégé encore, et rien n'est cassé. C'est le point d'appui.
+> **Pourquoi à la main, et pas « la seconde moitié de 0027 »**
+> Parce qu'appliquer une demi-migration par le mécanisme habituel enregistrerait `0027` comme jouée alors qu'elle ne l'est qu'à moitié. La base et le registre divergeraient, et le prochain qui reconstruit le schéma depuis le dépôt — ou qui rejoue les migrations manquantes — obtiendrait un état différent de la production. C'est exactement ce que la règle « la base doit rester reconstructible depuis le repo » interdit.
+> Ici, on assume une exécution manuelle **transitoire**, que le temps 3 rendra officielle.
+
+À ce stade : la RPC existe, les colonnes restent lisibles en direct, **et le code en production continue de marcher sans modification.** Rien n'est protégé, rien n'est cassé. C'est le point d'appui.
 
 ### Temps 2 — le code
 
 Fusionner la PR #6, laisser Vercel déployer, puis **vérifier sur le site réel** avant d'aller plus loin :
 
-- ouvrir une fiche d'adhérent → les blocs financiers s'affichent ;
-- ouvrir `/cockpit/paiements` → la liste et les litiges s'affichent ;
-- ouvrir `/cockpit/paiements/relances` → les mentions « relancé il y a N j » s'affichent.
+- une **fiche d'adhérent ayant des règlements** → « Réglé / Reste », historique des règlements ;
+- **`/cockpit/paiements`** → la liste, et le bandeau des litiges s'il y en a ;
+- **`/cockpit/paiements/relances`** → les mentions « relancé il y a N j » ;
+- **un bouton « Rembourser ce paiement en ligne »** sur une adhésion payée par carte — c'est le seul chemin qui lit `stripe_payment_intent`, et le seul que les trois autres écrans ne couvrent pas.
 
-Si l'un des trois est vide ou en erreur, **s'arrêter là** : la RPC ne rend pas ce qu'on croit, et il est encore temps de corriger sans que rien ne soit fermé.
+Si l'un des quatre est vide ou en erreur, **s'arrêter là** : la RPC ne rend pas ce qu'on croit, et rien n'est encore fermé.
 
-### Temps 3 — CONTRACT : fermer
+### Temps 3 — CONTRACT : appliquer les deux migrations **en entier**
 
-Jouer, dans cet ordre :
+Par le mécanisme habituel, dans cet ordre :
 
-1. **`0026` en entier** — la politique de lecture de `reglements` ;
-2. **la première moitié de `0027`** — `revoke select on adhesions from authenticated`, puis les `grant select (…)` par colonne.
+1. **`0026` en entier** ;
+2. **`0027` en entier**.
 
-C'est le seul moment irréversible du point de vue d'un rôle non financier. Il est aussi le plus court : deux instructions.
+Le `create or replace function` de `0027` rejoue la RPC déjà créée au temps 1 : c'est sans effet, et c'est justement pourquoi la manœuvre tient. Ce sont les `revoke select` / `grant select (…)` par colonne qui font le travail de fermeture.
+
+À la fin, la base et le registre disent la même chose. C'est le seul moment irréversible du point de vue d'un rôle non financier.
 
 ---
 
@@ -75,7 +81,22 @@ select p.proname,
 -- attendu : anon = false, authent = true (c'est la fonction qui filtre par rôle)
 ```
 
-Puis rouvrir les trois écrans du temps 2. Ils doivent afficher **exactement la même chose qu'avant** : c'est la preuve que la RPC a bien pris le relais.
+### Puis, rôle par rôle
+
+Le contrôle qui compte n'est pas SQL : c'est de se connecter et de regarder. Six comptes, six attentes.
+
+| Rôle | Ce qu'il doit voir | Ce qu'il ne doit plus voir |
+|---|---|---|
+| **Président** | tout : règlements, litiges, relances, remboursement, abonnement Klubster | — |
+| **Trésorier** | la trésorerie du club, les remises, les virements | **l'abonnement Klubster** : prix, état, résiliation, code promo |
+| **Secrétaire** | statut, tarif, mode de paiement, dossiers, pièces, santé | règlements, « Réglé / Reste », litiges, dernière relance, remise, virements |
+| **Encadrant** | sa liste, le contrôle au scan | tout ce qui précède, **y compris par URL directe** sur `/paiements/remise` et `/virements` |
+| **Lecture seule** | la consultation | idem encadrant |
+| **Super-admin** | la RPC doit rendre des lignes sur une organisation choisie | — |
+
+Les tests d'aujourd'hui sont statiques : cette passe à la main est, pour l'instant, la **seule** vérification qui prouve quoi que ce soit sur le comportement réel.
+
+Comptes dédiés (`+audit`, `+tresorier`, `+secretaire`…), sur un club de test, supprimés ensuite. **Jamais sur les données d'une association réelle.**
 
 ---
 
@@ -83,15 +104,18 @@ Puis rouvrir les trois écrans du temps 2. Ils doivent afficher **exactement la 
 
 **Depuis le temps 1 ou 2 :** rien à défaire. Créer une fonction ne casse rien, et le code d'avant n'en dépend pas.
 
-**Depuis le temps 3 :** une seule instruction rétablit l'état antérieur.
+**Depuis le temps 3 :** quatre instructions rétablissent l'état antérieur — le droit de lecture sur la table, puis l'ancienne politique de `reglements`.
 
 ```sql
 grant select on public.adhesions to authenticated;
+
 drop policy if exists reglements_read_role on public.reglements;
 create policy reglements_read_org on public.reglements
   for select to authenticated
   using (organisation_id = current_org_id() or is_super_admin());
 ```
+
+⚠️ Ce retour arrière **laisse le registre des migrations en avance sur la base** : `0026` et `0027` y figurent comme jouées alors que leurs effets sont défaits. Il faut donc, dans la foulée, écrire une migration `0028` qui acte le retour — sinon la reconstruction depuis le dépôt ne donnera plus la production.
 
 À n'utiliser que si un écran tombe **pour un président** — c'est-à-dire si la RPC ne couvre pas un cas qu'on n'avait pas vu. Un écran vide pour un encadrant n'est pas une panne : c'est l'objet du lot.
 
