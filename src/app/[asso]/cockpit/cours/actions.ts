@@ -111,8 +111,12 @@ export async function supprimerCours(slug: string, coursId: string) {
     .eq("organisation_id", org.id);
 
   if ((count ?? 0) > 0) {
+    // Même défaut que le pied de page de l'écran : « Déplacez-les avant de le
+    // supprimer » prescrivait un geste que le produit n'offre pas. On énonce le fait,
+    // et on s'arrête là — quitte à laisser le président sans solution, plutôt que de
+    // l'envoyer en chercher une qui n'existe pas.
     return {
-      erreur: `Ce cours compte ${count} adhérent${count! > 1 ? "s" : ""}. Déplacez-les avant de le supprimer.`,
+      erreur: `Ce cours compte ${count} adhérent${count! > 1 ? "s" : ""} : leurs dossiers y sont rattachés.`,
     };
   }
 
