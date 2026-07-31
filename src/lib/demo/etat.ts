@@ -3,9 +3,19 @@
  *
  * POURQUOI UN RÉDUCTEUR, ET PAS DES `useState` ÉPARPILLÉS
  * Parce que la promesse « rien n'est enregistré » doit être vérifiable d'un coup d'œil.
- * Ici, TOUT ce qui peut arriver aux données tient dans une seule fonction pure : pas de
- * `fetch`, pas de `localStorage`, pas de Supabase, pas d'`await`. Une fonction pure ne
- * peut rien écrire nulle part — c'est une garantie de nature, pas de discipline.
+ * Tout ce qui peut arriver aux données tient dans une seule fonction, qu'on peut lire en
+ * entier.
+ *
+ * CE RÉDUCTEUR EST *CONÇU* COMME UNE FONCTION PURE — CE N'EST PAS UNE GARANTIE DE NATURE
+ * Rien dans le langage ne l'empêche de muter un tableau imbriqué, de modifier une
+ * constante importée, ou d'appeler quelque chose qui a un effet de bord. La pureté est
+ * ici une INTENTION, tenue par trois règles et vérifiée par des tests :
+ *   1. chaque branche renvoie un objet neuf, jamais `etat` modifié ;
+ *   2. aucune méthode mutante (`push`, `splice`, affectation dans un objet existant) ;
+ *   3. `tests/demo-etat.test.ts` prouve qu'une action ne touche ni l'ancien état, ni les
+ *      constantes de `donnees.ts`.
+ * C'est la troisième règle qui compte : les deux premières sont des habitudes, la
+ * dernière est une preuve.
  *
  * POURQUOI AUCUNE PERSISTANCE
  * Ni `localStorage`, ni `sessionStorage`, ni cookie, ni IndexedDB. Un rechargement
@@ -14,11 +24,12 @@
  * machine. Une démonstration qui se souviendrait aurait besoin d'une bannière de
  * consentement — pour rien.
  *
- * LES IDENTIFIANTS
- * Un compteur, jamais `Math.random()` ni `Date.now()` : le rendu serveur et le rendu
- * client doivent produire la même chose, sinon React remplace tout l'arbre au premier
- * affichage. Le compteur vit DANS l'état, donc il est déterministe et remis à zéro par
- * la réinitialisation.
+ * LE TEMPS ET LES IDENTIFIANTS, TOUS DEUX DÉTERMINISTES
+ * Aucun `Date.now()`, aucun `Math.random()`. Les dates viennent de la constante
+ * `AUJOURDHUI`, les identifiants d'un compteur qui vit DANS l'état. Deux raisons : le
+ * rendu serveur et le rendu client doivent produire la même chose, sinon React remplace
+ * tout l'arbre au premier affichage ; et deux visiteurs qui font les mêmes gestes
+ * doivent voir la même chose, sans quoi une capture d'écran ne prouve rien.
  */
 
 import {
@@ -52,22 +63,57 @@ export type EtatDemo = {
   confirmation: string | null;
 };
 
-export const ETAT_INITIAL: EtatDemo = {
-  adherents: ADHERENTS_INITIAUX,
-  adhesions: ADHESIONS_INITIALES,
-  reglements: REGLEMENTS_INITIAUX,
-  pieces: PIECES_INITIALES,
-  questionnaires: QUESTIONNAIRES_INITIAUX,
-  cours: COURS_INITIAUX,
-  campagnes: CAMPAGNES_INITIALES,
-  actualites: ACTUALITES_INITIALES,
-  presences: PRESENCES_INITIALES,
-  remises: [],
-  form: FORM_CONFIG_INITIALE,
-  site: PAGE_CONFIG_INITIALE,
-  compteur: 0,
-  confirmation: null,
-};
+/**
+ * FABRIQUE de l'état initial — et non une constante partagée.
+ *
+ * POURQUOI CE N'EST PAS UN DÉTAIL
+ * Un `export const ETAT_INITIAL = { adherents: ADHERENTS_INITIAUX, … }` partagerait ses
+ * tableaux avec les constantes de `donnees.ts`. Trois conséquences, toutes mauvaises :
+ *
+ *   1. une seule mutation accidentelle, n'importe où, corromprait la source pour toute
+ *      la durée de vie de l'onglet — et la réinitialisation rendrait alors l'état
+ *      corrompu, en croyant rendre l'original ;
+ *   2. `reinitialiser` renverrait le MÊME objet que l'état courant si l'on n'a encore
+ *      rien fait. React compare par identité : il n'aurait rien re-rendu ;
+ *   3. deux onglets ouverts sur `/demo` partageraient les mêmes tableaux dans le module.
+ *
+ * La fabrique recrée toutes les structures imbriquées à chaque appel. Le coût est de
+ * quelques microsecondes ; le bénéfice est qu'il n'existe plus une seule référence
+ * partagée entre l'état vivant et les données de départ.
+ */
+export function creerEtatDemoInitial(): EtatDemo {
+  return {
+    // Chaque objet est recopié, pas seulement le tableau : un `[...ADHERENTS]` aurait
+    // laissé les fiches elles-mêmes partagées avec le module.
+    adherents: ADHERENTS_INITIAUX.map((a) => ({ ...a, infos: { ...a.infos } })),
+    adhesions: ADHESIONS_INITIALES.map((a) => ({ ...a })),
+    reglements: REGLEMENTS_INITIAUX.map((r) => ({ ...r })),
+    pieces: PIECES_INITIALES.map((p) => ({ ...p })),
+    questionnaires: QUESTIONNAIRES_INITIAUX.map((q) => ({ ...q })),
+    cours: COURS_INITIAUX.map((c) => ({ ...c, creneaux: c.creneaux.map((k) => ({ ...k })) })),
+    campagnes: CAMPAGNES_INITIALES.map((c) => ({
+      ...c,
+      destinataires: c.destinataires.map((d) => ({ ...d })),
+    })),
+    actualites: ACTUALITES_INITIALES.map((a) => ({ ...a })),
+    presences: PRESENCES_INITIALES.map((p) => ({ ...p })),
+    remises: [],
+    form: {
+      pages: FORM_CONFIG_INITIALE.pages.map((p) => ({ ...p, champs: p.champs.map((c) => ({ ...c })) })),
+      pieces: FORM_CONFIG_INITIALE.pieces.map((p) => ({ ...p })),
+      remises: FORM_CONFIG_INITIALE.remises.map((r) => ({ ...r })),
+      autorisations: FORM_CONFIG_INITIALE.autorisations.map((a) => ({ ...a })),
+      sante: FORM_CONFIG_INITIALE.sante,
+    },
+    site: {
+      ordre: [...PAGE_CONFIG_INITIALE.ordre],
+      masquees: [...PAGE_CONFIG_INITIALE.masquees],
+      custom: PAGE_CONFIG_INITIALE.custom.map((c) => ({ ...c })),
+    },
+    compteur: 0,
+    confirmation: null,
+  };
+}
 
 export type ActionDemo =
   | { type: "reinitialiser" }
@@ -139,7 +185,9 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
 
   switch (action.type) {
     case "reinitialiser":
-      return ETAT_INITIAL;
+      // La fabrique, pas une constante : on veut des références NEUVES, sinon un état
+      // déjà corrompu se réinitialiserait sur lui-même sans que rien ne bouge.
+      return creerEtatDemoInitial();
 
     case "confirmation/effacer":
       return { ...etat, confirmation: null };

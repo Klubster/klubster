@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer } from "react";
-import { ETAT_INITIAL, reducteurDemo, type ActionDemo, type EtatDemo } from "@/lib/demo/etat";
+import { creerEtatDemoInitial, reducteurDemo, type ActionDemo, type EtatDemo } from "@/lib/demo/etat";
 
 /**
  * Le porteur de l'état simulé, monté une fois dans le layout de `/demo`.
@@ -23,7 +23,11 @@ type Contexte = { etat: EtatDemo; envoyer: (a: ActionDemo) => void };
 const DemoContext = createContext<Contexte | null>(null);
 
 export function DemoProvider({ children }: { children: React.ReactNode }) {
-  const [etat, envoyer] = useReducer(reducteurDemo, ETAT_INITIAL);
+  // Initialisation PARESSEUSE, par la fabrique : le troisième argument de `useReducer`
+  // n'est appelé qu'au premier rendu, et il rend des structures neuves. Passer un objet
+  // constant en second argument aurait partagé ses tableaux entre le module et l'état —
+  // et deux onglets ouverts sur /demo auraient partagé les mêmes.
+  const [etat, envoyer] = useReducer(reducteurDemo, undefined, creerEtatDemoInitial);
   const valeur = useMemo(() => ({ etat, envoyer }), [etat]);
   return <DemoContext.Provider value={valeur}>{children}</DemoContext.Provider>;
 }
