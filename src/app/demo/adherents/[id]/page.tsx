@@ -23,6 +23,235 @@ import type { ModeReglement } from "@/lib/demo/types";
  * pièce ne fait que basculer une pièce DÉJÀ existante.
  */
 
+/**
+ * Le formulaire de coordonnées, isolé dans son composant.
+ *
+ * POURQUOI ISOLÉ, ET PAS UN `useEffect` DE RESYNCHRONISATION
+ * Il faut que les champs suivent la fiche enregistrée quand elle change — après une
+ * anonymisation, le titre devenait « Adhérent anonymisé » pendant que les champs
+ * montraient encore le vrai nom, juste au-dessus d'une phrase promettant l'inverse.
+ *
+ * La réponse idiomatique de React n'est pas un effet qui appelle `setState` : c'est une
+ * `key`. Quand la clé change, React démonte et remonte, et les `useState` se
+ * réinitialisent tout seuls. L'effet aurait produit un rendu de trop, un avertissement
+ * de lint mérité, et surtout le risque exact que Mathieu a nommé : une dépendance trop
+ * large effaçant la saisie en cours dès qu'une pièce est cochée ailleurs sur la fiche.
+ *
+ * Ici, la clé ne dépend QUE des quatre valeurs enregistrées. Taper dans un champ ne la
+ * change pas ; cocher une pièce non plus.
+ */
+function Coordonnees({
+  prenomInitial,
+  nomInitial,
+  emailInitial,
+  telephoneInitial,
+  onEnregistrer,
+}: {
+  prenomInitial: string;
+  nomInitial: string;
+  emailInitial: string;
+  telephoneInitial: string;
+  onEnregistrer: (v: { prenom: string; nom: string; email: string; telephone: string }) => void;
+}) {
+  const [prenom, setPrenom] = useState(prenomInitial);
+  const [nom, setNom] = useState(nomInitial);
+  const [email, setEmail] = useState(emailInitial);
+  const [telephone, setTelephone] = useState(telephoneInitial);
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  return (
+    <>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="f-prenom" className={LABEL_DEMO}>
+            PRÉNOM *
+          </label>
+          <input id="f-prenom" value={prenom} onChange={(e) => setPrenom(e.target.value)} className={CHAMP_DEMO} />
+        </div>
+        <div>
+          <label htmlFor="f-nom" className={LABEL_DEMO}>
+            NOM *
+          </label>
+          <input id="f-nom" value={nom} onChange={(e) => setNom(e.target.value)} className={CHAMP_DEMO} />
+        </div>
+        <div>
+          <label htmlFor="f-email" className={LABEL_DEMO}>
+            EMAIL
+          </label>
+          <input id="f-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={CHAMP_DEMO} />
+        </div>
+        <div>
+          <label htmlFor="f-tel" className={LABEL_DEMO}>
+            TÉLÉPHONE
+          </label>
+          <input id="f-tel" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} className={CHAMP_DEMO} />
+        </div>
+      </div>
+
+      {erreur ? (
+        <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>
+          {erreur}
+        </p>
+      ) : null}
+
+      <BoutonSimuler
+        libelle="SIMULER L’ENREGISTREMENT DE LA FICHE"
+        onSimuler={() => {
+          // Le produit rejette explicitement un prénom ou un nom vide. Sans ce contrôle,
+          // la liste affichait une ligne vide et cliquable, sans rien pour l'expliquer.
+          if (!prenom.trim() || !nom.trim()) {
+            setErreur("Le prénom et le nom sont obligatoires.");
+            return;
+          }
+          setErreur(null);
+          onEnregistrer({ prenom, nom, email, telephone });
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * L'encart d'encaissement, isolé lui aussi.
+ *
+ * Sa clé porte l'adhésion ciblée ET son reste : le montant se re-remplit donc au
+ * changement d'adhésion comme après chaque encaissement, sans effet ni `setState`
+ * différé. Le solde est VRAIMENT dans le champ, pas en filigrane — un `placeholder`
+ * avait l'air identique et se comportait autrement, puisqu'un champ vide encaissait
+ * silencieusement la totalité au lieu d'être refusé.
+ */
+function EncartReglement({
+  dues,
+  nomDuCours,
+  cible,
+  onCible,
+  resteCible,
+  onEnregistrer,
+}: {
+  dues: { id: string; reste: number; coursId: string | null }[];
+  nomDuCours: (id: string | null) => string;
+  cible: string;
+  onCible: (id: string) => void;
+  resteCible: number;
+  onEnregistrer: (v: { montantCentimes: number; mode: ModeReglement; note: string | null }) => void;
+}) {
+  const [montant, setMontant] = useState(
+    resteCible > 0 ? (resteCible / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) : ""
+  );
+  const [mode, setMode] = useState<ModeReglement>("especes");
+  const [libelle, setLibelle] = useState("");
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  return (
+    <div className="mt-4 border border-line bg-paper px-5 py-5">
+      <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+        ENREGISTRER UN RÈGLEMENT<span className="text-brand">_</span>
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        {dues.length > 1 ? (
+          <div>
+            <label htmlFor="adh" className={LABEL_DEMO}>
+              ADHÉSION
+            </label>
+            <select
+              id="adh"
+              value={cible}
+              onChange={(e) => onCible(e.target.value)}
+              className="mt-1.5 min-h-[44px] border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+            >
+              {dues.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {nomDuCours(d.coursId)} — reste {(d.reste / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
+        <div>
+          <label htmlFor="mnt" className={LABEL_DEMO}>
+            MONTANT (€)
+          </label>
+          <input
+            id="mnt"
+            inputMode="decimal"
+            value={montant}
+            onChange={(e) => setMontant(e.target.value)}
+            className="mt-1.5 min-h-[44px] w-[120px] border border-line bg-paper px-3 py-2.5 text-right outline-none focus:border-ink"
+          />
+        </div>
+
+        <div>
+          <span className={LABEL_DEMO}>REÇU EN</span>
+          <div className="mt-1.5 flex border border-line">
+            {(["especes", "cheque", "autre"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                aria-pressed={mode === m}
+                className={`mono min-h-[44px] px-4 py-2.5 text-[12px] ${mode === m ? "bg-ink text-paper" : "hover:bg-bg-alt"}`}
+              >
+                {m === "especes" ? "Espèces" : m === "cheque" ? "Chèque" : "Autre"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Le champ Nature n'apparaît QUE pour « Autre ». */}
+        {mode === "autre" ? (
+          <div>
+            <label htmlFor="nature" className={LABEL_DEMO}>
+              NATURE
+            </label>
+            <input
+              id="nature"
+              value={libelle}
+              onChange={(e) => setLibelle(e.target.value)}
+              placeholder="Chèque vacances, aide CAF…"
+              className="mt-1.5 min-h-[44px] border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+            />
+          </div>
+        ) : null}
+      </div>
+
+      {erreur ? (
+        <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+          {erreur}
+        </p>
+      ) : null}
+
+      <div className="mt-4">
+        <BoutonSimuler
+          libelle="SIMULER L’ENCAISSEMENT"
+          couleur={CLUB.couleur}
+          pleineLargeur={false}
+          onSimuler={() => {
+            const euros = parseFloat(montant.replace(",", "."));
+            // Vide ou invalide : on refuse. On n'encaisse plus la totalité en silence.
+            if (!Number.isFinite(euros) || euros <= 0) {
+              setErreur("Indiquez un montant.");
+              return;
+            }
+            setErreur(null);
+            onEnregistrer({
+              montantCentimes: Math.round(euros * 100),
+              mode,
+              note: mode === "autre" ? libelle.trim() || "Autre" : null,
+            });
+          }}
+        />
+      </div>
+
+      <p className="mono mt-3 text-[11px] text-ink-faint">
+        Le solde est pré-rempli. Changez-le pour un acompte ; l’adhésion passe « payé » quand tout est
+        réglé. Aucune banque, aucun numéro de chèque : Klubster ne les demande pas.
+      </p>
+    </div>
+  );
+}
+
 const ETAT_ADHESION: Record<string, { texte: string; couleur: string }> = {
   paye: { texte: "Payé", couleur: "#1E7A4F" },
   en_retard: { texte: "En retard", couleur: "#B23B3B" },
@@ -58,23 +287,17 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
   const dues = adhesions.map((a) => ({ a, reste: resteDe(etat, a) })).filter((x) => x.reste > 0);
   const litige = adhesions.find((a) => a.stripe_payment_intent && false); // aucun litige dans ce club
 
-  // ——— Formulaire de coordonnées ———
-  const [prenom, setPrenom] = useState(adherent?.prenom ?? "");
-  const [nom, setNom] = useState(adherent?.nom ?? "");
-  const [email, setEmail] = useState(adherent?.email ?? "");
-  const [telephone, setTelephone] = useState(adherent?.telephone ?? "");
-
-  // ——— Encart règlement ———
-  const [cible, setCible] = useState<string>("");
-  const [montant, setMontant] = useState("");
-  const [mode, setMode] = useState<ModeReglement>("especes");
-  const [libelle, setLibelle] = useState("");
-  const [erreurReglement, setErreurReglement] = useState<string | null>(null);
-
-  // ——— RGPD et remboursement ———
+  // ——— RGPD, remboursement, adhésion ciblée ———
+  // TOUS les hooks vivent au-dessus du `return` conditionnel. React exige le même ordre
+  // d'appel à chaque rendu ; en placer un après une sortie anticipée est une erreur que
+  // le lint refuse à juste titre, et que j'avais commise.
   const [confirmeAnonymisation, setConfirmeAnonymisation] = useState(false);
   const [remboursementOuvert, setRemboursementOuvert] = useState<string | null>(null);
   const [montantRemboursement, setMontantRemboursement] = useState("");
+  const [cible, setCible] = useState<string>("");
+
+  const adhesionCiblee = cible && dues.some((d) => d.a.id === cible) ? cible : dues[0]?.a.id ?? "";
+  const resteCible = dues.find((d) => d.a.id === adhesionCiblee)?.reste ?? 0;
 
   if (!adherent) {
     return (
@@ -86,28 +309,6 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
       </main>
     );
   }
-
-  const adhesionCiblee = cible || dues[0]?.a.id || "";
-  const resteCible = dues.find((d) => d.a.id === adhesionCiblee)?.reste ?? 0;
-
-  const enregistrerReglement = () => {
-    const euros = parseFloat(montant.replace(",", "."));
-    const centimes = Number.isFinite(euros) && euros > 0 ? Math.round(euros * 100) : resteCible;
-    if (centimes <= 0) {
-      setErreurReglement("Indiquez un montant.");
-      return;
-    }
-    setErreurReglement(null);
-    envoyer({
-      type: "reglement/ajouter",
-      adhesionId: adhesionCiblee,
-      montantCentimes: centimes,
-      mode,
-      note: mode === "autre" ? libelle.trim() || "Autre" : null,
-    });
-    setMontant("");
-    setLibelle("");
-  };
 
   return (
     <main className="min-h-screen text-ink">
@@ -139,35 +340,16 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
             COORDONNÉES<Cur />
           </p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="f-prenom" className={LABEL_DEMO}>
-                PRÉNOM *
-              </label>
-              <input id="f-prenom" value={prenom} onChange={(e) => setPrenom(e.target.value)} className={CHAMP_DEMO} />
-            </div>
-            <div>
-              <label htmlFor="f-nom" className={LABEL_DEMO}>
-                NOM *
-              </label>
-              <input id="f-nom" value={nom} onChange={(e) => setNom(e.target.value)} className={CHAMP_DEMO} />
-            </div>
-            <div>
-              <label htmlFor="f-email" className={LABEL_DEMO}>
-                EMAIL
-              </label>
-              <input id="f-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={CHAMP_DEMO} />
-            </div>
-            <div>
-              <label htmlFor="f-tel" className={LABEL_DEMO}>
-                TÉLÉPHONE
-              </label>
-              <input id="f-tel" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} className={CHAMP_DEMO} />
-            </div>
-          </div>
-          <BoutonSimuler
-            libelle="SIMULER L’ENREGISTREMENT DE LA FICHE"
-            onSimuler={() => envoyer({ type: "adherent/modifier", id, prenom, nom, email, telephone })}
+          {/* La clé ne dépend QUE des valeurs enregistrées : une saisie en cours survit
+              à toute autre action de la fiche, et se resynchronise dès que la fiche
+              elle-même change — anonymisation ou réinitialisation. */}
+          <Coordonnees
+            key={`${adherent.prenom}|${adherent.nom}|${adherent.email ?? ""}|${adherent.telephone ?? ""}`}
+            prenomInitial={adherent.prenom}
+            nomInitial={adherent.nom}
+            emailInitial={adherent.email ?? ""}
+            telephoneInitial={adherent.telephone ?? ""}
+            onEnregistrer={(v) => envoyer({ type: "adherent/modifier", id, ...v })}
           />
         </section>
 
@@ -269,104 +451,19 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
 
           {/* 6 — enregistrer un règlement */}
           {dues.length > 0 ? (
-            <div className="mt-4 border border-line bg-paper px-5 py-5">
-              <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-                ENREGISTRER UN RÈGLEMENT<span className="text-brand">_</span>
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-end gap-3">
-                {dues.length > 1 ? (
-                  <div>
-                    <label htmlFor="adh" className={LABEL_DEMO}>
-                      ADHÉSION
-                    </label>
-                    <select
-                      id="adh"
-                      value={adhesionCiblee}
-                      onChange={(e) => {
-                        setCible(e.target.value);
-                        setMontant("");
-                      }}
-                      className="mt-1.5 min-h-[44px] border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
-                    >
-                      {dues.map(({ a, reste: r }) => (
-                        <option key={a.id} value={a.id}>
-                          {etat.cours.find((c) => c.id === a.cours_id)?.nom ?? "Cours"} — reste{" "}
-                          {(r / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : null}
-
-                <div>
-                  <label htmlFor="mnt" className={LABEL_DEMO}>
-                    MONTANT (€)
-                  </label>
-                  <input
-                    id="mnt"
-                    inputMode="decimal"
-                    value={montant}
-                    onChange={(e) => setMontant(e.target.value)}
-                    placeholder={(resteCible / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
-                    className="mt-1.5 min-h-[44px] w-[120px] border border-line bg-paper px-3 py-2.5 text-right outline-none focus:border-ink"
-                  />
-                </div>
-
-                <div>
-                  <span className={LABEL_DEMO}>REÇU EN</span>
-                  <div className="mt-1.5 flex border border-line">
-                    {(["especes", "cheque", "autre"] as const).map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setMode(m)}
-                        aria-pressed={mode === m}
-                        className={`mono min-h-[44px] px-4 py-2.5 text-[12px] ${mode === m ? "bg-ink text-paper" : "hover:bg-bg-alt"}`}
-                      >
-                        {m === "especes" ? "Espèces" : m === "cheque" ? "Chèque" : "Autre"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Le champ Nature n'apparaît QUE pour « Autre ». */}
-                {mode === "autre" ? (
-                  <div>
-                    <label htmlFor="nature" className={LABEL_DEMO}>
-                      NATURE
-                    </label>
-                    <input
-                      id="nature"
-                      value={libelle}
-                      onChange={(e) => setLibelle(e.target.value)}
-                      placeholder="Chèque vacances, aide CAF…"
-                      className="mt-1.5 min-h-[44px] border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
-                    />
-                  </div>
-                ) : null}
-              </div>
-
-              {erreurReglement ? (
-                <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
-                  {erreurReglement}
-                </p>
-              ) : null}
-
-              <div className="mt-4">
-                <BoutonSimuler
-                  libelle="SIMULER L’ENCAISSEMENT"
-                  couleur={CLUB.couleur}
-                  pleineLargeur={false}
-                  onSimuler={enregistrerReglement}
-                />
-              </div>
-
-              <p className="mono mt-3 text-[11px] text-ink-faint">
-                Le solde est pré-rempli. Changez-le pour un acompte ; l’adhésion passe « payé » quand tout
-                est réglé. Aucune banque, aucun numéro de chèque : Klubster ne les demande pas.
-              </p>
-            </div>
+            // La clé porte l'adhésion ciblée ET son reste : le montant se re-remplit au
+            // changement d'adhésion comme après chaque encaissement.
+            <EncartReglement
+              key={`${adhesionCiblee}|${resteCible}`}
+              dues={dues.map((d) => ({ id: d.a.id, reste: d.reste, coursId: d.a.cours_id }))}
+              nomDuCours={(cid) => etat.cours.find((c) => c.id === cid)?.nom ?? "Cours"}
+              cible={adhesionCiblee}
+              onCible={setCible}
+              resteCible={resteCible}
+              onEnregistrer={({ montantCentimes, mode, note }) =>
+                envoyer({ type: "reglement/ajouter", adhesionId: adhesionCiblee, montantCentimes, mode, note })
+              }
+            />
           ) : null}
 
           {/* 7 — historique des règlements */}

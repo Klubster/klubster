@@ -336,8 +336,15 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
     }
 
     case "adherent/anonymiser": {
-      // Comme le produit : on efface l'identité, on GARDE les écritures comptables.
-      // Les règlements restent, l'adhésion reste, seul le nom disparaît.
+      // Comme le produit : on efface l'identité et les données de santé, on GARDE les
+      // écritures comptables. Les règlements restent, l'adhésion reste.
+      //
+      // LES PIÈCES PARTENT AUSSI, et c'est le point que j'avais manqué. L'effacement
+      // réel se fait en trois couches : les fichiers du Storage (`pieces/…`),
+      // l'anonymisation SQL, puis la suppression du compte. Garder les pièces revenait
+      // à laisser la fiche afficher les certificats et leurs liens « Consulter » sous
+      // une phrase affirmant que les données de santé avaient été effacées. Un
+      // certificat médical EST une donnée de santé.
       return {
         ...etat,
         adherents: etat.adherents.map((a) =>
@@ -346,6 +353,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
             : a
         ),
         questionnaires: etat.questionnaires.filter((q) => q.adherent_id !== action.id),
+        pieces: etat.pieces.filter((p) => p.adherent_id !== action.id),
         confirmation:
           "Anonymisation simulée. Les écritures comptables sont conservées, comme l’exige la loi. Rechargez ou réinitialisez pour revenir en arrière.",
       };

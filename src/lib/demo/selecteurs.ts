@@ -11,7 +11,7 @@
  * Aucun import de Supabase, Stripe, Resend ou d'une Server Action.
  */
 
-import { AUJOURDHUI, INSTANT_DEMO } from "./donnees";
+import { AUJOURDHUI, CLUB, INSTANT_DEMO } from "./donnees";
 import type { EtatDemo } from "./etat";
 import type { AdherentDemo, AdhesionDemo } from "./types";
 
@@ -60,9 +60,23 @@ export function listerAdherents(
 
   return etat.adherents
     .map((adherent) => {
-      // Une ligne par adhérent, portant son adhésion la plus pertinente : celle qui
-      // correspond au filtre s'il y en a un, la première sinon.
-      const siennes = etat.adhesions.filter((ad) => ad.adherent_id === adherent.id);
+      // QUELLE ADHÉSION LA LIGNE MONTRE-T-ELLE ?
+      //
+      // La saison courante d'abord, la plus récente ensuite. Prendre simplement la
+      // première du tableau produisait un défaut visible : après « RENOUVELER LA
+      // SAISON », le hub annonçait deux dossiers en attente pendant que la liste
+      // continuait d'afficher « Payé » — l'adhésion de l'an dernier, restée en tête.
+      // Le président voyait son propre clic ne rien faire.
+      const siennes = etat.adhesions
+        .filter((ad) => ad.adherent_id === adherent.id)
+        .sort((x, y) => {
+          const xCourante = x.saison === CLUB.saison ? 0 : 1;
+          const yCourante = y.saison === CLUB.saison ? 0 : 1;
+          if (xCourante !== yCourante) return xCourante - yCourante;
+          return x.created_at < y.created_at ? 1 : -1;
+        });
+      // Avec un filtre, on cherche ce statut parmi ses adhésions — dans le même ordre,
+      // donc en privilégiant là aussi la saison courante.
       const adhesion = statut ? siennes.find((ad) => ad.statut === statut) ?? null : siennes[0] ?? null;
       return { adherent, adhesion, nomCours: adhesion?.cours_id ? nomCours.get(adhesion.cours_id) ?? null : null };
     })

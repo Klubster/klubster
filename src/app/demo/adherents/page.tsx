@@ -29,6 +29,14 @@ const ETAT_LIGNE: Record<string, { texte: string; couleur: string }> = {
 
 export default function DemoAdherents() {
   const { etat, envoyer } = useDemo();
+
+  // DEUX ÉTATS, ET C'EST VOLONTAIRE. Le produit a un champ, un filtre et un bouton
+  // `CHERCHER` : la recherche s'applique au clic, pas à la frappe. Filtrer à chaque
+  // caractère est plus fluide — et ce n'est plus le même écran. Un président qui tape
+  // trois lettres et voit la liste se vider apprend quelque chose de faux sur son
+  // logiciel.
+  const [saisieQ, setSaisieQ] = useState("");
+  const [saisieStatut, setSaisieStatut] = useState("");
   const [q, setQ] = useState("");
   const [statut, setStatut] = useState("");
   const [page, setPage] = useState(1);
@@ -38,14 +46,18 @@ export default function DemoAdherents() {
   // supprimé, on ne tombe jamais sur un écran vide en croyant qu'il n'y a personne.
   const { page: pageCourante, pages, debut, tranche } = paginer(lignes, page);
 
-  // Toute recherche ou tout filtre RAMÈNE À LA PAGE 1. Sans cela, chercher un nom
-  // depuis la page 2 donnerait une liste vide — le résultat existe, il est page 1.
-  const chercher = (v: string) => {
-    setQ(v);
+  // Appliquer RAMÈNE À LA PAGE 1. Sans cela, chercher un nom depuis la page 2 donnerait
+  // une liste vide — le résultat existe, il est page 1.
+  const appliquer = () => {
+    setQ(saisieQ);
+    setStatut(saisieStatut);
     setPage(1);
   };
-  const filtrer = (v: string) => {
-    setStatut(v);
+  const effacer = () => {
+    setSaisieQ("");
+    setSaisieStatut("");
+    setQ("");
+    setStatut("");
     setPage(1);
   };
 
@@ -58,8 +70,12 @@ export default function DemoAdherents() {
 
       <div className="mx-auto max-w-5xl px-6 py-12 md:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Le nombre AFFICHÉ est celui de la liste rendue, filtres compris. Le produit
+              lit `count` sur la requête, donc après recherche et filtre. Annoncer
+              « 34 adhérents » au-dessus d'une seule ligne aurait été un compteur qui
+              ment sur ce qu'on regarde. */}
           <h1 className="text-3xl font-medium tracking-[-0.01em]">
-            {etat.adherents.length} adhérent{etat.adherents.length > 1 ? "s" : ""}
+            {lignes.length} adhérent{lignes.length > 1 ? "s" : ""}
           </h1>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <Link
@@ -98,15 +114,21 @@ export default function DemoAdherents() {
           </button>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        <form
+          className="mt-8 flex flex-wrap items-center gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            appliquer();
+          }}
+        >
           <label htmlFor="recherche" className="sr-only">
             Rechercher un adhérent par nom, prénom ou email
           </label>
           <input
             id="recherche"
             type="search"
-            value={q}
-            onChange={(e) => chercher(e.target.value)}
+            value={saisieQ}
+            onChange={(e) => setSaisieQ(e.target.value)}
             placeholder="Rechercher un nom, un prénom, un email…"
             className="min-h-[44px] min-w-[260px] flex-1 border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
           />
@@ -115,8 +137,8 @@ export default function DemoAdherents() {
           </label>
           <select
             id="filtre"
-            value={statut}
-            onChange={(e) => filtrer(e.target.value)}
+            value={saisieStatut}
+            onChange={(e) => setSaisieStatut(e.target.value)}
             className="min-h-[44px] border border-line bg-paper px-3 py-3 outline-none focus:border-ink"
           >
             {FILTRES_STATUT.map((f) => (
@@ -125,19 +147,18 @@ export default function DemoAdherents() {
               </option>
             ))}
           </select>
+          <button
+            type="submit"
+            className="mono min-h-[44px] border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          >
+            CHERCHER
+          </button>
           {q || statut ? (
-            <button
-              type="button"
-              onClick={() => {
-                chercher("");
-                filtrer("");
-              }}
-              className="mono min-h-[44px] px-2 text-[12px] text-ink-soft hover:text-ink"
-            >
+            <button type="button" onClick={effacer} className="mono min-h-[44px] px-2 text-[12px] text-ink-soft hover:text-ink">
               Effacer
             </button>
           ) : null}
-        </div>
+        </form>
 
         {tranche.length === 0 ? (
           <p className="mt-12 text-lg text-ink-soft">
