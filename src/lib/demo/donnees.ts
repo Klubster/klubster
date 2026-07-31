@@ -158,6 +158,9 @@ export const ADHESIONS_INITIALES: AdhesionDemo[] = BRUTS.map((b, i) => ({
   // à 1 sous ses yeux.
   created_at: b[4],
   stripe_payment_intent: null,
+  // Personne n'a encore été relancé : c'est au visiteur de le faire, et de voir la
+  // mention « relancé aujourd'hui » apparaître sous le nom.
+  derniere_relance: null,
 }));
 
 /**

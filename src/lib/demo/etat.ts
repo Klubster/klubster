@@ -132,6 +132,7 @@ export type ActionDemo =
   | { type: "remboursement/simuler"; adhesionId: string; montantCentimes: number | null }
   | { type: "piece/basculer"; id: string }
   | { type: "cheques/remettre"; ids: string[] }
+  | { type: "relance/simuler"; adhesionIds: string[] }
   | { type: "presence/marquer"; adherentId: string }
   | { type: "campagne/ajouter"; objet: string; corps: string; groupeLibelle: string; emails: string[] }
   | { type: "campagne/avancer"; id: string }
@@ -500,6 +501,23 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         compteur: n,
         confirmation:
           "Remboursement simulé. Aucune demande n’a été transmise à Stripe, et aucune carte n’a été recréditée.",
+      };
+    }
+
+    case "relance/simuler": {
+      // Le produit n'horodate QUE les envois réellement partis (`marquer_relance` reçoit
+      // les identifiants servis, pas la liste demandée). Ici rien ne part, donc rien à
+      // départager : on estampille ce qui a été visé. La liste vide ne change rien —
+      // sans elle, cliquer sur un groupe sans destinataire produisait une confirmation
+      // « 0 relance simulée » et une nouvelle référence d'état pour rien.
+      if (action.adhesionIds.length === 0) return etat;
+      const n2 = action.adhesionIds.length;
+      return {
+        ...etat,
+        adhesions: etat.adhesions.map((a) =>
+          action.adhesionIds.includes(a.id) ? { ...a, derniere_relance: AUJOURDHUI } : a
+        ),
+        confirmation: `${n2} relance${n2 > 1 ? "s" : ""} simulée${n2 > 1 ? "s" : ""}. Aucun email n’est parti.`,
       };
     }
 

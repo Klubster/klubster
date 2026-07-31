@@ -60,6 +60,12 @@ export type AdhesionDemo = {
   created_at: string;
   /** Seule adhésion payée par carte : ouvre le panneau de remboursement. */
   stripe_payment_intent?: string | null;
+  /**
+   * Date de la dernière relance, colonne réelle lue par l'écran des relances via
+   * `adhesions_finance`. Elle sert à afficher « relancé il y a 3 j » et, dans le
+   * produit, à ne pas solliciter deux fois de suite la même personne.
+   */
+  derniere_relance?: string | null;
 };
 
 export type ModeReglement = "especes" | "cheque" | "en_ligne" | "autre";
