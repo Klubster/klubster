@@ -219,8 +219,19 @@ export function BoutonSimuler({
   pleineLargeur?: boolean;
 }) {
   const [enCours, setEnCours] = useState(false);
+
+  // La fonction est rangée dans une ref MISE À JOUR DANS UN EFFET, jamais pendant le
+  // rendu — React interdit d'y toucher à ce moment-là, et le lint le refuse à juste
+  // titre : un rendu doit pouvoir être abandonné sans laisser de trace.
+  //
+  // Pourquoi une ref plutôt qu'une dépendance : les appelants passent une fonction
+  // fléchée, dont l'identité change à chaque rendu. En dépendance, le minuteur
+  // repartirait de zéro à chaque fois et le bouton resterait « SIMULATION… » sans jamais
+  // aboutir.
   const rappel = useRef(onSimuler);
-  rappel.current = onSimuler;
+  useEffect(() => {
+    rappel.current = onSimuler;
+  }, [onSimuler]);
 
   useEffect(() => {
     if (!enCours) return;

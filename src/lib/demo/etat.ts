@@ -75,7 +75,12 @@ export type EtatDemo = {
  *      corrompu, en croyant rendre l'original ;
  *   2. `reinitialiser` renverrait le MÊME objet que l'état courant si l'on n'a encore
  *      rien fait. React compare par identité : il n'aurait rien re-rendu ;
- *   3. deux onglets ouverts sur `/demo` partageraient les mêmes tableaux dans le module.
+ *   3. deux instances d'état — deux providers montés dans un même test, ou deux appels
+ *      successifs — partageraient les mêmes références.
+ *
+ * (Ce troisième point ne concerne PAS deux onglets de navigateur : chacun a son propre
+ * tas mémoire et sa propre copie du module. C'est bien le partage de références au sein
+ * d'un même environnement qui pose problème.)
  *
  * La fabrique recrée toutes les structures imbriquées à chaque appel. Le coût est de
  * quelques microsecondes ; le bénéfice est qu'il n'existe plus une seule référence

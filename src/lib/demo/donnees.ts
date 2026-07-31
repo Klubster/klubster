@@ -55,8 +55,11 @@ const t = (coursId: string) =>
 // ——— Adhérents ————————————————————————————————————————————————————————————————
 // 34 fiches : au-delà des 25 d'une page, pour que la pagination se voie vraiment.
 
-type Brut = [string, string, string, string | null, string, string, string];
-//           prénom  nom     email   téléphone      inscritLe  coursId  statut
+// Email ET téléphone peuvent manquer : un club a toujours quelques adhérents sans
+// adresse — c'est ce qui rend crédible le « 33 destinataires avec un email » du
+// composeur, et ce qui fait exister la mention « Pas d'email » sur les relances.
+type Brut = [string, string, string | null, string | null, string, string, string];
+//           prénom  nom     email          téléphone      inscritLe  coursId  statut
 
 const BRUTS: Brut[] = [
   ["Marion", "Berthier", "marion.berthier@example.com", "06 12 34 56 78", "2026-09-02", "c1", "paye"],

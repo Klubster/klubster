@@ -23,6 +23,27 @@ import {
 /** Photographie profonde, pour comparer AVANT et APRÈS sans partager de référence. */
 const photo = (v: unknown) => JSON.stringify(v);
 
+/**
+ * Gèle l'objet et tout ce qu'il contient.
+ *
+ * POURQUOI CET OUTIL EN PLUS DE `photo()`
+ * Comparer deux photographies ne voit qu'une mutation qui CHANGE une valeur. En
+ * vérifiant que ces tests mordaient, j'ai écrit `pieces[0].statut = "recue"` sur une
+ * pièce déjà « reçue » : aucune photo ne bougeait, les cinquante tests restaient verts,
+ * et le réducteur mutait pourtant son entrée. Le gel attrape la mutation elle-même, pas
+ * son résultat — une affectation sur un objet gelé lève en mode strict, que la valeur
+ * change ou non.
+ *
+ * Les modules ES sont en mode strict par défaut : l'erreur est levée, pas ignorée.
+ */
+function deepFreeze<T>(objet: T): T {
+  if (objet && typeof objet === "object" && !Object.isFrozen(objet)) {
+    Object.freeze(objet);
+    Object.values(objet).forEach(deepFreeze);
+  }
+  return objet;
+}
+
 const SOURCES = {
   adherents: ADHERENTS_INITIAUX,
   adhesions: ADHESIONS_INITIALES,
@@ -98,11 +119,32 @@ describe("la fabrique rend des objets indépendants", () => {
 });
 
 describe("aucune action ne modifie l’état qu’elle reçoit", () => {
+  it.each(ACTIONS.map((a) => [a.type, a] as const))(
+    "%s ne peut pas écrire dans un état gelé",
+    (_nom, action) => {
+      // Le test le plus sévère du fichier : la moindre affectation lève, même si elle
+      // réécrit la valeur déjà présente. C'est exactement la mutation que la comparaison
+      // par photographie laissait passer.
+      const etat = deepFreeze(creerEtatDemoInitial());
+      expect(() => reducteurDemo(etat, action)).not.toThrow();
+    }
+  );
+
   it.each(ACTIONS.map((a) => [a.type, a] as const))("%s laisse l’ancien état intact", (_nom, action) => {
     const etat = creerEtatDemoInitial();
     const avant = photo(etat);
     reducteurDemo(etat, action);
     expect(photo(etat)).toBe(avant);
+  });
+
+  it("toute la séquence s’exécute sur des états gelés de bout en bout", () => {
+    // Chaque état produit est gelé avant de servir d'entrée au suivant : aucune branche
+    // ne peut donc écrire dans ce qu'elle reçoit, à aucun moment de la chaîne.
+    let etat = deepFreeze(creerEtatDemoInitial());
+    for (const action of ACTIONS) {
+      etat = deepFreeze(reducteurDemo(etat, action));
+    }
+    expect(etat.adherents.length).toBeGreaterThan(0);
   });
 
   it("une chaîne d’actions ne corrompt jamais les états intermédiaires", () => {
