@@ -298,6 +298,78 @@ export function jourEtCours(etat: EtatDemo) {
   return { jourSemaine, coursDuJour };
 }
 
+// ——— Contrôle au bord du tapis ————————————————————————————————————————————————
+
+export type VerifDemo = {
+  id: string;
+  prenom: string;
+  nom: string;
+  cours: string | null;
+  regle: boolean;
+  piecesManquantes: number;
+  present: boolean;
+};
+
+/**
+ * Ce que la RPC `verifier_adherent` renvoie, reproduit ligne à ligne.
+ *
+ * TROIS DÉTAILS QUI NE S'INVENTENT PAS, et que j'ai relus dans `0013` :
+ *
+ *   — `cours` et `regle` viennent de la MÊME adhésion : la plus récente
+ *     (`order by ad.created_at desc limit 1`). Pas « un cours parmi les siens », pas
+ *     « toutes ses adhésions sont-elles payées ». Une adhérente qui a renouvelé et n'a
+ *     pas encore payé est « Non réglé », même si l'an dernier était soldé.
+ *   — sans aucune adhésion, `regle` vaut `false` (`coalesce(…, false)`), pas « à jour ».
+ *   — `pieces_manquantes` compte les pièces `manquante`, sans se soucier du caractère
+ *     obligatoire : au bord du tapis on veut le nombre, pas une nuance juridique.
+ *
+ * Le tri se fait sur `created_at` PUIS sur l'identifiant. Sans ce second critère, deux
+ * adhésions créées le même jour — cas d'un renouvellement le jour de l'inscription —
+ * sortaient dans l'ordre du tableau, c'est-à-dire dans l'ordre d'écriture, c'est-à-dire
+ * au hasard. L'écran aurait affiché tantôt l'ancienne, tantôt la nouvelle.
+ */
+export function verifierAdherentDemo(etat: EtatDemo, adherentId: string): VerifDemo | null {
+  const a = etat.adherents.find((x) => x.id === adherentId);
+  if (!a) return null;
+
+  const siennes = etat.adhesions
+    .filter((ad) => ad.adherent_id === a.id)
+    .sort((x, y) => (y.created_at.localeCompare(x.created_at) || y.id.localeCompare(x.id)));
+  const derniere = siennes[0] ?? null;
+
+  return {
+    id: a.id,
+    prenom: a.prenom,
+    nom: a.nom,
+    cours: derniere?.cours_id ? etat.cours.find((c) => c.id === derniere.cours_id)?.nom ?? null : null,
+    regle: derniere ? derniere.statut === "paye" : false,
+    piecesManquantes: etat.pieces.filter((p) => p.adherent_id === a.id && p.statut === "manquante").length,
+    present: etat.presences.some((p) => p.adherent_id === a.id && p.jour === AUJOURDHUI),
+  };
+}
+
+/**
+ * La recherche par nom du scanner — celle de `rechercher()`, pas celle de la liste.
+ *
+ * Deux règles propres à cet écran, et il ne faut pas les confondre avec celles de
+ * `listerAdherents` : DEUX caractères minimum (en dessous, on renvoie une liste vide
+ * plutôt que tout le club), et DOUZE résultats au plus. Elles existent parce qu'on
+ * cherche ici d'une main, debout, entre deux arrivées.
+ *
+ * Le nettoyage retire tout ce qui n'est ni lettre, ni chiffre, ni espace, ni tiret —
+ * c'est la précaution du serveur contre l'injection dans un `ilike`, et la reproduire
+ * ici évite qu'un visiteur tape une apostrophe et trouve un comportement différent.
+ */
+export function chercherPourControle(etat: EtatDemo, q: string): AdherentDemo[] {
+  const net = q.replace(/[^a-zà-ÿ0-9 -]/gi, "").trim();
+  if (net.length < 2) return [];
+  const bas = net.toLowerCase();
+  return etat.adherents
+    .filter((a) => a.nom.toLowerCase().includes(bas) || a.prenom.toLowerCase().includes(bas))
+    .sort((x, y) => x.nom.localeCompare(y.nom, "fr"))
+    .slice(0, 12);
+}
+
 /** Inscrits et jauge d'un cours — c'est la jauge, et elle seule, qui ouvre l'attente. */
 export function jaugeDuCours(etat: EtatDemo, coursId: string) {
   const inscrits = etat.adhesions.filter((a) => a.cours_id === coursId && a.statut !== "liste_attente").length;
