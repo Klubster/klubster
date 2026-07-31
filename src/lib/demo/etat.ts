@@ -168,6 +168,18 @@ export type ActionDemo =
   | { type: "site/chapitre-supprimer"; id: string }
   | { type: "site/appliquer" };
 
+/**
+ * Nettoyage des champs, identique aux Server Actions : `trim()` PUIS troncature, et un
+ * champ facultatif vide devient `null`, pas une chaîne vide.
+ *
+ * Sans le `trim()`, « ` Marion ` » était enregistré avec ses espaces, et un email fait
+ * de trois espaces devenait une chaîne non vide — donc un adhérent « avec email » que
+ * le composeur aurait compté parmi ses destinataires, et à qui rien ne serait jamais
+ * parti. Le genre de donnée qui ne se voit qu'au moment où elle échoue.
+ */
+const nettoyer = (valeur: string, maximum: number) => valeur.trim().slice(0, maximum);
+const facultatif = (valeur: string, maximum: number) => nettoyer(valeur, maximum) || null;
+
 /** Échange deux voisins. Même sémantique que le `move()` du vrai atelier. */
 function deplacer<T>(arr: T[], i: number, sens: -1 | 1): T[] {
   const j = i + sens;
@@ -207,11 +219,11 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
           a.id === action.id
             ? {
                 ...a,
-                // Mêmes troncatures que le serveur réel : 80 / 80 / 160 / 30.
-                prenom: action.prenom.slice(0, 80),
-                nom: action.nom.slice(0, 80),
-                email: action.email.slice(0, 160) || null,
-                telephone: action.telephone.slice(0, 30) || null,
+                // Mêmes règles que le serveur : trim, troncature, et null si vide.
+                prenom: nettoyer(action.prenom, 80),
+                nom: nettoyer(action.nom, 80),
+                email: facultatif(action.email, 160),
+                telephone: facultatif(action.telephone, 30),
               }
             : a
         ),
@@ -223,10 +235,10 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
       const adherentId = id("a");
       const nouvel: AdherentDemo = {
         id: adherentId,
-        prenom: action.prenom.slice(0, 80),
-        nom: action.nom.slice(0, 80),
-        email: action.email.slice(0, 160) || null,
-        telephone: action.telephone.slice(0, 30) || null,
+        prenom: nettoyer(action.prenom, 80),
+        nom: nettoyer(action.nom, 80),
+        email: facultatif(action.email, 160),
+        telephone: facultatif(action.telephone, 30),
         created_at: AUJOURDHUI,
         infos: {},
       };
@@ -299,10 +311,10 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         compteur += 1;
         nouveaux.push({
           id: aid,
-          prenom: l.prenom.slice(0, 80),
-          nom: l.nom.slice(0, 80),
-          email: l.email.slice(0, 160) || null,
-          telephone: l.telephone.slice(0, 30) || null,
+          prenom: nettoyer(l.prenom, 80),
+          nom: nettoyer(l.nom, 80),
+          email: facultatif(l.email, 160),
+          telephone: facultatif(l.telephone, 30),
           created_at: AUJOURDHUI,
           infos: {},
         });
