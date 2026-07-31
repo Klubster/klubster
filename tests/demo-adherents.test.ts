@@ -56,6 +56,72 @@ describe("le tarif d’une adhésion est celui du cours, sans supplément", () =
   });
 });
 
+describe("aucun parcours du cockpit ne crée de pièce", () => {
+  /**
+   * VÉRIFIÉ EN BASE, PAS SUPPOSÉ. Sur les vingt-et-une RPC du projet, une seule écrit
+   * dans `pieces_adherent` : `register_adherent_full`, c'est-à-dire l'INSCRIPTION EN
+   * LIGNE. Aucun trigger n'en crée non plus (relevé le 31/07/2026).
+   *
+   * Le sens produit est net : les pièces naissent quand l'adhérent s'inscrit lui-même et
+   * s'engage à les fournir. Une fiche saisie au forum des associations par un bénévole
+   * n'en crée pas — le club sait déjà ce qu'il a reçu.
+   *
+   * Mon réducteur en fabriquait à chaque ajout et à chaque import. Conséquence visible :
+   * ajouter quelqu'un faisait monter les « pièces attendues » du hub, alors que le même
+   * geste dans Klubster ne les touche pas.
+   */
+  it("ajout manuel AVEC cours : aucune pièce", () => {
+    const avant = etatInitial();
+    const apres = ajouter(avant, "c1");
+    expect(apres.pieces).toHaveLength(avant.pieces.length);
+  });
+
+  it("ajout manuel SANS cours : aucune pièce", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/ajouter",
+      prenom: "Sans",
+      nom: "Cours",
+      email: "",
+      telephone: "",
+      coursId: "",
+      mode: "cheque",
+    });
+    expect(apres.pieces).toHaveLength(avant.pieces.length);
+  });
+
+  it("import d’une ligne : aucune pièce", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [{ prenom: "Une", nom: "Ligne", email: "une@example.com", telephone: "", coursId: "c1" }],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length + 1);
+    expect(apres.pieces).toHaveLength(avant.pieces.length);
+  });
+
+  it("import de plusieurs lignes : aucune pièce", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "Une", nom: "Ligne", email: "une@example.com", telephone: "", coursId: "c1" },
+        { prenom: "Deux", nom: "Lignes", email: "deux@example.com", telephone: "", coursId: "c2" },
+        { prenom: "Trois", nom: "Lignes", email: "", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length + 3);
+    expect(apres.pieces).toHaveLength(avant.pieces.length);
+  });
+
+  it("le hub ne voit donc pas monter les pièces attendues", () => {
+    const avant = etatInitial();
+    const apres = ajouter(avant, "c1");
+    expect(chiffresDuClub(apres).piecesAttendues).toBe(chiffresDuClub(avant).piecesAttendues);
+    expect(chiffresDuClub(apres).dossiersIncomplets).toBe(chiffresDuClub(avant).dossiersIncomplets);
+  });
+});
+
 describe("un ajout sans cours crée l’adhérent, et rien d’autre", () => {
   it("l’adhérent existe, sans aucune adhésion", () => {
     const avant = etatInitial();
@@ -72,6 +138,9 @@ describe("un ajout sans cours crée l’adhérent, et rien d’autre", () => {
     expect(apres.adherents).toHaveLength(avant.adherents.length + 1);
     // `ajouterAdherent` enveloppe toute la création dans `if (coursId)`.
     expect(apres.adhesions).toHaveLength(avant.adhesions.length);
+    // Et « rien d'autre » veut dire rien d'autre : ni pièce, ni règlement.
+    expect(apres.pieces).toHaveLength(avant.pieces.length);
+    expect(apres.reglements).toHaveLength(avant.reglements.length);
 
     const nouvel = apres.adherents[apres.adherents.length - 1];
     expect(apres.adhesions.some((a) => a.adherent_id === nouvel.id)).toBe(false);
@@ -94,8 +163,60 @@ describe("un ajout sans cours crée l’adhérent, et rien d’autre", () => {
   });
 });
 
-describe("le renouvellement de saison", () => {
-  /** On vide la saison courante pour que le renouvellement ait quelque chose à faire. */
+describe("le renouvellement de saison, sur l’état initial", () => {
+  /**
+   * Deux personnes n'ont qu'une adhésion de la saison passée. Sans elles, le bouton
+   * répondrait immédiatement « Tout le monde a déjà une adhésion » — fidèle, et sans
+   * rien à montrer à un président qui découvre le produit.
+   */
+  it("le premier clic crée exactement DEUX adhésions", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, { type: "saison/renouveler" });
+    expect(apres.adhesions).toHaveLength(avant.adhesions.length + 2);
+    expect(apres.confirmation).toContain("2 adhésion(s) créée(s)");
+  });
+
+  it("le second clic n’en crée aucune", () => {
+    const un = reducteurDemo(etatInitial(), { type: "saison/renouveler" });
+    const deux = reducteurDemo(un, { type: "saison/renouveler" });
+    expect(deux.adhesions).toHaveLength(un.adhesions.length);
+    expect(deux.confirmation).toContain("Tout le monde a déjà une adhésion");
+  });
+
+  it("les compteurs du hub bougent au premier clic, pas au second", () => {
+    const avant = etatInitial();
+    const un = reducteurDemo(avant, { type: "saison/renouveler" });
+    const deux = reducteurDemo(un, { type: "saison/renouveler" });
+
+    // Deux adhésions « en attente » de plus : les dossiers à terminer suivent.
+    expect(chiffresDuClub(un).enAttente).toBe(chiffresDuClub(avant).enAttente + 2);
+    expect(chiffresDuClub(deux).enAttente).toBe(chiffresDuClub(un).enAttente);
+  });
+
+  it("les deux renouvelées gardent le cours de leur saison passée", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, { type: "saison/renouveler" });
+    const creees = apres.adhesions.slice(avant.adhesions.length);
+    expect(creees).toHaveLength(2);
+    for (const a of creees) {
+      const passee = avant.adhesions.find((x) => x.adherent_id === a.adherent_id && x.saison === "2025-2026");
+      expect(passee).toBeTruthy();
+      expect(a.cours_id).toBe(passee?.cours_id);
+      expect(a.statut).toBe("en_attente");
+    }
+  });
+
+  it("leurs règlements de l’an dernier restent intacts", () => {
+    // Le renouvellement crée une adhésion neuve ; il ne touche pas à la comptabilité
+    // de la saison précédente.
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, { type: "saison/renouveler" });
+    expect(apres.reglements).toEqual(avant.reglements);
+  });
+});
+
+describe("le renouvellement de saison, en profondeur", () => {
+  /** On vide la saison courante pour que TOUT le monde soit à renouveler. */
   function saisonPrecedente(): EtatDemo {
     const etat = etatInitial();
     return { ...etat, adhesions: etat.adhesions.map((a) => ({ ...a, saison: "2025-2026" })) };
@@ -131,12 +252,6 @@ describe("le renouvellement de saison", () => {
 
     expect(deux.adhesions).toHaveLength(un.adhesions.length);
     expect(deux.confirmation).toContain("Tout le monde a déjà une adhésion");
-  });
-
-  it("sur l’état initial, il n’y a rien à renouveler", () => {
-    const apres = reducteurDemo(etatInitial(), { type: "saison/renouveler" });
-    expect(apres.adhesions).toHaveLength(etatInitial().adhesions.length);
-    expect(apres.confirmation).toContain("Tout le monde a déjà une adhésion");
   });
 
   it("un adhérent sans aucune adhésion passée n’en reçoit pas", () => {

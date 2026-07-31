@@ -62,6 +62,18 @@ const ACTIONS: ActionDemo[] = [
   { type: "adherent/modifier", id: "a01", prenom: "Zoé", nom: "Test", email: "z@example.com", telephone: "06" },
   { type: "adherent/ajouter", prenom: "Nouveau", nom: "Venu", email: "n@example.com", telephone: "", coursId: "c1", mode: "cheque" },
   { type: "adherent/anonymiser", id: "a02" },
+  // Ces deux-là manquaient : leurs tests métier étaient bons, mais rien ne prouvait
+  // qu'elles ne mutaient pas l'état reçu — et l'import comme le renouvellement
+  // construisent des tableaux dans des boucles, l'endroit exact où l'on écrit un `push`
+  // sur la mauvaise référence.
+  {
+    type: "adherent/importer",
+    lignes: [
+      { prenom: "Importée", nom: "Test", email: "importee@example.com", telephone: "", coursId: "c1" },
+      { prenom: "Seconde", nom: "Ligne", email: "", telephone: "06 00 00 00 00", coursId: null },
+    ],
+  },
+  { type: "saison/renouveler" },
   { type: "reglement/ajouter", adhesionId: "ad02", montantCentimes: 5000, mode: "especes", note: null },
   { type: "remboursement/simuler", adhesionId: "ad01", montantCentimes: null },
   { type: "piece/basculer", id: "a03-certificat" },

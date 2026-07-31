@@ -254,21 +254,21 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
             },
           ]
         : etat.adhesions;
-      // Les pièces du formulaire naissent « manquantes » : c'est ce que fait
-      // l'inscription réelle, et c'est ce qui rend le dossier incomplet.
-      const pieces: PieceDemo[] = etat.form.pieces.map((pf, i) => ({
-        id: `${adherentId}-pf${i}`,
-        adherent_id: adherentId,
-        cle: `pf${i}`,
-        label: pf.label,
-        statut: "manquante" as const,
-        aUnFichier: false,
-      }));
+      // AUCUNE PIÈCE N'EST CRÉÉE ICI, et c'est vérifié en base : sur les vingt-et-une
+      // RPC du projet, `register_adherent_full` est la SEULE à écrire dans
+      // `pieces_adherent`, et aucun trigger ne le fait (relevé le 31/07/2026).
+      //
+      // Autrement dit : les pièces naissent de l'INSCRIPTION EN LIGNE, où l'adhérent
+      // s'engage à les fournir. Une fiche saisie au forum des associations par un
+      // bénévole n'en crée pas — le club sait déjà ce qu'il a reçu.
+      //
+      // J'en créais systématiquement. Conséquence : ajouter quelqu'un faisait monter les
+      // « pièces attendues » et les dossiers incomplets du hub, alors que le même geste
+      // dans Klubster ne les touche pas.
       return {
         ...etat,
         adherents: [...etat.adherents, nouvel],
         adhesions,
-        pieces: [...etat.pieces, ...pieces],
         compteur: n,
         confirmation: `${nouvel.prenom} ${nouvel.nom} a été ajouté à la simulation. Aucune donnée n’a été enregistrée.`,
       };
@@ -280,9 +280,11 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
       const existants = new Set(
         etat.adherents.flatMap((a) => [a.email?.toLowerCase() ?? "", `${a.prenom}|${a.nom}`.toLowerCase()])
       );
+      // Pas de pièces non plus ici : `inserer_adherents_adhesions` ne mentionne même pas
+      // `pieces_adherent` — vérifié sur le corps de la fonction en production. Son nom
+      // le dit d'ailleurs : adhérents ET adhésions, rien de plus.
       const nouveaux: AdherentDemo[] = [];
       const nouvellesAdhesions: AdhesionDemo[] = [];
-      const nouvellesPieces: PieceDemo[] = [];
       let compteur = n;
 
       for (const l of action.lignes) {
@@ -318,16 +320,6 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
             stripe_payment_intent: null,
           });
         }
-        etat.form.pieces.forEach((pf, i) =>
-          nouvellesPieces.push({
-            id: `${aid}-pf${i}`,
-            adherent_id: aid,
-            cle: `pf${i}`,
-            label: pf.label,
-            statut: "manquante",
-            aUnFichier: false,
-          })
-        );
       }
 
       const ignores = action.lignes.length - nouveaux.length;
@@ -335,7 +327,6 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         ...etat,
         adherents: [...etat.adherents, ...nouveaux],
         adhesions: [...etat.adhesions, ...nouvellesAdhesions],
-        pieces: [...etat.pieces, ...nouvellesPieces],
         compteur,
         confirmation:
           `${nouveaux.length} adhérent${nouveaux.length > 1 ? "s" : ""} importé${nouveaux.length > 1 ? "s" : ""} dans la simulation` +

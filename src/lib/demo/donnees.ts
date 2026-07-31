@@ -160,6 +160,29 @@ export const ADHESIONS_INITIALES: AdhesionDemo[] = BRUTS.map((b, i) => ({
   stripe_payment_intent: null,
 }));
 
+/**
+ * DEUX PERSONNES N'ONT QUE LA SAISON PASSÉE.
+ *
+ * Sans elles, « RENOUVELER LA SAISON » répondrait immédiatement « Tout le monde a déjà
+ * une adhésion pour la saison en cours » — fidèle, et sans rien à montrer. Avec elles,
+ * le visiteur voit le geste faire son travail : deux adhésions créées, les compteurs du
+ * hub qui bougent, puis zéro au second clic.
+ *
+ * Elles gardent leurs règlements de l'an dernier : c'est ce qui donne son sens au
+ * renouvellement — le club retrouve des gens qu'il connaît, avec leur dernier cours.
+ * Et elles ne comptent ni dans les impayés ni dans les dossiers à terminer de cette
+ * saison, puisqu'elles n'y ont pas encore d'adhésion.
+ */
+const SAISON_PASSEE = "2025-2026";
+for (const id of ["ad25", "ad26"]) {
+  const a = ADHESIONS_INITIALES.find((x) => x.id === id);
+  if (a) {
+    a.saison = SAISON_PASSEE;
+    a.statut = "paye";
+    a.created_at = "2025-09-08";
+  }
+}
+
 // Le Hatha est complet (22 places) : la suivante s'inscrit en liste d'attente. C'est la
 // jauge, et rien d'autre, qui le déclenche — exactement comme dans le produit.
 ADHESIONS_INITIALES.push({
