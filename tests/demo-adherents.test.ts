@@ -206,6 +206,46 @@ describe("le renouvellement de saison, sur l’état initial", () => {
     }
   });
 
+  it("avant renouvellement, elles ne comptent dans aucun compteur de la saison", () => {
+    // Elles n'ont pas d'adhésion 2026-2027 : ni dossier à terminer, ni cotisation en
+    // retard, ni inscription récente. C'est ce qui rend leur présence indolore sur le
+    // hub tant que le président n'a pas cliqué.
+    const etat = etatInitial();
+    const anciennes = etat.adhesions.filter((a) => a.saison === "2025-2026");
+    expect(anciennes).toHaveLength(2);
+
+    for (const a of anciennes) {
+      const cetteSaison = etat.adhesions.filter(
+        (x) => x.adherent_id === a.adherent_id && x.saison === "2026-2027"
+      );
+      expect(cetteSaison).toHaveLength(0);
+      // Et leur ancienne adhésion est soldée : elle ne pèse pas non plus sur le reste dû.
+      expect(a.statut).toBe("paye");
+    }
+  });
+
+  it("mais une pièce ancienne encore attendue continue de remonter", () => {
+    // `getAujourdhui` compte les pièces attendues de TOUTE l'organisation, sans filtre
+    // sur la saison ni sur l'existence d'une adhésion courante. Une pièce jamais fournie
+    // reste attendue — et c'est juste : le club l'attend toujours.
+    const etat = etatInitial();
+    const anciennes = etat.adhesions.filter((a) => a.saison === "2025-2026").map((a) => a.adherent_id);
+    const avecPieceManquante = anciennes.filter((id) =>
+      etat.pieces.some((p) => p.adherent_id === id && p.statut !== "recue")
+    );
+    // a26 est dans les deux listes : c'est voulu, pas une incohérence.
+    expect(avecPieceManquante.length).toBeGreaterThan(0);
+    expect(chiffresDuClub(etat).piecesAttendues).toBeGreaterThan(0);
+  });
+
+  it("le renouvellement ne crée AUCUNE pièce", () => {
+    const avant = etatInitial();
+    const apres = reducteurDemo(avant, { type: "saison/renouveler" });
+    expect(apres.pieces).toEqual(avant.pieces);
+    expect(chiffresDuClub(apres).piecesAttendues).toBe(chiffresDuClub(avant).piecesAttendues);
+    expect(chiffresDuClub(apres).dossiersIncomplets).toBe(chiffresDuClub(avant).dossiersIncomplets);
+  });
+
   it("leurs règlements de l’an dernier restent intacts", () => {
     // Le renouvellement crée une adhésion neuve ; il ne touche pas à la comptabilité
     // de la saison précédente.
