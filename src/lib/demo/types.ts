@@ -51,6 +51,13 @@ export type AdhesionDemo = {
   statut: StatutAdhesion;
   montant_centimes: number;
   mode_paiement: string | null;
+  /**
+   * Date de création de l'ADHÉSION, distincte de celle de l'adhérent : c'est elle que
+   * compte « inscriptions · 7 jours » dans le cockpit (`getAujourdhui` interroge
+   * `adhesions.created_at`). Un adhérent de septembre qui s'inscrit à un second cours en
+   * janvier est une inscription de janvier.
+   */
+  created_at: string;
   /** Seule adhésion payée par carte : ouvre le panneau de remboursement. */
   stripe_payment_intent?: string | null;
 };

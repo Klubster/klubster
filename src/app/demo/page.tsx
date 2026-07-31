@@ -3,9 +3,9 @@
 import Link from "next/link";
 import RailDemo from "./RailDemo";
 import { useDemo } from "@/components/demo/DemoProvider";
-import { Confirmation, Cur, GesteInerte } from "@/components/demo/Simulation";
-import { chiffresDuClub } from "@/lib/demo/selecteurs";
-import { CLUB, eur } from "@/lib/demo/donnees";
+import { Confirmation, Cur } from "@/components/demo/Simulation";
+import { chiffresDuClub, jourEtCours } from "@/lib/demo/selecteurs";
+import { CLUB } from "@/lib/demo/donnees";
 
 /**
  * « Aujourd'hui » — le hub, repris de `cockpit/page.tsx`.
@@ -64,17 +64,23 @@ export default function DemoAujourdhui() {
   const { etat } = useDemo();
   const c = chiffresDuClub(etat);
 
-  // La phrase d'état, calculée comme dans le produit : la somme de ce qui attend.
-  const attention = c.enAttente + c.enRetard + c.dossiersIncomplets;
+  const { jourSemaine, coursDuJour } = jourEtCours(etat);
+
+  // La phrase d'état, calculée comme dans le produit : dossiers en attente, cotisations
+  // en retard, et PIÈCES attendues — des pièces, pas des dossiers. J'avais d'abord
+  // additionné les dossiers incomplets, ce qui faussait le titre sans que rien ne le
+  // signale : un adhérent à qui il manque deux pièces ne compte pas pour un.
+  const attention = c.enAttente + c.enRetard + c.piecesAttendues;
   const titre =
     attention === 0
       ? "Le club est prêt."
       : `${attention} chose${attention > 1 ? "s" : ""} mérite${attention > 1 ? "nt" : ""} votre attention.`;
-
-  // Le cours du soir : lundi, dans l'horloge figée de la démonstration.
-  const coursCeSoir = etat.cours.flatMap((co) =>
-    co.creneaux.filter((k) => k.jour === "lundi").map((k) => ({ nom: co.nom, debut: k.debut, fin: k.fin }))
-  );
+  const sousTitre =
+    attention === 0
+      ? coursDuJour.length > 0
+        ? `Tout est à jour pour ${coursDuJour.length > 1 ? "les cours" : "le cours"} de ce ${jourSemaine}.`
+        : "Tous les dossiers sont à jour."
+      : "Le détail est juste en dessous — rien ne prend plus de quelques minutes.";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
@@ -89,11 +95,7 @@ export default function DemoAujourdhui() {
           <h1 className="mt-6 max-w-[22ch] text-[30px] font-medium leading-[1.1] tracking-[-0.01em] md:text-[38px]">
             {titre}
           </h1>
-          <p className="mt-4 max-w-prose text-ink-soft">
-            {attention === 0
-              ? "Tous les dossiers sont à jour."
-              : "Le détail est juste en dessous — rien ne prend plus de quelques minutes."}
-          </p>
+          <p className="mt-4 max-w-prose text-ink-soft">{sousTitre}</p>
 
           <Confirmation />
         </div>
@@ -114,12 +116,16 @@ export default function DemoAujourdhui() {
             action="RELANCER"
             vide={c.enRetard === 0}
           />
+          {/* La troisième carte compte les INSCRIPTIONS des sept derniers jours, et mène
+              aux paiements. J'y avais mis les dossiers incomplets : c'était une carte
+              de mon invention. Les dossiers incomplets restent visibles là où ils sont
+              utiles — dans la fiche et dans les listes. */}
           <Carte
-            n={String(c.dossiersIncomplets)}
-            label={`DOSSIER${c.dossiersIncomplets > 1 ? "S" : ""} INCOMPLET${c.dossiersIncomplets > 1 ? "S" : ""}`}
-            href="/demo/adherents?statut=&incomplet=1"
+            n={String(c.nouvelles7j)}
+            label={`INSCRIPTION${c.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
+            href="/demo/paiements"
             action="VÉRIFIER"
-            vide={c.dossiersIncomplets === 0}
+            vide={c.nouvelles7j === 0}
           />
         </div>
 
@@ -128,33 +134,38 @@ export default function DemoAujourdhui() {
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
             LE CLUB AUJOURD&apos;HUI<Cur />
           </p>
+          {/* CINQ LIGNES, celles du produit, dans son ordre. J'en avais écrit six
+              autres — effectif, dossiers incomplets, reste à encaisser, chèques à
+              remettre, liste d'attente. Utiles, sans doute, et absentes du cockpit :
+              c'était une meilleure version hypothétique du produit, pas son jumeau.
+              Une démonstration qui améliore ce qu'elle montre ment sur ce qu'on achète. */}
           <div className="mt-5">
-            <Point etat={c.adherents > 0 ? "ok" : "neutre"}>
-              {c.adherents} adhérent{c.adherents > 1 ? "s" : ""} cette saison
+            <Point etat={c.nouvelles7j > 0 ? "ok" : "neutre"}>
+              {c.nouvelles7j > 0
+                ? `${c.nouvelles7j} nouvelle${c.nouvelles7j > 1 ? "s" : ""} inscription${c.nouvelles7j > 1 ? "s" : ""} cette semaine`
+                : "Pas de nouvelle inscription cette semaine"}
             </Point>
-            <Point etat={c.dossiersIncomplets === 0 ? "ok" : "attention"}>
-              {c.dossiersIncomplets === 0
-                ? "Tous les dossiers sont complets"
-                : `${c.dossiersIncomplets} dossier${c.dossiersIncomplets > 1 ? "s" : ""} incomplet${c.dossiersIncomplets > 1 ? "s" : ""}`}
+            <Point etat={c.enRetard > 0 ? "urgent" : "ok"}>
+              {c.enRetard > 0
+                ? `${c.enRetard} cotisation${c.enRetard > 1 ? "s" : ""} en retard`
+                : c.enAttente > 0
+                  ? "Aucune cotisation en retard"
+                  : "Tous les paiements sont à jour"}
             </Point>
-            <Point etat={c.enRetard === 0 ? "ok" : "urgent"}>
-              {c.enRetard === 0
-                ? "Aucune cotisation en retard"
-                : `${c.enRetard} cotisation${c.enRetard > 1 ? "s" : ""} en retard · ${eur(c.resteAEncaisser)} à encaisser`}
+            <Point etat={c.enAttente > 0 ? "attention" : "ok"}>
+              {c.enAttente > 0
+                ? `${c.enAttente} dossier${c.enAttente > 1 ? "s" : ""} en attente de règlement`
+                : "Aucun dossier en attente"}
             </Point>
-            <Point etat={c.chequesARemettre === 0 ? "ok" : "attention"}>
-              {c.chequesARemettre === 0
-                ? "Aucun chèque en attente de remise"
-                : `${c.chequesARemettre} chèque${c.chequesARemettre > 1 ? "s" : ""} encaissé${c.chequesARemettre > 1 ? "s" : ""}, pas encore déposé${c.chequesARemettre > 1 ? "s" : ""}`}
-            </Point>
-            {c.listeAttente > 0 ? (
+            {c.piecesAttendues > 0 ? (
               <Point etat="attention">
-                {c.listeAttente} personne{c.listeAttente > 1 ? "s" : ""} en liste d’attente
+                {c.piecesAttendues} pièce{c.piecesAttendues > 1 ? "s" : ""} de dossier attendue
+                {c.piecesAttendues > 1 ? "s" : ""}
               </Point>
             ) : null}
-            {coursCeSoir.length > 0 ? (
+            {coursDuJour.length > 0 ? (
               <Point etat="neutre">
-                Ce soir : {coursCeSoir.map((k) => `${k.nom} ${k.debut}–${k.fin}`).join(", ")}
+                Ce {jourSemaine} : {coursDuJour.map((k) => `${k.nom} ${k.debut}–${k.fin}`).join(" · ")}
               </Point>
             ) : null}
           </div>
@@ -180,26 +191,11 @@ export default function DemoAujourdhui() {
           </div>
         </div>
 
-        {/* LES QUATRE GESTES HORS PÉRIMÈTRE.
-            Ils dépendent tous d'un tiers ou d'une adresse réelle : les simuler ne
-            montrerait rien, et les faire marcher exigerait de sortir de la
-            démonstration. Ils sont visibles parce qu'ils existent dans le cockpit —
-            les cacher donnerait une fausse idée de ce que contient le produit. */}
-        <div className="px-6 py-8 md:px-10">
-          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-            DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION<Cur />
-          </p>
-          <div className="mono mt-5 flex flex-col gap-4 text-[12px] text-ink-soft">
-            <GesteInerte libelle="CONNECTER STRIPE →" className="min-h-[44px] self-start border border-line px-4 py-3 hover:border-ink" />
-            <GesteInerte libelle="VOTRE DOMAINE →" className="min-h-[44px] self-start border border-line px-4 py-3 hover:border-ink" />
-            <GesteInerte libelle="VOTRE ÉQUIPE →" className="min-h-[44px] self-start border border-line px-4 py-3 hover:border-ink" />
-            <GesteInerte libelle="EMAILS AUTOMATIQUES →" className="min-h-[44px] self-start border border-line px-4 py-3 hover:border-ink" />
-          </div>
-          <p className="mono mt-6 max-w-prose text-[11px] leading-relaxed text-ink-faint">
-            Ces quatre-là demandent un compte Stripe, un nom de domaine ou une vraie adresse email.
-            Ils fonctionnent dans votre club, pas dans une démonstration.
-          </p>
-        </div>
+        {/* PAS DE BLOC « DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION ».
+            Il n'existe nulle part dans le cockpit. Stripe, le domaine et l'équipe
+            appartiennent au bloc « Premiers pas », qui DISPARAÎT dès que le club compte
+            un adhérent — celui-ci en a trente-quatre. Afficher quatre boutons inertes
+            revenait à inventer une section pour justifier ce qu'on ne simule pas. */}
 
         <div className="mono flex justify-between border-t border-line px-6 py-4 text-[11px] md:px-8">
           <span className="text-ink-soft">

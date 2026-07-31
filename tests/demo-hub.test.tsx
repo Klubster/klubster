@@ -115,7 +115,8 @@ describe("ADHÉRENTS s’atteint par un geste, pas par le rail", () => {
 
 /** Un enfant qui agit, monté à côté du hub dans le même provider. */
 function Leviers() {
-  const { envoyer } = useDemo();
+  const { etat, envoyer } = useDemo();
+  const manquantes = etat.pieces.filter((p) => p.statut !== "recue");
   return (
     <>
       <button
@@ -134,10 +135,21 @@ function Leviers() {
         ajouter-adherent
       </button>
       <button onClick={() => envoyer({ type: "piece/basculer", id: "a03-certificat" })}>recevoir-piece</button>
+      {/* Reçoit TOUTES les pièces manquantes d'un coup : c'est le seul moyen de voir
+          disparaître la ligne « pièces attendues », qui n'existe que si le compte est
+          supérieur à zéro. */}
+      <button onClick={() => manquantes.forEach((p) => envoyer({ type: "piece/basculer", id: p.id }))}>
+        recevoir-tout
+      </button>
       <button
         onClick={() => envoyer({ type: "reglement/ajouter", adhesionId: "ad04", montantCentimes: 31300, mode: "cheque", note: null })}
       >
-        encaisser
+        regler-retard
+      </button>
+      <button
+        onClick={() => envoyer({ type: "reglement/ajouter", adhesionId: "ad02", montantCentimes: 31300, mode: "cheque", note: null })}
+      >
+        regler-attente
       </button>
     </>
   );
@@ -155,50 +167,121 @@ const clic = (t: string) => act(() => screen.getByText(t).click());
 const compteur = (label: RegExp) => screen.getByText(label).previousElementSibling?.textContent;
 
 describe("les chiffres du hub bougent quand on agit", () => {
-  it("ajouter un adhérent augmente l’effectif et les dossiers à terminer", () => {
+  it("ajouter un adhérent augmente les dossiers à terminer ET les inscriptions récentes", () => {
     avecLeviers();
-    expect(screen.getByText(/34 adhérents cette saison/)).toBeTruthy();
-    const avant = Number(compteur(/DOSSIERS? À TERMINER/));
+    const attenteAvant = Number(compteur(/DOSSIERS? À TERMINER/));
+    const recentesAvant = Number(compteur(/INSCRIPTIONS? · 7 JOURS/));
 
     clic("ajouter-adherent");
 
-    expect(screen.getByText(/35 adhérents cette saison/)).toBeTruthy();
-    // La nouvelle adhésion naît « en attente » : la carte le voit.
-    expect(Number(compteur(/DOSSIERS? À TERMINER/))).toBe(avant + 1);
+    // L'adhésion naît « en attente » ET porte la date du jour : les deux cartes bougent.
+    expect(Number(compteur(/DOSSIERS? À TERMINER/))).toBe(attenteAvant + 1);
+    expect(Number(compteur(/INSCRIPTIONS? · 7 JOURS/))).toBe(recentesAvant + 1);
   });
 
-  it("recevoir une pièce fait baisser les dossiers incomplets", () => {
+  it("la ligne « nouvelle inscription cette semaine » apparaît", () => {
     avecLeviers();
-    const avant = Number(compteur(/DOSSIERS? INCOMPLETS?/));
-    expect(avant).toBeGreaterThan(0);
-
-    clic("recevoir-piece");
-    expect(Number(compteur(/DOSSIERS? INCOMPLETS?/))).toBe(avant - 1);
+    // Toutes les inscriptions du club datent de septembre : au départ, aucune récente.
+    expect(screen.getByText(/Pas de nouvelle inscription cette semaine/)).toBeTruthy();
+    clic("ajouter-adherent");
+    expect(screen.getByText(/1 nouvelle inscription cette semaine/)).toBeTruthy();
   });
 
-  it("encaisser un impayé fait baisser les cotisations à relancer", () => {
+  it("régler une cotisation en retard fait baisser le second compteur", () => {
     avecLeviers();
     const avant = Number(compteur(/COTISATIONS? À RELANCER/));
     expect(avant).toBeGreaterThan(0);
 
-    clic("encaisser");
+    clic("regler-retard");
     expect(Number(compteur(/COTISATIONS? À RELANCER/))).toBe(avant - 1);
   });
 
-  it("la phrase d’état suit, elle aussi", () => {
+  it("encaisser une adhésion en attente fait baisser le premier compteur", () => {
+    avecLeviers();
+    const avant = Number(compteur(/DOSSIERS? À TERMINER/));
+    expect(avant).toBeGreaterThan(0);
+
+    clic("regler-attente");
+    expect(Number(compteur(/DOSSIERS? À TERMINER/))).toBe(avant - 1);
+  });
+
+  it("recevoir la dernière pièce fait DISPARAÎTRE la ligne des pièces attendues", () => {
+    avecLeviers();
+    expect(screen.getByText(/pièces? de dossier attendues?/)).toBeTruthy();
+
+    clic("recevoir-tout");
+    // La ligne n'est pas mise à zéro : elle n'est plus rendue du tout, comme dans le
+    // produit où elle est conditionnée à `piecesAttendues > 0`.
+    expect(screen.queryByText(/pièces? de dossier attendues?/)).toBeNull();
+  });
+
+  it("la phrase d’état suit les pièces reçues", () => {
     avecLeviers();
     const titre = () => document.querySelector("h1")?.textContent ?? "";
     const avant = Number(titre().match(/^(\d+)/)?.[1]);
     clic("recevoir-piece");
     expect(Number(titre().match(/^(\d+)/)?.[1])).toBe(avant - 1);
   });
+});
 
-  it("le total encaissé du rail suit un encaissement", () => {
+describe("fidélité au cockpit — les écarts déjà commis une fois", () => {
+  const SOURCE = readFileSync(join(process.cwd(), "src/app/demo/page.tsx"), "utf8");
+  const RAIL = readFileSync(join(process.cwd(), "src/app/demo/RailDemo.tsx"), "utf8");
+  const sansCommentaires = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  it("l’attention compte les PIÈCES attendues, pas les dossiers incomplets", () => {
+    // Un adhérent à qui il manque deux pièces ne compte pas pour un.
+    expect(sansCommentaires(SOURCE)).toMatch(/c\.enAttente \+ c\.enRetard \+ c\.piecesAttendues/);
+    expect(sansCommentaires(SOURCE)).not.toMatch(/attention = [^;]*dossiersIncomplets/);
+  });
+
+  it("la troisième carte est « INSCRIPTIONS · 7 JOURS »", () => {
     avecLeviers();
-    const rail = () => screen.getByRole("navigation", { name: "Sections du cockpit" }).textContent ?? "";
-    const avant = rail();
-    clic("encaisser");
-    expect(rail()).not.toBe(avant);
+    const cartes = Array.from(document.querySelectorAll('a[href^="/demo"]'))
+      .filter((a) => a.querySelector(".mono.text-\\[34px\\]"))
+      .map((a) => a.textContent ?? "");
+    expect(cartes).toHaveLength(3);
+    expect(cartes[0]).toMatch(/DOSSIERS? À TERMINER/);
+    expect(cartes[1]).toMatch(/COTISATIONS? À RELANCER/);
+    expect(cartes[2]).toMatch(/INSCRIPTIONS? · 7 JOURS/);
+    expect(cartes[2]).toMatch(/VÉRIFIER/);
+    expect(cartes.join(" ")).not.toMatch(/INCOMPLET/);
+  });
+
+  it("« Le club aujourd’hui » porte les lignes du produit, pas les miennes", () => {
+    avecLeviers();
+    const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
+    // Les cinq lignes réelles.
+    expect(bloc).toMatch(/inscription/i);
+    expect(bloc).toMatch(/cotisation/i);
+    expect(bloc).toMatch(/dossiers? en attente de règlement/i);
+    expect(bloc).toMatch(/pièces? de dossier attendues?/i);
+    // Et aucune des six que j'avais inventées.
+    expect(bloc).not.toMatch(/adhérents cette saison/i);
+    expect(bloc).not.toMatch(/chèques? en attente de remise/i);
+    expect(bloc).not.toMatch(/liste d’attente/i);
+    expect(bloc).not.toMatch(/à encaisser/i);
+  });
+
+  it("le rail ne porte pas de montant encaissé", () => {
+    avecLeviers();
+    const rail = screen.getByRole("navigation", { name: "Sections du cockpit" });
+    expect(rail.textContent).toContain("✓ reversée direct");
+    expect(rail.textContent).toContain("0 % commission");
+    expect(rail.textContent).not.toMatch(/encaissé/i);
+    expect(rail.textContent).not.toMatch(/€/);
+    expect(sansCommentaires(RAIL)).not.toMatch(/chiffresDuClub|eur\(/);
+  });
+
+  it("aucun bloc « DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION »", () => {
+    avecLeviers();
+    expect(screen.queryByText(/DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION/)).toBeNull();
+  });
+
+  it("aucun geste inerte sur le hub", () => {
+    // Stripe, domaine et équipe appartiennent au bloc « Premiers pas », qui disparaît
+    // dès qu'un club a un adhérent. Celui-ci en a trente-quatre.
+    expect(sansCommentaires(SOURCE)).not.toMatch(/GesteInerte/);
   });
 });
 

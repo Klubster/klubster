@@ -129,6 +129,11 @@ export const ADHESIONS_INITIALES: AdhesionDemo[] = BRUTS.map((b, i) => ({
   montant_centimes: t(b[5]),
   // Le mode « en ligne » n'est posé que là où un règlement en ligne existe (voir plus bas).
   mode_paiement: b[6] === "paye" && i % 4 === 0 ? "en_ligne" : i % 3 === 0 ? "especes" : "cheque",
+  // Toutes les inscriptions datent de septembre : la carte « inscriptions · 7 jours »
+  // affiche donc 0 au départ, comme le ferait un club en octobre. C'est terne, et c'est
+  // vrai — et cela rend le geste du visiteur visible : ajouter quelqu'un la fait passer
+  // à 1 sous ses yeux.
+  created_at: b[4],
   stripe_payment_intent: null,
 }));
 
@@ -142,6 +147,7 @@ ADHESIONS_INITIALES.push({
   statut: "liste_attente",
   montant_centimes: t("c1"),
   mode_paiement: null,
+  created_at: "2026-09-09",
   stripe_payment_intent: null,
 });
 

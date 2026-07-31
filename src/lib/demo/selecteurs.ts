@@ -11,6 +11,7 @@
  * Aucun import de Supabase, Stripe, Resend ou d'une Server Action.
  */
 
+import { AUJOURDHUI } from "./donnees";
 import type { EtatDemo } from "./etat";
 import type { AdherentDemo, AdhesionDemo } from "./types";
 
@@ -198,21 +199,57 @@ export function destinatairesDuGroupe(etat: EtatDemo, groupe: string): string[] 
 
 // ——— Chiffres du hub ——————————————————————————————————————————————————————————
 
+/**
+ * Les chiffres du hub, calculés comme `getCockpitStats` et `getAujourdhui`.
+ *
+ * DEUX PIÈGES, TOUS DEUX TOMBÉS UNE FOIS
+ *
+ * `piecesAttendues` compte des PIÈCES, pas des dossiers. Un adhérent à qui il manque
+ * deux pièces compte pour deux. J'avais d'abord mis `dossiersIncomplets`, qui compte des
+ * personnes : le titre « X choses méritent votre attention » s'en trouvait faussé, sans
+ * qu'aucun test ne le voie.
+ *
+ * `nouvelles7j` compte des ADHÉSIONS par leur propre date de création, pas des adhérents.
+ * Un adhérent de septembre qui prend un second cours en janvier est une inscription de
+ * janvier.
+ */
 export function chiffresDuClub(etat: EtatDemo) {
   const enAttente = etat.adhesions.filter((a) => a.statut === "en_attente").length;
   const enRetard = etat.adhesions.filter((a) => a.statut === "en_retard").length;
   const encaisse = etat.reglements.reduce((s, r) => s + r.montant_centimes, 0);
   const resteAEncaisser = etat.adhesions.reduce((s, a) => s + resteDe(etat, a), 0);
+
+  // Sept jours glissants depuis l'horloge figée de la démonstration.
+  const limite = new Date(AUJOURDHUI);
+  limite.setDate(limite.getDate() - 7);
+  const nouvelles7j = etat.adhesions.filter((a) => new Date(a.created_at) >= limite).length;
+
   return {
     adherents: etat.adherents.length,
     enAttente,
     enRetard,
+    nouvelles7j,
+    piecesAttendues: etat.pieces.filter((p) => p.statut !== "recue").length,
     dossiersIncomplets: adherentsIncomplets(etat).length,
     encaisse,
     resteAEncaisser,
     chequesARemettre: chequesARemettre(etat).length,
     listeAttente: etat.adhesions.filter((a) => a.statut === "liste_attente").length,
   };
+}
+
+/**
+ * Le jour de la semaine de l'horloge figée, et les cours qui s'y tiennent.
+ *
+ * Calculé, jamais écrit en dur : la constante `AUJOURDHUI` doit rester la seule source
+ * de vérité sur la date, sinon les deux divergent le jour où on la change.
+ */
+export function jourEtCours(etat: EtatDemo) {
+  const jourSemaine = new Date(AUJOURDHUI).toLocaleDateString("fr-FR", { weekday: "long" });
+  const coursDuJour = etat.cours.flatMap((c) =>
+    c.creneaux.filter((k) => k.jour === jourSemaine).map((k) => ({ nom: c.nom, debut: k.debut, fin: k.fin }))
+  );
+  return { jourSemaine, coursDuJour };
 }
 
 /** Inscrits et jauge d'un cours — c'est la jauge, et elle seule, qui ouvre l'attente. */

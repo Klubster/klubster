@@ -1,9 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useDemo } from "@/components/demo/DemoProvider";
-import { chiffresDuClub } from "@/lib/demo/selecteurs";
-import { eur } from "@/lib/demo/donnees";
 
 /**
  * Le rail numéroté, repris à l'identique de `cockpit/page.tsx` (lignes 95-105).
@@ -35,9 +32,6 @@ const ENTREES = [
 ] as const;
 
 export default function RailDemo() {
-  const { etat } = useDemo();
-  const c = chiffresDuClub(etat);
-
   return (
     <nav
       aria-label="Sections du cockpit"
@@ -63,13 +57,16 @@ export default function RailDemo() {
       })}
 
       {/* Le bloc trésorerie vit DANS le rail, comme dans le produit — masqué sous `md`,
-          où le rail devient une bande horizontale et n'a plus la place. */}
+          où le rail devient une bande horizontale et n'a plus la place.
+
+          TROIS LIGNES, PAS CINQ. J'y avais ajouté « X € encaissé cette saison » : le
+          rail réel n'en porte pas. C'est une promesse de marque — l'argent va direct au
+          club, sans commission — et non un tableau de bord. Le montant encaissé a sa
+          place sur l'écran Paiements, où il est déjà. */}
       <div className="mono mt-6 hidden border-t border-line pt-5 md:block">
         <div className="text-[10px] uppercase tracking-label text-ink-soft">TRÉSORERIE</div>
         <div className="mt-2 text-[12px] text-brand">✓ reversée direct</div>
         <div className="mt-0.5 text-[11px] text-ink-faint">0 % commission</div>
-        <div className="mt-4 text-[13px] font-bold tracking-tight">{eur(c.encaisse)}</div>
-        <div className="mt-0.5 text-[10px] text-ink-soft">encaissé cette saison</div>
       </div>
     </nav>
   );

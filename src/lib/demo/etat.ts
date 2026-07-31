@@ -242,6 +242,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
               statut: "en_attente" as const,
               montant_centimes: cours.tarif_centimes + ADHESION_ASSO_CENTIMES,
               mode_paiement: action.mode,
+              created_at: AUJOURDHUI,
               stripe_payment_intent: null,
             },
           ]
@@ -306,6 +307,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
             statut: "en_attente",
             montant_centimes: cours.tarif_centimes + ADHESION_ASSO_CENTIMES,
             mode_paiement: null,
+            created_at: AUJOURDHUI,
             stripe_payment_intent: null,
           });
         }
