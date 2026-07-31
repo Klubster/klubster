@@ -33,7 +33,7 @@
  */
 
 import {
-  ACTUALITES_INITIALES, ADHERENTS_INITIAUX, ADHESIONS_INITIALES, ADHESION_ASSO_CENTIMES,
+  ACTUALITES_INITIALES, ADHERENTS_INITIAUX, ADHESIONS_INITIALES,
   AUJOURDHUI, CAMPAGNES_INITIALES, CLUB, COURS_INITIAUX, FORM_CONFIG_INITIALE,
   PAGE_CONFIG_INITIALE, PIECES_INITIALES, PRESENCES_INITIALES, QUESTIONNAIRES_INITIAUX,
   REGLEMENTS_INITIAUX, eur,
@@ -127,6 +127,7 @@ export type ActionDemo =
   | { type: "adherent/ajouter"; prenom: string; nom: string; email: string; telephone: string; coursId: string; mode: string }
   | { type: "adherent/importer"; lignes: { prenom: string; nom: string; email: string; telephone: string; coursId: string | null }[] }
   | { type: "adherent/anonymiser"; id: string }
+  | { type: "saison/renouveler" }
   | { type: "reglement/ajouter"; adhesionId: string; montantCentimes: number; mode: ModeReglement; note: string | null }
   | { type: "remboursement/simuler"; adhesionId: string; montantCentimes: number | null }
   | { type: "piece/basculer"; id: string }
@@ -230,7 +231,13 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         infos: {},
       };
       // Le tarif est relu depuis le cours, JAMAIS pris dans le formulaire — même règle
-      // que la Server Action réelle. C'est la seule façon d'empêcher un montant forgé.
+      // que la Server Action réelle. Et c'est LE TARIF, sans supplément : aucun forfait
+      // d'adhésion n'existe dans Klubster.
+      //
+      // SANS COURS, PAS D'ADHÉSION. `ajouterAdherent` enveloppe toute la création dans
+      // `if (coursId)`. Un adhérent créé sans cours existe donc bel et bien, avec zéro
+      // adhésion — c'est le cas « Sans adhésion » de la liste, et il faut pouvoir
+      // l'atteindre.
       const adhesions = cours
         ? [
             ...etat.adhesions,
@@ -240,7 +247,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
               cours_id: cours.id,
               saison: CLUB.saison,
               statut: "en_attente" as const,
-              montant_centimes: cours.tarif_centimes + ADHESION_ASSO_CENTIMES,
+              montant_centimes: cours.tarif_centimes,
               mode_paiement: action.mode,
               created_at: AUJOURDHUI,
               stripe_payment_intent: null,
@@ -305,7 +312,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
             cours_id: cours.id,
             saison: CLUB.saison,
             statut: "en_attente",
-            montant_centimes: cours.tarif_centimes + ADHESION_ASSO_CENTIMES,
+            montant_centimes: cours.tarif_centimes,
             mode_paiement: null,
             created_at: AUJOURDHUI,
             stripe_payment_intent: null,
@@ -350,6 +357,55 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         questionnaires: etat.questionnaires.filter((q) => q.adherent_id !== action.id),
         confirmation:
           "Anonymisation simulée. Les écritures comptables sont conservées, comme l’exige la loi. Rechargez ou réinitialisez pour revenir en arrière.",
+      };
+    }
+
+    case "saison/renouveler": {
+      // « Recrée une adhésion "en attente" pour chaque adhérent qui n'en a pas encore
+      // cette saison, avec son dernier cours. »
+      //
+      // IDEMPOTENT, et c'est tout l'intérêt : un président clique deux fois par
+      // prudence. La RPC réelle ne crée rien pour qui a déjà une adhésion de la saison
+      // courante. Un second clic doit donc annoncer zéro, pas doubler l'effectif.
+      const saison = CLUB.saison;
+      const dejaCetteSaison = new Set(
+        etat.adhesions.filter((a) => a.saison === saison).map((a) => a.adherent_id)
+      );
+
+      let compteur = n;
+      const nouvelles: AdhesionDemo[] = [];
+      for (const adherent of etat.adherents) {
+        if (dejaCetteSaison.has(adherent.id)) continue;
+        // Le DERNIER cours de la personne, pas un cours au hasard : c'est ce que dit
+        // le libellé, et c'est ce qui rend le geste utilisable sans relecture.
+        const derniere = etat.adhesions
+          .filter((a) => a.adherent_id === adherent.id && a.cours_id)
+          .sort((x, y) => (x.created_at < y.created_at ? 1 : -1))[0];
+        if (!derniere) continue;
+        const cours = etat.cours.find((c) => c.id === derniere.cours_id);
+        if (!cours) continue;
+        nouvelles.push({
+          id: `ad-ren${compteur}`,
+          adherent_id: adherent.id,
+          cours_id: cours.id,
+          saison,
+          statut: "en_attente",
+          montant_centimes: cours.tarif_centimes,
+          mode_paiement: null,
+          created_at: AUJOURDHUI,
+          stripe_payment_intent: null,
+        });
+        compteur += 1;
+      }
+
+      return {
+        ...etat,
+        adhesions: [...etat.adhesions, ...nouvelles],
+        compteur,
+        confirmation:
+          nouvelles.length === 0
+            ? "Tout le monde a déjà une adhésion pour la saison en cours."
+            : `${nouvelles.length} adhésion(s) créée(s) pour la nouvelle saison, en attente de règlement.`,
       };
     }
 

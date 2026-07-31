@@ -63,10 +63,17 @@ export const COURS_INITIAUX: CoursDemo[] = [
   { id: "c6", nom: "Yoga sur chaise", public_cible: "Seniors", tarif_centimes: 21000, places_max: 14, creneaux: [{ jour: "vendredi", debut: "14:30", fin: "15:30", note: "mobilité douce" }] },
 ];
 
-/** Cotisation = tarif du cours + 18 € d'adhésion à l'association. */
-export const ADHESION_ASSO_CENTIMES = 1800;
-const t = (coursId: string) =>
-  (COURS_INITIAUX.find((c) => c.id === coursId)?.tarif_centimes ?? 0) + ADHESION_ASSO_CENTIMES;
+/**
+ * Le montant d'une adhésion EST le tarif du cours. Rien d'autre.
+ *
+ * J'avais ajouté « + 18 € d'adhésion à l'association », qui sonne juste — beaucoup de
+ * clubs facturent ainsi — mais que Klubster ne fait pas : `ajouterAdherent` écrit
+ * `montant_centimes: cours.tarif_centimes`, et aucun forfait n'existe ailleurs dans le
+ * produit. Une démonstration où chaque cotisation vaut 18 € de plus qu'en réalité aurait
+ * faussé tous les montants, tous les restes dus et tous les totaux — sous des écrans par
+ * ailleurs corrects.
+ */
+const t = (coursId: string) => COURS_INITIAUX.find((c) => c.id === coursId)?.tarif_centimes ?? 0;
 
 // ——— Adhérents ————————————————————————————————————————————————————————————————
 // 34 fiches : au-delà des 25 d'une page, pour que la pagination se voie vraiment.
