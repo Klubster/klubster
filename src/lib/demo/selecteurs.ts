@@ -311,7 +311,11 @@ export type VerifDemo = {
 };
 
 /**
- * Ce que la RPC `verifier_adherent` renvoie, reproduit ligne à ligne.
+ * Ce que la RPC `verifier_adherent` renvoie.
+ *
+ * LA RÈGLE MÉTIER REPRODUIT LA RPC. La démonstration ajoute UN départage déterministe
+ * par identifiant lorsque deux dates sont identiques — voir plus bas. Ce n'est donc pas
+ * une transposition littérale, et il ne faut pas lire ce qui suit comme telle.
  *
  * TROIS DÉTAILS QUI NE S'INVENTENT PAS, et que j'ai relus dans `0013` :
  *
@@ -323,10 +327,16 @@ export type VerifDemo = {
  *   — `pieces_manquantes` compte les pièces `manquante`, sans se soucier du caractère
  *     obligatoire : au bord du tapis on veut le nombre, pas une nuance juridique.
  *
- * Le tri se fait sur `created_at` PUIS sur l'identifiant. Sans ce second critère, deux
- * adhésions créées le même jour — cas d'un renouvellement le jour de l'inscription —
- * sortaient dans l'ordre du tableau, c'est-à-dire dans l'ordre d'écriture, c'est-à-dire
- * au hasard. L'écran aurait affiché tantôt l'ancienne, tantôt la nouvelle.
+ * L'AJOUT DE LA DÉMONSTRATION : un tri sur `created_at` PUIS sur l'identifiant. Sans ce
+ * second critère, deux adhésions créées le même jour — cas d'un renouvellement le jour
+ * de l'inscription — sortaient dans l'ordre du tableau, c'est-à-dire dans l'ordre
+ * d'écriture, c'est-à-dire au hasard. L'écran aurait affiché tantôt l'ancienne, tantôt
+ * la nouvelle.
+ *
+ * La RPC réelle n'a pas ce départage : son `order by ad.created_at desc limit 1` n'est
+ * pas un ordre total, et deux adhésions du même jour y sortent dans l'ordre que
+ * Postgres veut. Consigné dans `docs/defauts-a-corriger.md` — c'est un correctif à
+ * porter dans une migration, pas ici.
  */
 export function verifierAdherentDemo(etat: EtatDemo, adherentId: string): VerifDemo | null {
   const a = etat.adherents.find((x) => x.id === adherentId);
