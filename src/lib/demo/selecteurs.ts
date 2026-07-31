@@ -11,7 +11,7 @@
  * Aucun import de Supabase, Stripe, Resend ou d'une Server Action.
  */
 
-import { AUJOURDHUI } from "./donnees";
+import { AUJOURDHUI, INSTANT_DEMO } from "./donnees";
 import type { EtatDemo } from "./etat";
 import type { AdherentDemo, AdhesionDemo } from "./types";
 
@@ -219,10 +219,15 @@ export function chiffresDuClub(etat: EtatDemo) {
   const encaisse = etat.reglements.reduce((s, r) => s + r.montant_centimes, 0);
   const resteAEncaisser = etat.adhesions.reduce((s, a) => s + resteDe(etat, a), 0);
 
-  // Sept jours glissants depuis l'horloge figée de la démonstration.
-  const limite = new Date(AUJOURDHUI);
-  limite.setDate(limite.getDate() - 7);
-  const nouvelles7j = etat.adhesions.filter((a) => new Date(a.created_at) >= limite).length;
+  // Sept jours glissants depuis l'horloge figée.
+  //
+  // Calculé en UTC de bout en bout : `setDate`/`getDate` lisent le calendrier LOCAL,
+  // et sur une date à minuit UTC ils renvoient la veille à l'ouest de Greenwich. La
+  // fenêtre aurait glissé d'un jour selon la machine, et une inscription du 13 octobre
+  // serait entrée ou sortie du compte sans raison.
+  const limite = new Date(`${AUJOURDHUI}T00:00:00Z`);
+  limite.setUTCDate(limite.getUTCDate() - 7);
+  const nouvelles7j = etat.adhesions.filter((a) => new Date(`${a.created_at}T00:00:00Z`) >= limite).length;
 
   return {
     adherents: etat.adherents.length,
@@ -239,13 +244,40 @@ export function chiffresDuClub(etat: EtatDemo) {
 }
 
 /**
- * Le jour de la semaine de l'horloge figée, et les cours qui s'y tiennent.
+ * La date de la démonstration, telle qu'elle s'affiche — jour, date longue, salutation.
  *
- * Calculé, jamais écrit en dur : la constante `AUJOURDHUI` doit rester la seule source
- * de vérité sur la date, sinon les deux divergent le jour où on la change.
+ * UNE SEULE FONCTION, ET UN FUSEAU EXPLICITE
+ * Le hub affichait « LUNDI 20 OCTOBRE » écrit en dur, alors que le 20 octobre 2026 est
+ * un mardi. Et `new Date("2026-10-20")` sans heure est lu à MINUIT UTC : à l'ouest de
+ * Greenwich, c'est encore le 19 — donc lundi, donc les cours du lundi. Le jour affiché
+ * dépendait du fuseau de la machine.
+ *
+ * Deux règles en sortent, valables partout dans ce dossier :
+ *   1. la date affichée n'est jamais écrite en dur, elle vient d'ici ;
+ *   2. toute lecture de calendrier passe par `timeZone: "Europe/Paris"`.
  */
+export function dateDemo() {
+  const instant = new Date(INSTANT_DEMO);
+  const options = { timeZone: "Europe/Paris" } as const;
+
+  const jourSemaine = instant.toLocaleDateString("fr-FR", { ...options, weekday: "long" });
+  const dateLongue = instant.toLocaleDateString("fr-FR", {
+    ...options,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  // Même règle que le cockpit : bonsoir à partir de 18 h, et jusqu'à 4 h du matin.
+  const heure = Number(instant.toLocaleString("fr-FR", { ...options, hour: "2-digit", hour12: false }));
+  const salut = heure >= 18 || heure < 4 ? "Bonsoir" : "Bonjour";
+
+  return { jourSemaine, dateLongue, salut };
+}
+
+/** Les cours qui se tiennent le jour de l'horloge figée. */
 export function jourEtCours(etat: EtatDemo) {
-  const jourSemaine = new Date(AUJOURDHUI).toLocaleDateString("fr-FR", { weekday: "long" });
+  const { jourSemaine } = dateDemo();
   const coursDuJour = etat.cours.flatMap((c) =>
     c.creneaux.filter((k) => k.jour === jourSemaine).map((k) => ({ nom: c.nom, debut: k.debut, fin: k.fin }))
   );

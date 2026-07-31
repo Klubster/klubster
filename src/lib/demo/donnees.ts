@@ -33,8 +33,24 @@ export const CLUB = {
   adresse: "12 rue des Lices, 49100 Angers",
 } as const;
 
-/** Date figée : la simulation ne dépend pas de l'horloge, l'affichage est reproductible. */
+/**
+ * L'horloge figée de la démonstration.
+ *
+ * `AUJOURDHUI` sert aux comparaisons de dates (« inscriptions · 7 jours », date d'un
+ * règlement) ; `INSTANT_DEMO` sert à l'affichage.
+ *
+ * POURQUOI UN INSTANT COMPLET, ET PAS SEULEMENT UNE DATE
+ * `new Date("2026-10-20")` est interprété à MINUIT UTC. Sur une machine à l'ouest de
+ * Greenwich, c'est encore le 19 octobre — un lundi au lieu d'un mardi. Le jour affiché,
+ * et donc les cours du jour, dépendaient du fuseau de la machine : exactement ce que
+ * « rendu déterministe » prétendait exclure. Un instant explicite à midi UTC, lu avec
+ * `timeZone: "Europe/Paris"`, ne bouge nulle part.
+ *
+ * 17 h UTC = 19 h à Paris en octobre (CEST) : la salutation est « Bonsoir », comme le
+ * cockpit d'un président qui ouvre son écran avant le cours du soir.
+ */
 export const AUJOURDHUI = "2026-10-20";
+export const INSTANT_DEMO = "2026-10-20T17:00:00Z";
 
 // ——— Cours ————————————————————————————————————————————————————————————————————
 

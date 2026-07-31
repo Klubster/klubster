@@ -306,6 +306,79 @@ describe("aucun chiffre écrit en dur dans le hub", () => {
   });
 });
 
+describe("la date affichée — juste, et la même partout", () => {
+  it("le 20 octobre 2026 est un MARDI", () => {
+    hub();
+    const kicker = screen.getByText(/OCTOBRE/).textContent ?? "";
+    expect(kicker).toContain("MARDI 20 OCTOBRE");
+    // La version précédente l'écrivait en dur, et se trompait de jour.
+    expect(kicker).not.toContain("LUNDI");
+  });
+
+  it("le cours affiché est celui du mardi, pas celui du lundi", () => {
+    hub();
+    const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
+    // Mardi 12:30 → Vinyasa Flow. Lundi 18:30 → Hatha Yoga : un jour faux se serait vu
+    // dans le nom du cours avant de se voir dans la date.
+    expect(bloc).toContain("Vinyasa Flow");
+    expect(bloc).not.toContain("Hatha Yoga");
+  });
+
+  it("le fuseau de la machine ne change ni le jour ni les cours", () => {
+    // Le vrai défaut : `new Date("2026-10-20")` est lu à minuit UTC. À Los Angeles il
+    // était encore le 19 — un lundi — et le hub affichait les cours du lundi.
+    const tzOriginal = process.env.TZ;
+    const releve = () => {
+      const vue = render(
+        <DemoLayout>
+          <DemoAujourdhui />
+        </DemoLayout>
+      );
+      const kicker = screen.getByText(/OCTOBRE/).textContent ?? "";
+      const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
+      vue.unmount();
+      return { kicker, coursCite: /Vinyasa Flow/.test(bloc) };
+    };
+
+    try {
+      const fuseaux = ["Europe/Paris", "America/Los_Angeles", "Pacific/Auckland", "UTC"];
+      const releves = fuseaux.map((tz) => {
+        process.env.TZ = tz;
+        return releve();
+      });
+      // Tous identiques, et tous justes.
+      for (const r of releves) {
+        expect(r.kicker).toContain("MARDI 20 OCTOBRE");
+        expect(r.coursCite).toBe(true);
+      }
+    } finally {
+      process.env.TZ = tzOriginal;
+    }
+  });
+
+  it("les inscriptions récentes ne glissent pas non plus avec le fuseau", () => {
+    // `setDate`/`getDate` lisent le calendrier LOCAL : sur une date à minuit UTC, ils
+    // renvoient la veille à l'ouest de Greenwich, et la fenêtre de sept jours bougeait.
+    const tzOriginal = process.env.TZ;
+    try {
+      const comptes = ["Europe/Paris", "America/Los_Angeles", "Pacific/Auckland"].map((tz) => {
+        process.env.TZ = tz;
+        const vue = render(
+          <DemoLayout>
+            <DemoAujourdhui />
+          </DemoLayout>
+        );
+        const n = compteur(/INSCRIPTIONS? · 7 JOURS/);
+        vue.unmount();
+        return n;
+      });
+      expect(new Set(comptes).size).toBe(1);
+    } finally {
+      process.env.TZ = tzOriginal;
+    }
+  });
+});
+
 describe("le rail n’est rendu que par /demo", () => {
   it("le hub l’importe", () => {
     const source = readFileSync(join(process.cwd(), "src/app/demo/page.tsx"), "utf8");

@@ -4,7 +4,7 @@ import Link from "next/link";
 import RailDemo from "./RailDemo";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { Confirmation, Cur } from "@/components/demo/Simulation";
-import { chiffresDuClub, jourEtCours } from "@/lib/demo/selecteurs";
+import { chiffresDuClub, dateDemo, jourEtCours } from "@/lib/demo/selecteurs";
 import { CLUB } from "@/lib/demo/donnees";
 
 /**
@@ -65,6 +65,7 @@ export default function DemoAujourdhui() {
   const c = chiffresDuClub(etat);
 
   const { jourSemaine, coursDuJour } = jourEtCours(etat);
+  const { dateLongue, salut } = dateDemo();
 
   // La phrase d'état, calculée comme dans le produit : dossiers en attente, cotisations
   // en retard, et PIÈCES attendues — des pièces, pas des dossiers. J'avais d'abord
@@ -89,8 +90,12 @@ export default function DemoAujourdhui() {
       <div className="min-w-0">
         {/* L'ÉTAT DU CLUB — une phrase, pas un tableau de bord */}
         <div className="border-b border-line px-6 py-10 md:px-10 md:py-14">
+          {/* Jamais écrit en dur : la salutation et la date viennent de `dateDemo()`,
+              seule source de vérité sur l'horloge figée. La version précédente disait
+              « LUNDI 20 OCTOBRE » — le 20 octobre 2026 est un mardi. */}
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
-            BONSOIR · LUNDI 20 OCTOBRE<Cur />
+            {salut.toUpperCase()} · {dateLongue.toUpperCase()}
+            <Cur />
           </p>
           <h1 className="mt-6 max-w-[22ch] text-[30px] font-medium leading-[1.1] tracking-[-0.01em] md:text-[38px]">
             {titre}
