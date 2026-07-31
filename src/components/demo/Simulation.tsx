@@ -239,6 +239,9 @@ export function BoutonSimuler({
       setEnCours(false);
       rappel.current();
     }, 450);
+    // Le nettoyage n'est pas une précaution : sans lui, une simulation lancée puis
+    // interrompue par « RÉINITIALISER » se déclenche quand même 450 ms plus tard, et un
+    // adhérent apparaît sans que personne ne sache d'où il vient.
     return () => clearTimeout(t);
   }, [enCours]);
 
