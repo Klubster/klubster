@@ -287,12 +287,25 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
     }
 
     case "adherent/importer": {
-      // Les doublons sont ignorés, comme à l'import réel : même email, ou mêmes prénom
-      // et nom. Le décompte des ignorés est ce que l'écran de résultat annonce.
-      const existants = new Set(
-        etat.adherents.flatMap((a) => [a.email?.toLowerCase() ?? "", `${a.prenom}|${a.nom}`.toLowerCase()])
+      // ——— DEUX ENSEMBLES, ET LE NETTOYAGE AVANT LES COMPARAISONS ———————————————
+      //
+      // La règle du serveur, relue dans `importerAdherents` : AVEC un email, c'est
+      // l'email seul qui fait le doublon ; SANS email, c'est le couple prénom + nom.
+      // Deux homonymes ayant chacun son adresse sont donc acceptés — un club de yoga a
+      // ses deux Marie Martin, et refuser la seconde aurait été un bug silencieux.
+      //
+      // Mon code comparait les valeurs BRUTES et ne nettoyait qu'à la création. Trois
+      // conséquences : un prénom fait d'espaces passait la validation puis devenait
+      // vide ; « ␣marion@example.com␣ » contournait un doublon existant ; et
+      // « Marion␣|␣Berthier » contournait la comparaison sur le nom. Nettoyer après
+      // avoir comparé, c'est comparer autre chose que ce qu'on enregistre.
+      const cle = (p: string, nm: string) => `${p.trim().toLowerCase()}|${nm.trim().toLowerCase()}`;
+      const emailsPris = new Set(
+        etat.adherents.map((a) => (a.email ?? "").trim().toLowerCase()).filter(Boolean)
       );
-      // Pas de pièces non plus ici : `inserer_adherents_adhesions` ne mentionne même pas
+      const nomsPris = new Set(etat.adherents.map((a) => cle(a.prenom, a.nom)));
+
+      // Pas de pièces ici : `inserer_adherents_adhesions` ne mentionne même pas
       // `pieces_adherent` — vérifié sur le corps de la fonction en production. Son nom
       // le dit d'ailleurs : adhérents ET adhésions, rien de plus.
       const nouveaux: AdherentDemo[] = [];
@@ -300,21 +313,30 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
       let compteur = n;
 
       for (const l of action.lignes) {
-        const cleEmail = l.email.toLowerCase();
-        const cleNom = `${l.prenom}|${l.nom}`.toLowerCase();
-        if (!l.prenom || !l.nom) continue;
-        if ((cleEmail && existants.has(cleEmail)) || existants.has(cleNom)) continue;
-        if (cleEmail) existants.add(cleEmail);
-        existants.add(cleNom);
+        // On nettoie D'ABORD, on compare ensuite, on enregistre ces mêmes valeurs.
+        const prenom = nettoyer(l.prenom, 80);
+        const nom = nettoyer(l.nom, 80);
+        const email = nettoyer(l.email, 160).toLowerCase();
+        const telephone = facultatif(l.telephone, 30);
+
+        if (!prenom || !nom) continue;
+
+        const cleNom = cle(prenom, nom);
+        if (email && emailsPris.has(email)) continue;
+        if (!email && nomsPris.has(cleNom)) continue;
+
+        // Les doublons À L'INTÉRIEUR du fichier comptent aussi.
+        if (email) emailsPris.add(email);
+        nomsPris.add(cleNom);
 
         const aid = `a-imp${compteur}`;
         compteur += 1;
         nouveaux.push({
           id: aid,
-          prenom: nettoyer(l.prenom, 80),
-          nom: nettoyer(l.nom, 80),
-          email: facultatif(l.email, 160),
-          telephone: facultatif(l.telephone, 30),
+          prenom,
+          nom,
+          email: email || null,
+          telephone,
           created_at: AUJOURDHUI,
           infos: {},
         });

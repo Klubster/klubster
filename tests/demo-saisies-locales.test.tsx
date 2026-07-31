@@ -215,6 +215,9 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
   });
 
   it("l’import nettoie aussi", () => {
+    // Ce test ne prouve QUE la valeur finale créée. Les quatre suivants portent sur ce
+    // qu'il ne voyait pas : la validation et la détection des doublons, qui comparaient
+    // des valeurs brutes.
     const apres = reducteurDemo(etat(), {
       type: "adherent/importer",
       lignes: [{ prenom: " Camille ", nom: " Aubert ", email: "  ", telephone: " 06 ", coursId: "c1" }],
@@ -223,6 +226,81 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
     expect(nouvel.prenom).toBe("Camille");
     expect(nouvel.email).toBeNull();
     expect(nouvel.telephone).toBe("06");
+  });
+
+  it("un prénom ou un nom fait d’espaces est ignoré", () => {
+    // Il passait la validation — « ␣␣ » est une chaîne non vide — puis devenait vide à
+    // la création. On importait donc un adhérent sans nom, cliquable et muet.
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "   ", nom: "Martin", email: "a@example.com", telephone: "", coursId: null },
+        { prenom: "Paul", nom: "\t\n", email: "b@example.com", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length);
+  });
+
+  it("un email existant avec espaces et casse différente est reconnu", () => {
+    // « ␣MARION.BERTHIER@EXAMPLE.COM␣ » est le même que celui de Marion. Comparé brut,
+    // il ne l'était pas — et le club se retrouvait avec deux fiches pour une personne.
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "Marion", nom: "Berthier", email: "  MARION.BERTHIER@EXAMPLE.COM  ", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length);
+  });
+
+  it("un doublon prénom + nom SANS email est ignoré, même entouré d’espaces", () => {
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [{ prenom: "  Marion  ", nom: " Berthier ", email: "", telephone: "", coursId: null }],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length);
+  });
+
+  it("deux homonymes avec deux emails distincts sont ACCEPTÉS", () => {
+    // La règle du serveur : avec un email, c'est l'email qui fait le doublon. Un club a
+    // ses deux Marie Martin, et refuser la seconde aurait été un bug silencieux — la
+    // ligne disparaissait du décompte sans que personne ne sache laquelle.
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "Marie", nom: "Martin", email: "marie.martin@example.com", telephone: "", coursId: null },
+        { prenom: "Marie", nom: "Martin", email: "m.martin@example.com", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length + 2);
+  });
+
+  it("mais deux homonymes SANS email ne comptent que pour un", () => {
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "Marie", nom: "Martin", email: "", telephone: "", coursId: null },
+        { prenom: " marie ", nom: " MARTIN ", email: "", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length + 1);
+  });
+
+  it("un même email deux fois DANS LE FICHIER ne passe qu’une fois", () => {
+    const avant = etat();
+    const apres = reducteurDemo(avant, {
+      type: "adherent/importer",
+      lignes: [
+        { prenom: "Camille", nom: "Aubert", email: "camille@example.com", telephone: "", coursId: null },
+        { prenom: "Camille", nom: "Aubert", email: " CAMILLE@example.com ", telephone: "", coursId: null },
+      ],
+    });
+    expect(apres.adherents).toHaveLength(avant.adherents.length + 1);
   });
 
   it("la troncature s’applique APRÈS le trim", () => {
