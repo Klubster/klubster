@@ -237,8 +237,59 @@ describe("colonnes financières d’adhesions — grants par colonne et RPC", ()
   it("la RPC financière exige le rôle ET le cloisonnement par organisation", () => {
     const fn = SQL27.match(/create or replace function public\.adhesions_finance[\s\S]*?\$\$;/)?.[0] ?? "";
     expect(fn).toMatch(/a_role_asso\(array\['admin_asso','tresorier'\]\)/);
-    expect(fn).toMatch(/organisation_id = current_org_id\(\) or is_super_admin\(\)/);
     expect(fn).toMatch(/security definer/);
+  });
+
+  it("le parenthésage isole le super-admin dans sa PROPRE branche", () => {
+    // POURQUOI CE TEST EST PRÉCIS À CE POINT
+    // La première écriture était :
+    //   and (organisation_id = current_org_id() or is_super_admin())
+    //   and a_role_asso(array[...])
+    // Elle fonctionnait — par ricochet, parce que `a_role_asso` commence elle-même
+    // par `is_super_admin()`. Le test d'origine ne voyait rien : les deux fonctions
+    // étaient bien présentes. Vérifier une PRÉSENCE ne vérifie pas une STRUCTURE.
+    const fn = SQL27.match(/create or replace function public\.adhesions_finance[\s\S]*?\$\$;/)?.[0] ?? "";
+    const conditions = fn.replace(/--[^\n]*/g, "").replace(/\s+/g, " ");
+
+    // Le rôle doit être conjoint à l'organisation, dans la même parenthèse…
+    expect(conditions).toMatch(
+      /\(\s*a\.organisation_id = current_org_id\(\)\s+and\s+a_role_asso\(array\['admin_asso','tresorier'\]\)\s*\)/
+    );
+    // …et le super-admin doit être une alternative à ce bloc entier.
+    expect(conditions).toMatch(/\)\s+or\s+is_super_admin\(\)/);
+    // Le motif fautif ne doit plus exister nulle part.
+    expect(conditions).not.toMatch(/current_org_id\(\)\s+or\s+is_super_admin\(\)/);
+  });
+
+  it("les colonnes rendues sont nommées une par une, jamais `a.*`", () => {
+    // Avec `setof adhesions` + `select a.*`, toute colonne ajoutée un jour à la table
+    // serait servie au trésorier sans que personne ne l'ait décidé.
+    const fn = SQL27.match(/create or replace function public\.adhesions_finance[\s\S]*?\$\$;/)?.[0] ?? "";
+    expect(fn).toMatch(/returns table \(/);
+    expect(fn).not.toMatch(/returns setof/);
+    expect(fn).not.toMatch(/select a\.\*/);
+  });
+
+  it("la RPC ne rend QUE les colonnes dont les appelants ont besoin", () => {
+    // On retire d'abord les commentaires : le mien mentionne `returns table (...)`, et
+    // la première version de ce test l'attrapait à la place de la vraie déclaration.
+    // Une recherche dans du SQL doit toujours ignorer les commentaires — sinon elle
+    // finit par mesurer la prose plutôt que le code.
+    const sansCommentaires = SQL27.replace(/--[^\n]*/g, "");
+    const decl = sansCommentaires.match(/returns table \(([\s\S]*?)\)\s*language sql/)?.[1] ?? "";
+    const attendues = [
+      "id", "organisation_id", "adherent_id",
+      "montant_centimes", "litige_le", "stripe_payment_intent", "derniere_relance",
+    ];
+    const rendues = decl
+      .split(",")
+      .map((l) => l.trim().split(/\s+/)[0])
+      .filter(Boolean);
+    expect(rendues.sort()).toEqual([...attendues].sort());
+    // Rien qui relève du dossier : ces colonnes-là se lisent directement sur la table.
+    for (const hors of ["saison", "statut", "cours_id", "mode_paiement"]) {
+      expect(rendues).not.toContain(hors);
+    }
   });
 
   it("la RPC nomme exactement les rôles de la matrice", () => {

@@ -69,25 +69,59 @@ grant select (
 revoke all on public.adhesions from anon;
 
 -- ——— Lecture financière, par rôle ————————————————————————————————————————————
--- `returns setof public.adhesions` : l'appelant reçoit la ligne entière, colonnes
--- sensibles comprises. La sortie d'une fonction n'est pas soumise aux droits par
--- colonne — c'est précisément ce qui permet au président de lire ce que la table
--- ne laisse plus passer.
+--
+-- La sortie d'une fonction n'est pas soumise aux droits par colonne : c'est ce qui
+-- permet au président de lire ce que la table ne laisse plus passer.
+--
+-- POURQUOI `RETURNS TABLE` ET PAS `SETOF public.adhesions`
+-- Avec `setof adhesions` + `select a.*`, TOUTE colonne ajoutée un jour à la table
+-- serait automatiquement servie au trésorier, sans que personne ne l'ait décidé. Un
+-- `returns table (...)` nommant les colonnes une par une transforme cet oubli
+-- silencieux en erreur de compilation le jour où on voudra en ajouter une. On liste
+-- donc exactement ce dont les quatre appelants ont besoin, et rien de plus.
+--
+-- POURQUOI DEUX BRANCHES INDÉPENDANTES POUR LE SUPER-ADMIN
+-- La première écriture était :
+--   and (a.organisation_id = current_org_id() or is_super_admin())
+--   and a_role_asso(array['admin_asso','tresorier'])
+-- Elle FONCTIONNE aujourd'hui — `a_role_asso` commence elle-même par
+-- `coalesce(is_super_admin(), false) or ...`, donc le super-admin la satisfait. Mais
+-- elle ne fonctionne que par ricochet : elle dépend d'un détail interne d'une AUTRE
+-- fonction. Le jour où quelqu'un retire le raccourci super-admin de `a_role_asso` —
+-- ce qui serait un durcissement raisonnable — cette RPC verrouille silencieusement la
+-- console d'administration, et personne ne fera le lien. On l'écrit donc en deux
+-- branches explicites : club + rôle, OU super-admin.
 
 create or replace function public.adhesions_finance(p_org uuid)
-returns setof public.adhesions
+returns table (
+  id uuid,
+  organisation_id uuid,
+  adherent_id uuid,
+  montant_centimes integer,
+  litige_le timestamptz,
+  stripe_payment_intent text,
+  derniere_relance timestamptz
+)
 language sql
 stable
 security definer
 set search_path to 'public'
 as $$
-  select a.*
+  select a.id,
+         a.organisation_id,
+         a.adherent_id,
+         a.montant_centimes,
+         a.litige_le,
+         a.stripe_payment_intent,
+         a.derniere_relance
     from public.adhesions a
    where a.organisation_id = p_org
-     -- Cloisonnement : on ne lit que son propre club, sauf super-admin.
-     and (a.organisation_id = current_org_id() or is_super_admin())
-     -- Et seulement avec la permission « paiements », comme src/lib/roles.ts.
-     and a_role_asso(array['admin_asso','tresorier'])
+     and (
+       -- Membre du club, ET porteur de la permission « paiements ».
+       (a.organisation_id = current_org_id() and a_role_asso(array['admin_asso','tresorier']))
+       -- Ou super-admin, sans condition d'organisation : son profil n'en porte aucune.
+       or is_super_admin()
+     )
 $$;
 
 comment on function public.adhesions_finance(uuid) is
