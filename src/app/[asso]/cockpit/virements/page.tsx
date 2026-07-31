@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
+import { peut } from "@/lib/roles";
 import { getSoldeClub, getVirementsClub, getCompteBancaireClub, stripeConfigured } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
 import { ouvrirCompteStripe } from "./actions";
@@ -51,6 +52,13 @@ export default async function VirementsPage(
   const profile = await getProfile();
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${org.slug}/cockpit/virements`);
+  }
+  // Même défaut que `paiements/remise`, trouvé dans la même passe : la page montre les
+  // soldes Stripe et les coordonnées bancaires du club sans vérifier le rôle. Les Server
+  // Actions de cet écran exigeaient déjà `exigerPermission(slug, "paiements")` — seule la
+  // lecture manquait à l'appel.
+  if (!peut(profile.role, "paiements")) {
+    redirect(`/${org.slug}/cockpit?acces=refuse`);
   }
 
   const account = compteConnecte(org);

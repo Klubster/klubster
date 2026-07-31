@@ -59,10 +59,17 @@ export default async function FicheAdherent(
     .maybeSingle();
   if (!adherent) notFound();
 
+  // Depuis la 0027, `litige_le` et `stripe_payment_intent` ne sont plus lisibles par
+  // requête directe : ils passent par `adhesions_finance`, qui vérifie le rôle en base.
+  // On lit donc l'adhésion en deux temps — le dossier pour tout le monde, l'argent pour
+  // qui y a droit — et on FUSIONNE ensuite. Un secrétaire garde ainsi sa fiche complète
+  // côté dossier, sans jamais voir passer une colonne financière.
+  const peutVoirArgent = peut(profile.role, "paiements");
+
   const [{ data: adhesions }, { data: pieces }, { data: sante }] = await Promise.all([
     supabase
       .from("adhesions")
-      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, stripe_payment_intent, litige_le, cours(nom)")
+      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, cours(nom)")
       .eq("adherent_id", params.id)
       .order("created_at", { ascending: false }),
     supabase.from("pieces_adherent").select("id, cle, label, statut, chemin").eq("adherent_id", params.id),
@@ -74,12 +81,33 @@ export default async function FicheAdherent(
       .limit(1),
   ]);
 
-  const listeAdhesions = (adhesions ?? []) as unknown as Adhesion[];
+  const base = (adhesions ?? []) as unknown as Adhesion[];
   const listePieces = (pieces ?? []) as unknown as Piece[];
   const questionnaire = ((sante ?? []) as unknown as Sante[])[0];
 
+  // Le volet financier de chaque adhésion, par la RPC qui contrôle le rôle en base.
+  const { data: finance } = peutVoirArgent
+    ? await supabase.rpc("adhesions_finance", { p_org: org.id }).eq("adherent_id", params.id)
+    : { data: [] };
+  const financeParId = new Map(
+    ((finance ?? []) as { id: string; litige_le: string | null; stripe_payment_intent: string | null }[]).map((f) => [
+      f.id,
+      f,
+    ])
+  );
+  const listeAdhesions: Adhesion[] = base.map((a) => ({
+    ...a,
+    litige_le: financeParId.get(a.id)?.litige_le ?? null,
+    stripe_payment_intent: financeParId.get(a.id)?.stripe_payment_intent ?? null,
+  }));
+
+  // Depuis la migration 0026, `reglements` n'est lisible que par les rôles portant la
+  // permission « paiements ». On ne lance donc pas une requête dont on sait qu'elle ne
+  // rendra rien — et surtout, on N'AFFICHE PAS les blocs financiers à un rôle qui ne
+  // peut pas les lire : un « Réglé : 0 € · Reste 313 € » causé par une RLS serait
+  // indiscernable d'un adhérent qui n'a rien payé. Absence plutôt que faux.
   const idsAdhesions = listeAdhesions.map((a) => a.id);
-  const { data: reglements } = idsAdhesions.length
+  const { data: reglements } = peutVoirArgent && idsAdhesions.length
     ? await supabase
         .from("reglements")
         .select("id, adhesion_id, montant_centimes, mode, note, created_at")
@@ -238,14 +266,22 @@ export default async function FicheAdherent(
                 </div>
               ))}
               <div className="bg-bg-alt px-5 py-4">
-                <p className="mono text-[12px]">
-                  Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
-                  {reste > 0 ? (
-                    <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
-                  ) : (
-                    <span style={{ color: "#1E7A4F" }}> · Soldé</span>
-                  )}
-                </p>
+                {peutVoirArgent ? (
+                  <p className="mono text-[12px]">
+                    Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
+                    {reste > 0 ? (
+                      <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
+                    ) : (
+                      <span style={{ color: "#1E7A4F" }}> · Soldé</span>
+                    )}
+                  </p>
+                ) : (
+                  // Dire pourquoi la ligne est absente. Un blanc silencieux ferait croire
+                  // à un bug ; cette phrase dit que c'est un choix, et lequel.
+                  <p className="mono text-[12px] text-ink-faint">
+                    Le suivi des règlements est réservé au président et au trésorier.
+                  </p>
+                )}
               </div>
             </div>
           )}

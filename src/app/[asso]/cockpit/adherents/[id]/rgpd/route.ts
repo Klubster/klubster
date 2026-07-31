@@ -6,8 +6,19 @@ import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
-// Export RGPD complet d'un adhérent (droit d'accès / portabilité) : toutes ses données
-// dans un seul fichier JSON. Réservé au président et au secrétariat.
+/**
+ * Export RGPD complet d'un adhérent (droit d'accès / portabilité) : toutes ses données
+ * dans un seul fichier JSON.
+ *
+ * RÉSERVÉ AU PRÉSIDENT. Pas par principe hiérarchique : parce que c'est le seul rôle qui
+ * puisse LIRE l'intégralité du dossier. Depuis la migration 0026, `reglements` n'est
+ * lisible que par le président et le trésorier, et `questionnaires_sante` que par le
+ * président et le secrétaire. Un secrétaire produirait donc un export amputé de tous les
+ * paiements — sans le savoir, et sans que la personne qui le reçoit puisse s'en douter.
+ *
+ * Un export partiel est pire qu'un refus : il ne satisfait pas la demande d'accès, il
+ * fait seulement croire qu'elle a été satisfaite.
+ */
 export async function GET(_req: Request, props: { params: Promise<{ asso: string; id: string }> }) {
   const params = await props.params;
   const org = await getOrganisationBySlug(params.asso);
@@ -16,7 +27,9 @@ export async function GET(_req: Request, props: { params: Promise<{ asso: string
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     return NextResponse.json({ error: "non autorisé" }, { status: 403 });
   }
-  if (!peut(profile.role, "adherents_ecriture")) {
+  // Le seul rôle qui lise à la fois les règlements, la santé et les pièces.
+  const estPresident = profile.role === "admin_asso" || profile.role === "super_admin";
+  if (!estPresident || !peut(profile.role, "adherents_ecriture")) {
     return NextResponse.json({ error: "non autorisé" }, { status: 403 });
   }
 

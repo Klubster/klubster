@@ -49,13 +49,23 @@ export default async function RelancesPage(
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, statut, derniere_relance, adherent:adherents(id, prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
+    .select("id, montant_centimes, statut, adherent:adherents(id, prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
     .order("created_at", { ascending: true });
 
+  // « Relancé il y a 3 j » dit qu'on a réclamé de l'argent à quelqu'un, et quand. La
+  // colonne n'est plus lisible directement depuis la 0027 : elle vient de la RPC, qui
+  // vérifie le rôle en base. Cette page l'exige déjà, mais le garde de page ne protège
+  // que la page.
+  const { data: relancesData } = await supabase.rpc("adhesions_finance", { p_org: org.id });
+  const relanceParId = new Map(
+    ((relancesData ?? []) as { id: string; derniere_relance: string | null }[]).map((a) => [a.id, a.derniere_relance])
+  );
+
   const reste = (l: Ligne) => (l.montant_centimes ?? 0) - (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0);
   const impayes = ((data ?? []) as unknown as Ligne[])
+    .map((l) => ({ ...l, derniere_relance: relanceParId.get(l.id) ?? null }))
     .map((l) => ({ ...l, reste: reste(l) }))
     .filter((l) => l.reste > 0)
     .sort((a, b) => (a.adherent?.nom ?? "").localeCompare(b.adherent?.nom ?? ""));
