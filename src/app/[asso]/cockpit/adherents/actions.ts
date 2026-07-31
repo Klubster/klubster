@@ -358,12 +358,14 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
   if (!p || !peut(p.role, "paiements")) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=acces`);
 
   const supabase = await createSupabaseServerClient();
-  const { data: adh } = await supabase
-    .from("adhesions")
-    .select("id, stripe_payment_intent, montant_centimes")
-    .eq("id", adhesionId)
-    .eq("organisation_id", org.id)
-    .maybeSingle();
+  // `stripe_payment_intent` est la poignée qui permet de rendre l'argent : depuis la
+  // 0027 elle n'est plus lisible par requête directe, seulement par `adhesions_finance`,
+  // qui re-vérifie le rôle en base. Le `peut(...)` ci-dessus reste utile pour le message
+  // d'erreur ; c'est la base qui décide.
+  const { data: adhs } = await supabase
+    .rpc("adhesions_finance", { p_org: org.id })
+    .eq("id", adhesionId);
+  const adh = ((adhs ?? []) as { stripe_payment_intent: string | null; montant_centimes: number | null }[])[0];
 
   const pi = adh?.stripe_payment_intent as string | null | undefined;
   if (!pi) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement_impossible`);

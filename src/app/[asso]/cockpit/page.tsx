@@ -9,6 +9,7 @@ import type { CodePromo } from "@/lib/stripe";
 import BoutonAttente from "@/components/BoutonAttente";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
+import { peut, libelleRole } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ function Cur() {
 export default async function Cockpit(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ stripe?: string; bienvenue?: string; abonnement?: string; code?: string }>;
+    searchParams: Promise<{ stripe?: string; bienvenue?: string; abonnement?: string; code?: string; acces?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -87,6 +88,15 @@ export default async function Cockpit(
         ? `Tout est à jour pour ${coursCeSoir.length > 1 ? "les cours" : "le cours"} de ce ${jourSemaine}.`
         : "Tous les dossiers sont à jour."
       : "Le détail est juste en dessous — rien ne prend plus de quelques minutes.";
+
+  // DEUX permissions, et pas une. La confusion des deux est ce qui laissait un encadrant
+  // lire « 48 190 € encaissés cette saison ».
+  //   `peutPaiements` — la trésorerie DU CLUB : encaissements, remises, virements.
+  //   `estPresident`  — l'abonnement KLUBSTER et la configuration Stripe. Ce que le club
+  //                     paie à son prestataire ne regarde pas son trésorier, et les
+  //                     Server Actions correspondantes exigent déjà le président.
+  const peutPaiements = peut(profile?.role, "paiements");
+  const estPresident = profile?.role === "admin_asso" || profile?.role === "super_admin";
 
   const NAV: { n: string; label: string; href: string; actif?: boolean }[] = [
     { n: "01", label: "AUJOURD'HUI", href: `/${org.slug}/cockpit`, actif: true },
@@ -326,32 +336,65 @@ export default async function Cockpit(
             </div>
           </div>
 
-          {/* À FAIRE — l'action avant la statistique */}
+          {/* Refus d'accès. Huit redirections du cockpit posaient déjà `?acces=refuse`,
+              que PERSONNE ne lisait : le bénévole revenait sur cette page sans un mot,
+              persuadé d'avoir mal cliqué. Un échec muet est indiscernable d'un bug — et
+              c'est le point d'abandon n°1 relevé sur l'authentification. */}
+          {searchParams?.acces === "refuse" ? (
+            <div className="border-b border-line px-6 py-5 md:px-10" style={{ background: "#FBEDED" }}>
+              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+                Cette page n’est pas accessible avec votre rôle ({libelleRole(profile?.role)}).
+                Demandez au président de vous l’ouvrir depuis « Votre équipe ».
+              </p>
+            </div>
+          ) : null}
+
+          {/* À FAIRE — l'action avant la statistique.
+              Les deux cartes qui mènent aux encaissements ne s'affichent qu'aux rôles qui
+              peuvent y entrer : sans cela, un encadrant clique et tombe sur un refus.
+              Proposer une porte fermée est une façon de mentir sur ce qu'on offre. */}
           <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-3">
-            <Carte
-              n={String(s.enAttente)}
-              label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
-              href={`/${org.slug}/cockpit/paiements`}
-              action="OUVRIR"
-              vide={s.enAttente === 0}
-            />
-            <Carte
-              n={String(s.enRetard)}
-              label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
-              href={`/${org.slug}/cockpit/communication`}
-              action="RELANCER"
-              vide={s.enRetard === 0}
-            />
-            <Carte
-              n={String(auj.nouvelles7j)}
-              label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
-              href={`/${org.slug}/cockpit/paiements`}
-              action="VÉRIFIER"
-              vide={auj.nouvelles7j === 0}
-            />
+            {peutPaiements ? (
+              <Carte
+                n={String(s.enAttente)}
+                label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
+                href={`/${org.slug}/cockpit/paiements`}
+                action="OUVRIR"
+                vide={s.enAttente === 0}
+              />
+            ) : null}
+            {/* « 9 cotisations à relancer » est un chiffre de trésorerie, même s'il mène
+                à la messagerie. Un secrétaire garde son entrée par le geste « Envoyer un
+                message » ; il n'a pas besoin de savoir combien de familles doivent de
+                l'argent au club. */}
+            {peutPaiements ? (
+              <Carte
+                n={String(s.enRetard)}
+                label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
+                href={`/${org.slug}/cockpit/communication`}
+                action="RELANCER"
+                vide={s.enRetard === 0}
+              />
+            ) : null}
+            {peutPaiements ? (
+              <Carte
+                n={String(auj.nouvelles7j)}
+                label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
+                href={`/${org.slug}/cockpit/paiements`}
+                action="VÉRIFIER"
+                vide={auj.nouvelles7j === 0}
+              />
+            ) : null}
           </div>
 
-          {/* PAIEMENTS / STRIPE */}
+          {/* PAIEMENTS / STRIPE — président uniquement.
+              Cette section mêle deux choses, et les deux lui appartiennent : la
+              configuration Stripe du club, et l'ABONNEMENT KLUBSTER — son prix, son
+              état, le bouton de résiliation, le code promo. Un trésorier gère l'argent
+              des cotisations ; il n'a pas à voir ce que le club paie à son prestataire,
+              ni à pouvoir cliquer sur des formulaires que les Server Actions lui
+              refuseront de toute façon. Le total encaissé de la saison vit ici aussi. */}
+          {estPresident ? (
           <div id="paiements" className="border-b border-line px-6 py-7 md:px-10">
             {/* Retours de l'abonnement Klubster. Sans ces messages, un échec de
                 souscription rechargeait la page à l'identique : le bouton semblait
@@ -495,12 +538,14 @@ export default async function Cockpit(
                     directement sur le compte du club — <span className="mono">{formatPrix(s.tresorerieCentimes)}</span> encaissés cette saison,
                     0 % de commission.
                   </p>
-                  <Link
-                    href={`/${org.slug}/cockpit/virements`}
-                    className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
-                  >
-                    MES VIREMENTS →
-                  </Link>
+                  {peutPaiements ? (
+                    <Link
+                      href={`/${org.slug}/cockpit/virements`}
+                      className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
+                    >
+                      MES VIREMENTS →
+                    </Link>
+                  ) : null}
                 </div>
 
                 {/* Le club fixe le plafond ; l'adhérent choisit dans cette limite. */}
@@ -569,6 +614,7 @@ export default async function Cockpit(
               </p>
             ) : null}
           </div>
+          ) : null}
 
           {/* ACTIONS RAPIDES — des gestes, pas des raccourcis */}
           <div className="border-b border-line px-6 py-8 md:px-10">
@@ -577,8 +623,10 @@ export default async function Cockpit(
               <Geste titre="Gérer les adhérents" desc="Chercher, consulter, modifier une fiche." href={`/${org.slug}/cockpit/adherents`} action="OUVRIR" />
               <Geste titre="Cours et tarifs" desc="Horaires, tarifs, nouvelle activité." href={`/${org.slug}/cockpit/cours`} action="MODIFIER" />
               <Geste titre="Envoyer un message" desc="Aux adhérents, par groupe ou par cours." href={`/${org.slug}/cockpit/communication`} action="OUVRIR" />
-              <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
-              {stripeConnecte ? (
+              {peutPaiements ? (
+                <Geste titre="Encaisser une cotisation" desc="Chèque ou espèces, en deux clics." href={`/${org.slug}/cockpit/paiements`} action="ENCAISSER" />
+              ) : null}
+              {stripeConnecte && peutPaiements ? (
                 <Geste titre="Mes virements" desc="Ce qui arrive sur le compte du club, et quand." href={`/${org.slug}/cockpit/virements`} action="CONSULTER" />
               ) : null}
               <Geste titre="Faire l'appel" desc="Scanner la carte ou chercher un nom." href={`/${org.slug}/cockpit/scanner`} action="SCANNER" />

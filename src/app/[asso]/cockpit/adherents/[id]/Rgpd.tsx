@@ -21,12 +21,21 @@ export default function Rgpd({
     <section className="mt-14">
       <p className="mono text-[11px] uppercase tracking-label text-ink-soft">DONNÉES PERSONNELLES · RGPD<span className="cur">_</span></p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <a
-          href={`/${slug}/cockpit/adherents/${adherentId}/rgpd`}
-          className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
-        >
-          EXPORTER SES DONNÉES →
-        </a>
+        {/* Export réservé au président : c'est le seul rôle qui lise à la fois les
+            règlements et la santé. Afficher le bouton à un secrétaire lui ferait
+            produire un export amputé des paiements, sans qu'il puisse s'en apercevoir. */}
+        {estPresident ? (
+          <a
+            href={`/${slug}/cockpit/adherents/${adherentId}/rgpd`}
+            className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          >
+            EXPORTER SES DONNÉES →
+          </a>
+        ) : (
+          <p className="mono text-[12px] text-ink-faint">
+            L’export des données d’un adhérent est réservé au président.
+          </p>
+        )}
 
         {estPresident ? (
           confirme ? (
