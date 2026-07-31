@@ -204,9 +204,14 @@ export default async function CoursPage(
           </div>
         </form>
 
+        {/* NE PAS y remettre « Déplacez-les d'abord, depuis leur fiche ». La fiche
+            adhérent ne propose aucun changement de cours : la phrase envoyait chercher
+            un bouton qui n'existe pas, et un président qui ne le trouve pas en conclut
+            qu'il n'a pas compris. Le changement de cours est en feuille de route
+            (docs/roadmap-ecarts-demo.md) ; tant qu'il n'existe pas, on énonce le fait
+            sans prescrire un geste impossible. */}
         <p className="mono mt-10 text-[11px] leading-relaxed text-ink-soft">
           Un cours qui compte des adhérents ne peut pas être supprimé : leurs dossiers y sont rattachés.
-          Déplacez-les d’abord, depuis leur fiche.
         </p>
       </div>
     </main>
