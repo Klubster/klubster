@@ -72,5 +72,38 @@ fond de bouton. Deux pistes, à trancher :
 La première ne demande rien au club, ce qui est un argument sérieux : personne ne
 choisit sa couleur en pensant au contraste.
 
-Le même correctif vaut pour la démonstration, qui utilise `CLUB.couleur` de la même
-façon sur `/demo/controle`. Il est prévu au lot accessibilité.
+**Côté démonstration : corrigé le 01/08/2026.** `donnees.ts` porte désormais DEUX
+valeurs — `CLUB.couleur` (`#6B7F5E`, la couleur choisie par le club, réservée aux
+accents non textuels : filets, liserés, curseur `_`) et `CLUB.couleurTexte`
+(`#3F4C36`, la même assombrie jusqu'à 8,9:1 sur le papier et 9,1:1 sous du blanc),
+qui porte les libellés, les statuts et les fonds de bouton. `tests/demo-accessibilite.test.tsx`
+refuse tout `color:` ou `background:` posé sur la valeur brute, et vérifie par le
+calcul que la brute échoue en AA et que l'assombrie passe — de sorte qu'une
+« correction » de la donnée du club, plutôt que de son usage, ferait tomber le test.
+
+C'est la piste n°1 ci-dessus, appliquée à un seul tenant. Le correctif du produit
+reste à porter : il doit assombrir à la volée, pour n'importe quelle couleur.
+
+---
+
+## 3. La liste d'attente peut s'ouvrir sur un cours qui n'est pas complet
+
+**Relevé le** 01/08/2026, en écrivant l'aperçu du formulaire d'inscription.
+**Où** ce n'est pas un défaut de code mais un défaut possible en base — et il était
+présent dans les données de la démonstration jusqu'à ce commit.
+
+`coursComplets` (`src/lib/complets.ts`) décide qu'un cours est complet quand ses
+adhésions actives de la saison atteignent `places_max`. Mais **rien n'empêche une
+adhésion `liste_attente` d'exister sur un cours qui a de la place** : ni contrainte
+en base, ni vérification à l'inscription au-delà du moment du choix. Une jauge
+relevée après coup — le club trouve deux tapis de plus — laisse les personnes en
+attente là où elles sont, sans que rien ne le signale au président.
+
+**Ce que voit le club** l'écran « Cours et tarifs » affiche `5/16 inscrits · 3 en
+liste d'attente ». C'est exact, et incompréhensible.
+
+**Correctif** à trancher : soit signaler la situation sur l'écran des cours (« des
+places se sont libérées : 3 personnes attendent »), soit promouvoir automatiquement
+à l'enregistrement d'une jauge élargie. La première laisse la décision au club, ce
+qui vaut mieux — donner une place envoie un email, et un email automatique déclenché
+par un réglage surprend.

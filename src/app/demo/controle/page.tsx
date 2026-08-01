@@ -180,13 +180,15 @@ export default function DemoControle() {
 
             <div className="mt-6">
               {vu.present ? (
-                <span className="mono text-[13px]" style={{ color: CLUB.couleur }}>
+                /* Couleur assombrie du club : la brute mesure 3,6:1 et ce texte fait
+                   13 px. Voir CLUB.couleurTexte. */
+                <span className="mono text-[13px]" style={{ color: CLUB.couleurTexte }}>
                   ✓ PRÉSENT AUJOURD’HUI
                 </span>
               ) : (
                 <BoutonSimuler
                   libelle="SIMULER LA PRÉSENCE →"
-                  couleur={CLUB.couleur}
+                  couleur={CLUB.couleurTexte}
                   onSimuler={() => envoyer({ type: "presence/marquer", adherentId: vu.id })}
                 />
               )}

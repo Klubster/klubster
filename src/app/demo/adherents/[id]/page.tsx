@@ -225,7 +225,7 @@ function EncartReglement({
       <div className="mt-4">
         <BoutonSimuler
           libelle="SIMULER L’ENCAISSEMENT"
-          couleur={CLUB.couleur}
+          couleur={CLUB.couleurTexte}
           pleineLargeur={false}
           onSimuler={() => {
             const euros = parseFloat(montant.replace(",", "."));

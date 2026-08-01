@@ -39,7 +39,7 @@ function Legende({ children }: { children: React.ReactNode }) {
   return (
     <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">
       {children}
-      <span style={{ color: CLUB.couleur }}>_</span>
+      <span style={{ color: CLUB.couleurTexte }}>_</span>
     </legend>
   );
 }
@@ -106,7 +106,7 @@ export default function DemoApercuInscription() {
       <div className="mx-auto max-w-2xl px-6 py-12 md:px-8">
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
           {CLUB.nom.toUpperCase()}
-          <span style={{ color: CLUB.couleur }}>_</span>
+          <span style={{ color: CLUB.couleurTexte }}>_</span>
         </p>
         <h1 className="mt-4 text-3xl font-medium tracking-[-0.01em] md:text-4xl">Inscription en ligne.</h1>
         <p className="mt-4 max-w-prose text-ink-soft">

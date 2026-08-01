@@ -41,7 +41,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
         <BandeauDemo />
 
         <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
-          <Link href="/" className="font-logo text-lg font-semibold">
+          <Link href="/" aria-label="Klubster — accueil" className="mono flex min-h-[44px] items-center font-logo text-lg font-semibold">
             k<span className="cur">_</span>
           </Link>
           <span className="mono hidden truncate text-[11px] uppercase tracking-label text-ink-soft sm:block">

@@ -26,6 +26,25 @@ export const CLUB = {
   nom: "L’Arbre et le Souffle",
   ville: "Angers",
   couleur: "#6B7F5E", // vert sauge — la couleur du club, pas celle de Klubster
+  /**
+   * La même couleur, assombrie jusqu'au contraste.
+   *
+   * POURQUOI DEUX VALEURS, ET LAQUELLE VA OÙ
+   * `couleur` est ce que le club a choisi. Elle vaut environ 3,6:1 sur le papier : assez
+   * pour un filet, une puce ou un liseré, pas pour du texte de 13 px ni pour du blanc
+   * posé dessus. `couleurTexte` mesure 8,9:1 sur le papier et 9,1:1 sous du blanc — elle
+   * porte donc les libellés, les statuts et les fonds de bouton.
+   *
+   * La distinction vient d'un défaut du produit réel, consigné dans
+   * `docs/defauts-a-corriger.md` : le scanner pose `organisations.couleur_primaire`
+   * directement en couleur de texte, sans rien qui contraigne cette valeur. Un vert doux
+   * — exactement celui qu'une association de yoga choisit — devient alors illisible.
+   *
+   * La démonstration ne reproduit PAS ce défaut. Reproduire fidèlement une
+   * non-conformité d'accessibilité, ce n'est plus de la fidélité : c'est la propager sur
+   * une page publique, en la présentant comme le produit.
+   */
+  couleurTexte: "#3F4C36",
   saison: "2026-2027",
   president: "Hélène Vasseur",
   email: "contact@example.com",
