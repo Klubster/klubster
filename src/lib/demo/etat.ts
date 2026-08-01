@@ -159,6 +159,7 @@ export type ActionDemo =
   | { type: "form/remise-supprimer"; id: string }
   | { type: "form/autorisation-ajouter" }
   | { type: "form/autorisation-modifier"; id: string; autorisation: Partial<AutorisationDemo> }
+  | { type: "form/autorisation-deplacer"; id: string; sens: -1 | 1 }
   | { type: "form/autorisation-supprimer"; id: string }
   | { type: "form/sante"; actif: boolean }
   | { type: "form/appliquer" }
@@ -657,7 +658,17 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         actualites: [
           { id: id("n"), titre: action.titre.slice(0, 120), texte: action.texte.slice(0, 5000), publie_le: action.publieLe, aUneImage: action.aUneImage },
           ...etat.actualites,
-        ].sort((a, b) => (a.publie_le < b.publie_le ? 1 : -1)),
+          // `0` POUR LES EX ÆQUO, ET C'EST LE POINT DÉLICAT. Le comparateur précédent
+          // renvoyait `-1` quand les deux dates étaient égales — il annonçait donc
+          // « a avant b » ET « b avant a », ce qui n'est pas un ordre. Le tri de
+          // JavaScript n'est stable que pour les couples déclarés ÉQUIVALENTS ; sans
+          // `0`, deux actualités du même jour ressortaient dans l'ordre que le tri
+          // voulait, et la nouvelle publication passait derrière l'ancienne.
+          //
+          // La base, elle, départage par `created_at desc`. Ici, l'actualité neuve est
+          // placée en tête AVANT le tri : à date égale, la stabilité l'y maintient. Même
+          // résultat, sans avoir à porter une colonne que rien n'affiche.
+        ].sort((a, b) => (a.publie_le === b.publie_le ? 0 : a.publie_le < b.publie_le ? 1 : -1)),
         compteur: n,
         confirmation: "Actualité publiée dans la simulation — visible sur la vitrine fictive. Aucun site réel n’a été modifié.",
       };
@@ -756,6 +767,22 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
 
     case "form/autorisation-modifier":
       return { ...etat, form: { ...etat.form, autorisations: etat.form.autorisations.map((a) => (a.id === action.id ? { ...a, ...action.autorisation } : a)) } };
+
+    // Les autorisations se réordonnent (↑ ↓ dans l'atelier réel), les réductions non :
+    // elles sont présentées à l'adhérent dans l'ordre où le club les a créées, et
+    // l'atelier ne lui offre pas de les bouger.
+    case "form/autorisation-deplacer":
+      return {
+        ...etat,
+        form: {
+          ...etat.form,
+          autorisations: deplacer(
+            etat.form.autorisations,
+            etat.form.autorisations.findIndex((a) => a.id === action.id),
+            action.sens
+          ),
+        },
+      };
 
     case "form/autorisation-supprimer":
       return { ...etat, form: { ...etat.form, autorisations: etat.form.autorisations.filter((a) => a.id !== action.id) } };
