@@ -130,6 +130,7 @@ export default function DemoSite() {
                       de fermer la porte. */}
                   <Link
                     href="/demo/inscriptions/apercu"
+                    aria-label={`${jaugeDuCours(etat, c.id).complet ? "Liste d’attente" : "S’inscrire"} — ${c.nom}`}
                     className="mono mt-5 inline-block min-h-[44px] border border-ink px-4 py-3.5 text-center text-[13px] hover:bg-ink hover:text-paper"
                   >
                     {jaugeDuCours(etat, c.id).complet ? "LISTE D’ATTENTE →" : "S’INSCRIRE À CE COURS →"}
@@ -229,7 +230,11 @@ export default function DemoSite() {
                     </p>
                     <h3 className="mt-3 text-[16px] font-medium leading-snug">{a.titre}</h3>
                     <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{resumeActu(a.texte)}</p>
-                    <Link href={`/demo/actualites/${a.id}`} className="mono mt-auto inline-block pb-3 pt-5 text-[13px]">
+                    <Link
+                      href={`/demo/actualites/${a.id}`}
+                      aria-label={`Lire « ${a.titre} »`}
+                      className="mono mt-auto inline-block min-h-[44px] pb-3 pt-5 text-[13px]"
+                    >
                       LIRE →
                     </Link>
                   </article>

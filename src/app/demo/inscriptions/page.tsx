@@ -131,14 +131,21 @@ export default function DemoInscriptions() {
           <div className="mt-6 space-y-6">
             {form.pages.map((page, pi) => (
               <div key={page.id} className="border border-line bg-paper">
-                <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+                {/* `flex-wrap` ET une largeur minimale sur le champ.
+                    MESURÉ À 390 px, dans une iframe de cette largeur : sans cela, la
+                    ligne « numéro + titre + ↑ ↓ ✕ » débordait de 36 px et faisait
+                    défiler toute la page horizontalement. Les trois boutons font 44 px
+                    de côté — c'est la bonne taille, et c'est justement ce qui ne rentre
+                    pas à côté d'un champ extensible. Le champ passe donc à la ligne
+                    au-dessous de 260 px environ. */}
+                <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
                   <span className="mono text-[11px] text-ink-soft">{String(pi + 1).padStart(2, "0")}</span>
                   <input
                     value={page.titre}
                     onChange={(e) => envoyer({ type: "form/page-renommer", id: page.id, titre: e.target.value })}
                     placeholder="Titre de la page"
                     aria-label={`Titre de la page ${pi + 1}`}
-                    className={`flex-1 ${CHAMP}`}
+                    className={`min-w-[140px] flex-1 ${CHAMP}`}
                   />
                   <Btn titre="Monter la page" onClick={() => envoyer({ type: "form/page-deplacer", id: page.id, sens: -1 })}>
                     ↑
@@ -210,13 +217,13 @@ export default function DemoInscriptions() {
                         />
                         OBLIGATOIRE
                       </label>
-                      <Btn titre="Monter le champ" onClick={() => envoyer({ type: "form/champ-deplacer", pageId: page.id, champId: ch.id, sens: -1 })}>
+                      <Btn titre={`Monter « ${ch.label || "champ sans libellé"} »`} onClick={() => envoyer({ type: "form/champ-deplacer", pageId: page.id, champId: ch.id, sens: -1 })}>
                         ↑
                       </Btn>
-                      <Btn titre="Descendre le champ" onClick={() => envoyer({ type: "form/champ-deplacer", pageId: page.id, champId: ch.id, sens: 1 })}>
+                      <Btn titre={`Descendre « ${ch.label || "champ sans libellé"} »`} onClick={() => envoyer({ type: "form/champ-deplacer", pageId: page.id, champId: ch.id, sens: 1 })}>
                         ↓
                       </Btn>
-                      <Btn titre="Supprimer le champ" onClick={() => envoyer({ type: "form/champ-supprimer", pageId: page.id, champId: ch.id })}>
+                      <Btn titre={`Supprimer « ${ch.label || "champ sans libellé"} »`} onClick={() => envoyer({ type: "form/champ-supprimer", pageId: page.id, champId: ch.id })}>
                         ✕
                       </Btn>
                     </div>
@@ -450,13 +457,13 @@ export default function DemoInscriptions() {
                   />
                   OBLIGATOIRE
                 </label>
-                <Btn titre="Monter la pièce" onClick={() => envoyer({ type: "form/piece-deplacer", id: pc.id, sens: -1 })}>
+                <Btn titre={`Monter « ${pc.label || "pièce sans libellé"} »`} onClick={() => envoyer({ type: "form/piece-deplacer", id: pc.id, sens: -1 })}>
                   ↑
                 </Btn>
-                <Btn titre="Descendre la pièce" onClick={() => envoyer({ type: "form/piece-deplacer", id: pc.id, sens: 1 })}>
+                <Btn titre={`Descendre « ${pc.label || "pièce sans libellé"} »`} onClick={() => envoyer({ type: "form/piece-deplacer", id: pc.id, sens: 1 })}>
                   ↓
                 </Btn>
-                <Btn titre="Supprimer la pièce" onClick={() => envoyer({ type: "form/piece-supprimer", id: pc.id })}>
+                <Btn titre={`Supprimer « ${pc.label || "pièce sans libellé"} »`} onClick={() => envoyer({ type: "form/piece-supprimer", id: pc.id })}>
                   ✕
                 </Btn>
 
@@ -465,6 +472,7 @@ export default function DemoInscriptions() {
                 <div className="mono flex w-full flex-wrap items-center gap-3 pl-1 pt-1 text-[11px]">
                   <GesteInerte
                     libelle="+ JOINDRE UN MODÈLE À TÉLÉCHARGER (PDF, 3 Mo max)"
+                    nomAccessible={`Joindre un modèle à « ${pc.label || "cette pièce"} »`}
                     className="min-h-[44px] text-ink-soft underline underline-offset-2 hover:text-ink"
                   />
                 </div>

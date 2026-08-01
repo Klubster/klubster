@@ -9,9 +9,25 @@ lots 4 à 10 sont faits, et ce qui suit décrit l'état réel de la branche, pas
 
 ```
 branche : feat/demo-interactive
-SHA     : 1bb54af
-avance  : 22 commits sur main
 fusion  : AUCUNE — ne rien fusionner sans accord explicite de Mathieu
+```
+
+**Ne cherchez pas ici le SHA de tête : il serait faux.** Un document qui note son propre
+commit se trompe forcément — le commit qui l'enregistre vient après lui. La version
+précédente l'a appris à ses dépens : elle affichait `1bb54af` et « 22 commits » alors que
+la branche était à `a45959d` et 24. Deux repères stables, et une commande pour le reste :
+
+| Repère | Valeur |
+|---|---|
+| Dernier commit **de code** vérifié par la chaîne complète | `1bb54af` — *la vitrine, les cours, et la preuve que rien ne sort* |
+| Commit **de passation** précédent | `a45959d` |
+| Avance sur `main` avant le présent commit | **24** (`git rev-list --count origin/main..HEAD`) |
+
+```bash
+# L'état courant, toujours vrai, jamais recopié :
+git log --oneline -1
+git rev-list --count origin/main..HEAD
+git diff origin/main...HEAD --stat | tail -1
 ```
 
 Dernière chaîne complète, lue jusqu'au bout :
@@ -157,8 +173,24 @@ sont en `@example.com`.
 
 ### Lot 10 — Accessibilité
 
-`tests/demo-accessibilite.test.tsx` : tout ce qui se clique porte un nom, et un nom
-**discriminant** ; tout champ porte une étiquette ; un seul `h1` par écran.
+`tests/demo-accessibilite.test.tsx` couvre **les dix-huit routes**, pages dynamiques
+comprises (paramètres déjà résolus, sous `<Suspense>`). Six vérifications par écran : un
+seul `h1` ; un nom accessible sur tout ce qui se clique ; une étiquette sur tout champ ;
+**aucun doublon de nom** dans le `<main>` ; une cible tactile déclarée partout ; aucune
+information portée par la seule couleur.
+
+Un dix-neuvième test compare la liste des écrans au contenu réel de `src/app/demo` :
+ajouter une route sans l'ajouter à la liste fait tomber le test, au lieu de laisser la
+couverture se dégrader en silence. C'est ce garde-fou qui manquait — la première version
+de ce fichier ne montait que sept routes sur dix-huit.
+
+Ce que l'extension a trouvé, et qui est corrigé : « Consulter » et « ✓ Reçue » répétés
+sur chaque pièce d'une fiche ; le bouton d'encaissement retombant sur son `title`,
+identique pour tout le monde ; dix « SIMULER LA RELANCE » indistincts ; les flèches d'un
+champ et d'une pièce dans l'atelier ; six « S'INSCRIRE À CE COURS » et trois « LIRE » sur
+la vitrine ; six « + AJOUTER UN CRÉNEAU » et six « SIMULER L'ENREGISTREMENT » sur les
+cours ; et le nom d'un adhérent en liste d'attente, cliquable sur 24 px de haut.
+`BoutonSimuler` et `GesteInerte` acceptent désormais un `nomAccessible`.
 
 La couleur du club se dédouble : `CLUB.couleur` (`#6B7F5E`) pour les accents non textuels,
 `CLUB.couleurTexte` (`#3F4C36`, 8,9:1 sur le papier) pour tout ce qui porte du texte. Le
@@ -168,26 +200,97 @@ test.
 
 ---
 
-## 5. Ce qui reste
+## 5. Ce qui a été mesuré au navigateur — et comment
+
+Tout ce qui suit a tourné sur le **build de production** (`npm run build` puis
+`next start`), jamais sur `next dev`.
+
+### La méthode des trois largeurs
+
+Redimensionner la fenêtre ne marche pas : macOS refuse de descendre sous une largeur
+minimale, et `resize_window` répond « succès » sans que la mise en page bouge. La bonne
+réponse tient en une ligne : **une `<iframe>` de 390 px de large EST un viewport de
+390 px.** Les media queries CSS s'y résolvent contre la largeur de l'iframe, pas contre
+celle de la fenêtre. Aucun outil à installer, et une mesure réelle plutôt qu'une
+déclaration relue.
+
+Ce qu'on lit dans l'iframe, à chaque largeur :
+
+- `documentElement.scrollWidth − largeur` → le **débordement horizontal** en pixels ;
+- `getBoundingClientRect().height` de chaque bouton et lien du `<main>` → la **hauteur
+  rendue** des cibles tactiles, et non la classe qui prétend la produire ;
+- le nombre de `<h1>`.
+
+**Résultat : 18 routes × 3 largeurs (390, 768, 1280) = 54 mesures, zéro défaut.**
+
+Un défaut a été trouvé et corrigé au passage : à 390 px, `/demo/inscriptions` débordait
+de **36 px**. La ligne d'en-tête d'une page du formulaire — numéro, titre, `↑ ↓ ✕` — ne
+passait pas à la ligne, et les trois boutons de 44 px poussaient le champ hors de
+l'écran. `flex-wrap` et une largeur minimale sur le champ.
+
+### Le parcours complet, en une seule session d'état
+
+Quatorze gestes enchaînés sans rechargement, du hub à la réinitialisation. Vérifié :
+
+| Ce qui a été fait | Résultat |
+|---|---|
+| Modifier une coordonnée sur une fiche | « Marion-TEST » enregistré |
+| Verser un acompte | reste recalculé |
+| **Revenir par le lien d'en-tête** | état conservé — voir le défaut ci-dessous |
+| Marquer une présence au contrôle | « ✓ PRÉSENT AUJOURD'HUI » |
+| Solder une cotisation | solde total 2 845,00 € → 2 700,00 € |
+| Préparer une remise de chèques | bordereau affiché |
+| Simuler un message | en tête de l'historique |
+| Publier une actualité | « À la une » sur l'aperçu |
+| L'ouvrir sur `/demo/site` | reflet immédiat |
+| Passer le Yin Yoga à 412 € | répercuté sur la vitrine |
+| `RÉINITIALISER` | tarif revenu à 295,00 € |
+| Modifier à nouveau puis **recharger** | 999,00 € → 295,00 € |
+
+**Un défaut sérieux, trouvé là et nulle part ailleurs.** Le lien de retour de
+`EnTeteDemo` était un `<a href>` nu. Un `<a>` ordinaire provoque une navigation de
+DOCUMENT : le layout est rechargé, le `DemoProvider` remonté, **et tout l'état simulé
+disparaît**. Un visiteur qui encaissait un chèque puis cliquait « ← AUJOURD'HUI »
+retrouvait le club dans son état de départ, sans rien pour le lui dire. Aucun test
+d'interface ne pouvait le voir : `happy-dom` ne navigue pas. Corrigé par `next/link`, et
+un garde-fou ajouté dans `tests/demo-isolation.test.ts` (les liens `target="_blank"`
+restent permis : ils n'ont pas cet effet).
+
+### Traces locales et réseau
+
+Après le parcours, avant comme après réinitialisation :
+`localStorage` **vide**, `sessionStorage` **vide**, `document.cookie` **vide**,
+`indexedDB.databases()` **vide**. Aucune erreur de console, aucun avertissement
+d'hydratation.
+
+**54 requêtes réseau, toutes vers `localhost`** — segments RSC de Next et morceaux de
+JavaScript statiques. Rien vers Supabase, Stripe, Resend, Clarity ou une route `/api/`.
+
+**Une observation non expliquée, consignée telle quelle** : six préchargements RSC
+simultanés de `/demo/adherents/[id]`, déclenchés par le navigateur à l'affichage de la
+liste, ont répondu **503**. Les mêmes URL répondent 200 à la demande, en série comme en
+parallèle (`curl`), le journal du serveur ne montre aucune erreur, et la navigation n'a
+jamais été affectée. Cela ressemble à un délestage de préchargement propre à Next, pas à
+une page en échec — mais ce n'est pas prouvé, et il ne faut pas le classer avant de
+l'avoir revu.
+
+### Ce qui n'a PAS pu être vérifié
+
+**Le déploiement Vercel.** Le projet Klubster n'apparaît pas sur le compte Vercel
+accessible depuis ici (`list_projects` sur `team_8tXGnIO4iMg2joEo962b3AAL` rend
+`nuumia-app`, `spec-site-1`, `spec-site`, `cockpit-dcidda`, `banquequiz` — pas Klubster).
+`gh` n'est pas installé sur la machine, et
+`https://api.github.com/repos/Klubster/klubster/commits/<sha>/status` ne rend aucun corps
+exploitable sans authentification — le dépôt est privé. L'URL de la preview n'a donc pas
+pu être résolue, et le parcours a été fait sur le **build de production local**, qui est
+le même artefact. À refaire sur la preview par quelqu'un qui a l'accès.
 
 | Sujet | État |
 |---|---|
-| Passe à 390 px dans un vrai navigateur | **à faire** — voir ci-dessous |
-| Parcours sur preview Vercel | **à faire** — le projet n'est pas sur le compte Vercel accessible |
 | Chapitres à photos de `/demo/site` | inertes, par décision |
 | Modèle joint à une pièce | inerte, par décision |
-
-**La passe 390 px n'a pas pu être faite.** Le contrôle du navigateur ne parvient pas à
-réduire la fenêtre en dessous de la largeur minimale de macOS : `resize_window` répond
-« succès » et la mise en page ne bouge pas. Les écrans sont écrits avec `flex-wrap`,
-`w-full sm:w-auto` et `min-h-[44px]` partout, et le test d'accessibilité vérifie la
-déclaration des cibles — mais **déclarer n'est pas mesurer**. À reprendre en ouvrant
-`/demo/site`, `/demo/cours` et `/demo/inscriptions` sur un téléphone réel : ce sont les
-trois écrans les plus denses horizontalement.
-
-**Ce qui a été vérifié au navigateur** (dev local, `next dev`, cinq écrans) : aucune
-erreur de console, aucun avertissement d'hydratation, et **aucune requête réseau** hors
-des ressources Next de `localhost` — rien vers Supabase, Stripe, Resend ou Clarity.
+| Parcours sur la preview Vercel | à faire par un compte ayant l'accès |
+| 503 sur les préchargements de fiches | observé, non expliqué |
 
 ---
 

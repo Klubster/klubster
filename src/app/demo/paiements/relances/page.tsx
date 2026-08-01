@@ -101,6 +101,7 @@ export default function DemoRelances() {
                   {l.adherent.email ? (
                     <BoutonSimuler
                       libelle={l.adhesion.derniere_relance ? "SIMULER À NOUVEAU" : "SIMULER LA RELANCE"}
+                      nomAccessible={`Simuler la relance de ${l.adherent.prenom} ${l.adherent.nom}`}
                       pleineLargeur={false}
                       onSimuler={() => envoyer({ type: "relance/simuler", adhesionIds: [l.adhesion.id] })}
                     />

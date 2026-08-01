@@ -197,8 +197,11 @@ describe("l’atelier", () => {
   });
 
   it("laisse inerte le seul geste qui sortirait du navigateur", () => {
+    const base = creerEtatDemoInitial();
     monter(<DemoInscriptions />);
-    clicN(/JOINDRE UN MODÈLE/, 0);
+    // Le nom accessible nomme la pièce ; le libellé visible reste celui du produit.
+    // Deux pièces, donc deux boutons : on vise celui de la première, nommément.
+    clic(`Joindre un modèle à « ${base.form.pieces[0].label} »`);
     expect(screen.getByText(/Fonction désactivée dans la démonstration/)).toBeTruthy();
     // Et aucun champ de fichier n'est monté : rien à envoyer nulle part.
     expect(document.querySelector('input[type="file"]')).toBeNull();
@@ -293,7 +296,7 @@ describe("l’aperçu du formulaire", () => {
     // Une pièce supprimée quitte l'aperçu.
     const piece = base.form.pieces[0];
     expect(screen.getAllByText(new RegExp(piece.label)).length).toBeGreaterThan(0);
-    clicN("Supprimer la pièce", 0);
+    clic(`Supprimer « ${piece.label} »`);
     expect(vu!.form.pieces.some((p) => p.id === piece.id)).toBe(false);
   });
 

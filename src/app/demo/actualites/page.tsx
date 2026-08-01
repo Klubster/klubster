@@ -169,6 +169,7 @@ export default function DemoActualites() {
                     <p className="mt-1 truncate text-[15px] font-medium">{a.titre}</p>
                     <Link
                       href={`/demo/actualites/${a.id}`}
+                      aria-label={`Voir la page de « ${a.titre} »`}
                       className="mono mt-1 inline-block min-h-[44px] py-3 text-[11px] text-ink-soft hover:text-ink"
                     >
                       VOIR LA PAGE →
@@ -178,6 +179,7 @@ export default function DemoActualites() {
                   <button
                     type="button"
                     onClick={() => envoyer({ type: "actualite/supprimer", id: a.id })}
+                    aria-label={`Supprimer « ${a.titre} »`}
                     className="mono min-h-[44px] shrink-0 border border-line px-3 py-2 text-[11px] uppercase tracking-wide text-danger hover:border-ink"
                   >
                     Supprimer

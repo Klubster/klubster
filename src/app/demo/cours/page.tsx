@@ -182,6 +182,7 @@ function EditeurCours({
         <button
           type="button"
           onClick={() => setCreneaux((cs) => [...cs, { jour: "lundi", debut: "18:00", fin: "19:30", note: "" }])}
+          aria-label={`Ajouter un créneau à ${cours.nom}`}
           className="mono min-h-[44px] border border-line px-4 py-2 text-[12px] hover:border-ink"
         >
           + AJOUTER UN CRÉNEAU
@@ -191,6 +192,7 @@ function EditeurCours({
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <BoutonSimuler
           libelle="SIMULER L’ENREGISTREMENT"
+          nomAccessible={`Enregistrer les modifications de ${cours.nom}`}
           pleineLargeur={false}
           couleur={CLUB.couleurTexte}
           onSimuler={() =>
@@ -225,6 +227,7 @@ function EditeurCours({
           <button
             type="button"
             onClick={() => setConfirme(true)}
+            aria-label={`Supprimer le cours ${cours.nom}`}
             className="mono min-h-[44px] text-[11px] text-ink-soft underline underline-offset-2 hover:text-ink"
           >
             Supprimer ce cours
@@ -302,7 +305,10 @@ export default function DemoCours() {
                     className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 last:border-b-0"
                   >
                     <div>
-                      <Link href={`/demo/adherents/${a.adherent_id}`} className="text-[15px] font-medium hover:underline">
+                      <Link
+                        href={`/demo/adherents/${a.adherent_id}`}
+                        className="inline-block min-h-[44px] py-3 text-[15px] font-medium hover:underline"
+                      >
                         {p?.prenom} {p?.nom}
                       </Link>
                       <p className="mono mt-0.5 text-[12px] text-ink-soft">
@@ -311,6 +317,7 @@ export default function DemoCours() {
                     </div>
                     <BoutonSimuler
                       libelle="SIMULER : DONNER UNE PLACE →"
+                      nomAccessible={`Donner une place à ${p?.prenom} ${p?.nom}`}
                       pleineLargeur={false}
                       couleur={CLUB.couleurTexte}
                       onSimuler={() => envoyer({ type: "listeAttente/promouvoir", adhesionId: a.id })}

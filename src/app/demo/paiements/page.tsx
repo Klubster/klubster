@@ -230,6 +230,7 @@ export default function DemoPaiements() {
                       <button
                         type="button"
                         onClick={() => encaisser(adhesion.id, reste)}
+                        aria-label={`Encaisser le règlement de ${nom(adhesion.adherent_id)}`}
                         title="Sans montant saisi : encaisse le solde complet"
                         className="mono min-h-[44px] bg-ink px-4 py-2.5 text-[12px] text-paper hover:bg-ink/90"
                       >

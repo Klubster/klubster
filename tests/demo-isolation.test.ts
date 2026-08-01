@@ -123,6 +123,39 @@ describe("isolation de la démonstration", () => {
     expect(coupables).toEqual([]);
   });
 
+  it("ne navigue jamais dans /demo par un `<a>` nu", () => {
+    /**
+     * POURQUOI CE TEST EXISTE, ET CE QU'IL A COÛTÉ DE NE PAS L'AVOIR.
+     *
+     * Un `<a href="/demo/…">` ordinaire provoque une navigation de DOCUMENT : le layout
+     * est rechargé, le `DemoProvider` remonté, et tout l'état simulé disparaît. Le lien
+     * de retour de `EnTeteDemo` en était un. Un visiteur qui encaissait un chèque puis
+     * cliquait « ← AUJOURD'HUI » retrouvait le club dans son état de départ — la
+     * promesse de la démonstration, « ce que vous faites vous suit d'un écran à
+     * l'autre », était fausse dès le premier retour en arrière.
+     *
+     * Aucun test d'interface ne pouvait le voir : `happy-dom` ne navigue pas. Il a fallu
+     * un vrai navigateur. Ce garde-fou, lui, coûte trois lignes.
+     *
+     * Les ancres internes (`href="#ajouter"`) et les liens externes ne sont pas
+     * concernés : ils ne rechargent rien.
+     */
+    const coupables: string[] = [];
+    for (const f of LISTE) {
+      // La balise entière, pour pouvoir lire ses autres attributs.
+      for (const m of code(f).matchAll(/<a\s[^>]*>/g)) {
+        const balise = m[0];
+        if (!/href=(?:"|\{`)\/demo/.test(balise)) continue;
+        // `target="_blank"` ouvre un AUTRE onglet : le document courant n'est pas
+        // rechargé, et l'état de la simulation ne bouge pas. C'est le cas de
+        // « Consulter » sur une pièce, qui doit précisément ouvrir à côté.
+        if (/target=["']_blank["']/.test(balise)) continue;
+        coupables.push(`${f} → ${balise.slice(0, 70)}`);
+      }
+    }
+    expect(coupables).toEqual([]);
+  });
+
   it("ne mène nulle part hors de /demo par un lien interne", () => {
     // Sauf les deux sorties assumées du bandeau, listées plus bas.
     const echappees = new Set<string>();

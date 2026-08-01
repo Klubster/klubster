@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { useDemo } from "./DemoProvider";
 
 /**
@@ -25,9 +26,18 @@ import { useDemo } from "./DemoProvider";
 export function EnTeteDemo({ retour, libelleRetour, kicker }: { retour: string; libelleRetour: string; kicker: string }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-4 md:px-8">
-      <a href={retour} className="mono min-h-[44px] py-3 text-[12px] text-ink-soft hover:text-ink">
+      {/* `next/link`, ET SURTOUT PAS UN `<a>` NU.
+          Trouvé au navigateur le 01/08/2026, sur le parcours complet : un `<a href>`
+          ordinaire déclenche une navigation de document. Le layout est rechargé, donc le
+          `DemoProvider` est remonté, donc TOUT L'ÉTAT SIMULÉ EST PERDU. Un visiteur qui
+          encaissait un chèque puis cliquait « ← AUJOURD'HUI » retrouvait le club dans son
+          état de départ, sans rien pour le lui dire — et la promesse centrale de cette
+          démonstration, « ce que vous faites ici vous suit d'un écran à l'autre »,
+          devenait fausse au premier retour en arrière.
+          Aucun test ne pouvait le voir : `happy-dom` ne navigue pas. */}
+      <Link href={retour} className="mono min-h-[44px] py-3 text-[12px] text-ink-soft hover:text-ink">
         {libelleRetour}
-      </a>
+      </Link>
       <span className="mono text-[11px] uppercase tracking-label text-ink-soft">
         {kicker}
         <span className="cur">_</span>
@@ -211,12 +221,23 @@ export function BoutonSimuler({
   desactive,
   couleur = "#111111",
   pleineLargeur = true,
+  nomAccessible,
 }: {
   libelle: string;
   onSimuler: () => void;
   desactive?: boolean;
   couleur?: string;
   pleineLargeur?: boolean;
+  /**
+   * Le nom lu par une assistance, quand le libellé visible ne suffit pas à distinguer
+   * ce bouton d'un autre.
+   *
+   * Une liste d'impayés aligne dix « SIMULER LA RELANCE », un écran de cours six
+   * « SIMULER L'ENREGISTREMENT ». À l'œil, la ligne dit de qui il s'agit ; à la lecture
+   * d'écran, dix boutons identiques ne disent rien. Le libellé visible reste court —
+   * c'est une colonne étroite — et le nom accessible porte la précision.
+   */
+  nomAccessible?: string;
 }) {
   const [enCours, setEnCours] = useState(false);
 
@@ -249,6 +270,7 @@ export function BoutonSimuler({
     <button
       type="button"
       disabled={desactive || enCours}
+      aria-label={nomAccessible}
       onClick={() => setEnCours(true)}
       style={{ background: desactive ? undefined : couleur }}
       className={`mono px-6 py-4 text-[13px] text-paper disabled:cursor-not-allowed disabled:bg-ink/20 ${
@@ -267,11 +289,20 @@ export function BoutonSimuler({
  * automatiques. Tous dépendent d'un tiers ou d'une adresse réelle — les simuler ne
  * montrerait rien, et les faire marcher exigerait de sortir de la démonstration.
  */
-export function GesteInerte({ libelle, className }: { libelle: string; className?: string }) {
+export function GesteInerte({
+  libelle,
+  className,
+  nomAccessible,
+}: {
+  libelle: string;
+  className?: string;
+  /** Même rôle que sur `BoutonSimuler` : distinguer deux gestes au libellé identique. */
+  nomAccessible?: string;
+}) {
   const [dit, setDit] = useState(false);
   return (
     <span className="inline-flex flex-wrap items-center gap-3">
-      <button type="button" onClick={() => setDit(true)} className={className}>
+      <button type="button" aria-label={nomAccessible} onClick={() => setDit(true)} className={className}>
         {libelle}
       </button>
       {dit ? (

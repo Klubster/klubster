@@ -503,6 +503,7 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                         href={`/demo/piece/${p.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
+                        aria-label={`Consulter « ${p.label} »`}
                         className="mono min-h-[44px] py-3 text-[11px] uppercase tracking-wide text-ink-soft underline underline-offset-2 hover:text-ink"
                       >
                         Consulter
@@ -512,6 +513,7 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                     <button
                       type="button"
                       onClick={() => envoyer({ type: "piece/basculer", id: p.id })}
+                      aria-label={`${p.label} — marquer ${p.statut === "recue" ? "manquante" : "reçue"}`}
                       className="mono min-h-[44px] text-[11px] uppercase tracking-wide hover:underline"
                       style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
                     >

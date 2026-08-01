@@ -139,7 +139,7 @@ describe("l’écran", () => {
     expect(screen.getByText(`${base.cours.length + 1} cours`)).toBeTruthy();
 
     // Ce cours-là n'a personne : il se supprime.
-    clic("Supprimer ce cours");
+    clic("Supprimer le cours Yoga du matin");
     expect(screen.getByText(/Supprimer « Yoga du matin » \?/)).toBeTruthy();
     clic("Oui, supprimer");
     expect(vu!.cours.length).toBe(base.cours.length);
@@ -150,7 +150,8 @@ describe("l’écran", () => {
     monter(<DemoCours />);
     const c = base.cours[3];
     poser(screen.getByLabelText(`Tarif du cours ${c.nom}`), "312,50", window.HTMLInputElement);
-    clicN(/SIMULER L’ENREGISTREMENT/, 3);
+    // Le nom accessible porte le cours : c'est ce qui distingue six boutons identiques.
+    clic(`Enregistrer les modifications de ${c.nom}`);
     avancer(450);
     expect(vu!.cours.find((x) => x.id === c.id)!.tarif_centimes).toBe(31250);
   });
@@ -161,9 +162,9 @@ describe("l’écran", () => {
     const c = base.cours[0];
     expect(c.creneaux.length).toBe(1);
 
-    clicN("+ AJOUTER UN CRÉNEAU", 0);
+    clic(`Ajouter un créneau à ${c.nom}`);
     poser(screen.getByLabelText(`Jour du créneau 2 de ${c.nom}`), "samedi", window.HTMLSelectElement);
-    clicN(/SIMULER L’ENREGISTREMENT/, 0);
+    clic(`Enregistrer les modifications de ${c.nom}`);
     avancer(450);
 
     const apres = vu!.cours.find((x) => x.id === c.id)!;
@@ -176,7 +177,7 @@ describe("l’écran", () => {
     monter(<DemoCours />);
     const c = base.cours[0];
     poser(screen.getByLabelText(`Places du cours ${c.nom}`), "", window.HTMLInputElement);
-    clicN(/SIMULER L’ENREGISTREMENT/, 0);
+    clic(`Enregistrer les modifications de ${c.nom}`);
     avancer(450);
     expect(vu!.cours.find((x) => x.id === c.id)!.places_max).toBeNull();
     expect(jaugeDuCours(vu!, c.id).complet).toBe(false);
@@ -189,7 +190,8 @@ describe("l’écran", () => {
     const attente = base.adhesions.filter((a) => a.statut === "liste_attente" && a.saison === CLUB.saison);
     expect(screen.getByText(`LISTE D’ATTENTE — ${attente.length} personne`)).toBeTruthy();
 
-    clic(/SIMULER : DONNER UNE PLACE/);
+    const qui = base.adherents.find((a) => a.id === attente[0].adherent_id)!;
+    clic(`Donner une place à ${qui.prenom} ${qui.nom}`);
     avancer(450);
     expect(vu!.adhesions.find((a) => a.id === attente[0].id)!.statut).toBe("en_attente");
     expect(screen.getByText(/Aucun email n’a réellement été envoyé/)).toBeTruthy();
@@ -222,7 +224,7 @@ describe("un tarif modifié suit jusqu’à la vitrine", () => {
     );
     const c = base.cours[1];
     poser(screen.getByLabelText(`Tarif du cours ${c.nom}`), "410", window.HTMLInputElement);
-    clicN(/SIMULER L’ENREGISTREMENT/, 1);
+    clic(`Enregistrer les modifications de ${c.nom}`);
     avancer(450);
 
     // Le chapitre « Tarifs » de la vitrine lit le même état, sans autre geste.
@@ -245,7 +247,7 @@ describe("un tarif modifié suit jusqu’à la vitrine", () => {
     expect(screen.getAllByText("S’INSCRIRE À CE COURS →").length).toBeGreaterThan(0);
 
     poser(screen.getByLabelText(`Places du cours ${c.nom}`), "1", window.HTMLInputElement);
-    clicN(/SIMULER L’ENREGISTREMENT/, 2);
+    clic(`Enregistrer les modifications de ${c.nom}`);
     avancer(450);
 
     expect(jaugeDuCours(vu!, c.id).complet).toBe(true);
