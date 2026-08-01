@@ -343,6 +343,73 @@ export function dateSureDemo(valeur: string, aujourdhui: string): string {
   return aujourdhui;
 }
 
+// ——— Vitrine ——————————————————————————————————————————————————————————————————
+
+/** Les sept chapitres standards, dans leur ordre par défaut (`SECTIONS_STANDARD`). */
+export const SECTIONS_STANDARD_DEMO = [
+  "presentation",
+  "cours",
+  "planning",
+  "tarifs",
+  "actualites",
+  "infos",
+  "contact",
+] as const;
+
+/**
+ * Les noms lisibles affichés en mode édition.
+ *
+ * `infos` N'Y FIGURE PAS, et ce n'est pas un oubli de recopie : `NOMS_SECTIONS` du
+ * produit s'arrête à `contact`. Conséquence visible, reprise ici : le chapitre « Infos
+ * pratiques » porte l'étiquette brute `infos` en mode édition, et il est absent de la
+ * navigation du site — celle-ci filtre sur `NOMS_SECTIONS[r.cle]`.
+ */
+export const NOMS_SECTIONS_DEMO: Record<string, string> = {
+  presentation: "Le club",
+  cours: "Cours",
+  planning: "Planning",
+  tarifs: "Tarifs",
+  actualites: "La vie du club",
+  contact: "Contact",
+};
+
+/**
+ * La composition de la page, telle que `normaliserPageConfig` la produit.
+ *
+ * TROIS RÈGLES, ET LA TROISIÈME EST CELLE QUI A DÉJÀ COÛTÉ CHER :
+ *   1. les clés inconnues et les doublons sortent de l'ordre ;
+ *   2. les chapitres personnalisés absents de l'ordre sont ajoutés à la fin — c'est ce
+ *      qui fait apparaître un chapitre qu'on vient de créer sans toucher à l'ordre ;
+ *   3. un chapitre standard MASQUÉ n'est pas réintroduit. Sans la liste `masquees`, la
+ *      règle 2 le remettait aussitôt, et le club ne pouvait pas retirer son planning.
+ */
+export function chapitresDuSite(etat: EtatDemo): { cle: string; custom: boolean }[] {
+  const custom = etat.site.custom;
+  const connues = new Set<string>([...SECTIONS_STANDARD_DEMO, ...custom.map((c) => c.id)]);
+  const ordre = etat.site.ordre.filter((k, i, arr) => connues.has(k) && arr.indexOf(k) === i);
+  for (const k of SECTIONS_STANDARD_DEMO) {
+    if (!ordre.includes(k) && !etat.site.masquees.includes(k)) ordre.push(k);
+  }
+  for (const c of custom) if (!ordre.includes(c.id)) ordre.push(c.id);
+  return ordre
+    .filter((k) => !etat.site.masquees.includes(k))
+    .map((cle) => ({ cle, custom: custom.some((c) => c.id === cle) }));
+}
+
+/**
+ * Les liens de la navigation du site.
+ *
+ * Deux filtres, tous deux dans le produit : un chapitre retiré n'a pas d'ancre — un lien
+ * vers `#planning` absent ne ferait rien au clic, ce qui est pire que l'absence du lien ;
+ * et « La vie du club » est explicitement sortie de la navigation, à la demande de
+ * Mathieu. Un chapitre personnalisé n'y entre pas non plus.
+ */
+export function liensNavSite(etat: EtatDemo): { cle: string; label: string }[] {
+  return chapitresDuSite(etat)
+    .filter((r) => !r.custom && NOMS_SECTIONS_DEMO[r.cle] && r.cle !== "actualites")
+    .map((r) => ({ cle: r.cle, label: NOMS_SECTIONS_DEMO[r.cle] }));
+}
+
 // ——— Chiffres du hub ——————————————————————————————————————————————————————————
 
 /**
@@ -512,10 +579,26 @@ export function chercherPourControle(etat: EtatDemo, q: string): AdherentDemo[] 
     .slice(0, 12);
 }
 
-/** Inscrits et jauge d'un cours — c'est la jauge, et elle seule, qui ouvre l'attente. */
+/**
+ * Inscrits et jauge d'un cours — c'est la jauge, et elle seule, qui ouvre l'attente.
+ *
+ * DEUX FILTRES, REPRIS DE `src/lib/complets.ts` :
+ *   — la SAISON COURANTE seulement. Sans elle, les adhésions de l'an dernier occupaient
+ *     encore des places : après « RENOUVELER LA SAISON », chaque personne comptait deux
+ *     fois et des cours devenaient complets sans que personne ne se soit inscrit ;
+ *   — les seuls statuts ACTIFS (`en_attente`, `en_retard`, `paye`). Une liste d'attente
+ *     n'occupe pas la place qu'elle attend — sans quoi le premier inscrit sur la liste
+ *     remplirait la jauge et en fermerait l'accès pour de bon.
+ *
+ * `places_max` nul ou zéro = illimité, comme en base.
+ */
+const STATUTS_OCCUPANTS = ["en_attente", "en_retard", "paye"];
+
 export function jaugeDuCours(etat: EtatDemo, coursId: string) {
-  const inscrits = etat.adhesions.filter((a) => a.cours_id === coursId && a.statut !== "liste_attente").length;
-  const attente = etat.adhesions.filter((a) => a.cours_id === coursId && a.statut === "liste_attente").length;
+  const siennes = etat.adhesions.filter((a) => a.cours_id === coursId && a.saison === CLUB.saison);
+  const inscrits = siennes.filter((a) => STATUTS_OCCUPANTS.includes(a.statut)).length;
+  const attente = siennes.filter((a) => a.statut === "liste_attente").length;
   const cours = etat.cours.find((c) => c.id === coursId);
-  return { inscrits, attente, places: cours?.places_max ?? null };
+  const places = cours?.places_max ?? null;
+  return { inscrits, attente, places, complet: places !== null && places > 0 && inscrits >= places };
 }

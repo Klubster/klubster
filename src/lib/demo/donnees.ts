@@ -31,6 +31,17 @@ export const CLUB = {
   email: "contact@example.com",
   telephone: "02 41 00 00 00",
   adresse: "12 rue des Lices, 49100 Angers",
+  // Les textes de la vitrine — `organisations.sport`, `accroche`, `presentation` et
+  // `infos_pratiques`. Ils sont ici parce que la démonstration montre le site du club,
+  // pas seulement son cockpit : sans eux, le chapitre « Le club » ne s'afficherait pas
+  // (le produit le saute quand `presentation` est vide) et la page serait fausse d'une
+  // façon difficile à voir.
+  sport: "Yoga",
+  accroche: "Une salle, un tapis, et le temps de respirer.",
+  presentation:
+    "L’Arbre et le Souffle réunit une centaine de pratiquants depuis 2011, dans une ancienne mercerie du quartier des Lices. Six cours par semaine, du Hatha au Nidra, et personne pour vous demander de toucher vos pieds.",
+  infosPratiques:
+    "Venez dix minutes en avance pour le premier cours. Tapis et briques fournis ; prévoyez une tenue souple et une petite couverture pour la relaxation. Les chaussures restent à l’entrée.",
 } as const;
 
 /**
@@ -74,7 +85,13 @@ export const DECALAGE_PARIS = "+02:00";
 // ——— Cours ————————————————————————————————————————————————————————————————————
 
 export const COURS_INITIAUX: CoursDemo[] = [
-  { id: "c1", nom: "Hatha Yoga", public_cible: "Tous niveaux", tarif_centimes: 29500, places_max: 22, creneaux: [{ jour: "lundi", debut: "18:30", fin: "19:45", note: "" }] },
+  // SEPT PLACES, ET NON VINGT-DEUX. C'est le nombre d'inscrits que ce cours a réellement
+  // dans les données ci-dessous : avec vingt-deux places, il restait quinze places
+  // libres, et pourtant une adhérente attendait en liste d'attente. La démonstration
+  // affirmait alors une règle — « c'est la jauge, et rien d'autre, qui ouvre l'attente »
+  // — que ses propres chiffres démentaient à l'écran. Sept mats dans une petite salle,
+  // c'est aussi ce que connaît un club de quartier.
+  { id: "c1", nom: "Hatha Yoga", public_cible: "Tous niveaux", tarif_centimes: 29500, places_max: 7, creneaux: [{ jour: "lundi", debut: "18:30", fin: "19:45", note: "" }] },
   { id: "c2", nom: "Vinyasa Flow", public_cible: "Intermédiaire", tarif_centimes: 29500, places_max: 20, creneaux: [{ jour: "mardi", debut: "12:30", fin: "13:30", note: "pause déjeuner" }] },
   { id: "c3", nom: "Yin Yoga", public_cible: null, tarif_centimes: 29500, places_max: 16, creneaux: [{ jour: "mercredi", debut: "19:00", fin: "20:15", note: "" }] },
   { id: "c4", nom: "Yoga Nidra", public_cible: "Débutants bienvenus", tarif_centimes: 24500, places_max: 18, creneaux: [{ jour: "jeudi", debut: "20:00", fin: "21:00", note: "" }] },
@@ -205,8 +222,9 @@ for (const id of ["ad25", "ad26"]) {
   }
 }
 
-// Le Hatha est complet (22 places) : la suivante s'inscrit en liste d'attente. C'est la
-// jauge, et rien d'autre, qui le déclenche — exactement comme dans le produit.
+// Le Hatha est complet — sept inscrits pour sept places : la suivante s'inscrit en liste
+// d'attente. C'est la jauge, et rien d'autre, qui le déclenche, exactement comme dans le
+// produit (`src/lib/complets.ts`).
 ADHESIONS_INITIALES.push({
   id: "ad-attente",
   adherent_id: "a12",
