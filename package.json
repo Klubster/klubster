@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:db": "bash scripts/db/harnais.sh test",
+    "test:db:migrations": "bash scripts/db/harnais.sh migrations",
+    "test:db:psql": "bash scripts/db/harnais.sh psql"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
