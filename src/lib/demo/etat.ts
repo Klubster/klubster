@@ -34,7 +34,7 @@
 
 import {
   ACTUALITES_INITIALES, ADHERENTS_INITIAUX, ADHESIONS_INITIALES,
-  AUJOURDHUI, CAMPAGNES_INITIALES, CLUB, COURS_INITIAUX, FORM_CONFIG_INITIALE,
+  AUJOURDHUI, CAMPAGNES_INITIALES, CLUB, COURS_INITIAUX, DECALAGE_PARIS, FORM_CONFIG_INITIALE,
   PAGE_CONFIG_INITIALE, PIECES_INITIALES, PRESENCES_INITIALES, QUESTIONNAIRES_INITIAUX,
   REGLEMENTS_INITIAUX, eur,
 } from "./donnees";
@@ -566,7 +566,9 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         groupe_libelle: action.groupeLibelle,
         auteur_nom: CLUB.president,
         statut: "en_cours",
-        created_at: `${AUJOURDHUI}T19:05:00`,
+        // Décalage explicite : sans lui, l'heure affichée dépendrait du fuseau de la
+        // machine et le rendu cesserait d'être déterministe (voir `DECALAGE_PARIS`).
+        created_at: `${AUJOURDHUI}T19:05:00${DECALAGE_PARIS}`,
         destinataires: action.emails.map((email, i) => ({ id: `${id("d")}-${i}`, email, statut: "prepare" as const })),
       };
       return {

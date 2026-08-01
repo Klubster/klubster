@@ -52,6 +52,25 @@ export const CLUB = {
 export const AUJOURDHUI = "2026-10-20";
 export const INSTANT_DEMO = "2026-10-20T17:00:00Z";
 
+/**
+ * Le décalage horaire de Paris aux dates de la démonstration.
+ *
+ * Toutes les dates de la simulation tombent en octobre 2026, avant le changement d'heure
+ * du dimanche 25 : l'heure d'été d'Europe centrale est encore en vigueur, soit UTC+2.
+ *
+ * POURQUOI IL EST ÉCRIT, ET NON DÉDUIT
+ * `new Date("2026-10-14T18:12:00")` — sans décalage — est lu dans le fuseau de la
+ * MACHINE. Sur un serveur en UTC l'instant n'est pas le même que sur un poste à Paris ou
+ * à New York, et l'heure affichée pour un message envoyé changeait donc d'un
+ * environnement à l'autre : rendu serveur et rendu client divergeaient, et deux visiteurs
+ * ne voyaient pas la même chose. Avec un décalage explicite, l'instant est absolu, et la
+ * lecture en `timeZone: "Europe/Paris"` rend « 14 octobre à 18 h 12 » partout.
+ *
+ * Une déduction automatique aurait été plus savante et moins sûre : elle demanderait de
+ * réimplémenter les règles de bascule, pour une horloge figée à une seule date.
+ */
+export const DECALAGE_PARIS = "+02:00";
+
 // ——— Cours ————————————————————————————————————————————————————————————————————
 
 export const COURS_INITIAUX: CoursDemo[] = [
@@ -279,7 +298,7 @@ export const CAMPAGNES_INITIALES: CampagneDemo[] = [
     groupe_libelle: "Tous les adhérents",
     auteur_nom: CLUB.president,
     statut: "partiel",
-    created_at: "2026-10-14T18:12:00",
+    created_at: `2026-10-14T18:12:00${DECALAGE_PARIS}`,
     // Un rejet et un signalement : l'ordre de grandeur réel d'un carnet d'adresses de
     // club — boîtes pleines, adresses professionnelles fermées. Zéro aurait été flatteur.
     destinataires: tous.map((email, i) => ({
@@ -296,7 +315,7 @@ export const CAMPAGNES_INITIALES: CampagneDemo[] = [
     groupe_libelle: "Yoga prénatal",
     auteur_nom: CLUB.president,
     statut: "envoye",
-    created_at: "2026-10-09T09:30:00",
+    created_at: `2026-10-09T09:30:00${DECALAGE_PARIS}`,
     destinataires: emailsDe(["a05", "a13", "a21", "a34"]).map((email, i) => ({
       id: `m2-d${i}`,
       email,
@@ -311,7 +330,7 @@ export const CAMPAGNES_INITIALES: CampagneDemo[] = [
     groupe_libelle: "Dossiers incomplets",
     auteur_nom: CLUB.president,
     statut: "envoye",
-    created_at: "2026-10-06T20:45:00",
+    created_at: `2026-10-06T20:45:00${DECALAGE_PARIS}`,
     destinataires: emailsDe(["a03", "a07", "a12", "a19", "a26"]).map((email, i) => ({
       id: `m3-d${i}`,
       email,
@@ -382,7 +401,16 @@ export const PRESENCES_INITIALES: PresenceDemo[] = [
 export const eur = (centimes: number) =>
   (centimes / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 
-export const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
+/**
+ * Les dates de la simulation sont des jours calendaires (`AAAA-MM-JJ`), donc lus à
+ * MINUIT UTC. Sans fuseau explicite, une machine à l'ouest de Greenwich les affiche la
+ * veille : « publié le 11 octobre » pour une actualité datée du 12. Le produit ne s'en
+ * soucie pas — il s'affiche sur l'écran d'un président français — mais une démonstration
+ * prérendue puis rejouée dans le navigateur doit rendre la même chose des deux côtés.
+ */
+const JOUR = { timeZone: "Europe/Paris" } as const;
+
+export const dateFr = (iso: string) => new Date(iso).toLocaleDateString("fr-FR", JOUR);
 
 export const dateLongue = (iso: string) =>
-  new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  new Date(iso).toLocaleDateString("fr-FR", { ...JOUR, day: "numeric", month: "long", year: "numeric" });

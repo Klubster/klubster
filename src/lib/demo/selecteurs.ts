@@ -211,6 +211,138 @@ export function destinatairesDuGroupe(etat: EtatDemo, groupe: string): string[] 
   return Array.from(new Set(choisis.map((a) => a.email as string)));
 }
 
+/** Le libellé archivé du groupe — celui que l'historique photographie à l'envoi. */
+export function libelleArchive(etat: EtatDemo, groupe: string): string {
+  return groupesDisponibles(etat).find((g) => g.valeur === groupe)?.archive ?? "Cours";
+}
+
+// ——— Historique des campagnes —————————————————————————————————————————————————
+
+/**
+ * Les compteurs d'une campagne, tels que les colonnes réelles les portent.
+ *
+ * LE POINT QUI SE TROMPE TOUT SEUL : « accepté » N'EST PAS EXCLUSIF DE « distribué ».
+ * `nombre_acceptes` est incrémenté par `envoyerCampagne` au moment où Resend prend le
+ * lot ; `appliquer_evenement_resend` (migration `0024`) n'y touche plus jamais — il
+ * n'ajoute qu'à `nombre_distribues`, `nombre_retardes`, `nombre_echecs` ou
+ * `nombre_plaintes`. Un destinataire distribué reste donc compté parmi les acceptés, et
+ * la ligne d'historique lit bien « 34 acceptés · 32 distribués ».
+ *
+ * Compter ici les seuls destinataires restés au statut `accepte` aurait affiché
+ * « 0 accepté · 32 distribués » : arithmétiquement satisfaisant, et faux.
+ *
+ * Un rejet et un échec alimentent la même colonne `nombre_echecs` ; une plainte a la
+ * sienne, et n'est PAS agrégée aux échecs — un message signalé comme indésirable a bien
+ * été distribué, les confondre ferait croire à un problème d'acheminement.
+ */
+export function compteursCampagne(campagne: { destinataires: { statut: string }[] }) {
+  const d = campagne.destinataires;
+  return {
+    destinataires: d.length,
+    acceptes: d.filter((x) => x.statut !== "prepare").length,
+    distribues: d.filter((x) => x.statut === "distribue").length,
+    retardes: d.filter((x) => x.statut === "retarde").length,
+    echecs: d.filter((x) => x.statut === "rejete" || x.statut === "echec").length,
+    plaintes: d.filter((x) => x.statut === "plainte").length,
+  };
+}
+
+/**
+ * Les cinq statuts de `message_campaigns`, avec les libellés et les classes du produit.
+ *
+ * « Envoi terminé » et non « Envoyé » : le statut dit seulement que tous les lots ont été
+ * acceptés. Ce sont les compteurs, en dessous, qui racontent ce qui est arrivé.
+ */
+export const ETAT_CAMPAGNE: Record<string, { texte: string; classe: string }> = {
+  preparation: { texte: "En préparation", classe: "text-ink-soft" },
+  en_cours: { texte: "Envoi en cours", classe: "text-warning" },
+  envoye: { texte: "Envoi terminé", classe: "text-brand-dark" },
+  partiel: { texte: "Partiellement envoyé", classe: "text-warning" },
+  echec: { texte: "Échec", classe: "text-danger" },
+};
+
+/** Les huit états d'une ligne de `message_recipients`, libellés comme sur la campagne. */
+export const ETAT_DESTINATAIRE: Record<string, { texte: string; classe: string }> = {
+  prepare: { texte: "Non envoyé", classe: "text-ink-soft" },
+  accepte: { texte: "Accepté", classe: "text-ink" },
+  distribue: { texte: "Distribué", classe: "text-brand-dark" },
+  retarde: { texte: "Retardé", classe: "text-warning" },
+  rejete: { texte: "Rejeté", classe: "text-danger" },
+  echec: { texte: "Échec", classe: "text-danger" },
+  plainte: { texte: "Signalé comme indésirable", classe: "text-danger" },
+  supprime: { texte: "Adresse supprimée", classe: "text-ink-soft" },
+};
+
+/**
+ * « 14 octobre à 18 h 12 » — le format exact de `quand()` dans `Historique.tsx`, qui
+ * remplace le deux-points de l'heure par « h » entouré d'espaces.
+ *
+ * Le fuseau est explicite ici alors qu'il ne l'est pas dans le produit : le cockpit
+ * s'affiche sur la machine d'un président français, la démonstration doit rendre la même
+ * chose partout, y compris au prérendu.
+ */
+export function quandCampagne(iso: string): string {
+  const d = new Date(iso);
+  const options = { timeZone: "Europe/Paris" } as const;
+  const jour = d.toLocaleDateString("fr-FR", { ...options, day: "2-digit", month: "long" });
+  const heure = d
+    .toLocaleTimeString("fr-FR", { ...options, hour: "2-digit", minute: "2-digit" })
+    .replace(":", " h ");
+  return `${jour} à ${heure}`;
+}
+
+// ——— Actualités ———————————————————————————————————————————————————————————————
+
+/**
+ * Ce que la VITRINE montre : `getActualites(org.id)` avec sa limite par défaut de TROIS,
+ * triées `publie_le desc` puis `created_at desc`.
+ *
+ * Le second critère n'a pas d'équivalent direct ici — `ActualiteDemo` n'a pas de
+ * `created_at`, parce que rien à l'écran ne l'affiche. Il est rendu par la stabilité du
+ * tri : le réducteur place l'actualité neuve en tête AVANT de trier, et `Array.sort` de
+ * JavaScript conserve l'ordre relatif des ex æquo depuis ES2019. Deux actualités du même
+ * jour sortent donc dans l'ordre de publication décroissant, comme en base.
+ *
+ * Le cockpit, lui, en demande cinquante : le président voit tout son fil, le public
+ * seulement les trois dernières.
+ */
+export const ACTUALITES_VITRINE = 3;
+
+export function actualitesVitrine(etat: EtatDemo) {
+  return etat.actualites.slice(0, ACTUALITES_VITRINE);
+}
+
+/**
+ * Le résumé d'une actualité sur la vitrine — 140 caractères, coupés au dernier espace
+ * quand il tombe au-delà du soixantième caractère, suivis d'une ellipse.
+ *
+ * Recopié de `resumeActu` dans `src/app/[asso]/page.tsx`, y compris le seuil de 60 : sans
+ * lui, un texte sans espace précoce serait tronqué à deux mots.
+ */
+export function resumeActu(texte: string, max = 140): string {
+  if (texte.length <= max) return texte;
+  const coupe = texte.slice(0, max + 1);
+  const dernierEspace = coupe.lastIndexOf(" ");
+  return `${(dernierEspace > 60 ? coupe.slice(0, dernierEspace) : coupe.slice(0, max)).trimEnd()}…`;
+}
+
+/**
+ * La date de publication, validée comme `dateSure` dans la Server Action réelle.
+ *
+ * Le format seul ne suffit pas : « 2026-02-31 » a la bonne forme et n'existe pas — passé
+ * à Postgres, il glisserait au 3 mars. On reconstruit donc la date en UTC et on vérifie
+ * que ses trois composantes sont revenues intactes. En cas d'échec : aujourd'hui.
+ */
+export function dateSureDemo(valeur: string, aujourdhui: string): string {
+  const s = valeur.trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) {
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    if (d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3]) return s;
+  }
+  return aujourdhui;
+}
+
 // ——— Chiffres du hub ——————————————————————————————————————————————————————————
 
 /**
