@@ -276,21 +276,52 @@ l'avoir revu.
 
 ### Ce qui n'a PAS pu être vérifié
 
-**Le déploiement Vercel.** Le projet Klubster n'apparaît pas sur le compte Vercel
-accessible depuis ici (`list_projects` sur `team_8tXGnIO4iMg2joEo962b3AAL` rend
-`nuumia-app`, `spec-site-1`, `spec-site`, `cockpit-dcidda`, `banquequiz` — pas Klubster).
-`gh` n'est pas installé sur la machine, et
-`https://api.github.com/repos/Klubster/klubster/commits/<sha>/status` ne rend aucun corps
-exploitable sans authentification — le dépôt est privé. L'URL de la preview n'a donc pas
-pu être résolue, et le parcours a été fait sur le **build de production local**, qui est
-le même artefact. À refaire sur la preview par quelqu'un qui a l'accès.
+**Le parcours sur la preview Vercel.** L'URL est connue, le déploiement est vert, et la
+page reste inatteignable :
+
+```
+https://klubster-git-feat-demo-interactive-klubsters-projects.vercel.app/demo
+```
+
+Elle redirige vers `vercel.com/login` : la **protection de déploiement** (SSO Vercel) est
+active sur les previews du projet. S'y connecter demanderait de saisir des identifiants,
+ce qui n'est pas une opération que je fais. Deux sorties, toutes deux du ressort de
+Mathieu : ouvrir la preview depuis une session Vercel déjà connectée, ou passer la
+protection en « Only Preview Deployments / Disabled » le temps de la revue.
+
+Le parcours a donc été fait sur le **build de production local** (`npm run build` puis
+`next start`), qui est le même artefact que celui déployé — mais servi depuis une autre
+machine, sans le CDN ni les en-têtes de Vercel. C'est ce qui reste à confirmer.
+
+**Deux erreurs de la version précédente de ce document, corrigées ici.**
+
+1. J'y avais écrit que le dépôt était **privé** et que l'API GitHub échouait pour cette
+   raison. Il est **public** : la page du dépôt le dit en toutes lettres. Le constat
+   d'échec était juste, l'explication inventée.
+2. J'en avais conclu que le projet n'était pas sur un compte Vercel accessible. Il est
+   sur `klubsters-projects` — une équipe que l'outil de listage employé ne voit pas, ce
+   qui n'est pas la même chose qu'une absence.
+
+Dans les deux cas, une explication commode a été préférée à « je ne sais pas ». C'est
+exactement ce qu'un rapport de vérification ne doit pas faire : le lecteur se fie au
+diagnostic, pas seulement au symptôme.
 
 | Sujet | État |
 |---|---|
 | Chapitres à photos de `/demo/site` | inertes, par décision |
 | Modèle joint à une pièce | inerte, par décision |
-| Parcours sur la preview Vercel | à faire par un compte ayant l'accès |
+| Parcours sur la preview Vercel | bloqué par la protection de déploiement — voir ci-dessus |
 | 503 sur les préchargements de fiches | observé, non expliqué |
+
+---
+
+## La revue
+
+**PR #9**, en brouillon, ouverte le 01/08/2026 :
+<https://github.com/Klubster/klubster/pull/9>
+
+Elle ne doit pas être fusionnée avant trois choses : la revue du diff, le parcours sur la
+preview, et une décision explicite sur les 503 de préchargement.
 
 ---
 
