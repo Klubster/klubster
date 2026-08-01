@@ -13,7 +13,10 @@
     "test:watch": "vitest",
     "test:db": "bash scripts/db/harnais.sh test",
     "test:db:migrations": "bash scripts/db/harnais.sh migrations",
-    "test:db:psql": "bash scripts/db/harnais.sh psql"
+    "test:db:reconstruction": "bash scripts/db/double-reconstruction.sh",
+    "test:db:psql": "bash scripts/db/harnais.sh psql",
+    "db:inventaire": "node scripts/db/inventaire.mjs",
+    "db:inventaire:verifier": "node scripts/db/inventaire.mjs --verifier"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

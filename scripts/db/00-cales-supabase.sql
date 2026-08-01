@@ -161,3 +161,16 @@ insert into storage.buckets (id, name, public) values
   ('actualites', 'actualites', true),
   ('pieces',     'pieces',     false)
 on conflict (id) do nothing;
+
+
+-- ——— La publication du temps réel ————————————————————————————————————————————
+--
+-- `0020_chat_messagerie.sql` fait `alter publication supabase_realtime add table …`
+-- pour que le cockpit reçoive les messages sans rafraîchir. Cette publication est créée
+-- par la plateforme Supabase, pas par le produit : son absence ici est une lacune du
+-- HARNAIS, pas du dépôt. Elle a donc sa place dans les cales, et surtout pas dans le
+-- bootstrap — l'y mettre reviendrait à compter un défaut de la simulation parmi les
+-- défauts de Klubster, et à gonfler l'inventaire d'un écart qui n'existe pas.
+--
+-- Supabase la crée vide ; les tables y sont ajoutées une à une par les migrations.
+create publication supabase_realtime;

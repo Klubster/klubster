@@ -1,27 +1,31 @@
--- Tables déclarées tardivement — second volet de la reconstructibilité.
+-- KLUBSTER-BOOTSTRAP-HARNAIS — NE JAMAIS DÉPLOYER, NE JAMAIS APPLIQUER SUR UNE BASE EXISTANTE.
+--
+-- Second volet des prérequis du harnais. Comme `avant-0003_fonctions.sql`, ce fichier
+-- n'est pas une migration : il ne fait pas partie de l'historique de production et
+-- `supabase db push` ne doit jamais le voir. Lire l'en-tête de l'autre fichier pour le
+-- détail du risque qui a justifié leur sortie de `supabase/migrations/`.
 --
 -- Six tables sont UTILISÉES avant d'être CRÉÉES : `stripe_events` dès `0005`,
 -- `pieces_adherent` dès `0004`, `audit_log`, `presences`, `questionnaires_sante` et
 -- `reglements` dès `0006`. Toutes naissent dans `0017_snapshot_tables_et_index.sql`,
 -- dont le nom dit lui-même qu'il s'agit d'un instantané pris après coup.
 --
--- POURQUOI `0001a` ET NON `0000`. Ces tables portent des clés étrangères vers
--- `organisations` et `adherents`, créées par `0001_init_multitenant.sql`. Les déclarer
--- avant lui est impossible — l'essai a rendu `relation "public.organisations" does not
--- exist`. Elles doivent donc s'intercaler APRÈS `0001` et AVANT `0004`, premier fichier
--- qui s'en sert.
+-- POINT D'INSERTION : AVANT `0004`, d'où le nom du fichier. Il ne peut pas être plus
+-- tôt : ces tables portent des clés étrangères vers `organisations` et `adherents`, que
+-- `0001_init_multitenant.sql` crée. L'essai avant `0001` a rendu
+-- `relation "public.organisations" does not exist`. Un bootstrap n'est donc pas un bloc
+-- que l'on pose en tête : c'est une suite de pièces à intercaler à des endroits précis,
+-- et le lanceur lit ces endroits dans les noms de fichiers.
 --
--- L'ordre d'application est l'ordre alphabétique du nom de fichier, et
--- `0001_init… < 0001a_tables… < 0002…` : le tiret bas (0x5F) précède le « a » (0x61).
--- Aucun fichier existant n'est renommé — renuméroter réécrirait un historique déjà
--- appliqué en production.
---
--- Les définitions sont RECOPIÉES TELLES QUELLES de `0017`, par extraction automatique et
--- non à la main : une transcription approximative créerait deux vérités pour une seule
--- table. Elles portent déjà `if not exists` — `0017` les rejouera sans effet, et sur une
--- base existante ce fichier entier est inerte.
---
--- Retour arrière : supprimer ce fichier. Il n'a d'effet que sur une base vide.
+-- LES DÉFINITIONS SONT EXTRAITES DE `0017`, PAS TRANSCRITES. Une transcription
+-- approximative créerait deux vérités pour une seule table, et le harnais validerait
+-- alors un schéma qui n'existe nulle part.
+-- `tests/db/01-tables-bootstrap-conformes.sql` compare, à la fin de la chaîne, le schéma
+-- réel de ces six tables à celui que `0017` déclare — colonnes, types, valeurs par
+-- défaut, NOT NULL, contraintes, clés étrangères, index, RLS. `create table if not
+-- exists` ne dit RIEN de tout cela : il se tait si la table existe déjà, quelle que soit
+-- sa forme. C'est précisément le silence qu'il faut rompre, sans quoi une définition
+-- temporaire pourrait masquer durablement une modification ultérieure.
 
 create table if not exists public.stripe_events (
   event_id        text primary key,
