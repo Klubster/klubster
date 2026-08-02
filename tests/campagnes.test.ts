@@ -56,7 +56,7 @@ function base(supabase: ReturnType<typeof fauxSupabase>, cibles: number) {
     supabase,
     organisationId: "org-1",
     nomClub: "L’Arbre et le Souffle",
-    replyTo: "contact@club.fr",
+    replyTo: "contact@example.com",
     auteurProfileId: "prof-1",
     auteurNom: "Hélène Vasseur",
     groupe: "tous",
