@@ -29,13 +29,21 @@ export default async function EquipePage(
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${params.asso}/cockpit/equipe`);
   }
-  if (!president) redirect(`/${params.asso}/cockpit?equipe=refuse`);
+  // Même paramètre que les huit autres refus du cockpit : `?acces=refuse` porte un
+  // message visible (« Cette page n'est pas accessible avec votre rôle »), `?equipe=refuse`
+  // n'en portait aucun — le bénévole revenait au tableau de bord sans explication.
+  if (!president) redirect(`/${params.asso}/cockpit?acces=refuse`);
 
   const supabase = await createSupabaseServerClient();
+  // L'écran Équipe ne liste QUE l'équipe. Un profil `adherent` rattaché au club n'est pas
+  // un bénévole : l'afficher ici avec un sélecteur dont la valeur `adherent` n'existe pas
+  // ferait retomber le navigateur sur la première option — « Président » — et un OK
+  // machinal suffirait à promouvoir un adhérent président. Vu en test le 02/08.
   const { data } = await supabase
     .from("profiles")
     .select("id, prenom, nom, email, role")
     .eq("organisation_id", org.id)
+    .in("role", ROLES.map((r) => r.cle))
     .order("role", { ascending: true });
   const membres = (data ?? []) as Membre[];
 
@@ -54,6 +62,7 @@ export default async function EquipePage(
   const messageAjout: Record<string, string> = {
     ok: "Membre ajouté à l’équipe, en lecture seule. Choisissez son rôle ci-dessus.",
     introuvable: "Aucun compte Klubster avec cet email. La personne doit d’abord créer son compte.",
+    deja_membre: "Cette personne fait déjà partie de votre équipe — son rôle est inchangé.",
     deja_membre_ailleurs: "Ce compte appartient déjà à une autre association.",
     "erreur-role_refuse":
       "La base a refusé ce rôle. C’est un défaut de Klubster, pas une erreur de votre part — signalez-le.",
@@ -118,23 +127,25 @@ export default async function EquipePage(
               ) : (
                 <form action={roleAvecSlug} className="flex items-center gap-2">
                   <input type="hidden" name="user_id" value={m.id} />
+                  {/* Cibles tactiles : ≥ 44 px sur mobile (sélecteur, OK, retirer) — le
+                      président fait souvent ça depuis son téléphone, au gymnase. */}
                   <select
                     name="role"
                     defaultValue={m.role}
-                    className="border border-line bg-paper px-2 py-2 text-[12px] outline-none focus:border-ink"
+                    className="min-h-[44px] border border-line bg-paper px-2 py-2 text-[12px] outline-none focus:border-ink sm:min-h-0"
                   >
                     {ROLES.map((r) => (
                       <option key={r.cle} value={r.cle}>{r.label}</option>
                     ))}
                   </select>
-                  <button className="mono border border-ink px-3 py-2 text-[11px] hover:bg-ink hover:text-paper">OK</button>
+                  <button className="mono min-h-[44px] border border-ink px-3 py-2 text-[11px] hover:bg-ink hover:text-paper sm:min-h-0">OK</button>
                 </form>
               )}
 
               {m.id !== profile.id ? (
                 <form action={retraitAvecSlug}>
                   <input type="hidden" name="user_id" value={m.id} />
-                  <button className="mono text-[11px] text-ink-soft underline decoration-line underline-offset-2 hover:text-ink">
+                  <button className="mono min-h-[44px] px-1 py-2 text-[11px] text-ink-soft underline decoration-line underline-offset-2 hover:text-ink sm:min-h-0 sm:py-0">
                     retirer
                   </button>
                 </form>

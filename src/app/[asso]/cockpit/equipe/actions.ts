@@ -38,7 +38,10 @@ async function gardePresident(slug: string) {
   const p = await getProfile();
   // Seul le président (ou le super_admin) gère l'équipe.
   if (!p || (p.role !== "admin_asso" && p.role !== "super_admin") || (p.organisation_id !== org.id && p.role !== "super_admin")) {
-    redirect(`/${slug}/cockpit?equipe=refuse`);
+    // `?acces=refuse` et non `?equipe=refuse` : le cockpit n'affiche un message que pour
+    // `acces` — l'ancien paramètre renvoyait au tableau de bord sans un mot. Vu en test
+    // le 02/08 : un trésorier qui ouvre /equipe doit lire pourquoi il est revenu.
+    redirect(`/${slug}/cockpit?acces=refuse`);
   }
   return org;
 }
