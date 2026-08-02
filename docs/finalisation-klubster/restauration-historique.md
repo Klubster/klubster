@@ -160,3 +160,41 @@ la reconstruction :
 Les deux `insert into storage.buckets` confirment que les buckets font partie de
 l'historique : une reconstruction qui les oublierait donnerait une base sans stockage,
 et les politiques `storage.objects` porteraient sur des buckets inexistants.
+
+---
+
+## Une migration retenue : `20260709083407_super_admin_et_cockpit_stats_appartenance`
+
+**Elle n'est pas dans le dépôt, et c'est volontaire.** Le vérificateur la comptera comme
+manquante tant que la question ci-dessous n'est pas tranchée.
+
+Sa première instruction est :
+
+```sql
+update public.profiles set role = 'super_admin' where email = '<adresse personnelle>';
+```
+
+Le dépôt `Klubster/klubster` est **public** — vérifié le 02/08/2026, en lecture non
+authentifiée : `repository_public: true`. Publier une adresse personnelle dans un dépôt
+public est irréversible : elle reste dans l'historique Git, et elle sera moissonnée.
+
+Je ne pouvais pas non plus la caviarder : la consigne de restitution interdit toute
+réécriture, et un fichier modifié échouerait au contrôle MD5 — ce qui est exactement le
+comportement voulu. Le mécanisme fonctionne ; c'est la décision qui manque.
+
+**Trois options, à trancher par Mathieu :**
+
+1. **Restituer telle quelle.** L'historique est complet et byte-exact. L'adresse devient
+   publique. C'est la seule option qui satisfait le contrôle MD5 sans exception.
+2. **Restituer avec une dérogation documentée** : le fichier porte l'adresse remplacée,
+   le manifeste enregistre la substitution et le MD5 d'origine reste consigné comme
+   non-conforme assumé. L'historique n'est plus exactement reproductible, et il faut
+   l'écrire.
+3. **Rendre le dépôt privé**, puis restituer telle quelle. C'est l'option qui préserve à
+   la fois l'exactitude et la confidentialité, et elle ne coûte qu'un réglage.
+
+Tant que rien n'est tranché, la migration est extraite mais non versionnée. La commande
+pour la reprendre est identique à celle des autres — une seule requête.
+
+**À vérifier sur les migrations restantes :** d'autres peuvent contenir des adresses ou
+des identifiants personnels. Le contrôle se fait à l'extraction, avant écriture.
