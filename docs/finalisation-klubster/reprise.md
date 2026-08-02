@@ -103,7 +103,7 @@ métadonnées de schéma et d'historique uniquement.
   mutation. Voir `restauration-historique.md` et `super-admin.md`.
 - **`tests/donnees-personnelles.test.ts`** : liste blanche d'adresses, sur
   `supabase/migrations/`, `docs/`, `scripts/`, `tests/`. Il ne contient pas l'adresse qu'il
-  protège. Il a trouvé au passage `contact@club.fr` dans `tests/campagnes.test.ts` (domaine
+  protège. Il a trouvé au passage une adresse en `club.fr` dans `tests/campagnes.test.ts` (domaine
   qui peut exister et recevoir) — corrigé en `@example.com`.
 - **`pg_cron` est nécessaire** : `purge_questionnaires_sante_cron` fait
   `create extension if not exists pg_cron` puis `cron.schedule`. Mon relevé initial

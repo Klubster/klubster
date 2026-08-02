@@ -199,5 +199,18 @@ deux garde-fous, le test (`ce fichier ne doit contenir aucune adresse`) et le v�
 (`DÉROGATION ALTÉRÉE`).
 
 Le test a d'ailleurs trouvé un second cas au passage : `tests/campagnes.test.ts` utilisait
-`contact@club.fr`. Ce domaine peut exister et recevoir du courrier, contrairement à
+une adresse en `club.fr`. Ce domaine peut exister et recevoir du courrier, contrairement à
 `@example.com` (RFC 2606, réservé à jamais). Corrigé.
+
+### Le test a refusé la documentation qui le décrivait
+
+En expliquant la correction de `tests/campagnes.test.ts`, j'avais écrit l'adresse fautive
+en toutes lettres dans ce document et dans `reprise.md`. Le test les a refusés tous les
+deux.
+
+Il avait raison, et l'erreur mérite d'être notée : **citer une adresse pour expliquer
+qu'on l'a retirée la réintroduit**. C'est le même piège qu'une liste noire versionnée —
+le remède publie ce qu'il prétend supprimer. Les documents décrivent désormais le domaine
+sans écrire l'adresse.
+
+Le périmètre du test inclut `docs/` précisément pour cela.
