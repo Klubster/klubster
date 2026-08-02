@@ -37,10 +37,10 @@ Pour chaque lot de 5 à 8 versions données par le vérificateur :
 
 ## État
 
-**7 des 47 restituées, 0 divergente.** Le rond-trip est prouvé : `write_file` conserve les
+**14 des 47 restituées, 0 divergente.** Le rond-trip est prouvé : `write_file` conserve les
 octets, y compris l'absence de retour à la ligne final, et les accents.
 
-Restent 40. Aucune n'a présenté de difficulté particulière jusqu'ici.
+Restent 33. Aucune n'a présenté de difficulté particulière jusqu'ici.
 
 ## Ce qui vient après la 47ᵉ
 

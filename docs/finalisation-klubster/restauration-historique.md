@@ -103,3 +103,60 @@ Validation exigée, sur base vide et **sans aucun bootstrap** :
 Pas de `migration repair`. Pas de modification de l'historique distant. Pas de `db push`.
 Pas de squash, pas de baseline. Aucune fusion. **Aucune donnée métier lue ou exportée** —
 métadonnées de schéma et d'historique uniquement.
+
+---
+
+## Constat sur `roles_benevoles_rbac` — le défaut des rôles est confirmé à sa source
+
+**[Vérifié]** La migration `20260711071424_roles_benevoles_rbac.sql`, restituée, introduit
+bien les cinq rôles. Son propre commentaire les énumère :
+
+    admin_asso : président — tout
+    tresorier  : trésorerie et paiements + lecture adhérents ; PAS les données de santé
+    secretaire : adhérents, dossiers, pièces, santé, messages, site
+    encadrant  : contrôle terrain (scan) + présences ; PAS santé ni paiements
+    lecture    : lecture seule
+
+Elle crée `role_asso()` et `a_role_asso(text[])`, et s'en sert immédiatement dans la
+politique `qs_read_org` pour réserver les données de santé à `admin_asso` et `secretaire`.
+
+**Et elle ne touche pas à `profiles_role_check`.** Aucun `alter table … drop constraint`,
+aucun `add constraint`. La contrainte posée par `init_multitenant` le 29/06 —
+`role in ('super_admin','admin_asso','encadrant','adherent')` — reste donc en place,
+inchangée, jusqu'à aujourd'hui.
+
+C'est l'origine exacte du défaut prouvé dans la PR #11 (`tests/db/20-roles.sql`) :
+**le RBAC a été construit sur des valeurs que la table refuse d'enregistrer.** Trois des
+cinq rôles annoncés — `tresorier`, `secretaire`, `lecture` — n'ont jamais pu exister dans
+`profiles.role`. Toutes les branches de politique qui les nomment sont mortes depuis le
+premier jour, y compris celle qui protège les données de santé : `qs_read_org` n'accorde
+en pratique la lecture qu'à `admin_asso`.
+
+Deux conséquences à ne pas confondre :
+
+- **Côté confidentialité, l'effet est protecteur** : la politique est plus fermée que ce
+  qu'elle annonce, jamais plus ouverte. Aucune donnée de santé n'a été exposée par ce
+  défaut.
+- **Côté produit, le RBAC n'a jamais fonctionné.** Un président qui nomme un trésorier ou
+  un secrétaire dans le cockpit obtient une violation de contrainte. La matrice de rôles
+  décrite dans `CLAUDE.md` et dans `src/lib/roles.ts` n'a jamais été appliquée.
+
+La correction n'appartient pas à cette branche : restituer l'historique, c'est le
+restituer tel qu'il fut, défaut compris. Elle fera l'objet d'une **migration normale
+postérieure** à l'historique restauré, dans le lot « Rôles et permissions cohérents »,
+avec l'inventaire des rôles affichés, des permissions attendues et des usages réels.
+
+## Opérations de données relevées dans les migrations restituées
+
+Une migration n'est pas toujours du DDL. Relevé au fil de l'extraction, à rejouer lors de
+la reconstruction :
+
+| Migration | Opération |
+| --- | --- |
+| `20260709160014_echeances_max_par_organisation` | `update public.organisations set echeances_max = 3 where slug = 'usmboxe'` |
+| `20260630055247_storage_pieces_bucket` | `insert into storage.buckets` — bucket `pieces` |
+| `20260702133730_bucket_logos` | `insert into storage.buckets` — bucket `logos` |
+
+Les deux `insert into storage.buckets` confirment que les buckets font partie de
+l'historique : une reconstruction qui les oublierait donnerait une base sans stockage,
+et les politiques `storage.objects` porteraient sur des buckets inexistants.
