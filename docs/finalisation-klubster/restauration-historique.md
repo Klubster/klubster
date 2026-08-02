@@ -214,3 +214,7 @@ le remède publie ce qu'il prétend supprimer. Les documents décrivent désorma
 sans écrire l'adresse.
 
 Le périmètre du test inclut `docs/` précisément pour cela.
+
+<!-- ETAT-RESTAURATION -->
+**Restitution terminée : 47/47.** 46 byte-exactes, 1 dérogation de confidentialité contrôlée, 0 divergence non expliquée, 0 manquante.
+<!-- /ETAT-RESTAURATION -->

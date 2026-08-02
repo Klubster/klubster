@@ -24,7 +24,7 @@
  *
  * Usage : node scripts/db/verifier-restauration.mjs
  */
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -134,4 +134,58 @@ if (restants.length) {
   console.log(`Restent à extraire (${restants.length}) : ${restants.slice(0, 6).join(", ")}${restants.length > 6 ? " …" : ""}`);
 }
 
-process.exit(divergentes > 0 || orphelins.length > 0 || derogationsOrphelines.length > 0 ? 1 : 0);
+
+// ——— L'état écrit dans la documentation ————————————————————————————————————————
+//
+// POURQUOI CE CONTRÔLE EXISTE.
+//
+// `reprise.md` a annoncé « 45 des 47 » alors que les 47 fichiers étaient déjà restitués et
+// poussés. Les deux derniers commits avaient ajouté les migrations sans toucher au
+// document. Rien n'était impoussé : c'est le COMPTEUR RECOPIÉ qui était faux, et il
+// donnait à la branche l'apparence d'un travail inachevé.
+//
+// Un chiffre écrit à la main dans un document ne vieillit pas bruyamment : il vieillit en
+// silence, et il rassure — ou inquiète — à tort. On le génère donc, et on le vérifie.
+//
+//   --maj-docs   réécrit le bloc entre les marqueurs
+//   (par défaut)  échoue si le bloc ne correspond plus à la mesure
+const DOCS = [
+  path.join(RACINE, "docs/finalisation-klubster/reprise.md"),
+  path.join(RACINE, "docs/finalisation-klubster/restauration-historique.md"),
+];
+const DEBUT = "<!-- ETAT-RESTAURATION -->";
+const FIN = "<!-- /ETAT-RESTAURATION -->";
+
+const etat =
+  manquantes === 0 && divergentes === 0
+    ? `**Restitution terminée : ${lignes.length}/${lignes.length}.** ${conformes} byte-exactes, ` +
+      `${derogees} dérogation de confidentialité contrôlée, 0 divergence non expliquée, 0 manquante.`
+    : `**Restitution en cours : ${conformes + derogees}/${lignes.length}.** ${conformes} byte-exactes, ` +
+      `${derogees} dérogation(s) contrôlée(s), ${divergentes} divergence(s) non expliquée(s), ` +
+      `${manquantes} manquante(s).`;
+
+let docsPerimees = false;
+for (const doc of DOCS) {
+  if (!existsSync(doc)) continue;
+  const contenu = readFileSync(doc, "utf8");
+  const i = contenu.indexOf(DEBUT);
+  const j = contenu.indexOf(FIN);
+  if (i === -1 || j === -1) continue; // ce document ne porte pas de bloc d'état
+  const actuel = contenu.slice(i + DEBUT.length, j).trim();
+  if (actuel === etat) continue;
+
+  if (process.argv.includes("--maj-docs")) {
+    writeFileSync(doc, contenu.slice(0, i + DEBUT.length) + "\n" + etat + "\n" + contenu.slice(j));
+    console.log(`état mis à jour : ${path.relative(RACINE, doc)}`);
+  } else {
+    docsPerimees = true;
+    console.error(
+      `ÉTAT PÉRIMÉ  ${path.relative(RACINE, doc)}\n` +
+      `  écrit  : ${actuel.split("\n")[0]}\n` +
+      `  mesuré : ${etat.split("\n")[0]}\n` +
+      `  Relancer avec --maj-docs.`
+    );
+  }
+}
+
+process.exit(docsPerimees || divergentes > 0 || orphelins.length > 0 || derogationsOrphelines.length > 0 ? 1 : 0);

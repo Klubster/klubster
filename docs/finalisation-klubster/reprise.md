@@ -37,12 +37,13 @@ Pour chaque lot de 5 à 8 versions données par le vérificateur :
 
 ## État
 
-**45 des 47 restituées : 44 byte-exactes + 1 dérogation de confidentialité contrôlée, 0 divergence non expliquée.**
-octets, y compris l'absence de retour à la ligne final, et les accents.
+<!-- ETAT-RESTAURATION -->
+**Restitution terminée : 47/47.** 46 byte-exactes, 1 dérogation de confidentialité contrôlée, 0 divergence non expliquée, 0 manquante.
+<!-- /ETAT-RESTAURATION -->
 
-Restent 2, les deux plus volumineuses :
-`20260702153732_reglements_et_pieces_par_cours` (5 621 o) et
-`20260710224118_journal_audit_metier` (4 717 o). Aucune n'a présenté de difficulté particulière jusqu'ici.
+Ce bloc est **réécrit par le vérificateur** (`--maj-docs`) et **contrôlé** à chaque
+exécution. Il ne se recopie pas à la main : c'est précisément en le recopiant que ce
+document a annoncé « 45 des 47 » alors que les 47 fichiers étaient déjà poussés.
 
 ## Ce qui vient après la 47ᵉ
 
