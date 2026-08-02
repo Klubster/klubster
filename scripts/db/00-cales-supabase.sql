@@ -174,3 +174,37 @@ on conflict (id) do nothing;
 --
 -- Supabase la crée vide ; les tables y sont ajoutées une à une par les migrations.
 create publication supabase_realtime;
+
+
+-- ——— Les privilèges par défaut de la plateforme ———————————————————————————————
+--
+-- CE BLOC N'EST PAS UNE COMMODITÉ : SANS LUI, LE HARNAIS TESTE UNE AUTRE BASE.
+--
+-- À la création d'un projet, Supabase pose des privilèges par défaut sur le schéma
+-- `public` pour ses trois rôles. Toute table créée ensuite par une migration les reçoit
+-- automatiquement. C'est pour cela que `0015` peut écrire `revoke select on
+-- public.organisations from anon` : le droit avait été donné par la plateforme, jamais
+-- par une migration.
+--
+-- Sans ces défauts, le premier test de session échouait sur
+-- `permission denied for table adherents` — un président authentifié refusé dans le
+-- harnais alors qu'il travaille en production. Et le danger symétrique est pire : une
+-- base artificiellement plus fermée rend VERTS des tests d'isolation qui devraient
+-- échouer. On ne prouve alors rien du tout.
+--
+-- CE QUE CELA REND VISIBLE, ET QUI MÉRITE D'ÊTRE DIT. [Vérifié le 02/08/2026 sur la
+-- production] `anon` possède SELECT, INSERT, UPDATE et DELETE sur `adherents`,
+-- `reglements` et `questionnaires_sante`. Ce n'est pas un défaut de Klubster — c'est le
+-- modèle de Supabase, où PostgREST expose les tables et où **les RLS sont l'unique
+-- barrière**. Il n'y a pas de seconde ligne de défense : une politique trop permissive,
+-- ou oubliée sur une nouvelle table, ouvre directement des données de santé à un visiteur
+-- anonyme. C'est précisément ce que les tests de `tests/db/` sont là pour surveiller.
+--
+-- `organisations` fait exception : `anon` n'y a plus de SELECT global, `0015` l'ayant
+-- remplacé par des privilèges colonne par colonne.
+
+alter default privileges in schema public grant all on tables    to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions  to anon, authenticated, service_role;
+
+grant usage on schema public to anon, authenticated, service_role;

@@ -309,6 +309,12 @@ case "${1:-test}" in
   psql)
     "$PGBIN/psql"
     ;;
+  matrice)
+    # La matrice a besoin des fixtures : elle mesure ce que chaque rôle voit d'un état
+    # connu. Tout est annulé en fin de fichier, cluster détruit ensuite de toute façon.
+    psql_strict -f tests/db/00-fixtures.sql > /dev/null 2>&1
+    "$PGBIN/psql" -X --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/db/matrice-rls.sql
+    ;;
   test)
     echo "tests :"
     echec=0

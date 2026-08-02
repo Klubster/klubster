@@ -123,9 +123,25 @@ create or replace function public.enregistrer_remboursement_webhook(
   language sql security definer set search_path to 'public'
 as $$ select $$;
 
--- Les droits définitifs sont posés par `0011` et `0013`. On ferme dès maintenant : un
--- corps minimal ne doit jamais être appelable par `anon`, même entre deux migrations
--- d'un cluster jetable — c'est l'état qu'on veut pouvoir tester sans le fabriquer.
-revoke execute on function public.current_org_id() from anon, public;
-revoke execute on function public.is_super_admin() from anon, public;
-revoke execute on function public.a_role_asso(text[]) from anon, public;
+-- ——— AUCUN `revoke` ICI, ET C'EST UNE CORRECTION ——————————————————————————————
+--
+-- Une version précédente ajoutait, « par précaution » :
+--
+--     revoke execute on function public.current_org_id() from anon, public;
+--
+-- C'était une faute de méthode. `0011` ne rend jamais ce droit ; le `revoke` survivait
+-- donc jusqu'à la fin de la chaîne, et le harnais testait une base PLUS FERMÉE que la
+-- production. Le premier test de session l'a montré immédiatement :
+--
+--     ERROR: permission denied for function current_org_id
+--
+-- Un président authentifié échouait dans le harnais alors qu'il fonctionne en production.
+-- Dans l'autre sens, le danger est pire : un prérequis qui OUVRIRAIT un droit ferait
+-- passer au vert un test d'isolation qui devrait échouer.
+--
+-- La règle, désormais : UN PRÉREQUIS DÉCLARE, IL NE DÉCIDE PAS. Il pose l'objet avec la
+-- signature attendue et rien de plus. Les droits viennent des migrations réelles, et
+-- s'ils sont trop larges, c'est un constat à rapporter — pas un écart à corriger en
+-- douce dans une cale de test, où personne ne le verrait.
+--
+-- L'assertion 00 signale d'ailleurs les fonctions restées exécutables par `anon`.
