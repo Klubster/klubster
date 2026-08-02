@@ -51,3 +51,43 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  # ——— La base ————————————————————————————————————————————————————————————————
+  #
+  # Un travail SÉPARÉ, et volontairement. Le harnais installe PostgreSQL et rejoue les
+  # 27 migrations sur un cluster jetable : c'est plus lent que le reste, et ça n'a aucune
+  # raison de bloquer le retour sur un changement de composant. Séparé, il tourne en
+  # parallèle et son verdict se lit tout seul.
+  #
+  # Il ne touche AUCUNE base réelle : `initdb` crée un cluster dans un dossier temporaire,
+  # joignable par un socket Unix privé, détruit à la fin. Aucun secret n'est nécessaire —
+  # et c'est une propriété, pas une commodité : un travail de CI sans identifiants ne peut
+  # pas se tromper de base.
+  base:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer PostgreSQL 16
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-16
+          echo "PGBIN=/usr/lib/postgresql/16/bin" >> "$GITHUB_ENV"
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      # L'inventaire des dépendances manquantes est généré. S'il a vieilli, il annonce
+      # moins d'écarts qu'il n'y en a — un chiffre périmé qui rassure à tort.
+      - name: Inventaire des dépendances à jour
+        run: npm run db:inventaire:verifier
+
+      # Deux reconstructions depuis zéro, et comparaison des schémas. Une seule ne
+      # prouverait que le déterminisme d'une exécution.
+      - name: Double reconstruction et assertions
+        run: npm run test:db:reconstruction
