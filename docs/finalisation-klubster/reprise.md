@@ -37,10 +37,12 @@ Pour chaque lot de 5 à 8 versions données par le vérificateur :
 
 ## État
 
-**14 des 47 restituées, 0 divergente.** Le rond-trip est prouvé : `write_file` conserve les
+**43 des 47 restituées : 42 byte-exactes + 1 dérogation de confidentialité contrôlée, 0 divergence non expliquée.** Le rond-trip est prouvé : `write_file` conserve les
 octets, y compris l'absence de retour à la ligne final, et les accents.
 
-Restent 33. Aucune n'a présenté de difficulté particulière jusqu'ici.
+Restent 4, toutes volumineuses (3,9 à 5,6 Ko) :
+`20260702153732_reglements_et_pieces_par_cours`, `20260709080944_fix_null_guard_rpc_autorisation`,
+`20260710224118_journal_audit_metier`, `20260711070750_saison_courante_dynamique`. Aucune n'a présenté de difficulté particulière jusqu'ici.
 
 ## Ce qui vient après la 47ᵉ
 
@@ -92,3 +94,34 @@ Restent 33. Aucune n'a présenté de difficulté particulière jusqu'ici.
 Pas de `migration repair`, pas de `db push`, pas de modification de l'historique distant,
 pas de squash, pas de baseline, aucune fusion. **Aucune donnée métier lue ou exportée** —
 métadonnées de schéma et d'historique uniquement.
+
+
+## Acquis depuis, à ne pas refaire
+
+- **Dérogation de confidentialité** sur `20260709083407` : décidée le 02/08, appliquée,
+  déclarée au manifeste (deux empreintes, deux tailles, date, raison), vérifiée par
+  mutation. Voir `restauration-historique.md` et `super-admin.md`.
+- **`tests/donnees-personnelles.test.ts`** : liste blanche d'adresses, sur
+  `supabase/migrations/`, `docs/`, `scripts/`, `tests/`. Il ne contient pas l'adresse qu'il
+  protège. Il a trouvé au passage `contact@club.fr` dans `tests/campagnes.test.ts` (domaine
+  qui peut exister et recevoir) — corrigé en `@example.com`.
+- **`pg_cron` est nécessaire** : `purge_questionnaires_sante_cron` fait
+  `create extension if not exists pg_cron` puis `cron.schedule`. Mon relevé initial
+  « zéro create extension » ne valait que pour les 27 fichiers du dépôt. Le harnais devra
+  fournir l'extension ou une cale du schéma `cron`, et la tâche de purge RGPD (03:00 UTC)
+  doit être vérifiée après reconstruction.
+- **Opérations de données relevées** : `update` sur `usmboxe` (echeances_max = 3), quatre
+  `insert into storage.buckets` (pieces, logos, sections, actualites), `update` de
+  rattrapage sur `stripe_events`, `cron.schedule`. Une reconstruction qui les ignorerait
+  donnerait une base sans stockage et sans purge.
+
+## Ordre d'application — le prochain écueil
+
+Les fichiers restitués sont horodatés (`AAAAMMJJhhmmss`), ceux du dépôt numérotés
+(`NNNN_`). L'ordre alphabétique place `0001_` avant `2026…`, ce qui est faux :
+`0001_init_multitenant` **est** `20260629100250`, et les 47 restitués s'intercalent entre
+lui et `0002` (= `20260721155636`). À traiter **avant** de lancer la chaîne : sinon elle
+échouera plus loin, sur un objet qui semblera manquant sans l'être.
+
+Voie préférée : apprendre l'ordre réel au lanceur depuis le manifeste, sans renommer aucun
+fichier existant. Elle ne touche à rien et se teste seule.
