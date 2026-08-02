@@ -51,3 +51,15 @@
 20260711084349	remboursements_litiges_ui	d4e49a2207878c96df27cf819b3df2ad	647
 20260711092733	relance_impayes	437abc98920b4f09eb1a673804b5a4a6	906
 20260711093412	jauge_liste_attente	79b0401969cb51ff9b170628c63de09e	3740
+
+# ——— DÉROGATIONS DE CONFIDENTIALITÉ ———————————————————————————————————————————
+# Une dérogation = un fichier restitué qui diffère volontairement de l'historique
+# distant. Elle doit être déclarée ICI, sinon le vérificateur la traite comme une
+# divergence non expliquée et échoue.
+#
+# UNE SEULE SUBSTITUTION EST AUTORISÉE, sur la seule valeur nommée. Tout autre octet
+# du fichier doit être identique à l'original : c'est ce que garantit md5_public, qui
+# a été relevé sur le fichier public après substitution, et rien d'autre.
+#
+# Colonnes : DEROGATION version md5_origine taille_origine md5_public taille_public date raison
+DEROGATION	20260709083407	0d888e468986ac7b206caea8dd123bf6	2039	7f356f14a5fff283e14de9b703c4b50d	2054	2026-08-02	adresse personnelle de l administrateur initial remplacee par le marqueur __KLUBSTER_SUPER_ADMIN_EMAIL__ ; depot public, publication irreversible ; marqueur sans @ donc structurellement incapable de correspondre a un email cree par GoTrue

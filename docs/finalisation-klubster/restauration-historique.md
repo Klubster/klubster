@@ -163,38 +163,41 @@ et les politiques `storage.objects` porteraient sur des buckets inexistants.
 
 ---
 
-## Une migration retenue : `20260709083407_super_admin_et_cockpit_stats_appartenance`
+## Dérogation de confidentialité — `20260709083407`
 
-**Elle n'est pas dans le dépôt, et c'est volontaire.** Le vérificateur la comptera comme
-manquante tant que la question ci-dessous n'est pas tranchée.
+**Décision de Mathieu, 02/08/2026** : ne pas publier l'adresse, ne pas rendre le dépôt
+privé. Dérogation explicite, limitée à cette seule valeur.
 
-Sa première instruction est :
+La migration est restituée **à l'identique, sauf l'adresse personnelle de l'administrateur
+initial**, remplacée par le marqueur `__KLUBSTER_SUPER_ADMIN_EMAIL__`. Une seule
+substitution, aucun autre octet touché.
 
-```sql
-update public.profiles set role = 'super_admin' where email = '<adresse personnelle>';
-```
+Le marqueur ne contient pas d'`@`. `profiles.email` étant alimentée depuis
+`auth.users.email`, que GoTrue valide comme une adresse, **aucune ligne ne peut porter
+cette valeur** : l'`update` s'exécute sans promouvoir personne. L'inertie est structurelle,
+pas conventionnelle — et c'est ce qui rend la reconstruction saine, puisqu'une base neuve
+n'a alors aucun super-administrateur. La procédure d'attribution est dans
+`super-admin.md` ; elle ne comporte aucun fichier contenant une adresse.
 
-Le dépôt `Klubster/klubster` est **public** — vérifié le 02/08/2026, en lecture non
-authentifiée : `repository_public: true`. Publier une adresse personnelle dans un dépôt
-public est irréversible : elle reste dans l'historique Git, et elle sera moissonnée.
+Le manifeste conserve les deux empreintes, les deux tailles, la date et la raison. Le
+vérificateur distingue désormais trois états — byte-exacte, dérogation contrôlée,
+divergence non expliquée — et refuse :
 
-Je ne pouvais pas non plus la caviarder : la consigne de restitution interdit toute
-réécriture, et un fichier modifié échouerait au contrôle MD5 — ce qui est exactement le
-comportement voulu. Le mécanisme fonctionne ; c'est la décision qui manque.
+- toute autre modification du fichier (`DÉROGATION ALTÉRÉE`) ;
+- une dérogation déclarée mais non appliquée, c'est-à-dire un fichier resté identique à
+  l'original, donc une valeur sensible publiée ;
+- une dérogation portant sur une version absente du manifeste ;
+- toute divergence non déclarée.
 
-**Trois options, à trancher par Mathieu :**
+`tests/donnees-personnelles.test.ts` complète le dispositif par liste blanche : toute
+adresse non explicitement autorisée est refusée dans `supabase/migrations/`, `docs/`,
+`scripts/` et `tests/`. Le test ne contient pas l'adresse qu'il protège — une liste noire
+publierait exactement ce qu'elle prétend cacher.
 
-1. **Restituer telle quelle.** L'historique est complet et byte-exact. L'adresse devient
-   publique. C'est la seule option qui satisfait le contrôle MD5 sans exception.
-2. **Restituer avec une dérogation documentée** : le fichier porte l'adresse remplacée,
-   le manifeste enregistre la substitution et le MD5 d'origine reste consigné comme
-   non-conforme assumé. L'historique n'est plus exactement reproductible, et il faut
-   l'écrire.
-3. **Rendre le dépôt privé**, puis restituer telle quelle. C'est l'option qui préserve à
-   la fois l'exactitude et la confidentialité, et elle ne coûte qu'un réglage.
+**Vérifié par mutation** : remplacer le marqueur par une adresse réelle fait échouer les
+deux garde-fous, le test (`ce fichier ne doit contenir aucune adresse`) et le vérificateur
+(`DÉROGATION ALTÉRÉE`).
 
-Tant que rien n'est tranché, la migration est extraite mais non versionnée. La commande
-pour la reprendre est identique à celle des autres — une seule requête.
-
-**À vérifier sur les migrations restantes :** d'autres peuvent contenir des adresses ou
-des identifiants personnels. Le contrôle se fait à l'extraction, avant écriture.
+Le test a d'ailleurs trouvé un second cas au passage : `tests/campagnes.test.ts` utilisait
+`contact@club.fr`. Ce domaine peut exister et recevoir du courrier, contrairement à
+`@example.com` (RFC 2606, réservé à jamais). Corrigé.
