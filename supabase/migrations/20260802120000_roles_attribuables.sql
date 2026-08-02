@@ -79,19 +79,27 @@ comment on column public.profiles.role is
 -- désormais à l'application de la migration : si une valeur acceptée par la RPC est
 -- refusée par la contrainte, la migration échoue ici plutôt qu'en production, un soir de
 -- forum des associations.
+--
+-- ON LIT LA DÉFINITION DE LA CONTRAINTE, ON N'ESSAIE PAS D'INSÉRER. Une première version
+-- tentait un `insert` jetable par rôle : `profiles.id` référence `auth.users`, si bien que
+-- la clé étrangère sautait AVANT la contrainte de rôle. Le contrôle échouait donc pour une
+-- raison sans rapport avec ce qu'il prétendait vérifier — le pire état pour un garde-fou,
+-- puisqu'il aurait fallu le débrancher pour avancer.
 do $$
-declare r text; roles text[] := array['admin_asso','tresorier','secretaire','encadrant','lecture'];
+declare def text; manquants text := '';
+         r text;
 begin
-  foreach r in array roles loop
-    begin
-      -- Une insertion jetable, annulée aussitôt : on n'éprouve que la contrainte.
-      insert into public.profiles (id, role) values (gen_random_uuid(), r);
-      raise exception using errcode = 'KB000';
-    exception
-      when sqlstate 'KB000' then null;  -- accepté, puis annulé
-      when check_violation then
-        raise exception 'Le rôle « % » est proposé par equipe_definir_role mais refusé par profiles_role_check.', r;
-    end;
+  select pg_get_constraintdef(con.oid) into def
+    from pg_constraint con join pg_class c on c.oid = con.conrelid
+    join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relname = 'profiles' and con.conname = 'profiles_role_check';
+  if def is null then raise exception 'profiles_role_check est absente.'; end if;
+
+  foreach r in array array['admin_asso','tresorier','secretaire','encadrant','lecture'] loop
+    if def not like '%' || r || '%' then manquants := manquants || r || ' '; end if;
   end loop;
+  if manquants <> '' then
+    raise exception 'Rôle(s) proposé(s) par equipe_definir_role mais absent(s) de profiles_role_check : %', manquants;
+  end if;
   raise notice 'Les cinq rôles d''équipe sont attribuables.';
 end $$;

@@ -43,11 +43,31 @@ export default async function EquipePage(
   const ajoutAvecSlug = ajouterMembre.bind(null, org.slug);
   const retraitAvecSlug = retirerMembre.bind(null, org.slug);
 
+  /**
+   * Les messages disent CE QUI S'EST PASSÉ, et quoi faire ensuite.
+   *
+   * L'ancien « L'ajout a échoué. » a masqué un vrai défaut pendant trois semaines : la
+   * contrainte de base n'acceptait que quatre rôles quand le cockpit en proposait cinq,
+   * et le président ne pouvait pas distinguer ce blocage d'une faute de frappe dans une
+   * adresse. Un échec sans motif ne remonte jamais.
+   */
   const messageAjout: Record<string, string> = {
-    ok: "Membre ajouté à l’équipe.",
+    ok: "Membre ajouté à l’équipe, en lecture seule. Choisissez son rôle ci-dessus.",
     introuvable: "Aucun compte Klubster avec cet email. La personne doit d’abord créer son compte.",
     deja_membre_ailleurs: "Ce compte appartient déjà à une autre association.",
-    erreur: "L’ajout a échoué.",
+    "erreur-role_refuse":
+      "La base a refusé ce rôle. C’est un défaut de Klubster, pas une erreur de votre part — signalez-le.",
+    "erreur-pas_president": "Seul le président peut modifier l’équipe.",
+    "erreur-inconnue": "L’ajout a échoué. Réessayez ; si cela persiste, signalez-le.",
+  };
+
+  const messageErreur: Record<string, string> = {
+    role_refuse:
+      "La base a refusé ce rôle. C’est un défaut de Klubster, pas une erreur de votre part — signalez-le.",
+    pas_president: "Seul le président peut modifier les rôles.",
+    soi_meme: "Vous ne pouvez pas changer votre propre rôle. Demandez à un autre président.",
+    role_inconnu: "Ce rôle n’existe pas.",
+    inconnue: "La modification a échoué. Réessayez ; si cela persiste, signalez-le.",
   };
 
   return (
@@ -69,8 +89,16 @@ export default async function EquipePage(
         {searchParams?.ok === "role" ? <p className="mono mt-5 text-[12px]" style={{ color: "#1E7A4F" }}>Rôle mis à jour.</p> : null}
         {searchParams?.ok === "retire" ? <p className="mono mt-5 text-[12px]" style={{ color: "#1E7A4F" }}>Membre retiré.</p> : null}
         {searchParams?.ajout ? (
-          <p className="mono mt-5 text-[12px]" style={{ color: searchParams.ajout === "ok" ? "#1E7A4F" : "#B23B3B" }}>
-            {messageAjout[searchParams.ajout] ?? ""}
+          <p role="status" className="mono mt-5 text-[12px]" style={{ color: searchParams.ajout === "ok" ? "#1E7A4F" : "#B23B3B" }}>
+            {messageAjout[searchParams.ajout] ?? messageAjout["erreur-inconnue"]}
+          </p>
+        ) : null}
+        {/* Un motif inconnu ne doit pas donner un bandeau vide : mieux vaut un message
+            générique qu'un échec silencieux — c'est le point de bascule que ce projet a
+            déjà payé une fois, sur `?erreur=confirmation` sans texte. */}
+        {searchParams?.erreur ? (
+          <p role="status" className="mono mt-5 text-[12px]" style={{ color: "#B23B3B" }}>
+            {messageErreur[searchParams.erreur] ?? messageErreur.inconnue}
           </p>
         ) : null}
 
