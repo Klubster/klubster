@@ -7,6 +7,7 @@ const MAP: Record<StatutAdhesion, { label: string; dot: string; text: string }> 
   en_retard: { label: "En retard", dot: "bg-danger", text: "text-danger" },
   rembourse: { label: "Remboursé", dot: "bg-ink-soft", text: "text-ink-soft" },
   annule: { label: "Annulé", dot: "bg-ink-soft", text: "text-ink-soft" },
+  liste_attente: { label: "Liste d’attente", dot: "bg-ink-soft", text: "text-ink-soft" },
 };
 
 export function StatutBadge({ statut }: { statut: StatutAdhesion }) {

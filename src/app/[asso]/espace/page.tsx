@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 
 const STATUT_LABEL: Record<string, string> = {
   paye: "Payé", en_attente: "En attente", en_retard: "En retard", rembourse: "Remboursé", annule: "Annulé",
+  // Sans cette entrée, l'adhérent en liste d'attente lisait « liste_attente » en clair.
+  liste_attente: "Liste d’attente",
 };
 
 export default async function EspacePage(props: { params: Promise<{ asso: string }> }) {
@@ -121,7 +123,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
         <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
           <Kpi label="COURS" value={coursNom || "—"} />
           <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
-          <Kpi label="RÈGLEMENT" value={adhesion ? (STATUT_LABEL[adhesion.statut] ?? adhesion.statut) : "—"} accent={adhesion?.statut === "paye" ? accent : undefined} />
+          <Kpi label="RÈGLEMENT" value={adhesion ? (STATUT_LABEL[adhesion.statut] ?? "En attente") : "—"} accent={adhesion?.statut === "paye" ? accent : undefined} />
         </div>
       </div>
       {/* INFOS */}

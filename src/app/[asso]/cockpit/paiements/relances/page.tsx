@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { resteAPayer } from "@/lib/finances";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
@@ -63,7 +64,9 @@ export default async function RelancesPage(
     ((relancesData ?? []) as { id: string; derniere_relance: string | null }[]).map((a) => [a.id, a.derniere_relance])
   );
 
-  const reste = (l: Ligne) => (l.montant_centimes ?? 0) - (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0);
+  // LA tolérance (5 c), partagée avec les RPC : une adhésion soldée à 3 centimes près
+  // n'est plus « impayée » ici tout en étant « payée » ailleurs.
+  const reste = (l: Ligne) => resteAPayer(l.montant_centimes ?? 0, (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0));
   const impayes = ((data ?? []) as unknown as Ligne[])
     .map((l) => ({ ...l, derniere_relance: relanceParId.get(l.id) ?? null }))
     .map((l) => ({ ...l, reste: reste(l) }))

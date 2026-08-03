@@ -2,6 +2,7 @@
 /* Encaissements chèques & espèces : acomptes, solde par ligne, sélection,
    export CSV et relance email des lignes choisies. */
 import { useMemo, useState, useTransition } from "react";
+import { resteAPayer } from "@/lib/finances";
 import { useRouter } from "next/navigation";
 import { enregistrerReglement } from "./actions";
 
@@ -32,7 +33,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
   const modeDe = (l: LignePaiement): "especes" | "cheque" | "autre" =>
     modeLigne[l.id] ?? (l.mode === "cheque" ? "cheque" : l.mode === "autre" ? "autre" : "especes");
 
-  const soldeDe = (l: LignePaiement) => Math.max(l.montantCentimes - l.regleCentimes, 0);
+  const soldeDe = (l: LignePaiement) => resteAPayer(l.montantCentimes, l.regleCentimes);
   const totalSolde = useMemo(() => lignes.reduce((s, l) => s + soldeDe(l), 0), [lignes]);
   const cibles = selection.size > 0 ? lignes.filter((l) => selection.has(l.id)) : lignes;
 

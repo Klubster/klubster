@@ -400,7 +400,7 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
   const supabase = await createSupabaseServerClient();
-  const nouveau = statut === "recue" ? "manquante" : "recue";
+  const nouveau = statut === "fournie" ? "manquante" : "fournie";
 
   const { error } = await supabase
     .from("pieces_adherent")

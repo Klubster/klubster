@@ -32,7 +32,7 @@ export async function GET(_req: Request, props: { params: Promise<{ asso: string
   // Emporter le fichier complet des adhérents — noms, emails, téléphones — n'est pas
   // une lecture ordinaire. Un encadrant ou un accès en lecture seule pouvait le faire
   // en appelant l'URL directement (relevé à l'audit du 21/07/2026).
-  if (!peut(profil.role, "adherents_ecriture")) {
+  if (!(peut(profil.role, "adherents_ecriture") || peut(profil.role, "paiements"))) {
     return new NextResponse("Introuvable.", { status: 404 });
   }
 

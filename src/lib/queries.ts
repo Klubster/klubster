@@ -173,7 +173,9 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .from("pieces_adherent")
       .select("updated_at, label, statut, adherents(prenom, nom)")
       .eq("organisation_id", organisationId)
-      .neq("statut", "attendue")
+      // fil d'activité : montrer les pièces REÇUES, pas la création des manquantes
+      // (« attendue » n'a jamais existé dans la contrainte — le filtre ne filtrait rien)
+      .neq("statut", "manquante")
       .order("updated_at", { ascending: false })
       .limit(8),
     supabase
@@ -185,7 +187,7 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .from("pieces_adherent")
       .select("id", { count: "exact", head: true })
       .eq("organisation_id", organisationId)
-      .eq("statut", "attendue"),
+      .eq("statut", "manquante"),
   ]);
 
   const evenements: EvenementClub[] = [

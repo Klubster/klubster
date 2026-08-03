@@ -5,7 +5,7 @@ import type { FormConfig } from "@/types/form";
 export type Role = "super_admin" | "admin_asso" | "encadrant" | "adherent";
 export type PlanAbonnement = "starter" | "club" | "club_plus";
 export type StatutAdhesion =
-  | "en_attente" | "paye" | "en_retard" | "rembourse" | "annule";
+  | "en_attente" | "paye" | "en_retard" | "rembourse" | "annule" | "liste_attente";
 
 export interface Creneau {
   jour: "lundi" | "mardi" | "mercredi" | "jeudi" | "vendredi" | "samedi" | "dimanche";

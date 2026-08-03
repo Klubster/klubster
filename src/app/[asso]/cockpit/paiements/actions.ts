@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { resteAPayer } from "@/lib/finances";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -56,7 +57,7 @@ function texteRelance(prenom: string, club: string, cours: string | null, resteC
 }
 
 const resteDe = (l: LigneImpaye) =>
-  (l.montant_centimes ?? 0) - (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0);
+  resteAPayer(l.montant_centimes ?? 0, (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0));
 
 /**
  * Relancer une personne. On recharge son solde côté serveur (jamais confiance au client),
@@ -84,7 +85,10 @@ export async function relancerImpaye(slug: string, adhesionId: string) {
     replyTo: org.email_contact ?? null,
     messages: [{ to: email, objet: m.objet, texte: m.texte }],
   });
-  if (res.envoyes > 0) await supabase.rpc("marquer_relance", { p_ids: [adhesionId] });
+  if (res.envoyes > 0) {
+    const { error: eRel } = await supabase.rpc("marquer_relance", { p_ids: [adhesionId] });
+    if (eRel) console.error("marquer_relance", eRel.message);
+  }
   redirect(`/${slug}/cockpit/paiements/relances?${res.ok ? "relance=1" : "erreur=envoi"}`);
 }
 
@@ -111,7 +115,10 @@ export async function relancerTousImpayes(slug: string) {
 
   if (messages.length === 0) redirect(`/${slug}/cockpit/paiements/relances?relances=0`);
   const res = await envoyerLotPersonnalise({ nomClub: org.nom, replyTo: org.email_contact ?? null, messages });
-  if (res.envoyes > 0) await supabase.rpc("marquer_relance", { p_ids: ids.slice(0, res.envoyes) });
+  if (res.envoyes > 0) {
+    const { error: eRel } = await supabase.rpc("marquer_relance", { p_ids: ids.slice(0, res.envoyes) });
+    if (eRel) console.error("marquer_relance", eRel.message);
+  }
   redirect(`/${slug}/cockpit/paiements/relances?relances=${res.envoyes}${res.ok ? "" : "&partiel=1"}`);
 }
 
@@ -133,8 +140,10 @@ export async function definirSaison(slug: string, formData: FormData) {
 export async function marquerEncaisse(slug: string, adhesionId: string) {
   await gardeFinance(slug);
   const supabase = await createSupabaseServerClient();
-  await supabase.rpc("marquer_encaisse", { p_adhesion_id: adhesionId });
-  redirect(`/${slug}/cockpit/paiements`);
+  // Un échec d'écriture doit se VOIR : avant, la redirection était identique en
+  // succès et en échec, et le trésorier croyait la cotisation soldée.
+  const { error } = await supabase.rpc("marquer_encaisse", { p_adhesion_id: adhesionId });
+  redirect(`/${slug}/cockpit/paiements${error ? "?erreur=encaisse" : ""}`);
 }
 
 // Enregistre un règlement partiel ou total (chèque/espèces). Renvoie le solde restant.

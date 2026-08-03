@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { resteAPayer } from "@/lib/finances";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmailDetaille } from "@/lib/resend";
 import { gabaritEmail } from "@/lib/email-gabarit";
@@ -174,6 +175,8 @@ async function lancer(request: NextRequest) {
 
   type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation };
   const aEnvoyer: Envoi[] = [];
+  // Adhésions dont le retard est constaté à la 3e fenêtre (statut posé après l'envoi).
+  const aMarquerEnRetard: string[] = [];
   // Un seul envoi par adhérent et par exécution (le plafond fait le reste sur la durée).
   const dejaCeTour = new Set<string>();
 
@@ -237,7 +240,9 @@ async function lancer(request: NextRequest) {
     // 2) Cotisation impayée.
     if (cfg.relance_impaye && (adh.statut === "en_attente" || adh.statut === "en_retard")) {
       const regle = (adh.reglements ?? []).reduce((s, r) => s + (r.montant_centimes ?? 0), 0);
-      const reste = (adh.montant_centimes ?? 0) - regle;
+      // LA tolérance (5 c), la même que les RPC d'encaissement : un dossier soldé à
+      // 3 centimes près n'est plus relancé.
+      const reste = resteAPayer(adh.montant_centimes ?? 0, regle);
       if (reste > 0) {
         const etapes: [keyof typeof FENETRE_IMPAYE, readonly [number, number]][] = [
           ["impaye_1", FENETRE_IMPAYE.impaye_1],
@@ -262,6 +267,13 @@ async function lancer(request: NextRequest) {
                 : `Vous pouvez régulariser directement auprès du club. Si c'est déjà fait, merci de ne pas tenir compte de ce message.`,
             ],
           });
+          // Règle produit (documentée dans docs/regle-etat-financier.md) : à la
+          // 3e relance (45 j), le retard devient un CONSTAT porté par le statut —
+          // avant, « en_retard » n'était posé par aucun écoulement du temps et le
+          // compteur du cockpit restait à zéro pendant que les relances partaient.
+          if (motif === "impaye_3" && adh.statut === "en_attente") {
+            aMarquerEnRetard.push(adh.id);
+          }
           dejaCeTour.add(adherentId);
           break;
         }
@@ -434,7 +446,21 @@ async function lancer(request: NextRequest) {
     console.error("purge entretien", e);
   }
 
-  return NextResponse.json({ ok: true, candidats: aEnvoyer.length + aEnvoyerClub.length, envoyes });
+  // Le retard constaté est posé APRÈS les envois : si l'exécution échoue avant,
+  // rien n'est marqué et la prochaine passe recommencera proprement.
+  if (aMarquerEnRetard.length > 0) {
+    const { error: eRetard } = await admin
+      .from("adhesions")
+      .update({ statut: "en_retard" })
+      .in("id", aMarquerEnRetard)
+      .eq("statut", "en_attente");
+    if (eRetard) {
+      // Un échec d'écriture doit lever : 500 → le cron du lendemain retentera.
+      return NextResponse.json({ error: `Marquage en retard : ${eRetard.message}`, envoyes }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ ok: true, candidats: aEnvoyer.length + aEnvoyerClub.length, envoyes, marquesEnRetard: aMarquerEnRetard.length });
 }
 
 type AdhesionLigne = {
