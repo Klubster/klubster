@@ -8,6 +8,8 @@ Mis à jour le 03/08/2026. Aucun secret ici.
 | #14 | `feat/onboarding-frictions` | `/tmp/klb-onboarding` | livrée, brouillon, parcours complet prouvé |
 | #15 | `feat/cockpit-priorites` | `/tmp/klb-cockpit` | livrée, brouillon |
 | #16 | `feat/liste-attente` | `/tmp/klb-attente` | livrée, brouillon, migration `20260803160000_liste_attente` |
+| #17 | `feat/contraste-couleur-club` | `/tmp/klb-contraste` | livrée, brouillon (lot C) |
+| #18 | `feat/controle-terrain` | `/tmp/klb-terrain` | livrée, brouillon, migration `20260803180000_controle_terrain` (lot D) |
 
 Aucune n'est fusionnée. Chacune part de `origin/main` et n'a pas de dépendance avec les
 autres. **Numérotation des migrations** : la série courte s'arrête — `0028` est pris par
@@ -15,7 +17,7 @@ la PR #10 (`fix/rpc-adhesion-deterministe`,
 `0028_verifier_adherent_adhesion_de_reference.sql`) et ne doit pas être réutilisé. Toute
 nouvelle migration prend une version horodatée (`AAAAMMJJHHMMSS_nom.sql`), unique sur
 l'ensemble des branches distantes. Prises à ce jour : `20260802120000`, `20260802200000`
-(PR #13), `20260803160000` (PR #16).
+(PR #13), `20260803160000` (PR #16), `20260803180000` (PR #18).
 
 ## Note de passation — données de production
 
@@ -46,9 +48,9 @@ NODE_ENV=test npm test               # NODE_ENV=production traîne dans le termi
 
 ## Ce qui reste
 
-- Lot C — contraste des couleurs de club (pas commencé)
-- Lot D — contrôle terrain mobile (pas commencé)
 - Lot E — cohérence des paiements et des statuts (pas commencé)
+- La RPC de la PR #10 a été validée sur klubster-dev le 03/08/2026 (commentaire factuel
+  posé sur la PR) ; la branche n'a pas été modifiée
 - Preview branchée sur `klubster-dev` : demande des variables d'environnement Vercel
 - Liste d'attente : prévenir le club qu'une place s'est libérée, délai de réponse après
   promotion — arbitrages produit, documentés dans `docs/regle-liste-attente.md`
