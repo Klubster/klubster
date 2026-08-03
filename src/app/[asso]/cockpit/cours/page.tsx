@@ -133,6 +133,15 @@ export default async function CoursPage(
             ✓ Place donnée. La personne a été prévenue par email.
           </p>
         ) : null}
+        {/* La RPC refuse la promotion quand le cours est déjà plein — sinon le club
+            découvrait un cours en surcapacité le soir de la reprise. Sans ce message,
+            le bouton semblait ne rien faire : un refus muet est indiscernable d'un bug. */}
+        {searchParams?.promo === "0" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#8A6508" }}>
+            Aucune place n’est libre dans ce cours : personne n’a été promu. Augmentez la
+            capacité du cours, ou attendez qu’une place se libère.
+          </p>
+        ) : null}
 
         <div className="mt-10 space-y-4">
           {cours.map((c) => (
