@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationBySlug, getAdherentsRecents } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix } from "@/lib/format";
@@ -61,20 +61,11 @@ export default async function Adherents(
   // trois résultats page 2, et un total faux. `!inner` force la jointure à filtrer.
   const jointure = statut ? "adhesions!inner(statut, montant_centimes, cours(nom))" : "adhesions(statut, montant_centimes, cours(nom))";
 
+  // Inscriptions récentes : les adhérents dont une ADHÉSION a été créée dans la fenêtre.
+  const idsRecents = joursRecents > 0 ? await getAdherentsRecents(org.id, joursRecents) : [];
+
   // Dossier incomplet = au moins une pièce manquante. La liste des identifiants est
   // calculée avant la requête paginée : filtrer après la pagination donnait un total faux.
-  // Inscriptions récentes : les adhérents dont une ADHÉSION a été créée dans la fenêtre.
-  let idsRecents: string[] = [];
-  if (joursRecents > 0) {
-    const depuis = new Date(Date.now() - joursRecents * 86400_000).toISOString();
-    const { data: recs } = await supabase
-      .from("adhesions")
-      .select("adherent_id")
-      .eq("organisation_id", org.id)
-      .gte("created_at", depuis);
-    idsRecents = [...new Set(((recs ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
-  }
-
   let idsIncomplets: string[] = [];
   if (dossierIncomplet) {
     const { data: pcs } = await supabase

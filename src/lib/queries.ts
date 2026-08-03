@@ -286,3 +286,19 @@ export async function getLitigesOuverts(organisationId: string): Promise<number>
   }
   return count ?? 0;
 }
+
+/**
+ * Identifiants des adhérents ayant une adhésion créée dans les N derniers jours.
+ * Vit ici plutôt que dans la page : `Date.now()` appelé pendant le rendu d'un composant
+ * serveur est une fonction impure, et ESLint le refuse à juste titre.
+ */
+export async function getAdherentsRecents(organisationId: string, jours: number): Promise<string[]> {
+  const supabase = await createSupabaseServerClient();
+  const depuis = new Date(Date.now() - jours * 86400_000).toISOString();
+  const { data } = await supabase
+    .from("adhesions")
+    .select("adherent_id")
+    .eq("organisation_id", organisationId)
+    .gte("created_at", depuis);
+  return [...new Set(((data ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
+}
