@@ -129,3 +129,71 @@ describe("liste d'attente — la règle est écrite", () => {
     expect(REGLE).toMatch(/hors périmètre du pilote/);
   });
 });
+
+describe("liste d'attente — la migration est explicite, pas chirurgicale", () => {
+  // La première version lisait `prosrc`, faisait des `replace()` sur le texte de la
+  // fonction et la reconstruisait par `execute format()`. Interdit désormais : le
+  // fichier doit MONTRER la fonction qui sera installée.
+  it("aucune lecture de prosrc, aucun replace() de corps, aucun execute format()", () => {
+    expect(MIGRATION).not.toMatch(/prosrc/);
+    expect(MIGRATION).not.toMatch(/execute format/i);
+    expect(MIGRATION).not.toMatch(/replace\(\s*v_src/);
+  });
+
+  it("la définition complète de register_adherent_full est dans le fichier", () => {
+    const def = MIGRATION.match(/create or replace function public\.register_adherent_full[\s\S]*?\$function\$;/);
+    expect(def).not.toBeNull();
+    const corps = def![0];
+    // signature canonique (0004), inchangée
+    expect(corps).toContain("p_slug text, p_user_id uuid, p_prenom text, p_nom text, p_email text, p_tel text,");
+    expect(corps).toContain("p_cours_id uuid, p_infos jsonb, p_mode text");
+    expect(corps).toContain("returns uuid");
+    expect(corps).toContain("security definer");
+    expect(corps).toContain("set search_path to 'public'");
+    // comportement conservé : inscription, naissance, pièces, mode de paiement, exceptions
+    for (const morceau of [
+      "insert into adherents",
+      "insert into adhesions",
+      "insert into pieces_adherent",
+      "Date de naissance",
+      "p_mode in ('en_ligne','cheque','especes')",
+      "raise exception 'Club introuvable.'",
+      "raise exception 'Cours invalide.'",
+    ]) expect(corps, morceau).toContain(morceau);
+    // les deux seuls changements : verrou avant comptage, comptage partagé
+    const iVerrou = corps.indexOf("verrouiller_cours(p_cours_id)");
+    const iCompte = corps.indexOf("statut = any (statuts_occupant_place())");
+    expect(iVerrou).toBeGreaterThan(0);
+    expect(iCompte).toBeGreaterThan(iVerrou);
+  });
+
+  it("les droits sont posés explicitement, à l'état de référence", () => {
+    expect(MIGRATION).toMatch(/revoke execute on function public\.register_adherent_full\(text,uuid,text,text,text,text,uuid,jsonb,text\) from anon, public/);
+    expect(MIGRATION).toMatch(/grant execute on function public\.register_adherent_full\(text,uuid,text,text,text,text,uuid,jsonb,text\) to authenticated, service_role/);
+  });
+
+  it("la migration s'auto-contrôle : une seule surcharge, décision de capacité présente", () => {
+    expect(MIGRATION).toMatch(/surcharges de register_adherent_full/);
+    expect(MIGRATION).toMatch(/pg_get_functiondef/);
+  });
+
+  it("aucune autre fonction n'est réécrite dynamiquement", () => {
+    // Les seules définitions du fichier sont nommées et complètes.
+    const defs = MIGRATION.match(/create or replace function public\.(\w+)/g) ?? [];
+    expect(defs.map((d) => d.split(".")[1]).sort()).toEqual([
+      "places_libres", "promouvoir_liste_attente", "register_adherent_full",
+      "statuts_occupant_place", "verrouiller_cours",
+    ]);
+  });
+});
+
+describe("liste d'attente — le message de promotion ne ment pas", () => {
+  const PAGE = readFileSync(join(process.cwd(), "src/app/[asso]/cockpit/cours/page.tsx"), "utf8");
+  it("le succès ne prétend jamais qu'un email est parti", () => {
+    expect(PAGE).not.toMatch(/prévenue par email/);
+    expect(PAGE).toMatch(/Pensez à prévenir la personne/);
+  });
+  it("le refus faute de place reste annoncé", () => {
+    expect(PAGE).toMatch(/Aucune place n’est libre dans ce cours/);
+  });
+});
