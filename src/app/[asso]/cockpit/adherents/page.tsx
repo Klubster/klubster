@@ -6,8 +6,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix } from "@/lib/format";
 import { peut } from "@/lib/roles";
 import { renouvelerSaison } from "./actions";
+import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
 
 export const dynamic = "force-dynamic";
+
+// Identifiant qui n'existera jamais : sert à rendre un filtre volontairement vide.
+const ID_IMPOSSIBLE = "00000000-0000-0000-0000-000000000000";
 
 const PAR_PAGE = 25;
 
@@ -29,7 +33,7 @@ type LigneAdherent = {
 export default async function Adherents(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ q?: string; page?: string; statut?: string; renouvelees?: string }>;
+    searchParams: Promise<{ q?: string; page?: string; statut?: string; renouvelees?: string; dossier?: string; recentes?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -43,6 +47,10 @@ export default async function Adherents(
 
   const q = (searchParams.q ?? "").trim();
   const statut = searchParams.statut ?? "";
+  // Filtres venus du cockpit : « 3 dossiers incomplets » et « 4 nouvelles inscriptions »
+  // doivent ouvrir EXACTEMENT ces trois et ces quatre lignes, pas la liste entière.
+  const dossierIncomplet = searchParams.dossier === "incomplet";
+  const joursRecents = Math.min(90, Math.max(0, Number(searchParams.recentes ?? 0) || 0));
   const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
   const debut = (page - 1) * PAR_PAGE;
 
@@ -53,12 +61,47 @@ export default async function Adherents(
   // trois résultats page 2, et un total faux. `!inner` force la jointure à filtrer.
   const jointure = statut ? "adhesions!inner(statut, montant_centimes, cours(nom))" : "adhesions(statut, montant_centimes, cours(nom))";
 
+  // Dossier incomplet = au moins une pièce manquante. La liste des identifiants est
+  // calculée avant la requête paginée : filtrer après la pagination donnait un total faux.
+  // Inscriptions récentes : les adhérents dont une ADHÉSION a été créée dans la fenêtre.
+  let idsRecents: string[] = [];
+  if (joursRecents > 0) {
+    const depuis = new Date(Date.now() - joursRecents * 86400_000).toISOString();
+    const { data: recs } = await supabase
+      .from("adhesions")
+      .select("adherent_id")
+      .eq("organisation_id", org.id)
+      .gte("created_at", depuis);
+    idsRecents = [...new Set(((recs ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
+  }
+
+  let idsIncomplets: string[] = [];
+  if (dossierIncomplet) {
+    const { data: pcs } = await supabase
+      .from("pieces_adherent")
+      .select("adherent_id")
+      .eq("organisation_id", org.id)
+      .eq("statut", STATUT_PIECE_MANQUANTE);
+    idsIncomplets = [...new Set(((pcs ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
+  }
+
   let requete = supabase
     .from("adherents")
     .select(`id, prenom, nom, email, telephone, created_at, ${jointure}`, { count: "exact" })
     .eq("organisation_id", org.id);
 
   if (statut) requete = requete.eq("adhesions.statut", statut);
+  if (joursRecents > 0) {
+    // Sur la date de l'ADHÉSION, pas celle de la fiche : le cockpit compte les inscriptions
+    // reçues cette semaine, or un adhérent importé l'an dernier peut se réinscrire hier.
+    // Filtrer sur `adherents.created_at` affichait 14 lignes pour « 8 inscriptions ».
+    requete = requete.in("id", idsRecents.length > 0 ? idsRecents : [ID_IMPOSSIBLE]);
+  }
+  if (dossierIncomplet) {
+    // Aucun dossier incomplet ne doit afficher une liste VIDE, pas la liste entière :
+    // un filtre qui ne filtre rien fait croire au président que tout le club est en défaut.
+    requete = requete.in("id", idsIncomplets.length > 0 ? idsIncomplets : [ID_IMPOSSIBLE]);
+  }
 
   if (q) {
     // Les caractères de filtre PostgREST (virgule, parenthèses) sont retirés :
@@ -79,10 +122,24 @@ export default async function Adherents(
     const s = new URLSearchParams();
     if (q) s.set("q", q);
     if (statut) s.set("statut", statut);
+    if (dossierIncomplet) s.set("dossier", "incomplet");
+    if (joursRecents > 0) s.set("recentes", String(joursRecents));
     if (p > 1) s.set("page", String(p));
     const qs = s.toString();
     return `/${org.slug}/cockpit/adherents${qs ? `?${qs}` : ""}`;
   };
+
+  const filtreActif = dossierIncomplet
+    ? "Dossiers incomplets"
+    : joursRecents > 0
+      ? `Inscriptions des ${joursRecents} derniers jours`
+      : statut === "en_retard"
+        ? "Cotisations en retard"
+        : statut === "en_attente"
+          ? "Règlements en attente"
+          : statut === "paye"
+            ? "Cotisations réglées"
+            : "";
 
   const renouveler = renouvelerSaison.bind(null, org.slug);
 
@@ -99,9 +156,21 @@ export default async function Adherents(
 
       <div className="mx-auto max-w-5xl px-6 py-12 md:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-medium tracking-[-0.01em]">
-            {total} adhérent{total > 1 ? "s" : ""}
-          </h1>
+          <div>
+            <h1 className="text-3xl font-medium tracking-[-0.01em]">
+              {total} adhérent{total > 1 ? "s" : ""}
+            </h1>
+            {/* Le filtre venu du cockpit se dit à l'écran, et se retire d'un clic : sans
+                cela, « 3 adhérents » sur un club qui en compte 30 ressemble à une panne. */}
+            {filtreActif ? (
+              <p className="mono mt-2 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-label text-ink-soft">
+                <span style={{ color: "#8A6508" }}>▸ {filtreActif}</span>
+                <Link href={`/${org.slug}/cockpit/adherents`} className="underline underline-offset-2 hover:text-ink">
+                  TOUT VOIR
+                </Link>
+              </p>
+            ) : null}
+          </div>
           {/* Empilés pleine largeur sur mobile : deux boutons longs côte à côte
               wrappaient de travers sous le titre. */}
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">

@@ -6,6 +6,7 @@ import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Communication from "./Communication";
 import Historique, { type CampagneListe } from "./Historique";
+import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +48,15 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
       .limit(25);
     campagnes = (campData ?? []) as CampagneListe[];
   }
-  // Dossiers incomplets : les adhérents dont une pièce n'est pas encore reçue.
+  // Dossiers incomplets : les adhérents dont une pièce manque encore.
+  // Le filtre portait sur « recue », une valeur que la base n'accepte pas : il n'excluait
+  // donc AUCUNE pièce, et des adhérents parfaitement à jour se retrouvaient dans la cible
+  // « dossier incomplet » d'une relance collective.
   const { data: piecesData } = await supabase
     .from("pieces_adherent")
     .select("adherent_id, statut")
     .eq("organisation_id", org.id)
-    .neq("statut", "recue");
+    .eq("statut", STATUT_PIECE_MANQUANTE);
 
   const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null }[];
   const adhesions = (insData ?? []) as { adherent_id: string; cours_id: string | null }[];
