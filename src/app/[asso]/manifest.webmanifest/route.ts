@@ -1,5 +1,6 @@
 // Manifest PWA dynamique : une « app » par club, à ses couleurs.
 // L'adhérent installe SON club sur son téléphone et ouvre sa carte d'un tap.
+import { normaliserCouleur } from "@/lib/contraste";
 import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export async function GET(req: Request, props: { params: Promise<{ asso: string 
     scope: `${base}/`,
     display: "standalone",
     background_color: noir ? "#131312" : "#FCFCFA",
-    theme_color: org.couleur_primaire ?? "#111111",
+    theme_color: normaliserCouleur(org.couleur_primaire),
     description: `${org.nom} — carte de membre, dossier et inscriptions.`,
     icons: [
       { src: `${base}/icone?taille=192`, sizes: "192x192", type: "image/png" },

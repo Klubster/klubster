@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getCoursByOrganisation } from "@/lib/queries";
@@ -19,7 +20,7 @@ export default async function Import(props: { params: Promise<{ asso: string }> 
     redirect(`/connexion?next=/${params.asso}/cockpit/adherents/import`);
   }
   const cours = await getCoursByOrganisation(org.id);
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   return (
     <main className="min-h-screen text-ink">

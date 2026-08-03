@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { verifierPermission } from "@/lib/garde";
+import { estCouleurValide, normaliserCouleur } from "@/lib/contraste";
 import { validerImage } from "@/lib/upload";
 
 /**
@@ -86,11 +87,14 @@ export async function changerCouleur(slug: string, fd: FormData) {
   const ctx = await organisationAutorisee(slug);
   if (!ctx) redirect(`/connexion?next=/${slug}/cockpit/identite`);
   const { supabase, org } = ctx;
-  const brut = String(fd.get("couleur") ?? "").trim().replace(/^#/, "");
-  if (!/^[0-9a-fA-F]{6}$/.test(brut)) redirect(`/${slug}/cockpit/identite?erreur=couleur`);
+  // Mêmes règles que partout : « # » optionnel, hex court accepté, casse unifiée.
+  // La validation et la normalisation viennent de src/lib/contraste.ts — pas d'une
+  // regex locale qui finirait par diverger de ce que les vitrines acceptent.
+  const brut = String(fd.get("couleur") ?? "");
+  if (!estCouleurValide(brut)) redirect(`/${slug}/cockpit/identite?erreur=couleur`);
   const { error } = await supabase
     .from("organisations")
-    .update({ couleur_primaire: "#" + brut.toUpperCase() })
+    .update({ couleur_primaire: normaliserCouleur(brut) })
     .eq("id", org.id);
   if (error) redirect(`/${slug}/cockpit/identite?erreur=enregistrement`);
   revalidatePath(`/${slug}`);

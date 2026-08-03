@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import type { Metadata, Viewport } from "next";
 import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 import PWAUpdater from "@/components/site/PWAUpdater";
@@ -25,7 +26,7 @@ export async function generateViewport(props: { params: Promise<{ asso: string }
   const params = await props.params;
   const org = await getOrganisationPubliqueBySlug(params.asso);
   return {
-    themeColor: org?.couleur_primaire ?? "#111111",
+    themeColor: normaliserCouleur(org?.couleur_primaire),
   };
 }
 

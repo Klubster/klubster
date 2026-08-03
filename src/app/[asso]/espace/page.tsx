@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { saisonCourante } from "@/lib/saison";
@@ -29,7 +30,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
 
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase

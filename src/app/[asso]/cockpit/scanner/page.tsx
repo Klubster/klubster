@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
@@ -13,5 +14,5 @@ export default async function Page(props: { params: Promise<{ asso: string }> })
   if (!profile || (profile.organisation_id !== org.id && profile.role !== "super_admin")) {
     redirect(`/connexion?next=/${org.slug}/cockpit/scanner`);
   }
-  return <Scanner slug={org.slug} nom={org.nom} accent={org.couleur_primaire ?? "#111111"} />;
+  return <Scanner slug={org.slug} nom={org.nom} accent={normaliserCouleur(org.couleur_primaire)} />;
 }

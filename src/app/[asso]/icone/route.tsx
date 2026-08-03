@@ -5,6 +5,7 @@
 // couleur (DA Klubster). Le logo est rapatrié en data URL — Satori (next/og) ne fetch pas
 // toujours une image distante de façon fiable — avec un délai borné et un repli en cas
 // d'échec, pour ne jamais servir une icône cassée.
+import { normaliserCouleur } from "@/lib/contraste";
 import { ImageResponse } from "next/og";
 import { getOrganisationPubliqueBySlug } from "@/lib/queries";
 
@@ -37,7 +38,7 @@ export async function GET(req: Request, props: { params: Promise<{ asso: string 
   const taille = Math.min(Math.max(Number.isFinite(brut) ? brut : 512, 64), 1024);
   const maskable = searchParams.get("maskable") === "1";
 
-  const couleur = org?.couleur_primaire ?? "#111111";
+  const couleur = normaliserCouleur(org?.couleur_primaire);
   const initiale = (org?.nom ?? "K").trim().charAt(0).toUpperCase() || "K";
 
   const logo = org?.logo_url ? await logoEnDataUrl(org.logo_url) : null;
