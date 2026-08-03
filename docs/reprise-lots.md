@@ -7,10 +7,24 @@ Mis à jour le 03/08/2026. Aucun secret ici.
 | #13 | `fix/roles-attribuables` | `/tmp/klb-roles` | livrée, brouillon |
 | #14 | `feat/onboarding-frictions` | `/tmp/klb-onboarding` | livrée, brouillon, parcours complet prouvé |
 | #15 | `feat/cockpit-priorites` | `/tmp/klb-cockpit` | livrée, brouillon |
-| #16 | `feat/liste-attente` | `/tmp/klb-attente` | livrée, brouillon, migration 0028 |
+| #16 | `feat/liste-attente` | `/tmp/klb-attente` | livrée, brouillon, migration `20260803160000_liste_attente` |
 
 Aucune n'est fusionnée. Chacune part de `origin/main` et n'a pas de dépendance avec les
-autres, sauf la numérotation de migration : `0028` est pris par la PR #16.
+autres. **Numérotation des migrations** : la série courte s'arrête — `0028` est pris par
+la PR #10 (`fix/rpc-adhesion-deterministe`,
+`0028_verifier_adherent_adhesion_de_reference.sql`) et ne doit pas être réutilisé. Toute
+nouvelle migration prend une version horodatée (`AAAAMMJJHHMMSS_nom.sql`), unique sur
+l'ensemble des branches distantes. Prises à ce jour : `20260802120000`, `20260802200000`
+(PR #13), `20260803160000` (PR #16).
+
+## Note de passation — données de production
+
+Pendant l'audit du cockpit (PR #15), un agrégat de production — un simple comptage — a
+été consulté par erreur pour illustrer un bug de compteur. Sa valeur a été retirée du
+corps de la PR et n'est reprise nulle part. Aucune donnée nominative n'a été lue,
+exportée ni enregistrée : vérifié sur les worktrees, les captures et les journaux locaux
+(aucun export, aucun extrait de table de production). Règle en vigueur : **aucune requête
+sur les données métier de production** ; toute vérification se fait sur `klubster-dev`.
 
 ## Environnement de développement
 

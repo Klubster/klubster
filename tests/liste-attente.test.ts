@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const lire = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
-const MIGRATION = lire("supabase/migrations/0028_liste_attente.sql");
+const MIGRATION = lire("supabase/migrations/20260803160000_liste_attente.sql");
 const REGLE = lire("docs/regle-liste-attente.md");
 const PAGE_COURS = lire("src/app/[asso]/cockpit/cours/page.tsx");
 const ACTIONS_COURS = lire("src/app/[asso]/cockpit/cours/actions.ts");
@@ -121,8 +121,11 @@ describe("liste d'attente — la règle est écrite", () => {
     expect(REGLE).toMatch(/premier arrivé, premier servi/i);
   });
 
-  it("le document assume ce qui n'est pas fait", () => {
-    expect(REGLE).toMatch(/Aucune notification automatique/);
-    expect(REGLE).toMatch(/Aucune expiration/);
+  it("le document porte les décisions produit du pilote", () => {
+    // Arbitrées le 03/08/2026 : alerte cockpit dans un lot d'intégration ultérieur,
+    // aucune notification email automatique, aucun délai après promotion.
+    expect(REGLE).toMatch(/Aucune notification email automatique/);
+    expect(REGLE).toMatch(/Délai après promotion : aucun/);
+    expect(REGLE).toMatch(/hors périmètre du pilote/);
   });
 });

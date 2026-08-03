@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deux inscriptions simultanées sur la DERNIÈRE place d'un cours.
 #
-# Avant la migration 0028, `register_adherent_full` comptait les places puis insérait,
+# Avant la migration 20260803160000_liste_attente, `register_adherent_full` comptait les places puis insérait,
 # sans verrou : les deux transactions lisaient le même total, et le cours se retrouvait
 # avec une place de plus que sa capacité. Ce script rejoue exactement ce cas.
 #

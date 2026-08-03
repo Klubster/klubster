@@ -1,4 +1,4 @@
--- 0028 — Liste d'attente : la rendre possible, et la rendre juste.
+-- 20260803160000 — Liste d'attente : la rendre possible, et la rendre juste.
 --
 -- CE QUI ÉTAIT CASSÉ
 --
@@ -161,7 +161,7 @@ begin
     where n.nspname = 'public' and p.proname = 'register_adherent_full';
 
   if position('verrouiller_cours' in v_src) > 0 then
-    raise notice '0028 : verrou de capacité déjà en place, rien à faire.';
+    raise notice 'liste_attente : verrou de capacité déjà en place, rien à faire.';
     return;
   end if;
 
@@ -177,7 +177,7 @@ begin
     'statut = any (statuts_occupant_place())');
 
   if v_nouveau = v_src then
-    raise exception '0028 : bloc de capacité introuvable dans register_adherent_full — vérifier la fonction avant de rejouer.';
+    raise exception 'liste_attente : bloc de capacité introuvable dans register_adherent_full — vérifier la fonction avant de rejouer.';
   end if;
 
   execute format(

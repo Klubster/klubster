@@ -56,20 +56,29 @@ comptage qui fait foi : aucun compteur séparé à maintenir.
 Président et secrétaire. La règle est vérifiée **en base** par la RPC, pas seulement dans
 l'interface.
 
+## Décisions produit pour la version pilote — arbitrées le 03/08/2026
+
+**Place libérée.** Le club doit être averti dans Klubster quand une place est disponible
+alors qu'une personne attend : alerte visible dans le cockpit, avec un lien vers le cours
+et sa liste d'attente. **Aucune notification email automatique**, et aucun email réel
+pendant les tests. Cette alerte sera développée dans un **lot d'intégration ultérieur**,
+une fois les PR Cockpit (#15) et Liste d'attente (#16) réunies — pas maintenant, pour ne
+pas créer de dépendance croisée entre les deux PR. En attendant, l'écran Cours reste le
+seul endroit où le club voit sa liste d'attente.
+
+**Délai après promotion : aucun.** La promotion reste manuelle et immédiate. Sont
+**hors périmètre du pilote**, décision explicite et non un oubli : expiration automatique
+d'une place proposée, réservation temporaire, passage automatique à la personne suivante,
+emails de relance.
+
 ## Ce qui n'est pas fait
 
-- **Aucune notification automatique** n'est envoyée quand une place se libère. L'écran
-  annonce « la personne a été prévenue par email » : cet email part bien à la promotion,
-  mais rien ne prévient le club qu'une place s'est libérée. À traiter.
-- **Aucune expiration** : une personne promue reste « en attente de règlement »
-  indéfiniment. Il n'y a pas de délai de réponse au bout duquel la place repartirait à la
-  personne suivante.
 - **Une personne peut figurer sur plusieurs listes d'attente** (un cours chacune), et rien
   ne l'empêche d'être inscrite ailleurs. C'est voulu : un adhérent peut vouloir deux cours.
 
 ## Historique
 
-Avant la migration `0028`, `adhesions_statut_check` n'acceptait pas la valeur
+Avant la migration `20260803160000_liste_attente`, `adhesions_statut_check` n'acceptait pas la valeur
 `liste_attente`, alors que `register_adherent_full` la produisait dès qu'un cours était
 plein et que toute l'interface l'affichait déjà. Conséquence, reproduite dans le navigateur
 sur la base de développement : **dès qu'un cours atteignait sa capacité, chaque nouvelle
