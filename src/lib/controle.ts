@@ -93,6 +93,13 @@ export const CATALOGUE_CONTROLE: Record<string, LigneControle> = {
     ton: "refus",
     pointable: false,
   },
+  non_inscrit_ce_cours: {
+    symbole: "✕",
+    titre: "Non inscrit à ce cours",
+    action: "Inscrit à un autre cours — vérifier le cours sélectionné, ou voir le bureau.",
+    ton: "refus",
+    pointable: false,
+  },
   aucune_adhesion: {
     symbole: "✕",
     titre: "Aucune adhésion",
@@ -112,4 +119,22 @@ export const CATALOGUE_CONTROLE: Record<string, LigneControle> = {
 /** Ligne du catalogue pour un statut, `introuvable` par défaut. */
 export function ligneControle(statut: string | undefined): LigneControle {
   return CATALOGUE_CONTROLE[statut ?? "introuvable"] ?? CATALOGUE_CONTROLE.introuvable;
+}
+
+/** Cours affichable au scanner : identifiant, nom, jours de créneaux (minuscules). */
+export interface CoursDuControle {
+  id: string;
+  nom: string;
+  jours: string[];
+}
+
+/**
+ * Cours proposé à l'ouverture de l'appel : celui dont un créneau tombe aujourd'hui,
+ * uniquement s'il est SEUL dans ce cas — sinon on ne devine pas, l'encadrant choisit.
+ * Un club à cours unique n'a rien à choisir.
+ */
+export function coursParDefaut(cours: CoursDuControle[], jour: string): string | null {
+  if (cours.length === 1) return cours[0].id;
+  const dujour = cours.filter((c) => c.jours.includes(jour));
+  return dujour.length === 1 ? dujour[0].id : null;
 }

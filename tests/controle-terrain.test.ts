@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CATALOGUE_CONTROLE, COULEURS_CONTROLE, ligneControle } from "../src/lib/controle";
+import { CATALOGUE_CONTROLE, COULEURS_CONTROLE, ligneControle, coursParDefaut } from "../src/lib/controle";
 
 const MIGRATION = readFileSync(
   join(process.cwd(), "supabase/migrations/20260803180000_controle_terrain.sql"),
@@ -11,7 +11,7 @@ const MIGRATION = readFileSync(
 const STATUTS = [
   "a_jour", "paiement_attendu", "en_retard", "dossier_incomplet",
   "questionnaire_manquant", "liste_attente", "annule", "rembourse",
-  "saison_precedente", "aucune_adhesion",
+  "saison_precedente", "non_inscrit_ce_cours", "aucune_adhesion",
 ] as const;
 
 describe("contrôle terrain — le catalogue parle clair", () => {
@@ -84,18 +84,20 @@ describe("contrôle terrain — la RPC ne montre que le nécessaire", () => {
   });
 
   it("anon et public sont révoqués", () => {
-    expect(MIGRATION).toMatch(/revoke execute on function public\.controler_adherent\(uuid\) from anon, public/);
+    expect(MIGRATION).toMatch(/revoke execute on function public\.controler_adherent\(uuid, uuid\) from anon, public/);
+    expect(MIGRATION).toMatch(/revoke execute on function public\.marquer_present\(uuid, uuid\) from anon, public/);
   });
 
-  it("l'adhésion de référence suit la même règle que la PR #10", () => {
-    // saison courante > active > plus récente > id : le même ordre, dans le même ordre.
-    const ordre = MIGRATION.slice(MIGRATION.indexOf("order by", MIGRATION.indexOf("left join lateral")));
-    const iSaison = ordre.indexOf("is distinct from v_saison");
+  it("l'adhésion est celle DU cours sélectionné, départagée comme la PR #10", () => {
+    // périmètre : cours choisi + saison courante ; départage : active > récente > id.
+    const lateral = MIGRATION.slice(MIGRATION.indexOf("left join lateral"));
+    expect(lateral).toContain("ad.cours_id = p_cours_id");
+    expect(lateral).toContain("ad.saison = v_saison");
+    const ordre = lateral.slice(lateral.indexOf("order by"));
     const iActive = ordre.indexOf("not in ('en_attente', 'paye', 'en_retard')");
     const iRecent = ordre.indexOf("created_at desc");
     const iId = ordre.indexOf("id desc");
-    expect(iSaison).toBeGreaterThanOrEqual(0);
-    expect(iSaison).toBeLessThan(iActive);
+    expect(iActive).toBeGreaterThanOrEqual(0);
     expect(iActive).toBeLessThan(iRecent);
     expect(iRecent).toBeLessThan(iId);
   });
@@ -104,5 +106,63 @@ describe("contrôle terrain — la RPC ne montre que le nécessaire", () => {
     for (const s of STATUTS) {
       expect(MIGRATION, s).toContain(`'${s}'`);
     }
+  });
+});
+
+describe("contrôle terrain — le pointage est propre à un cours", () => {
+  it("la RPC exige le cours : controler_adherent(p_adherent_id, p_cours_id)", () => {
+    expect(MIGRATION).toMatch(/function public\.controler_adherent\(p_adherent_id uuid, p_cours_id uuid\)/);
+    // l'ancienne forme à un argument est supprimée, pas laissée en doublon
+    expect(MIGRATION).toMatch(/drop function if exists public\.controler_adherent\(uuid\)/);
+  });
+
+  it("le cours est vérifié comme appartenant à l'organisation, avant toute lecture", () => {
+    const org = MIGRATION.indexOf("v_org_cours is distinct from v_org");
+    const lecture = MIGRATION.indexOf("return query");
+    expect(org).toBeGreaterThan(0);
+    expect(org).toBeLessThan(lecture);
+  });
+
+  it("le statut vient de l'adhésion DU cours sélectionné, jamais d'une référence silencieuse", () => {
+    expect(MIGRATION).toMatch(/ad\.cours_id = p_cours_id\s*\n\s*and ad\.saison = v_saison/);
+    expect(MIGRATION).toContain("'non_inscrit_ce_cours'");
+  });
+
+  it("la présence du jour est par cours : contrainte adhérent + cours + date", () => {
+    expect(MIGRATION).toMatch(/add constraint presences_adherent_cours_date_key\s*\n\s*unique nulls not distinct \(adherent_id, cours_id, date\)/);
+    expect(MIGRATION).toMatch(/drop constraint if exists presences_adherent_id_date_key/);
+  });
+
+  it("marquer_present exige le cours et reste idempotent", () => {
+    expect(MIGRATION).toMatch(/function public\.marquer_present\(p_adherent_id uuid, p_cours_id uuid\)/);
+    expect(MIGRATION).toMatch(/drop function if exists public\.marquer_present\(uuid\)/);
+    expect(MIGRATION).toMatch(/on conflict on constraint presences_adherent_cours_date_key do nothing/);
+  });
+
+  it("le pointage aussi porte la matrice de rôles en base", () => {
+    const marquer = MIGRATION.slice(MIGRATION.indexOf("function public.marquer_present"));
+    expect(marquer).toMatch(/a_role_asso\(array\['admin_asso','encadrant'\]\)/);
+  });
+
+  it("« non inscrit à ce cours » est un refus, sans pointage", () => {
+    expect(CATALOGUE_CONTROLE.non_inscrit_ce_cours.ton).toBe("refus");
+    expect(CATALOGUE_CONTROLE.non_inscrit_ce_cours.pointable).toBe(false);
+    expect(CATALOGUE_CONTROLE.non_inscrit_ce_cours.action).toMatch(/cours sélectionné/i);
+  });
+});
+
+describe("contrôle terrain — le cours proposé à l'ouverture", () => {
+  const C = (id: string, jours: string[]) => ({ id, nom: id, jours });
+  it("un club à cours unique n'a rien à choisir", () => {
+    expect(coursParDefaut([C("a", [])], "mercredi")).toBe("a");
+  });
+  it("le seul cours du jour est proposé", () => {
+    expect(coursParDefaut([C("a", ["mercredi"]), C("b", ["samedi"])], "mercredi")).toBe("a");
+  });
+  it("deux cours le même jour : on ne devine pas", () => {
+    expect(coursParDefaut([C("a", ["mercredi"]), C("b", ["mercredi"])], "mercredi")).toBeNull();
+  });
+  it("aucun créneau aujourd'hui : on ne devine pas non plus", () => {
+    expect(coursParDefaut([C("a", ["mardi"]), C("b", ["samedi"])], "mercredi")).toBeNull();
   });
 });

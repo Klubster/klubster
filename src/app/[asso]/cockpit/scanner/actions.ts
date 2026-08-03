@@ -13,7 +13,7 @@ export interface VerifResult {
 export type StatutControle =
   | "a_jour" | "paiement_attendu" | "en_retard" | "dossier_incomplet"
   | "questionnaire_manquant" | "liste_attente" | "annule" | "rembourse"
-  | "saison_precedente" | "aucune_adhesion";
+  | "saison_precedente" | "non_inscrit_ce_cours" | "aucune_adhesion";
 
 export interface ControleResult {
   ok: boolean;
@@ -35,18 +35,20 @@ async function guard(slug: string) {
   return ctx?.org ?? null;
 }
 
-export async function controlerAdherent(slug: string, adherentId: string): Promise<ControleResult> {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function controlerAdherent(slug: string, adherentId: string, coursId: string): Promise<ControleResult> {
   // La session peut expirer pendant une soirée d'appel : on le DIT, au lieu de
   // laisser croire que l'adhérent n'existe pas.
   const org = await guard(slug);
   if (!org) return { ok: false, sessionExpiree: true, error: "Session expirée — reconnectez-vous." };
   // Un QR étranger (ou un collage raté) n'est pas un uuid : réponse immédiate,
   // sans requête, même hors ligne côté base.
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(adherentId)) {
+  if (!UUID.test(adherentId) || !UUID.test(coursId)) {
     return { ok: false, error: "Adhérent introuvable." };
   }
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("controler_adherent", { p_adherent_id: adherentId });
+  const { data, error } = await supabase.rpc("controler_adherent", { p_adherent_id: adherentId, p_cours_id: coursId });
   const row = (data as Array<Record<string, unknown>> | null)?.[0];
   if (error || !row) {
     // « Non autorisé » couvre aussi l'adhérent d'un AUTRE club : au bord du tapis,
@@ -79,10 +81,13 @@ export async function verifierAdherent(slug: string, adherentId: string): Promis
   };
 }
 
-export async function marquerPresent(slug: string, adherentId: string): Promise<{ ok: boolean }> {
+export async function marquerPresent(slug: string, adherentId: string, coursId: string): Promise<{ ok: boolean }> {
   if (!(await guard(slug))) return { ok: false };
+  if (!UUID.test(adherentId) || !UUID.test(coursId)) return { ok: false };
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("marquer_present", { p_adherent_id: adherentId });
+  // Idempotent en base (contrainte adhérent + cours + date) : deux clics simultanés
+  // produisent UNE présence ; un autre cours le même jour en produit une autre.
+  const { error } = await supabase.rpc("marquer_present", { p_adherent_id: adherentId, p_cours_id: coursId });
   return { ok: !error };
 }
 

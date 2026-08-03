@@ -2,11 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { controlerAdherent, marquerPresent, rechercher, type ControleResult } from "./actions";
-import { ligneControle, COULEURS_CONTROLE } from "@/lib/controle";
+import { ligneControle, COULEURS_CONTROLE, coursParDefaut } from "@/lib/controle";
+import type { CoursControle } from "./page";
 
 function Cur() { return <span className="cur">_</span>; }
 
-export default function Scanner({ slug, nom, accent }: { slug: string; nom: string; accent: string }) {
+const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+export default function Scanner({ slug, nom, accent, cours }: { slug: string; nom: string; accent: string; cours: CoursControle[] }) {
   const [cam, setCam] = useState(false);
   const [camOk, setCamOk] = useState<boolean | null>(null);
   const [result, setResult] = useState<ControleResult | null>(null);
@@ -24,12 +27,33 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
   const rechercheRef = useRef(0);
   const rechercheTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // LE COURS D'ABORD. Le statut affiché et la présence enregistrée concernent CE
+  // cours — jamais une adhésion choisie en silence. Mémorisé pour la durée de la
+  // session du navigateur uniquement (sessionStorage), proposé automatiquement
+  // seulement quand le planning le permet sans ambiguïté.
+  const [coursId, setCoursId] = useState<string | null>(null);
+  useEffect(() => {
+    const memorise = window.sessionStorage.getItem(`scanner-cours-${slug}`);
+    if (memorise && cours.some((c) => c.id === memorise)) { setCoursId(memorise); return; }
+    setCoursId(coursParDefaut(cours, JOURS[new Date().getDay()]));
+  }, [slug, cours]);
+  function choisirCours(id: string) {
+    setCoursId(id || null);
+    if (id) window.sessionStorage.setItem(`scanner-cours-${slug}`, id);
+    else window.sessionStorage.removeItem(`scanner-cours-${slug}`);
+    // Changer de cours invalide le résultat affiché : le statut était celui de l'ancien.
+    setResult(null);
+    setCurrentId(null);
+  }
+  const coursNom = cours.find((c) => c.id === coursId)?.nom ?? null;
+
   async function verifier(id: string) {
+    if (!coursId) return;
     const demande = ++demandeRef.current;
     setCurrentId(id);
     setEnCours(true);
     setResult(null);
-    const r = await controlerAdherent(slug, id);
+    const r = await controlerAdherent(slug, id, coursId);
     if (demande !== demandeRef.current) return; // une demande plus récente est partie
     setResult(r);
     setPresent(!!r.present);
@@ -107,11 +131,43 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PRÉSENCE — {nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Faire l&apos;appel.</h1>
 
+        {/* LE COURS D'ABORD : l'encadrant sait pour quel cours il pointe, avant de
+            scanner. Sans cours choisi, ni scan ni recherche. */}
+        <div className="mt-8">
+          <label htmlFor="cours-controle" className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            COURS DE L&apos;APPEL<Cur />
+          </label>
+          <select
+            id="cours-controle"
+            value={coursId ?? ""}
+            onChange={(e) => choisirCours(e.target.value)}
+            className="mono mt-3 min-h-[44px] w-full border border-line bg-paper px-4 py-3 text-[13px] outline-none focus:border-ink"
+          >
+            <option value="">— Choisir le cours —</option>
+            {cours.map((c) => (
+              <option key={c.id} value={c.id}>{c.nom}</option>
+            ))}
+          </select>
+          {coursNom ? (
+            <p className="mono mt-2 text-[11px]" style={{ color: accent }}>
+              ✓ Appel du cours&nbsp;: {coursNom}
+            </p>
+          ) : (
+            <p className="mono mt-2 text-[11px] text-ink-faint">
+              Choisissez le cours avant de scanner — la présence sera enregistrée pour ce cours.
+            </p>
+          )}
+        </div>
+
         {/* Caméra */}
         <div className="mt-8">
           {/* Pleine largeur sur mobile : ce bouton se vise d'une main, debout à l'accueil. */}
           {!cam ? (
-            <button onClick={() => { setCam(true); setCamOk(null); }} className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
+            <button
+              onClick={() => { setCam(true); setCamOk(null); }}
+              disabled={!coursId}
+              className="mono min-h-[44px] w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 disabled:opacity-40 sm:w-auto"
+            >
               SCANNER UN QR CODE →
             </button>
           ) : (
@@ -148,7 +204,8 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
               }, 250);
             }}
             placeholder="Nom ou prénom"
-            className="mt-3 min-h-[44px] w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
+            disabled={!coursId}
+            className="mt-3 min-h-[44px] w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink disabled:opacity-40"
           />
           {list.length > 0 ? (
             <div className="mt-2 divide-y divide-line border border-line bg-paper">
@@ -202,13 +259,13 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
                     present ? (
                       // Double scan / double clic : déjà pointé, on le dit, on ne
                       // réécrit rien — la présence du jour est unique en base.
-                      <span className="mono text-[13px]" style={{ color: accent }}>✓ DÉJÀ POINTÉ AUJOURD&apos;HUI</span>
+                      <span className="mono text-[13px]" style={{ color: accent }}>✓ DÉJÀ POINTÉ AUJOURD&apos;HUI — {coursNom}</span>
                     ) : (
                       <button
                         onClick={async () => {
-                          if (!currentId || pointage) return; // double clic ignoré
+                          if (!currentId || !coursId || pointage) return; // double clic ignoré
                           setPointage(true);
-                          const r = await marquerPresent(slug, currentId);
+                          const r = await marquerPresent(slug, currentId, coursId);
                           if (r.ok) setPresent(true);
                           setPointage(false);
                         }}
@@ -216,7 +273,7 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
                         className="mono min-h-[44px] w-full px-6 py-3 text-[13px] disabled:opacity-40 sm:w-auto"
                         style={{ background: accent, color: "#FFFFFF" }}
                       >
-                        {pointage ? "…" : "MARQUER PRÉSENT →"}
+                        {pointage ? "…" : `MARQUER PRÉSENT — ${coursNom ?? ""} →`}
                       </button>
                     )
                   ) : null}
