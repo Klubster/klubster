@@ -185,7 +185,8 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .from("pieces_adherent")
       .select("id", { count: "exact", head: true })
       .eq("organisation_id", organisationId)
-      .eq("statut", "attendue"),
+      .eq("statut", "manquante")
+      .eq("obligatoire", true),
   ]);
 
   const evenements: EvenementClub[] = [

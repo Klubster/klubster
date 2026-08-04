@@ -79,3 +79,49 @@ describe("formulaire — deux champs identiques (audit du 04/08)", () => {
     expect(ACTIONS).toMatch(/toLowerCase\(\)/);
   });
 });
+
+describe("pièces facultatives — la règle unique du dossier incomplet (arbitrage 04/08)", () => {
+  const ESPACE = lire("src/app/[asso]/espace/page.tsx");
+  const CRON = lire("src/app/api/cron/relances/route.ts");
+  const QUERIES = lire("src/lib/queries.ts");
+  const FICHE = lire("src/app/[asso]/cockpit/adherents/[id]/page.tsx");
+
+  it("la colonne est un INSTANTANÉ pris à la création, jamais relu depuis form_config", () => {
+    expect(MIGRATION).toMatch(/add column if not exists obligatoire boolean not null default true/);
+    expect(MIGRATION).toMatch(/coalesce\(\(pc->>'obligatoire'\)::boolean, true\)/);
+  });
+
+  it("rétroalimentation prudente : correspondance certaine seule, sinon true", () => {
+    expect(MIGRATION).toMatch(/pc->>'id' = p\.cle/);
+    expect(MIGRATION).toMatch(/\(pc->>'obligatoire'\)::boolean = false/);
+    expect(MIGRATION).toMatch(/garde `true` par prudence/);
+  });
+
+  it("le certificat médical auto reste obligatoire (défaut de colonne, absent de form_config)", () => {
+    // enregistrer_questionnaire_sante n'énumère pas la colonne → default true
+    expect(MIGRATION).toMatch(/certificat médical créé après le questionnaire de santé, absent de\s*\n?-- form_config, donc obligatoire/);
+  });
+
+  it("le contrôle terrain ne compte que les obligatoires (redéfinitions conditionnelles)", () => {
+    expect(MIGRATION).toMatch(/statut = 'manquante' and p\.obligatoire/);
+    expect(MIGRATION).toMatch(/if exists \(select 1 from pg_proc/);
+  });
+
+  it("l'espace adhérent : compteur obligatoires seules, mention Facultative visible", () => {
+    expect(ESPACE).toMatch(/p\.statut === "manquante" && p\.obligatoire !== false/);
+    expect(ESPACE).toMatch(/Facultative/);
+  });
+
+  it("le cron lit l'instantané en base, plus jamais la config actuelle", () => {
+    expect(CRON).toMatch(/\.eq\("obligatoire", true\)/);
+    expect(CRON).not.toMatch(/clesObligatoires/);
+  });
+
+  it("le cockpit compte les manquantes obligatoires", () => {
+    expect(QUERIES).toMatch(/\.eq\("statut", "manquante"\)\.eq\("obligatoire", true\)|\.eq\("statut", "manquante"\)\s*\n\s*\.eq\("obligatoire", true\)/);
+  });
+
+  it("la fiche affiche la mention Facultative", () => {
+    expect(FICHE).toMatch(/Facultative/);
+  });
+});

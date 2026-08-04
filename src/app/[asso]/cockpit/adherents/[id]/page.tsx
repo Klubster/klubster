@@ -72,7 +72,7 @@ export default async function FicheAdherent(
       .select("id, statut, saison, montant_centimes, mode_paiement, created_at, cours(nom)")
       .eq("adherent_id", params.id)
       .order("created_at", { ascending: false }),
-    supabase.from("pieces_adherent").select("id, cle, label, statut, chemin").eq("adherent_id", params.id),
+    supabase.from("pieces_adherent").select("id, cle, label, statut, obligatoire, chemin").eq("adherent_id", params.id),
     supabase
       .from("questionnaires_sante")
       .select("resultat, signataire_nom, created_at")
@@ -317,7 +317,10 @@ export default async function FicheAdherent(
             <div className="mt-4 border border-line">
               {listePieces.map((p) => (
                 <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3 last:border-b-0">
-                  <span className="text-[15px]">{p.label ?? p.cle}</span>
+                  <span className="text-[15px]">
+                    {p.label ?? p.cle}
+                    {p.obligatoire === false ? <span className="mono ml-2 text-[11px] uppercase text-ink-faint">Facultative</span> : null}
+                  </span>
                   <div className="flex items-center gap-5">
                     {/* Le fichier déposé par l'adhérent : consultable seulement par qui a
                         accès aux données de santé, et via une URL signée de courte durée. */}
