@@ -121,8 +121,6 @@ describe("la démonstration ne peut pas atteindre les données réelles", () => 
     expect(accueil + bandeau).toMatch(/\/creer|CRÉER MON CLUB/);
   });
 });
-<<<<<<< HEAD
-=======
 
 describe("la démonstration montre le produit qu'on livre", () => {
   it("utilise LA hiérarchie du cockpit réel, pas une mise en page parallèle", () => {
@@ -146,4 +144,3 @@ describe("la démonstration montre le produit qu'on livre", () => {
     }
   });
 });
->>>>>>> fix/demo-alignement-cockpit
