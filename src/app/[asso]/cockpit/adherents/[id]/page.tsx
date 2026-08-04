@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { resteAPayer } from "@/lib/finances";
 import { saisonCourante } from "@/lib/saison";
-import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours } from "../actions";
+import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours, basculerOppositionCommunications } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
@@ -59,7 +59,7 @@ export default async function FicheAdherent(
   // Filtré par organisation : un identifiant deviné ne doit jamais ouvrir la fiche d'un autre club.
   const { data: adherent } = await supabase
     .from("adherents")
-    .select("id, prenom, nom, email, telephone, created_at, infos")
+    .select("id, prenom, nom, email, telephone, created_at, infos, opposition_communications")
     .eq("id", params.id)
     .eq("organisation_id", org.id)
     .maybeSingle();
@@ -279,6 +279,41 @@ export default async function FicheAdherent(
           </p>
         </section>
         )}
+
+        {/* ——— COMMUNICATIONS ———
+            Opposition aux messages collectifs uniquement : les relances de dossier et
+            de cotisation (nécessaires à l'adhésion) continuent — c'est écrit à l'écran
+            pour que le bureau ne promette pas plus que ce que le réglage fait. */}
+        <section className="mt-14">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            COMMUNICATIONS<Cur />
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-line px-5 py-4">
+            <div className="min-w-0">
+              {adherent.opposition_communications ? (
+                <>
+                  <p className="text-[15px] font-medium">Opposé aux messages collectifs</p>
+                  <p className="mono mt-0.5 text-[12px] text-ink-soft">
+                    enregistré le {new Date(adherent.opposition_communications).toLocaleDateString("fr-FR")} · les
+                    relances de dossier et de cotisation continuent
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[15px] font-medium">Reçoit les messages collectifs</p>
+                  <p className="mono mt-0.5 text-[12px] text-ink-soft">
+                    s&apos;il demande à ne plus les recevoir, enregistrez son opposition ici
+                  </p>
+                </>
+              )}
+            </div>
+            <form action={basculerOppositionCommunications.bind(null, org.slug, adherent.id)}>
+              <button className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                {adherent.opposition_communications ? "Lever l'opposition" : "Enregistrer l'opposition"}
+              </button>
+            </form>
+          </div>
+        </section>
 
         {/* ——— ADHÉSION & TRÉSORERIE ——— */}
         <section className="mt-14">

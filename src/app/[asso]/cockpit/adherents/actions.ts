@@ -65,6 +65,42 @@ export async function modifierAdherent(slug: string, adherentId: string, formDat
 }
 
 /**
+ * Enregistrer ou lever l'opposition aux communications FACULTATIVES (clôture lot K).
+ *
+ * La date posée est la traçabilité de la demande (« il s'est opposé le… »). L'opposition
+ * n'arrête que les messages collectifs (« tous », « parents », un cours) via le ciblage
+ * unique (src/lib/ciblage.ts) ; les messages nécessaires à l'exécution de l'adhésion —
+ * relances de pièces, relances de cotisation, dossiers incomplets — continuent de partir.
+ * Pas de conclusion juridique ici : on enregistre un fait daté, c'est tout.
+ */
+export async function basculerOppositionCommunications(slug: string, adherentId: string) {
+  const org = await garde(slug);
+
+  const supabase = await createSupabaseServerClient();
+  const { data: adh, error: eLecture } = await supabase
+    .from("adherents")
+    .select("opposition_communications")
+    .eq("id", adherentId)
+    .eq("organisation_id", org.id)
+    .single();
+  if (eLecture || !adh) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=enregistrement`);
+
+  const { error } = await supabase
+    .from("adherents")
+    .update({ opposition_communications: adh.opposition_communications ? null : new Date().toISOString() })
+    .eq("id", adherentId)
+    .eq("organisation_id", org.id);
+  if (error) {
+    console.error("basculerOppositionCommunications", error.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=enregistrement`);
+  }
+
+  revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+  revalidatePath(`/${slug}/cockpit/communication`);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=1`);
+}
+
+/**
  * Ajouter un adhérent à la main.
  *
  * Le cas est constant : quelqu'un s'inscrit sur papier au forum des associations, ou par
