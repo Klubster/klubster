@@ -45,7 +45,7 @@ export async function envoyerMessage(
     supabase.from("adherents").select("id, email, date_naissance, infos").eq("organisation_id", org.id),
     supabase.from("adhesions").select("adherent_id, cours_id, saison, statut").eq("organisation_id", org.id),
     supabase.from("pieces_adherent").select("adherent_id").eq("organisation_id", org.id)
-      .eq("statut", STATUT_PIECE_MANQUANTE).eq("obligatoire", true),
+      .eq("statut", "manquante").eq("obligatoire", true),
   ]);
   const destinataires = resoudreDestinataires(
     {
