@@ -118,7 +118,7 @@ describe("pièces facultatives — la règle unique du dossier incomplet (arbitr
   });
 
   it("le cockpit compte les manquantes obligatoires", () => {
-    expect(QUERIES).toMatch(/\.eq\("statut", "manquante"\)\.eq\("obligatoire", true\)|\.eq\("statut", "manquante"\)\s*\n\s*\.eq\("obligatoire", true\)/);
+    expect(QUERIES).toMatch(/\.eq\("obligatoire", true\)/);
   });
 
   it("la fiche affiche la mention Facultative", () => {

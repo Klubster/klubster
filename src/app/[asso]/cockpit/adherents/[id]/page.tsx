@@ -29,7 +29,7 @@ type Adhesion = {
   litige_le: string | null;
   cours: { nom: string } | null;
 };
-type Piece = { id: string; cle: string; label: string | null; statut: string | null; chemin: string | null };
+type Piece = { id: string; cle: string; label: string | null; statut: string | null; chemin: string | null; obligatoire?: boolean | null };
 type Reglement = { id: string; adhesion_id: string; montant_centimes: number; mode: string | null; note: string | null; created_at: string };
 type Sante = { resultat: string | null; signataire_nom: string | null; created_at: string };
 
