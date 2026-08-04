@@ -91,6 +91,9 @@ export async function souscrireAbonnement(slug: string, formData?: FormData) {
       palier: palierPourEffectif(count ?? 0),
       email: profile.email ?? org.email_contact,
       customerId: clientAbonnement(org),
+      // Le rang décide de la gratuité : trois mois pour les quinze premiers clubs,
+      // un mois ensuite. Il vient de la base, jamais du navigateur.
+      fondateurRang: (org as { fondateur_rang?: number | null }).fondateur_rang ?? null,
       successUrl: `${BASE}/${slug}/cockpit?abonnement=ok`,
       cancelUrl: `${BASE}/${slug}/cockpit?abonnement=annule`,
     });

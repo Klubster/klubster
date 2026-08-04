@@ -4,7 +4,7 @@ import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujo
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
 import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement, appliquerCodePromo } from "./stripe-actions";
-import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
+import { palierPourEffectif, PALIERS, joursEssai, estFondateur, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
 import type { CodePromo } from "@/lib/stripe";
 import BoutonAttente from "@/components/BoutonAttente";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
@@ -60,6 +60,10 @@ export default async function Cockpit(
   const abo = statutAbonnement(org);
   const palier = palierPourEffectif(s.equipage);
   const prixMensuel = PALIERS[palier];
+  // Ce que le club voit doit être ce que Stripe applique : la durée vient de
+  // `joursEssai(rang)`, la même fonction que le checkout.
+  const jrsEssai = joursEssai(org.fondateur_rang);
+  const fondateur = estFondateur(org.fondateur_rang);
   const finEssai = org.abonnement_essai_fin
     ? new Date(org.abonnement_essai_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })
     : null;
@@ -461,8 +465,8 @@ export default async function Cockpit(
                         <p className="mt-2 text-[15px] text-ink">{codePromo.nom}</p>
                       ) : null}
                       <p className="mt-1 text-[15px] text-ink-soft">
-                        Vous bénéficiez de <span className="text-ink">{codePromo.avantage}</span>, après votre
-                        mois d&apos;essai.
+                        Vous bénéficiez de <span className="text-ink">{codePromo.avantage}</span>, après vos{" "}
+                        {jrsEssai} jours offerts.
                       </p>
                       <Link
                         href={`/${org.slug}/cockpit#paiements`}
@@ -494,7 +498,7 @@ export default async function Cockpit(
                       attente="OUVERTURE DE STRIPE…"
                       className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
                     >
-                      COMMENCER LE MOIS OFFERT →
+                      {fondateur ? "COMMENCER LES TROIS MOIS OFFERTS" : "COMMENCER LE MOIS OFFERT"} →
                     </BoutonAttente>
                   </form>
                 </div>
@@ -503,7 +507,8 @@ export default async function Cockpit(
                   <p className="max-w-prose text-[15px]">
                     {abo === "essai" ? (
                       <>
-                        <span className="mono text-brand">✓</span> Mois offert en cours
+                        <span className="mono text-brand">✓</span>{" "}
+                        {fondateur ? "Trois mois offerts en cours" : "Mois offert en cours"}
                         {finEssai ? <> — premier prélèvement le {finEssai}.</> : "."}
                       </>
                     ) : abo === "actif" ? (
