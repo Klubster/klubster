@@ -48,16 +48,24 @@ export async function envoyerMessage(
   if (!objetNet || !texteNet) return { ok: false, envoyes: 0, erreur: "Objet et message sont requis." };
 
   const supabase = await createSupabaseServerClient();
+  // `infos` est nécessaire au groupe « parents » : l'adresse du représentant légal y vit.
   const { data: adherents } = await supabase
     .from("adherents")
-    .select("id, email, date_naissance")
-    .eq("organisation_id", org.id)
-    .not("email", "is", null);
+    .select("id, email, date_naissance, infos")
+    .eq("organisation_id", org.id);
 
-  let cibles = (adherents ?? []) as { id: string; email: string; date_naissance: string | null }[];
+  type Ligne = { id: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null };
+  let cibles = ((adherents ?? []) as Ligne[]).map((a) => ({ ...a, emailCible: a.email }));
 
   if (groupe === "parents") {
-    cibles = cibles.filter((a) => estMineur(a.date_naissance));
+    // « Prévenez les parents » veut dire écrire AU REPRÉSENTANT LÉGAL. L'adresse
+    // saisie à l'inscription vit dans `infos["Responsable légal — email"]` ; l'email
+    // du compte n'est qu'un repli (souvent celui du parent en pratique, mais pas
+    // garanti). Un mineur SANS adresse personnelle reste joignable par son parent —
+    // il n'est plus exclu du ciblage.
+    cibles = cibles
+      .filter((a) => estMineur(a.date_naissance))
+      .map((a) => ({ ...a, emailCible: a.infos?.["Responsable légal — email"] || a.email }));
   } else if (groupe === "incomplet") {
     // Un dossier est incomplet dès qu'une pièce n'est pas « reçue ».
     const { data: pieces } = await supabase
@@ -82,7 +90,7 @@ export async function envoyerMessage(
   // adhérent rencontré pour l'adresse, afin que la ligne reste rattachable.
   const parEmail = new Map<string, { adherentId: string | null; email: string }>();
   for (const a of cibles) {
-    const email = a.email.trim().toLowerCase();
+    const email = (a.emailCible ?? "").trim().toLowerCase();
     if (!email || parEmail.has(email)) continue;
     parEmail.set(email, { adherentId: a.id, email });
   }

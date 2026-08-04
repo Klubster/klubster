@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { envoyerMessage } from "./actions";
 
-type Membre = { email: string; coursIds: string[]; mineur: boolean; incomplet: boolean };
+type Membre = { email: string | null; emailParent: string | null; coursIds: string[]; mineur: boolean; incomplet: boolean };
 type Cours = { id: string; nom: string };
 
 export default function Communication({
@@ -35,7 +35,17 @@ export default function Communication({
           : groupe === "incomplet"
             ? membres.filter((m) => m.incomplet)
             : membres.filter((m) => m.coursIds.includes(groupe));
-    return Array.from(new Set(list.map((m) => m.email)));
+    // groupe « parents » : l'adresse comptée est celle du représentant légal (la même
+    // résolution que l'envoi serveur) ; ailleurs, l'email du compte. Dédupliquée : deux
+    // enfants d'un même parent = UN destinataire, et le nombre affiché le dit.
+    return Array.from(
+      new Set(
+        list
+          .map((m) => (groupe === "parents" ? m.emailParent : m.email))
+          .filter((e): e is string => !!e)
+          .map((e) => e.trim().toLowerCase())
+      )
+    );
   }, [groupe, membres]);
 
   const mailto =

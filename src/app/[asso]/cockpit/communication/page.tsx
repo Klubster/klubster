@@ -25,7 +25,7 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
   const supabase = await createSupabaseServerClient();
   const { data: adhData } = await supabase
     .from("adherents")
-    .select("id, email, date_naissance")
+    .select("id, email, date_naissance, infos")
     .eq("organisation_id", org.id);
   const { data: insData } = await supabase.from("adhesions").select("adherent_id, cours_id").eq("organisation_id", org.id);
   const { data: coursData } = await supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
@@ -52,9 +52,11 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
     .from("pieces_adherent")
     .select("adherent_id, statut")
     .eq("organisation_id", org.id)
-    .neq("statut", "recue");
+    .eq("statut", "manquante")
+    // règle du 04/08 : seuls les dossiers aux OBLIGATOIRES manquantes sont « incomplets »
+    .eq("obligatoire", true);
 
-  const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null }[];
+  const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null }[];
   const adhesions = (insData ?? []) as { adherent_id: string; cours_id: string | null }[];
   const cours = (coursData ?? []) as { id: string; nom: string }[];
   const incompletIds = new Set((piecesData ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
@@ -72,13 +74,20 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
   seuilMineur.setFullYear(seuilMineur.getFullYear() - 18);
 
   const membres = adherents
-    .filter((a) => a.email)
-    .map((a) => ({
-      email: a.email as string,
-      coursIds: coursByAdh.get(a.id) ?? [],
-      mineur: a.date_naissance ? new Date(a.date_naissance) > seuilMineur : false,
-      incomplet: incompletIds.has(a.id),
-    }));
+    .map((a) => {
+      const mineur = a.date_naissance ? new Date(a.date_naissance) > seuilMineur : false;
+      return {
+        // pour le groupe « parents », l'adresse comptée est celle du représentant légal
+        // (repli : l'email du compte) — LA MÊME résolution que l'envoi, sinon le nombre
+        // affiché mentirait.
+        email: a.email,
+        emailParent: mineur ? (a.infos?.["Responsable légal — email"] || a.email) : null,
+        coursIds: coursByAdh.get(a.id) ?? [],
+        mineur,
+        incomplet: incompletIds.has(a.id),
+      };
+    })
+    .filter((a) => a.email || a.emailParent);
 
   return (
     <main className="min-h-screen text-ink">
