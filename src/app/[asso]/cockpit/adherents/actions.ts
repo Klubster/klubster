@@ -6,6 +6,7 @@ import { exigerPermission } from "@/lib/garde";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
+import { basculerStatutPiece } from "@/lib/pieces";
 import { peut } from "@/lib/roles";
 import { rembourser } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
@@ -400,7 +401,10 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
   const supabase = await createSupabaseServerClient();
-  const nouveau = statut === "recue" ? "manquante" : "recue";
+  // « recue » n'existe pas en base : la contrainte n'accepte que manquante | fournie |
+  // par_email. L'UPDATE échouait donc à chaque clic, l'erreur partait dans les journaux
+  // et la page se rechargeait à l'identique — le président croyait avoir mal cliqué.
+  const nouveau = basculerStatutPiece(statut);
 
   const { error } = await supabase
     .from("pieces_adherent")
@@ -409,7 +413,13 @@ export async function basculerPiece(slug: string, adherentId: string, pieceId: s
     .eq("adherent_id", adherentId) // sinon un id de pièce d'un autre adhérent (même club) passerait
     .eq("organisation_id", org.id);
 
-  if (error) console.error("basculerPiece", error.message);
+  // Un échec ne doit pas ressembler à un succès : le président doit savoir que la pièce
+  // n'a PAS changé d'état, sinon il classe un dossier incomplet comme réglé.
+  if (error) {
+    console.error("basculerPiece", error.message);
+    revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece`);
+  }
   revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
   redirect(`/${slug}/cockpit/adherents/${adherentId}`);
 }

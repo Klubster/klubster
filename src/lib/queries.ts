@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { STATUTS_PIECE_FOURNIE, STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
 import type { Organisation, Cours, ActualiteEntree } from "@/types/db";
 
 // Charge une association publiée par son slug (ex. "usmboxe").
@@ -139,6 +140,8 @@ export interface EvenementClub {
 export interface Aujourdhui {
   nouvelles7j: number;
   piecesAttendues: number;
+  /** Nombre d'ADHÉRENTS dont au moins une pièce manque — pas le nombre de pièces. */
+  dossiersIncomplets: number;
   evenements: EvenementClub[];
 }
 
@@ -171,9 +174,13 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .limit(8),
     supabase
       .from("pieces_adherent")
+      // STATUT_PIECE_FOURNIE, pas « attendue » ni « recue » : la contrainte de la table
+      // n'accepte que 'manquante' | 'fournie' | 'par_email'. Le filtre précédent portait
+      // sur une valeur qui n'existe nulle part — il ne retirait donc jamais rien, et le
+      // fil d'activité annonçait « Pièce déposée » pour des pièces encore manquantes.
       .select("updated_at, label, statut, adherents(prenom, nom)")
       .eq("organisation_id", organisationId)
-      .neq("statut", "attendue")
+      .in("statut", [...STATUTS_PIECE_FOURNIE])
       .order("updated_at", { ascending: false })
       .limit(8),
     supabase
@@ -181,11 +188,14 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .select("id", { count: "exact", head: true })
       .eq("organisation_id", organisationId)
       .gte("created_at", depuis7j),
+    // Pièces encore manquantes, avec leur adhérent : le président a besoin du nombre de
+    // DOSSIERS à relancer, pas du nombre de documents — quatre pièces manquantes chez la
+    // même famille, c'est un seul appel à passer.
     supabase
       .from("pieces_adherent")
-      .select("id", { count: "exact", head: true })
+      .select("adherent_id")
       .eq("organisation_id", organisationId)
-      .eq("statut", "attendue"),
+      .eq("statut", STATUT_PIECE_MANQUANTE),
   ]);
 
   const evenements: EvenementClub[] = [
@@ -209,9 +219,86 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
     .sort((a, b) => (a.ts < b.ts ? 1 : -1))
     .slice(0, 9);
 
+  const lignesManquantes = (attendues.data ?? []) as { adherent_id: string }[];
+  const adherentsIncomplets = new Set(lignesManquantes.map((p) => p.adherent_id));
+
   return {
     nouvelles7j: nouvelles.count ?? 0,
-    piecesAttendues: attendues.count ?? 0,
+    piecesAttendues: lignesManquantes.length,
+    dossiersIncomplets: adherentsIncomplets.size,
     evenements,
   };
+}
+
+/* ——— Remplissage des cours : capacité réelle vs places occupées ——— */
+
+export interface RemplissageCours {
+  id: string;
+  nom: string;
+  placesMax: number | null;
+  occupees: number;
+}
+
+/**
+ * Occupation par cours. Seules les adhésions qui occupent réellement une place sont
+ * comptées : une adhésion annulée ou remboursée libère la sienne — la compter revenait
+ * à déclarer un cours complet alors que deux places étaient disponibles.
+ */
+export const STATUTS_OCCUPANT_UNE_PLACE = ["en_attente", "paye", "en_retard"] as const;
+
+export async function getRemplissageCours(organisationId: string): Promise<RemplissageCours[]> {
+  const supabase = await createSupabaseServerClient();
+  const [coursRes, adhRes] = await Promise.all([
+    supabase.from("cours").select("id, nom, places_max").eq("organisation_id", organisationId).order("ordre"),
+    supabase
+      .from("adhesions")
+      .select("cours_id")
+      .eq("organisation_id", organisationId)
+      .in("statut", [...STATUTS_OCCUPANT_UNE_PLACE]),
+  ]);
+
+  const occupation = new Map<string, number>();
+  for (const a of (adhRes.data ?? []) as { cours_id: string | null }[]) {
+    if (!a.cours_id) continue;
+    occupation.set(a.cours_id, (occupation.get(a.cours_id) ?? 0) + 1);
+  }
+
+  return ((coursRes.data ?? []) as { id: string; nom: string; places_max: number | null }[]).map((c) => ({
+    id: c.id,
+    nom: c.nom,
+    placesMax: c.places_max,
+    occupees: occupation.get(c.id) ?? 0,
+  }));
+}
+
+/** Litiges bancaires ouverts (chargebacks). Passe par la vue qui vérifie le rôle en base. */
+export async function getLitigesOuverts(organisationId: string): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  const { count, error } = await supabase
+    .from("adhesions_finance")
+    .select("id", { count: "exact", head: true })
+    .eq("organisation_id", organisationId)
+    .not("litige_le", "is", null);
+  if (error) {
+    // Un rôle sans accès à la finance n'est pas une panne : zéro litige visible, point.
+    console.error("getLitigesOuverts", error.message);
+    return 0;
+  }
+  return count ?? 0;
+}
+
+/**
+ * Identifiants des adhérents ayant une adhésion créée dans les N derniers jours.
+ * Vit ici plutôt que dans la page : `Date.now()` appelé pendant le rendu d'un composant
+ * serveur est une fonction impure, et ESLint le refuse à juste titre.
+ */
+export async function getAdherentsRecents(organisationId: string, jours: number): Promise<string[]> {
+  const supabase = await createSupabaseServerClient();
+  const depuis = new Date(Date.now() - jours * 86400_000).toISOString();
+  const { data } = await supabase
+    .from("adhesions")
+    .select("adherent_id")
+    .eq("organisation_id", organisationId)
+    .gte("created_at", depuis);
+  return [...new Set(((data ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
 }

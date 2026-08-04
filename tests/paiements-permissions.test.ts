@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROLES, peut } from "@/lib/roles";
+import { calculerPriorites, filtrerParRole } from "@/lib/priorites";
 
 /**
  * Trésorerie — le rôle décide, en base ET dans les pages.
@@ -175,7 +176,31 @@ describe("cockpit — aucune porte fermée, aucun chiffre de trésorerie", () =>
   });
 
   it("le nombre de cotisations en retard est un chiffre de trésorerie", () => {
-    expect(HUB).toMatch(/\{peutPaiements \? \([\s\S]*?À RELANCER/);
+    // La règle n'est plus portée par la forme du JSX mais par `priorites.ts`, qui attache
+    // une permission à chaque entrée. Le test suit le comportement, pas la mise en page :
+    // un secrétaire ou un encadrant ne doit jamais voir combien de familles doivent de
+    // l'argent au club.
+    const p = calculerPriorites({
+      slug: "club-a",
+      enAttente: 3,
+      enRetard: 4,
+      dossiersIncomplets: 0,
+      nouvelles7j: 0,
+      litiges: 2,
+      coursComplets: [],
+      coursPresqueComplets: [],
+      adherents: 20,
+      coursOuverts: 2,
+    });
+    for (const cle of ["retards", "en-attente", "litiges"]) {
+      expect(p.find((x) => x.cle === cle)!.permission).toBe("paiements");
+    }
+    for (const role of ["secretaire", "encadrant", "lecture"]) {
+      const vues = filtrerParRole(p, (a) => peut(role, a)).map((x) => x.cle);
+      expect(vues).not.toContain("retards");
+      expect(vues).not.toContain("en-attente");
+      expect(vues).not.toContain("litiges");
+    }
   });
 
   it("le total encaissé et l’abonnement Klubster sont réservés au président", () => {

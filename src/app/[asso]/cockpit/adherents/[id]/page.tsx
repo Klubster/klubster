@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { modifierAdherent, basculerPiece } from "../actions";
+import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
 import Remboursement from "./Remboursement";
@@ -168,6 +169,8 @@ export default async function FicheAdherent(
           <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
             {searchParams.erreur === "nom"
               ? "Le prénom et le nom sont obligatoires."
+              : searchParams.erreur === "piece"
+              ? "La pièce n’a pas pu changer d’état. Rechargez la page : elle est restée telle qu’avant."
               : searchParams.erreur === "acces"
                 ? "Cette action est réservée au président et au trésorier."
                 : searchParams.erreur === "montant"
@@ -367,9 +370,9 @@ export default async function FicheAdherent(
                     <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
                       <button
                         className="mono text-[11px] uppercase tracking-wide hover:underline"
-                        style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
+                        style={{ color: estFournie(p.statut) ? "#1E7A4F" : "#8A6508" }}
                       >
-                        {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
+                        {libellePiece(p.statut)}
                       </button>
                     </form>
                   </div>

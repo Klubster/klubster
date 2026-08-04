@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { resendConfigured, type EnvoiResultat } from "@/lib/resend";
 import { envoyerCampagne } from "@/lib/campagnes";
+import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
 
 /** Un adhérent est mineur s'il est né il y a moins de 18 ans. */
 function estMineur(dateNaissance: string | null): boolean {
@@ -59,12 +60,14 @@ export async function envoyerMessage(
   if (groupe === "parents") {
     cibles = cibles.filter((a) => estMineur(a.date_naissance));
   } else if (groupe === "incomplet") {
-    // Un dossier est incomplet dès qu'une pièce n'est pas « reçue ».
+    // Un dossier est incomplet dès qu'une pièce manque. Même correction que dans la page :
+    // « recue » n'existe pas en base, le filtre ne retirait personne et la relance partait
+    // à des adhérents dont le dossier était complet.
     const { data: pieces } = await supabase
       .from("pieces_adherent")
       .select("adherent_id, statut")
       .eq("organisation_id", org.id)
-      .neq("statut", "recue");
+      .eq("statut", STATUT_PIECE_MANQUANTE);
     const ids = new Set((pieces ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
     cibles = cibles.filter((a) => ids.has(a.id));
   } else if (groupe !== "tous") {

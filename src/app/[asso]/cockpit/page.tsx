@@ -10,6 +10,8 @@ import BoutonAttente from "@/components/BoutonAttente";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 import { peut, libelleRole } from "@/lib/roles";
+import { calculerPriorites, filtrerParRole, resumeAttention, type Priorite } from "@/lib/priorites";
+import { getRemplissageCours, getLitigesOuverts } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +34,14 @@ export default async function Cockpit(
   const autorise = profile && (profile.organisation_id === org.id || profile.role === "super_admin");
   if (!autorise) redirect(`/connexion?next=/${org.slug}/cockpit`);
 
-  const [s, auj, cours] = await Promise.all([
+  const [s, auj, cours, remplissage, litiges] = await Promise.all([
     getCockpitStats(org.slug),
     getAujourdhui(org.id),
     getCoursByOrganisation(org.id),
+    getRemplissageCours(org.id),
+    // Un litige n'est lisible que par les rôles financiers : la requête est donc évitée
+    // pour les autres plutôt que filtrée après coup.
+    peut(profile?.role, "paiements") ? getLitigesOuverts(org.id) : Promise.resolve(0),
   ]);
 
   const prenom = profile?.prenom?.trim();
@@ -76,14 +82,39 @@ export default async function Cockpit(
     .flatMap((c) => (c.creneaux ?? []).filter((k) => k.jour === jourSemaine).map((k) => ({ nom: c.nom, debut: k.debut, fin: k.fin })))
     .sort((a, b) => (a.debut < b.debut ? -1 : 1));
 
-  // L'état du club, en une phrase.
-  const attention = s.enAttente + s.enRetard + auj.piecesAttendues;
-  const titre =
-    attention === 0
-      ? "Le club est prêt."
-      : `${attention} chose${attention > 1 ? "s" : ""} mérite${attention > 1 ? "nt" : ""} votre attention.`;
+  // Un cours est « presque complet » à deux places près : au-delà, l'alerte crie trop tôt
+  // et le président apprend à l'ignorer. Sans capacité déclarée, aucun jugement possible.
+  const coursComplets = remplissage
+    .filter((c) => c.placesMax != null && c.placesMax > 0 && c.occupees >= c.placesMax)
+    .map((c) => c.nom);
+  const coursPresqueComplets = remplissage
+    .filter((c) => c.placesMax != null && c.placesMax > 0 && c.occupees < c.placesMax && c.placesMax - c.occupees <= 2)
+    .map((c) => c.nom);
+
+  // Les priorités sont calculées une fois, puis filtrées par le rôle : un secrétaire ne
+  // voit pas les retards de cotisation, un trésorier ne voit pas les dossiers incomplets.
+  const toutesPriorites = calculerPriorites({
+    slug: org.slug,
+    enAttente: s.enAttente,
+    enRetard: s.enRetard,
+    dossiersIncomplets: auj.dossiersIncomplets,
+    nouvelles7j: auj.nouvelles7j,
+    litiges,
+    coursComplets,
+    coursPresqueComplets,
+    adherents: s.equipage,
+    coursOuverts: cours.length,
+  });
+  const priorites = filtrerParRole(toutesPriorites, (a) => peut(profile?.role, a));
+  const aTraiter = priorites.filter((p) => p.niveau === "traiter");
+  const aSurveiller = priorites.filter((p) => p.niveau === "surveiller");
+  const infos = priorites.filter((p) => p.niveau === "info");
+
+  // L'état du club, en une phrase — sur les seules choses à traiter par CE rôle.
+  const resume = resumeAttention(priorites);
+  const titre = resume.titre;
   const sousTitre =
-    attention === 0
+    resume.urgent === 0
       ? coursCeSoir.length > 0
         ? `Tout est à jour pour ${coursCeSoir.length > 1 ? "les cours" : "le cours"} de ce ${jourSemaine}.`
         : "Tous les dossiers sont à jour."
@@ -296,42 +327,53 @@ export default async function Cockpit(
             </div>
           ) : null}
 
-          {/* LE CLUB AUJOURD'HUI — l'essentiel en 3 secondes */}
+          {/* CE QUI DEMANDE VOTRE ATTENTION — trois niveaux, et rien de plus.
+              Avant : sept indicateurs sur le même plan, dont trois cartes réservées aux
+              rôles financiers — un secrétaire ouvrait un cockpit sans une seule action,
+              alors que les dossiers incomplets sont son travail. Le calcul et le filtrage
+              par rôle vivent dans `src/lib/priorites.ts`, testés séparément. */}
+          {aTraiter.length > 0 ? (
+            <div className="border-b border-line px-6 py-8 md:px-10">
+              <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+                À TRAITER MAINTENANT<Cur />
+              </p>
+              <div className="mt-5 flex flex-col gap-px bg-line">
+                {aTraiter.map((p) => (
+                  <LignePriorite key={p.cle} p={p} accent="#B23B3B" />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {aSurveiller.length > 0 ? (
+            <div className="border-b border-line px-6 py-8 md:px-10">
+              <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#8A6508" }}>
+                À SURVEILLER<Cur />
+              </p>
+              <div className="mt-5 flex flex-col gap-px bg-line">
+                {aSurveiller.map((p) => (
+                  <LignePriorite key={p.cle} p={p} accent="#8A6508" />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* LE CLUB AUJOURD'HUI — l'état, sans injonction. */}
           <div className="border-b border-line px-6 py-8 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LE CLUB AUJOURD&apos;HUI<Cur /></p>
             <div className="mt-5">
-              <Point etat={auj.nouvelles7j > 0 ? "ok" : "neutre"}>
-                {auj.nouvelles7j > 0 ? (
-                  <>{auj.nouvelles7j} nouvelle{auj.nouvelles7j > 1 ? "s" : ""} inscription{auj.nouvelles7j > 1 ? "s" : ""} cette semaine</>
-                ) : (
-                  <>Pas de nouvelle inscription cette semaine</>
-                )}
-              </Point>
-              <Point etat={s.enRetard > 0 ? "urgent" : "ok"}>
-                {s.enRetard > 0 ? (
-                  <>{s.enRetard} cotisation{s.enRetard > 1 ? "s" : ""} en retard</>
-                ) : s.enAttente > 0 ? (
-                  <>Aucune cotisation en retard</>
-                ) : (
-                  <>Tous les paiements sont à jour</>
-                )}
-              </Point>
-              <Point etat={s.enAttente > 0 ? "attention" : "ok"}>
-                {s.enAttente > 0 ? (
-                  <>{s.enAttente} dossier{s.enAttente > 1 ? "s" : ""} en attente de règlement</>
-                ) : (
-                  <>Aucun dossier en attente</>
-                )}
-              </Point>
-              {auj.piecesAttendues > 0 ? (
-                <Point etat="attention">
-                  {auj.piecesAttendues} pièce{auj.piecesAttendues > 1 ? "s" : ""} de dossier attendue{auj.piecesAttendues > 1 ? "s" : ""}
+              {infos.map((p) => (
+                <Point key={p.cle} etat="neutre">
+                  {p.nombre} {p.texte}
                 </Point>
-              ) : null}
+              ))}
               {coursCeSoir.length > 0 ? (
                 <Point etat="neutre">
                   Ce {jourSemaine} : {coursCeSoir.map((c) => `${c.nom} ${c.debut}–${c.fin}`).join(" · ")}
                 </Point>
+              ) : null}
+              {aTraiter.length === 0 && aSurveiller.length === 0 ? (
+                <Point etat="ok">Rien ne demande votre attention aujourd&apos;hui.</Point>
               ) : null}
             </div>
           </div>
@@ -349,43 +391,6 @@ export default async function Cockpit(
             </div>
           ) : null}
 
-          {/* À FAIRE — l'action avant la statistique.
-              Les deux cartes qui mènent aux encaissements ne s'affichent qu'aux rôles qui
-              peuvent y entrer : sans cela, un encadrant clique et tombe sur un refus.
-              Proposer une porte fermée est une façon de mentir sur ce qu'on offre. */}
-          <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-3">
-            {peutPaiements ? (
-              <Carte
-                n={String(s.enAttente)}
-                label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
-                href={`/${org.slug}/cockpit/paiements`}
-                action="OUVRIR"
-                vide={s.enAttente === 0}
-              />
-            ) : null}
-            {/* « 9 cotisations à relancer » est un chiffre de trésorerie, même s'il mène
-                à la messagerie. Un secrétaire garde son entrée par le geste « Envoyer un
-                message » ; il n'a pas besoin de savoir combien de familles doivent de
-                l'argent au club. */}
-            {peutPaiements ? (
-              <Carte
-                n={String(s.enRetard)}
-                label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
-                href={`/${org.slug}/cockpit/communication`}
-                action="RELANCER"
-                vide={s.enRetard === 0}
-              />
-            ) : null}
-            {peutPaiements ? (
-              <Carte
-                n={String(auj.nouvelles7j)}
-                label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
-                href={`/${org.slug}/cockpit/paiements`}
-                action="VÉRIFIER"
-                vide={auj.nouvelles7j === 0}
-              />
-            ) : null}
-          </div>
 
           {/* PAIEMENTS / STRIPE — président uniquement.
               Cette section mêle deux choses, et les deux lui appartiennent : la
@@ -689,13 +694,23 @@ function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neut
   );
 }
 
-/* Carte d'action : le chiffre, la tâche, le geste. */
-function Carte({ n, label, href, action, vide }: { n: string; label: string; href: string; action: string; vide?: boolean }) {
+/* Une ligne de priorité : le nombre, la phrase, le geste — et un lien qui filtre déjà.
+   Toute la ligne est cliquable : au bord du ring, on vise mal une petite flèche. */
+function LignePriorite({ p, accent }: { p: Priorite; accent: string }) {
   return (
-    <Link href={href} className={`group bg-paper px-6 py-7 md:px-7 ${vide ? "opacity-50" : ""}`}>
-      <div className="mono text-[34px] font-bold tracking-[-0.02em]">{n}</div>
-      <div className="mono mt-1 text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mono mt-4 text-[11px] text-ink-faint group-hover:text-ink">→ {action}</div>
+    <Link
+      href={p.href}
+      className="group flex min-h-[56px] flex-col gap-1 bg-paper px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+    >
+      <span className="flex items-baseline gap-4">
+        <span className="mono text-[22px] font-bold tabular-nums" style={{ color: accent }}>
+          {p.nombre}
+        </span>
+        <span className="text-[15px] leading-snug">{p.texte}</span>
+      </span>
+      <span className="mono shrink-0 text-[11px] uppercase tracking-label text-ink-faint group-hover:text-ink">
+        {p.action} →
+      </span>
     </Link>
   );
 }
