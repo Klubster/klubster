@@ -308,6 +308,19 @@ export default async function FicheAdherent(
 
         {/* ——— PIÈCES ——— */}
         <section className="mt-14">
+          {/* PIECE_MESSAGES — un dépôt doit répondre : succès comme échec. */}
+          {searchParams?.ok === "piece" ? (
+            <p className="mono mb-3 text-[12px]" style={{ color: "#1E7A4F" }}>✓ Pièce enregistrée dans le dossier.</p>
+          ) : null}
+          {searchParams?.erreur?.startsWith("piece") ? (
+            <p className="mono mb-3 text-[12px]" style={{ color: "#B23B3B" }}>
+              {searchParams.erreur === "piece_format"
+                ? "Fichier refusé : déposez un PDF, un JPEG ou un PNG de 5 Mo maximum."
+                : searchParams.erreur === "piece_vide"
+                ? "Le fichier est vide : choisissez un document avant de déposer."
+                : "Le dépôt a échoué. Rien n’a été modifié — réessayez."}
+            </p>
+          ) : null}
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
             PIÈCES DU DOSSIER<Cur />
           </p>
