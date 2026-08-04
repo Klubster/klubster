@@ -3,17 +3,17 @@
 import { useMemo, useState, useTransition } from "react";
 import { envoyerMessage } from "./actions";
 
-type Membre = { email: string | null; emailParent: string | null; coursIds: string[]; mineur: boolean; incomplet: boolean };
+
 type Cours = { id: string; nom: string };
 
 export default function Communication({
-  membres,
+  listes,
   cours,
   contactEmail,
   slug,
   envoiDirect,
 }: {
-  membres: Membre[];
+  listes: Record<string, string[]>;
   cours: Cours[];
   contactEmail: string | null;
   slug: string;
@@ -26,27 +26,9 @@ export default function Communication({
   const [envoi, setEnvoi] = useState<{ ok: boolean; texte: string } | null>(null);
   const [enCours, startTransition] = useTransition();
 
-  const emails = useMemo(() => {
-    const list =
-      groupe === "tous"
-        ? membres
-        : groupe === "parents"
-          ? membres.filter((m) => m.mineur)
-          : groupe === "incomplet"
-            ? membres.filter((m) => m.incomplet)
-            : membres.filter((m) => m.coursIds.includes(groupe));
-    // groupe « parents » : l'adresse comptée est celle du représentant légal (la même
-    // résolution que l'envoi serveur) ; ailleurs, l'email du compte. Dédupliquée : deux
-    // enfants d'un même parent = UN destinataire, et le nombre affiché le dit.
-    return Array.from(
-      new Set(
-        list
-          .map((m) => (groupe === "parents" ? m.emailParent : m.email))
-          .filter((e): e is string => !!e)
-          .map((e) => e.trim().toLowerCase())
-      )
-    );
-  }, [groupe, membres]);
+  // La liste vient de la PAGE, calculée par src/lib/ciblage.ts — la même fonction
+  // que l'envoi serveur. Le compteur affiché EST le nombre qui partirait.
+  const emails = useMemo(() => listes[groupe] ?? [], [groupe, listes]);
 
   const mailto =
     `mailto:${contactEmail ?? ""}` +

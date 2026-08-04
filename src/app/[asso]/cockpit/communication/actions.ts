@@ -7,15 +7,6 @@ import { getProfile } from "@/lib/auth";
 import { resendConfigured, type EnvoiResultat } from "@/lib/resend";
 import { envoyerCampagne } from "@/lib/campagnes";
 
-/** Un adhérent est mineur s'il est né il y a moins de 18 ans. */
-function estMineur(dateNaissance: string | null): boolean {
-  if (!dateNaissance) return false;
-  const n = new Date(dateNaissance);
-  if (Number.isNaN(n.getTime())) return false;
-  const seuil = new Date();
-  seuil.setFullYear(seuil.getFullYear() - 18);
-  return n > seuil;
-}
 
 /**
  * Envoi d'un message à un groupe.
@@ -48,53 +39,24 @@ export async function envoyerMessage(
   if (!objetNet || !texteNet) return { ok: false, envoyes: 0, erreur: "Objet et message sont requis." };
 
   const supabase = await createSupabaseServerClient();
-  // `infos` est nécessaire au groupe « parents » : l'adresse du représentant légal y vit.
-  const { data: adherents } = await supabase
-    .from("adherents")
-    .select("id, email, date_naissance, infos")
-    .eq("organisation_id", org.id);
+  // TOUT le ciblage vit dans src/lib/ciblage.ts — la même fonction que le compteur
+  // affiché. Ici on ne fait que charger les données et lui passer la main.
+  const [{ data: adherents }, { data: adhesions }, { data: pieces }] = await Promise.all([
+    supabase.from("adherents").select("id, email, date_naissance, infos").eq("organisation_id", org.id),
+    supabase.from("adhesions").select("adherent_id, cours_id, saison, statut").eq("organisation_id", org.id),
+    supabase.from("pieces_adherent").select("adherent_id").eq("organisation_id", org.id)
+      .eq("statut", STATUT_PIECE_MANQUANTE).eq("obligatoire", true),
+  ]);
+  const destinataires = resoudreDestinataires(
+    {
+      adherents: (adherents ?? []) as AdherentCiblage[],
+      adhesions: (adhesions ?? []) as AdhesionCiblage[],
+      incompletIds: new Set(((pieces ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id)),
+      saisonCourante: saisonCourante(org),
+    },
+    groupe
+  );
 
-  type Ligne = { id: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null };
-  let cibles = ((adherents ?? []) as Ligne[]).map((a) => ({ ...a, emailCible: a.email }));
-
-  if (groupe === "parents") {
-    // « Prévenez les parents » veut dire écrire AU REPRÉSENTANT LÉGAL. L'adresse
-    // saisie à l'inscription vit dans `infos["Responsable légal — email"]` ; l'email
-    // du compte n'est qu'un repli (souvent celui du parent en pratique, mais pas
-    // garanti). Un mineur SANS adresse personnelle reste joignable par son parent —
-    // il n'est plus exclu du ciblage.
-    cibles = cibles
-      .filter((a) => estMineur(a.date_naissance))
-      .map((a) => ({ ...a, emailCible: a.infos?.["Responsable légal — email"] || a.email }));
-  } else if (groupe === "incomplet") {
-    // Un dossier est incomplet dès qu'une pièce n'est pas « reçue ».
-    const { data: pieces } = await supabase
-      .from("pieces_adherent")
-      .select("adherent_id, statut")
-      .eq("organisation_id", org.id)
-      .neq("statut", "recue");
-    const ids = new Set((pieces ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
-    cibles = cibles.filter((a) => ids.has(a.id));
-  } else if (groupe !== "tous") {
-    const { data: adhesions } = await supabase
-      .from("adhesions")
-      .select("adherent_id")
-      .eq("organisation_id", org.id)
-      .eq("cours_id", groupe);
-    const ids = new Set((adhesions ?? []).map((a) => (a as { adherent_id: string }).adherent_id));
-    cibles = cibles.filter((a) => ids.has(a.id));
-  }
-
-  // Déduplication par adresse : deux adhérents d'une même famille peuvent partager une
-  // boîte, et personne ne doit recevoir le message deux fois. On garde le premier
-  // adhérent rencontré pour l'adresse, afin que la ligne reste rattachable.
-  const parEmail = new Map<string, { adherentId: string | null; email: string }>();
-  for (const a of cibles) {
-    const email = (a.emailCible ?? "").trim().toLowerCase();
-    if (!email || parEmail.has(email)) continue;
-    parEmail.set(email, { adherentId: a.id, email });
-  }
-  const destinataires = Array.from(parEmail.values());
   if (destinataires.length === 0) return { ok: false, envoyes: 0, erreur: "Aucun destinataire avec un email." };
 
   // Libellé du groupe photographié maintenant : un cours renommé ou supprimé ne doit pas
