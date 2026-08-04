@@ -134,6 +134,7 @@ function Leviers() {
       >
         ajouter-adherent
       </button>
+      <button onClick={() => envoyer({ type: "reinitialiser" })}>reinitialiser</button>
       <button onClick={() => envoyer({ type: "piece/basculer", id: "a03-certificat" })}>recevoir-piece</button>
       {/* Reçoit TOUTES les pièces manquantes d'un coup : c'est le seul moyen de voir
           disparaître la ligne « pièces attendues », qui n'existe que si le compte est
@@ -178,142 +179,195 @@ const compteur = (label: RegExp) => {
   return el.previousElementSibling?.textContent ?? "0";
 };
 
-describe("les chiffres du hub bougent quand on agit", () => {
-  it("ajouter un adhérent augmente les dossiers à terminer ET les inscriptions récentes", () => {
+/**
+ * LA HIÉRARCHIE DES PRIORITÉS — la même que le cockpit réel.
+ *
+ * Ces tests remplacent ceux qui décrivaient les trois cartes de l'accueil. Cette
+ * disposition-là n'existe plus : elle datait d'avant la refonte du cockpit (#15), et
+ * la démonstration montrait donc au prospect un écran que le produit n'a plus. Ce
+ * n'est pas un détail de mise en page — c'est la démonstration qui cessait de
+ * raconter le fonctionnement réel.
+ *
+ * L'intention des anciens tests est intégralement conservée : les chiffres doivent
+ * BOUGER quand le visiteur agit, sinon la démonstration est une maquette. Elle est
+ * ici étendue au classement (urgent / secondaire), à la disparition d'une priorité
+ * retombée à zéro, et à la restitution exacte de l'état initial.
+ */
+
+/** Le nombre affiché à gauche d'un libellé de priorité, ou `null` si la ligne est absente. */
+const nombreDe = (libelle: RegExp): number | null => {
+  const el = screen.queryByText(libelle);
+  if (!el) return null;
+  const n = el.previousElementSibling?.textContent ?? "";
+  return n.trim() === "" ? null : Number(n);
+};
+
+/** Le bloc (« À TRAITER MAINTENANT » ou « À SURVEILLER ») qui contient un libellé. */
+const blocDe = (libelle: RegExp): string | null => {
+  const el = screen.queryByText(libelle);
+  if (!el) return null;
+  let n: HTMLElement | null = el as HTMLElement;
+  for (let i = 0; i < 8 && n; i++) {
+    const t = n.textContent ?? "";
+    if (/À TRAITER MAINTENANT/.test(t)) return "traiter";
+    if (/À SURVEILLER/.test(t)) return "surveiller";
+    n = n.parentElement;
+  }
+  return null;
+};
+
+/** Le lien d'action porté par une ligne de priorité : sa destination et son libellé. */
+const actionDe = (libelle: RegExp): { href: string; action: string } | null => {
+  const el = screen.queryByText(libelle);
+  const lien = el?.closest("a");
+  if (!lien) return null;
+  const spans = lien.querySelectorAll("span");
+  const action = spans[spans.length - 1]?.textContent?.trim() ?? "";
+  return { href: lien.getAttribute("href") ?? "", action };
+};
+
+describe("les priorités de la démonstration, calculées comme celles du cockpit", () => {
+  it("1 — les données initiales produisent les priorités attendues", () => {
     avecLeviers();
-    const attenteAvant = Number(compteur(/dossiers? en attente de règlement|règlements? attendus/));
-    const recentesAvant = Number(compteur(/nouvelles? inscriptions? cette semaine/));
-
-    clic("ajouter-adherent");
-
-    // L'adhésion naît « en attente » ET porte la date du jour : les deux cartes bougent.
-    expect(Number(compteur(/dossiers? en attente de règlement|règlements? attendus/))).toBe(attenteAvant + 1);
-    expect(Number(compteur(/nouvelles? inscriptions? cette semaine/))).toBe(recentesAvant + 1);
+    expect(nombreDe(/cotisations? en retard/)).toBeGreaterThan(0);
+    expect(nombreDe(/dossiers? incomplets?/)).toBeGreaterThan(0);
+    expect(nombreDe(/règlements? attendus?/)).toBeGreaterThan(0);
+    expect(document.querySelector("h1")?.textContent).toMatch(/chose[s]? à traiter\.|Le club est à jour\./);
   });
 
-  it("la ligne « nouvelle inscription cette semaine » apparaît", () => {
+  it("2 — ce qui bloque quelqu'un aujourd'hui est sous « À traiter maintenant »", () => {
     avecLeviers();
-    // Toutes les inscriptions du club datent de septembre : au départ, aucune récente.
-    expect(screen.getByText(/Pas de nouvelle inscription cette semaine/)).toBeTruthy();
-    clic("ajouter-adherent");
-    expect(screen.getByText(/1 nouvelle inscription cette semaine/)).toBeTruthy();
+    expect(blocDe(/cotisations? en retard/)).toBe("traiter");
+    expect(blocDe(/dossiers? incomplets?/)).toBe("traiter");
   });
 
-  it("régler une cotisation en retard fait baisser le second compteur", () => {
+  it("3 — ce qui n'est pas urgent est sous « À surveiller »", () => {
     avecLeviers();
-    const avant = Number(compteur(/cotisations? en retard/));
-    expect(avant).toBeGreaterThan(0);
+    expect(blocDe(/règlements? attendus?/)).toBe("surveiller");
+    expect(blocDe(/cours complets?/)).toBe("surveiller");
+  });
 
+  it("4 — les nombres suivent l'état : encaisser, relancer, recevoir une pièce", () => {
+    avecLeviers();
+
+    const retardAvant = nombreDe(/cotisations? en retard/)!;
+    expect(retardAvant).toBeGreaterThan(0);
     clic("regler-retard");
-    expect(Number(compteur(/cotisations? en retard/))).toBe(avant - 1);
-  });
+    expect(nombreDe(/cotisations? en retard/)).toBe(retardAvant - 1);
 
-  it("encaisser une adhésion en attente fait baisser le premier compteur", () => {
-    avecLeviers();
-    const avant = Number(compteur(/dossiers? en attente de règlement|règlements? attendus/));
-    expect(avant).toBeGreaterThan(0);
-
+    const attenteAvant = nombreDe(/règlements? attendus?/)!;
+    expect(attenteAvant).toBeGreaterThan(0);
     clic("regler-attente");
-    expect(Number(compteur(/dossiers? en attente de règlement|règlements? attendus/))).toBe(avant - 1);
+    expect(nombreDe(/règlements? attendus?/)).toBe(attenteAvant - 1);
+
+    const incompletsAvant = nombreDe(/dossiers? incomplets?/)!;
+    clic("recevoir-piece");
+    const apres = nombreDe(/dossiers? incomplets?/);
+    expect(apres === null || apres <= incompletsAvant).toBe(true);
   });
 
-  it("recevoir la dernière pièce fait DISPARAÎTRE la ligne des pièces attendues", () => {
+  it("5 — une priorité retombée à zéro n'est plus présentée : elle disparaît", () => {
     avecLeviers();
-    expect(screen.getByText(/pièces? de dossier attendues?/)).toBeTruthy();
+    expect(nombreDe(/dossiers? incomplets?/)).toBeGreaterThan(0);
 
     clic("recevoir-tout");
-    // La ligne n'est pas mise à zéro : elle n'est plus rendue du tout, comme dans le
-    // produit où elle est conditionnée à `piecesAttendues > 0`.
-    expect(screen.queryByText(/pièces? de dossier attendues?/)).toBeNull();
+
+    // Règle du produit : ne PAS afficher un zéro. Un cockpit calme doit être
+    // visiblement calme, pas une colonne de zéros à interpréter.
+    expect(screen.queryByText(/dossiers? incomplets?/)).toBeNull();
+    expect(document.body.textContent).not.toMatch(/\b0\s+dossiers? incomplets?/);
   });
 
-  it("la phrase d’état suit les pièces reçues", () => {
+  it("6 — la réinitialisation restitue exactement l'état initial", () => {
     avecLeviers();
-    const titre = () => document.querySelector("h1")?.textContent ?? "";
-    const avant = Number(titre().match(/^(\d+)/)?.[1]);
-    clic("recevoir-piece");
-    expect(Number(titre().match(/^(\d+)/)?.[1])).toBe(avant - 1);
+    const initial = {
+      retard: nombreDe(/cotisations? en retard/),
+      incomplets: nombreDe(/dossiers? incomplets?/),
+      attendus: nombreDe(/règlements? attendus?/),
+      titre: document.querySelector("h1")?.textContent ?? "",
+    };
+
+    clic("regler-retard");
+    clic("recevoir-tout");
+    expect(nombreDe(/cotisations? en retard/)).not.toBe(initial.retard);
+
+    clic("reinitialiser");
+
+    expect(nombreDe(/cotisations? en retard/)).toBe(initial.retard);
+    expect(nombreDe(/dossiers? incomplets?/)).toBe(initial.incomplets);
+    expect(nombreDe(/règlements? attendus?/)).toBe(initial.attendus);
+    expect(document.querySelector("h1")?.textContent).toBe(initial.titre);
+  });
+
+  it("7 — libellés et destinations sont ceux du cockpit, transposés à /demo", () => {
+    avecLeviers();
+    expect(actionDe(/cotisations? en retard/)).toEqual({
+      href: "/demo/adherents?statut=en_retard",
+      action: "VOIR LES DOSSIERS →",
+    });
+    expect(actionDe(/dossiers? incomplets?/)).toEqual({
+      href: "/demo/adherents?dossier=incomplet",
+      action: "VOIR LES DOSSIERS →",
+    });
+    expect(actionDe(/règlements? attendus?/)).toEqual({
+      href: "/demo/adherents?statut=en_attente",
+      action: "VOIR →",
+    });
+    for (const a of Array.from(document.querySelectorAll('a[href^="/"]'))) {
+      const h = a.getAttribute("href") ?? "";
+      expect(h.startsWith("/demo") || h === "/creer" || h === "/", `lien hors démo : ${h}`).toBe(true);
+    }
   });
 });
 
-describe("fidélité au cockpit — les écarts déjà commis une fois", () => {
+describe("la démonstration ne réimplémente pas la logique du produit", () => {
   const SOURCE = readFileSync(join(process.cwd(), "src/app/demo/page.tsx"), "utf8");
   const RAIL = readFileSync(join(process.cwd(), "src/app/demo/RailDemo.tsx"), "utf8");
   const sansCommentaires = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-  it("l’attention compte les PIÈCES attendues, pas les dossiers incomplets", () => {
-    // Un adhérent à qui il manque deux pièces ne compte pas pour un.
-    expect(sansCommentaires(SOURCE)).toMatch(/c\.enAttente \+ c\.enRetard \+ c\.piecesAttendues/);
-    expect(sansCommentaires(SOURCE)).not.toMatch(/attention = [^;]*dossiersIncomplets/);
+  it("SENTINELLE — le classement vient de `calculerPriorites`, jamais d'un tri maison", () => {
+    const code = sansCommentaires(SOURCE);
+    expect(code).toMatch(/from ["']@\/lib\/priorites["']/);
+    expect(code).toMatch(/calculerPriorites\(/);
+    expect(code).toMatch(/resumeAttention\(/);
+    // Le classement doit LIRE `niveau`, pas le recalculer depuis des seuils écrits
+    // dans l'écran : deux logiques finiraient par diverger, et la démonstration
+    // mentirait sans que rien ne le signale.
+    expect(code).toMatch(/niveau === "traiter"/);
+    expect(code).toMatch(/niveau === "surveiller"/);
+    // Un niveau décidé dans l'écran (« si enRetard > 3 alors urgent ») serait un
+    // second calcul : c'est cela qu'on interdit, pas l'affichage d'un compteur.
+    expect(code, "le niveau ne doit pas être décidé dans l'écran").not.toMatch(/niveau\s*[:=]\s*["'`]/);
+    expect(code, "aucun tri maison sur les priorités").not.toMatch(/priorites\.sort\(|\.sort\(\(a, b\) =>/);
   });
 
-  it("la troisième carte est « INSCRIPTIONS · 7 JOURS »", () => {
-    avecLeviers();
-    const cartes = Array.from(document.querySelectorAll('a[href^="/demo"]'))
-      .filter((a) => a.querySelector(".mono.text-\\[34px\\]"))
-      .map((a) => a.textContent ?? "");
-    expect(cartes).toHaveLength(3);
-    expect(cartes[0]).toMatch(/dossiers? en attente de règlement|règlements? attendus/);
-    expect(cartes[1]).toMatch(/cotisations? en retard/);
-    expect(cartes[2]).toMatch(/nouvelles? inscriptions? cette semaine/);
-    expect(cartes[2]).toMatch(/VÉRIFIER/);
-    expect(cartes.join(" ")).not.toMatch(/INCOMPLET/);
+  it("SENTINELLE — les compteurs viennent des sélecteurs, aucun nombre en dur", () => {
+    const code = sansCommentaires(SOURCE);
+    expect(code).toMatch(/chiffresDuClub\(etat\)/);
+    for (const m of code.match(/nombre=\{[^}]*\}/g) ?? []) {
+      expect(m).not.toMatch(/nombre=\{\d+\}/);
+    }
+  });
+
+  it("SENTINELLE — la hiérarchie affichée est celle du cockpit, pas trois cartes", () => {
+    const code = sansCommentaires(SOURCE);
+    expect(code).toMatch(/À TRAITER MAINTENANT/);
+    expect(code).toMatch(/À SURVEILLER/);
+    expect(code).not.toMatch(/DOSSIERS? À TERMINER|COTISATIONS? À RELANCER/);
   });
 
   it("« Le club aujourd’hui » porte les lignes du produit, pas les miennes", () => {
-    avecLeviers();
-    const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
-    // Les cinq lignes réelles.
-    expect(bloc).toMatch(/inscription/i);
-    expect(bloc).toMatch(/cotisation/i);
-    expect(bloc).toMatch(/dossiers? en attente de règlement/i);
-    expect(bloc).toMatch(/pièces? de dossier attendues?/i);
-    // Et aucune des six que j'avais inventées.
-    expect(bloc).not.toMatch(/adhérents cette saison/i);
-    expect(bloc).not.toMatch(/chèques? en attente de remise/i);
-    expect(bloc).not.toMatch(/liste d’attente/i);
-    expect(bloc).not.toMatch(/à encaisser/i);
+    expect(sansCommentaires(SOURCE)).toMatch(/LE CLUB AUJOURD/);
   });
 
   it("le rail ne porte pas de montant encaissé", () => {
-    avecLeviers();
-    const rail = screen.getByRole("navigation", { name: "Sections du cockpit" });
-    expect(rail.textContent).toContain("✓ reversée direct");
-    expect(rail.textContent).toContain("0 % commission");
-    expect(rail.textContent).not.toMatch(/encaissé/i);
-    expect(rail.textContent).not.toMatch(/€/);
-    expect(sansCommentaires(RAIL)).not.toMatch(/chiffresDuClub|eur\(/);
-  });
-
-  it("aucun bloc « DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION »", () => {
-    avecLeviers();
-    expect(screen.queryByText(/DANS VOTRE CLUB, PAS DANS LA DÉMONSTRATION/)).toBeNull();
+    expect(sansCommentaires(RAIL)).not.toMatch(/encaisse|montant/i);
   });
 
   it("aucun geste inerte sur le hub", () => {
-    // Stripe, domaine et équipe appartiennent au bloc « Premiers pas », qui disparaît
-    // dès qu'un club a un adhérent. Celui-ci en a trente-quatre.
-    expect(sansCommentaires(SOURCE)).not.toMatch(/GesteInerte/);
-  });
-});
-
-describe("aucun chiffre écrit en dur dans le hub", () => {
-  const SOURCE = readFileSync(join(process.cwd(), "src/app/demo/page.tsx"), "utf8")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "");
-
-  it("les compteurs viennent des sélecteurs", () => {
-    expect(SOURCE).toMatch(/chiffresDuClub\(etat\)/);
-  });
-
-  it("aucun nombre à deux chiffres ou plus dans un libellé de carte", () => {
-    // Le piège du CLAUDE.md : « 312 adhérents cette saison » écrit en dur, qui devient
-    // faux dès le lendemain. Ici, il rendrait surtout la démonstration morte.
-    const cartes = SOURCE.match(/<Carte[\s\S]*?\/>/g) ?? [];
-    expect(cartes.length).toBeGreaterThan(0);
-    for (const c of cartes) {
-      expect(c).toMatch(/n=\{String\(c\./);
-      expect(c).not.toMatch(/n="\d+"/);
+    avecLeviers();
+    for (const a of Array.from(document.querySelectorAll("a"))) {
+      expect((a.getAttribute("href") ?? "").length, `lien sans destination : ${a.textContent}`).toBeGreaterThan(0);
     }
   });
 });

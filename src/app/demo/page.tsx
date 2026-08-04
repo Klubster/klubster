@@ -103,6 +103,7 @@ export default function DemoAujourdhui() {
   }).map((pr) => ({ ...pr, href: pr.href.replace("/demo/cockpit", "/demo") }));
   const aTraiter = priorites.filter((pr) => pr.niveau === "traiter");
   const aSurveiller = priorites.filter((pr) => pr.niveau === "surveiller");
+  const infos = priorites.filter((pr) => pr.niveau === "info");
   const attention = aTraiter.length;
   const titre = resumeAttention(priorites).titre;
   const sousTitre =
@@ -175,33 +176,22 @@ export default function DemoAujourdhui() {
               c'était une meilleure version hypothétique du produit, pas son jumeau.
               Une démonstration qui améliore ce qu'elle montre ment sur ce qu'on achète. */}
           <div className="mt-5">
-            <Point etat={c.nouvelles7j > 0 ? "ok" : "neutre"}>
-              {c.nouvelles7j > 0
-                ? `${c.nouvelles7j} nouvelle${c.nouvelles7j > 1 ? "s" : ""} inscription${c.nouvelles7j > 1 ? "s" : ""} cette semaine`
-                : "Pas de nouvelle inscription cette semaine"}
-            </Point>
-            <Point etat={c.enRetard > 0 ? "urgent" : "ok"}>
-              {c.enRetard > 0
-                ? `${c.enRetard} cotisation${c.enRetard > 1 ? "s" : ""} en retard`
-                : c.enAttente > 0
-                  ? "Aucune cotisation en retard"
-                  : "Tous les paiements sont à jour"}
-            </Point>
-            <Point etat={c.enAttente > 0 ? "attention" : "ok"}>
-              {c.enAttente > 0
-                ? `${c.enAttente} dossier${c.enAttente > 1 ? "s" : ""} en attente de règlement`
-                : "Aucun dossier en attente"}
-            </Point>
-            {c.piecesAttendues > 0 ? (
-              <Point etat="attention">
-                {c.piecesAttendues} pièce{c.piecesAttendues > 1 ? "s" : ""} de dossier attendue
-                {c.piecesAttendues > 1 ? "s" : ""}
+            {/* Les lignes d'état viennent du niveau `info` des MÊMES priorités : le
+                cockpit fait exactement cela. Les recopier ici les ferait apparaître
+                DEUX FOIS — une fois en priorité, une fois en état — et diverger au
+                premier changement de vocabulaire. */}
+            {infos.map((pr) => (
+              <Point key={pr.cle} etat="neutre">
+                {pr.nombre} {pr.texte}
               </Point>
-            ) : null}
+            ))}
             {coursDuJour.length > 0 ? (
               <Point etat="neutre">
-                Ce {jourSemaine} : {coursDuJour.map((k) => `${k.nom} ${k.debut}–${k.fin}`).join(" · ")}
+                Ce {jourSemaine} : {coursDuJour.map((co) => `${co.nom} ${co.debut}–${co.fin}`).join(" · ")}
               </Point>
+            ) : null}
+            {aTraiter.length === 0 && aSurveiller.length === 0 ? (
+              <Point etat="ok">Rien ne demande votre attention aujourd&apos;hui.</Point>
             ) : null}
           </div>
         </div>

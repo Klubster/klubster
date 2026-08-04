@@ -278,8 +278,16 @@ describe("solder une adhésion se voit partout", () => {
         <Sonde />
       </DemoLayout>
     );
-    const carte = screen.getByText(/COTISATIONS? À RELANCER/).previousElementSibling?.textContent;
-    expect(Number(carte)).toBe(retardAvant - 1);
+    // Le hub affiche désormais la hiérarchie du cockpit réel : la ligne « cotisations
+    // en retard » remplace la carte « COTISATIONS À RELANCER ». L'intention du test
+    // est inchangée — le solde encaissé sur la fiche doit se voir jusque sur le hub.
+    const ligne = screen.queryByText(/cotisations? en retard/);
+    if (retardAvant - 1 === 0) {
+      // Une priorité retombée à zéro n'est plus affichée du tout, comme dans le produit.
+      expect(ligne).toBeNull();
+    } else {
+      expect(Number(ligne?.previousElementSibling?.textContent)).toBe(retardAvant - 1);
+    }
   });
 });
 
