@@ -164,19 +164,31 @@ const avecLeviers = () =>
   );
 
 const clic = (t: string) => act(() => screen.getByText(t).click());
-const compteur = (label: RegExp) => screen.getByText(label).previousElementSibling?.textContent;
+/**
+ * Le nombre affiché à côté d'un libellé de priorité.
+ *
+ * Le hub a été aligné sur la hiérarchie du cockpit réel (lot R) : les trois cartes
+ * ont laissé place aux lignes « À TRAITER MAINTENANT » / « À SURVEILLER ». Le repère
+ * change, l'intention de ces tests ne change pas — les chiffres doivent bouger quand
+ * le visiteur agit, sinon la démonstration est une maquette.
+ */
+const compteur = (label: RegExp) => {
+  const el = screen.queryByText(label);
+  if (!el) return "0"; // une priorité à zéro n'est pas affichée : c'est la règle du produit
+  return el.previousElementSibling?.textContent ?? "0";
+};
 
 describe("les chiffres du hub bougent quand on agit", () => {
   it("ajouter un adhérent augmente les dossiers à terminer ET les inscriptions récentes", () => {
     avecLeviers();
-    const attenteAvant = Number(compteur(/DOSSIERS? À TERMINER/));
-    const recentesAvant = Number(compteur(/INSCRIPTIONS? · 7 JOURS/));
+    const attenteAvant = Number(compteur(/dossiers? en attente de règlement|règlements? attendus/));
+    const recentesAvant = Number(compteur(/nouvelles? inscriptions? cette semaine/));
 
     clic("ajouter-adherent");
 
     // L'adhésion naît « en attente » ET porte la date du jour : les deux cartes bougent.
-    expect(Number(compteur(/DOSSIERS? À TERMINER/))).toBe(attenteAvant + 1);
-    expect(Number(compteur(/INSCRIPTIONS? · 7 JOURS/))).toBe(recentesAvant + 1);
+    expect(Number(compteur(/dossiers? en attente de règlement|règlements? attendus/))).toBe(attenteAvant + 1);
+    expect(Number(compteur(/nouvelles? inscriptions? cette semaine/))).toBe(recentesAvant + 1);
   });
 
   it("la ligne « nouvelle inscription cette semaine » apparaît", () => {
@@ -189,20 +201,20 @@ describe("les chiffres du hub bougent quand on agit", () => {
 
   it("régler une cotisation en retard fait baisser le second compteur", () => {
     avecLeviers();
-    const avant = Number(compteur(/COTISATIONS? À RELANCER/));
+    const avant = Number(compteur(/cotisations? en retard/));
     expect(avant).toBeGreaterThan(0);
 
     clic("regler-retard");
-    expect(Number(compteur(/COTISATIONS? À RELANCER/))).toBe(avant - 1);
+    expect(Number(compteur(/cotisations? en retard/))).toBe(avant - 1);
   });
 
   it("encaisser une adhésion en attente fait baisser le premier compteur", () => {
     avecLeviers();
-    const avant = Number(compteur(/DOSSIERS? À TERMINER/));
+    const avant = Number(compteur(/dossiers? en attente de règlement|règlements? attendus/));
     expect(avant).toBeGreaterThan(0);
 
     clic("regler-attente");
-    expect(Number(compteur(/DOSSIERS? À TERMINER/))).toBe(avant - 1);
+    expect(Number(compteur(/dossiers? en attente de règlement|règlements? attendus/))).toBe(avant - 1);
   });
 
   it("recevoir la dernière pièce fait DISPARAÎTRE la ligne des pièces attendues", () => {
@@ -241,9 +253,9 @@ describe("fidélité au cockpit — les écarts déjà commis une fois", () => {
       .filter((a) => a.querySelector(".mono.text-\\[34px\\]"))
       .map((a) => a.textContent ?? "");
     expect(cartes).toHaveLength(3);
-    expect(cartes[0]).toMatch(/DOSSIERS? À TERMINER/);
-    expect(cartes[1]).toMatch(/COTISATIONS? À RELANCER/);
-    expect(cartes[2]).toMatch(/INSCRIPTIONS? · 7 JOURS/);
+    expect(cartes[0]).toMatch(/dossiers? en attente de règlement|règlements? attendus/);
+    expect(cartes[1]).toMatch(/cotisations? en retard/);
+    expect(cartes[2]).toMatch(/nouvelles? inscriptions? cette semaine/);
     expect(cartes[2]).toMatch(/VÉRIFIER/);
     expect(cartes.join(" ")).not.toMatch(/INCOMPLET/);
   });
@@ -368,7 +380,7 @@ describe("la date affichée — juste, et la même partout", () => {
             <DemoAujourdhui />
           </DemoLayout>
         );
-        const n = compteur(/INSCRIPTIONS? · 7 JOURS/);
+        const n = compteur(/nouvelles? inscriptions? cette semaine/);
         vue.unmount();
         return n;
       });
