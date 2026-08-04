@@ -1,25 +1,63 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { verifierAdherent, marquerPresent, rechercher, type VerifResult } from "./actions";
+import { controlerAdherent, marquerPresent, rechercher, type ControleResult } from "./actions";
+import { ligneControle, COULEURS_CONTROLE, coursParDefaut } from "@/lib/controle";
+import type { CoursControle } from "./page";
 
 function Cur() { return <span className="cur">_</span>; }
 
-export default function Scanner({ slug, nom, accent }: { slug: string; nom: string; accent: string }) {
+const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+export default function Scanner({ slug, nom, accent, cours }: { slug: string; nom: string; accent: string; cours: CoursControle[] }) {
   const [cam, setCam] = useState(false);
   const [camOk, setCamOk] = useState<boolean | null>(null);
-  const [result, setResult] = useState<VerifResult | null>(null);
+  const [result, setResult] = useState<ControleResult | null>(null);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [list, setList] = useState<{ id: string; prenom: string; nom: string }[]>([]);
   const [present, setPresent] = useState(false);
+  const [enCours, setEnCours] = useState(false);
+  const [pointage, setPointage] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Réseau lent, gestes pressés : chaque demande porte un numéro, seule la
+  // DERNIÈRE réponse s'affiche. Sans ça, deux scans rapprochés pouvaient
+  // afficher le résultat du premier après le second.
+  const demandeRef = useRef(0);
+  const rechercheRef = useRef(0);
+  const rechercheTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // LE COURS D'ABORD. Le statut affiché et la présence enregistrée concernent CE
+  // cours — jamais une adhésion choisie en silence. Mémorisé pour la durée de la
+  // session du navigateur uniquement (sessionStorage), proposé automatiquement
+  // seulement quand le planning le permet sans ambiguïté.
+  const [coursId, setCoursId] = useState<string | null>(null);
+  useEffect(() => {
+    const memorise = window.sessionStorage.getItem(`scanner-cours-${slug}`);
+    if (memorise && cours.some((c) => c.id === memorise)) { setCoursId(memorise); return; }
+    setCoursId(coursParDefaut(cours, JOURS[new Date().getDay()]));
+  }, [slug, cours]);
+  function choisirCours(id: string) {
+    setCoursId(id || null);
+    if (id) window.sessionStorage.setItem(`scanner-cours-${slug}`, id);
+    else window.sessionStorage.removeItem(`scanner-cours-${slug}`);
+    // Changer de cours invalide le résultat affiché : le statut était celui de l'ancien.
+    setResult(null);
+    setCurrentId(null);
+  }
+  const coursNom = cours.find((c) => c.id === coursId)?.nom ?? null;
 
   async function verifier(id: string) {
+    if (!coursId) return;
+    const demande = ++demandeRef.current;
     setCurrentId(id);
-    const r = await verifierAdherent(slug, id);
+    setEnCours(true);
+    setResult(null);
+    const r = await controlerAdherent(slug, id, coursId);
+    if (demande !== demandeRef.current) return; // une demande plus récente est partie
     setResult(r);
     setPresent(!!r.present);
+    setEnCours(false);
   }
 
   useEffect(() => {
@@ -93,11 +131,43 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">PRÉSENCE — {nom}<Cur /></p>
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Faire l&apos;appel.</h1>
 
+        {/* LE COURS D'ABORD : l'encadrant sait pour quel cours il pointe, avant de
+            scanner. Sans cours choisi, ni scan ni recherche. */}
+        <div className="mt-8">
+          <label htmlFor="cours-controle" className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            COURS DE L&apos;APPEL<Cur />
+          </label>
+          <select
+            id="cours-controle"
+            value={coursId ?? ""}
+            onChange={(e) => choisirCours(e.target.value)}
+            className="mono mt-3 min-h-[44px] w-full border border-line bg-paper px-4 py-3 text-[13px] outline-none focus:border-ink"
+          >
+            <option value="">— Choisir le cours —</option>
+            {cours.map((c) => (
+              <option key={c.id} value={c.id}>{c.nom}</option>
+            ))}
+          </select>
+          {coursNom ? (
+            <p className="mono mt-2 text-[11px]" style={{ color: accent }}>
+              ✓ Appel du cours&nbsp;: {coursNom}
+            </p>
+          ) : (
+            <p className="mono mt-2 text-[11px] text-ink-faint">
+              Choisissez le cours avant de scanner — la présence sera enregistrée pour ce cours.
+            </p>
+          )}
+        </div>
+
         {/* Caméra */}
         <div className="mt-8">
           {/* Pleine largeur sur mobile : ce bouton se vise d'une main, debout à l'accueil. */}
           {!cam ? (
-            <button onClick={() => { setCam(true); setCamOk(null); }} className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
+            <button
+              onClick={() => { setCam(true); setCamOk(null); }}
+              disabled={!coursId}
+              className="mono min-h-[44px] w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 disabled:opacity-40 sm:w-auto"
+            >
               SCANNER UN QR CODE →
             </button>
           ) : (
@@ -121,9 +191,21 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">OU RECHERCHER<Cur /></p>
           <input
             value={q}
-            onChange={async (e) => { const v = e.target.value; setQ(v); setList(await rechercher(slug, v)); }}
+            onChange={(e) => {
+              const v = e.target.value;
+              setQ(v);
+              // Réseau lent : une demande par pause de frappe (250 ms), pas une par
+              // lettre, et seule la réponse de la DERNIÈRE frappe s'affiche.
+              if (rechercheTimer.current) clearTimeout(rechercheTimer.current);
+              const demande = ++rechercheRef.current;
+              rechercheTimer.current = setTimeout(async () => {
+                const r = await rechercher(slug, v);
+                if (demande === rechercheRef.current) setList(r);
+              }, 250);
+            }}
             placeholder="Nom ou prénom"
-            className="mt-3 w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
+            disabled={!coursId}
+            className="mt-3 min-h-[44px] w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink disabled:opacity-40"
           />
           {list.length > 0 ? (
             <div className="mt-2 divide-y divide-line border border-line bg-paper">
@@ -136,31 +218,65 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
           ) : null}
         </div>
 
+        {/* Vérification en cours — visible dès le premier instant : sur le réseau
+            d'un gymnase, la réponse peut prendre plusieurs secondes, et un écran
+            muet fait rescanner (donc repartir une demande de plus). */}
+        {enCours ? (
+          <div className="mt-10 border border-line bg-paper p-6" role="status">
+            <p className="mono text-[13px] text-ink-soft">Vérification…</p>
+          </div>
+        ) : null}
+
         {/* Résultat */}
         {result ? (
-          <div className="mt-10 border border-line bg-paper p-6">
+          <div className="mt-10 border border-line bg-paper p-6" aria-live="polite">
             {!result.ok ? (
-              <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>{result.error}</p>
+              result.sessionExpiree ? (
+                <>
+                  <div className="mono text-[16px] font-bold" style={{ color: "#8A6508" }}>⚠ Session expirée</div>
+                  <p className="mt-2 text-[14px] text-ink-soft">Votre connexion a expiré pendant l&apos;appel.</p>
+                  <Link href={`/connexion?next=/${slug}/cockpit/scanner`} className="mono mt-4 inline-block border border-ink px-5 py-3 text-[13px] hover:bg-ink hover:text-paper">
+                    SE RECONNECTER →
+                  </Link>
+                </>
+              ) : (
+                <Panneau statut="introuvable" />
+              )
             ) : (
               <>
                 <div className="text-2xl font-medium">{result.prenom} {result.nom}</div>
                 <div className="text-ink-soft">{result.cours ?? "—"}</div>
-                <div className="mt-5 grid grid-cols-2 gap-px border border-line bg-line">
-                  <Etat label="RÈGLEMENT" ok={result.regle} okText="À jour" koText="Non réglé" />
-                  <Etat label="DOSSIER" ok={(result.piecesManquantes ?? 0) === 0} okText="Complet" koText={`${result.piecesManquantes} pièce(s) manquante(s)`} />
-                </div>
+                {(result.autresCours?.length ?? 0) > 0 ? (
+                  <div className="mono mt-1 text-[11px] text-ink-soft">
+                    Aussi inscrit&nbsp;: {result.autresCours!.join(", ")}
+                  </div>
+                ) : null}
+
+                <Panneau statut={result.statut} pieces={result.piecesManquantes} />
+
                 <div className="mt-6">
-                  {present ? (
-                    <span className="mono text-[13px]" style={{ color: accent }}>✓ PRÉSENT AUJOURD&apos;HUI</span>
-                  ) : (
-                    <button
-                      onClick={async () => { if (currentId) { const r = await marquerPresent(slug, currentId); if (r.ok) setPresent(true); } }}
-                      className="mono w-full px-6 py-3 text-[13px] text-white sm:w-auto"
-                      style={{ background: accent }}
-                    >
-                      MARQUER PRÉSENT →
-                    </button>
-                  )}
+                  {ligneControle(result.statut).pointable ? (
+                    present ? (
+                      // Double scan / double clic : déjà pointé, on le dit, on ne
+                      // réécrit rien — la présence du jour est unique en base.
+                      <span className="mono text-[13px]" style={{ color: accent }}>✓ DÉJÀ POINTÉ AUJOURD&apos;HUI — {coursNom}</span>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          if (!currentId || !coursId || pointage) return; // double clic ignoré
+                          setPointage(true);
+                          const r = await marquerPresent(slug, currentId, coursId);
+                          if (r.ok) setPresent(true);
+                          setPointage(false);
+                        }}
+                        disabled={pointage}
+                        className="mono min-h-[44px] w-full px-6 py-3 text-[13px] disabled:opacity-40 sm:w-auto"
+                        style={{ background: accent, color: "#FFFFFF" }}
+                      >
+                        {pointage ? "…" : `MARQUER PRÉSENT — ${coursNom ?? ""} →`}
+                      </button>
+                    )
+                  ) : null}
                 </div>
               </>
             )}
@@ -171,13 +287,21 @@ export default function Scanner({ slug, nom, accent }: { slug: string; nom: stri
   );
 }
 
-function Etat({ label, ok, okText, koText }: { label: string; ok?: boolean; okText: string; koText: string }) {
+/**
+ * Le panneau statut : texte explicite, symbole, couleur en complément — jamais
+ * la couleur seule — et l'action suivante. Le vocabulaire vient de
+ * `src/lib/controle.ts`, couvert par les tests.
+ */
+function Panneau({ statut, pieces }: { statut: string | undefined; pieces?: number }) {
+  const l = ligneControle(statut);
+  const couleur = COULEURS_CONTROLE[l.ton];
   return (
-    <div className="bg-paper px-5 py-4">
-      <div className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mono mt-2 text-[15px] font-bold" style={{ color: ok ? "#279B65" : "#B23B3B" }}>
-        {ok ? `✓ ${okText}` : `✕ ${koText}`}
+    <div className="mt-5 border px-5 py-4" style={{ borderColor: couleur, borderLeftWidth: 4 }}>
+      <div className="mono text-[16px] font-bold" style={{ color: couleur }}>
+        {l.symbole} {l.titre}
+        {statut === "dossier_incomplet" && pieces ? ` — ${pieces} pièce${pieces > 1 ? "s" : ""} à fournir` : ""}
       </div>
+      <p className="mt-1 text-[14px] text-ink-soft">{l.action}</p>
     </div>
   );
 }
