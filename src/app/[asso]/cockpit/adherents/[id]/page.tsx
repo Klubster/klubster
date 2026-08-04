@@ -7,11 +7,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { resteAPayer } from "@/lib/finances";
 import { saisonCourante } from "@/lib/saison";
-import { modifierAdherent, basculerPiece } from "../actions";
+import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
 import Remboursement from "./Remboursement";
+import DepotPiece from "@/components/cockpit/DepotPiece";
 import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -355,6 +356,19 @@ export default async function FicheAdherent(
 
         {/* ——— PIÈCES ——— */}
         <section className="mt-14">
+          {/* PIECE_MESSAGES — un dépôt doit répondre : succès comme échec. */}
+          {searchParams?.ok === "piece" ? (
+            <p className="mono mb-3 text-[12px]" style={{ color: "#1E7A4F" }}>✓ Pièce enregistrée dans le dossier.</p>
+          ) : null}
+          {searchParams?.erreur?.startsWith("piece") ? (
+            <p className="mono mb-3 text-[12px]" style={{ color: "#B23B3B" }}>
+              {searchParams.erreur === "piece_format"
+                ? "Fichier refusé : déposez un PDF, un JPEG ou un PNG de 5 Mo maximum."
+                : searchParams.erreur === "piece_vide"
+                ? "Le fichier est vide : choisissez un document avant de déposer."
+                : "Le dépôt a échoué. Rien n’a été modifié — réessayez."}
+            </p>
+          ) : null}
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
             PIÈCES DU DOSSIER<Cur />
           </p>
@@ -389,7 +403,22 @@ export default async function FicheAdherent(
                         {libellePiece(p.statut)}
                       </button>
                     </form>
+                    {/* Reçue par email : le certificat est dans la boîte du club, pas dans
+                        l'espace — le cas le plus courant en début de saison. */}
+                    {p.statut !== "par_email" && p.statut !== "fournie" && p.statut !== "recue" ? (
+                      <form action={marquerPieceParEmail.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
+                        <button className="mono text-[11px] uppercase tracking-wide text-ink-soft hover:underline">
+                          ✉ Par email
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
+                  {/* Dépôt par un bénévole — promesse publique. Mêmes contrôles que le
+                      dépôt adhérent (PDF/JPEG/PNG, 5 Mo, premiers octets). */}
+                  <DepotPiece
+                    action={deposerPieceCockpit.bind(null, org.slug, adherent.id, p.id)}
+                    libelle={p.chemin ? "Remplacer le fichier" : "Déposer pour l’adhérent"}
+                  />
                 </div>
               ))}
             </div>

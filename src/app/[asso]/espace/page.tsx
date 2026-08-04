@@ -167,19 +167,26 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                   {p.label}
                   {p.obligatoire === false ? <span className="mono ml-2 text-[11px] uppercase text-ink-faint">Facultative</span> : null}
                 </span>
-                {p.statut === "fournie" ? (
-                  <span className="mono text-[13px]" style={{ color: accent }}>✓ FOURNIE</span>
-                ) : (
+                {/* Une pièce fournie reste remplaçable : mauvaise photo, mauvais scan,
+                    certificat mis à jour — deux dépôts font deux objets, rien n'est
+                    écrasé, la fiche pointe simplement vers le dernier. */}
+                {p.statut === "fournie" || p.statut === "par_email" ? (
+                  <span className="mono text-[13px]" style={{ color: accent }}>
+                    {p.statut === "par_email" ? "✉ REÇUE PAR EMAIL" : "✓ FOURNIE"}
+                  </span>
+                ) : null}
+                {p.statut !== "par_email" ? (
                   <form action={uploadPiece.bind(null, org.slug)} className="flex min-w-0 flex-wrap items-center gap-2">
                     <input type="hidden" name="pieceId" value={p.id} />
                     <input
                       type="file"
                       name="file"
+                      accept="application/pdf,image/png,image/jpeg"
                       className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                     />
-                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
+                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">{p.statut === "fournie" ? "REMPLACER" : "DÉPOSER"}</button>
                   </form>
-                )}
+                ) : null}
               </div>
             ))}
           </div>

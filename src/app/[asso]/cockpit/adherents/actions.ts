@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { exigerPermission } from "@/lib/garde";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
 import { basculerStatutPiece } from "@/lib/pieces";
+import { validerDocument } from "@/lib/upload";
 import { peut } from "@/lib/roles";
 import { rembourser } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
@@ -463,4 +464,98 @@ export async function basculerPiece(slug: string, adherentId: string, pieceId: s
   }
   revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
   redirect(`/${slug}/cockpit/adherents/${adherentId}`);
+}
+
+/**
+ * Dépôt d'une pièce PAR UN BÉNÉVOLE, depuis la fiche — promesse publique :
+ * « les documents sont déposés par l'adhérent, ou ajoutés à son dossier par un
+ * bénévole ». Un certificat apporté en main propre au forum des associations se
+ * range ici, sans repasser par l'adhérent.
+ *
+ * Mêmes garanties que le dépôt adhérent : validation par les premiers octets
+ * (PDF/JPEG/PNG, 5 Mo), chemin construit CÔTÉ SERVEUR depuis l'organisation et
+ * l'adhérent — jamais depuis une valeur du navigateur — et écriture Storage par
+ * `createSupabaseStorageClient()` (règle du 21-28/07). `upsert: false` : deux
+ * dépôts font deux objets, on n'écrase jamais un fichier existant.
+ */
+export async function deposerPieceCockpit(
+  slug: string,
+  adherentId: string,
+  pieceId: string,
+  formData: FormData
+): Promise<void> {
+  const org = await garde(slug);
+  const fichier = formData.get("fichier");
+  if (!(fichier instanceof File) || fichier.size === 0) {
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_vide`);
+  }
+  const controle = await validerDocument(fichier as File, 5);
+  if (!controle.ok) {
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_format`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  // La pièce doit exister, dans CE club, pour CET adhérent — sinon rien.
+  const { data: piece } = await supabase
+    .from("pieces_adherent")
+    .select("id")
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id)
+    .maybeSingle();
+  if (!piece) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_introuvable`);
+
+  const storage = createSupabaseStorageClient();
+  if (!storage) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+
+  const ext = controle.ext;
+  const chemin = `${org.id}/${adherentId}/${crypto.randomUUID()}.${ext}`;
+  const octets = Buffer.from(await (fichier as File).arrayBuffer());
+  const { error: eUp } = await storage.storage.from("pieces").upload(chemin, octets, {
+    contentType: controle.contentType,
+    upsert: false,
+  });
+  if (eUp) {
+    console.error("deposerPieceCockpit upload", eUp.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+  }
+
+  const { error: eMaj } = await supabase
+    .from("pieces_adherent")
+    .update({ statut: "fournie", chemin, updated_at: new Date().toISOString() })
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id);
+  if (eMaj) {
+    console.error("deposerPieceCockpit maj", eMaj.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+  }
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=piece`);
+}
+
+/**
+ * « Reçue par email » : le statut `par_email` existe dans la contrainte depuis
+ * l'origine (`manquante | fournie | par_email`) mais aucun écran ne l'écrivait.
+ * C'est pourtant le cas le plus courant en début de saison : le certificat arrive
+ * dans la boîte du club, pas dans l'espace adhérent. Le bénévole le note ici —
+ * le dossier avance, et on sait OÙ est la pièce.
+ */
+export async function marquerPieceParEmail(
+  slug: string,
+  adherentId: string,
+  pieceId: string,
+  statutActuel: string
+): Promise<void> {
+  const org = await garde(slug);
+  const supabase = await createSupabaseServerClient();
+  // bascule : par_email ↔ manquante (un clic de trop se répare d'un clic)
+  const nouveau = statutActuel === "par_email" ? "manquante" : "par_email";
+  const { error } = await supabase
+    .from("pieces_adherent")
+    .update({ statut: nouveau, updated_at: new Date().toISOString() })
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id);
+  if (error) console.error("marquerPieceParEmail", error.message);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}${error ? "?erreur=piece" : ""}`);
 }
