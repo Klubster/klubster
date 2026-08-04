@@ -39,6 +39,8 @@ export interface Organisation {
   abonnement_subscription_id: string | null;
   abonnement_statut: "aucun" | "essai" | "actif" | "impaye" | "resilie";
   abonnement_essai_fin: string | null;
+  /** Rang d'arrivée dans l'offre de lancement — 1..15 = club fondateur (lot Q). */
+  fondateur_rang?: number | null;
   abonnement_periode_fin: string | null;
   /** Identifiants Stripe du mode test — jamais mélangés avec ceux de production. */
   stripe_test: Record<string, string | null> | null;
