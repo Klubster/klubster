@@ -594,6 +594,9 @@ export async function marquerPieceParEmail(
     .eq("organisation_id", org.id);
   if (error) console.error("marquerPieceParEmail", error.message);
   redirect(`/${slug}/cockpit/adherents/${adherentId}${error ? "?erreur=piece" : ""}`);
+}
+
+/**
  * Changer un adhérent de cours — le geste que « supprimer un cours peuplé »
  * réclamait sans l'offrir. Toute la décision vit dans la RPC `changer_cours`
  * (capacité verrouillée, tarif honnête, pièces du nouveau cours, audit) ;
