@@ -30,7 +30,8 @@ describe("dossiers — le bénévole peut déposer une pièce (promesse publique
     expect(FICHE).toMatch(/deposerPieceCockpit\.bind/);
     expect(FICHE).toMatch(/Remplacer le fichier/);
     expect(FICHE).toMatch(/Déposer pour l’adhérent/);
-    expect(FICHE).toMatch(/accept="application\/pdf,image\/png,image\/jpeg"/);
+    // l'input vit désormais dans le composant client partagé DepotPiece
+    expect(lire("src/components/cockpit/DepotPiece.tsx")).toMatch(/accept="application\/pdf,image\/png,image\/jpeg"/);
   });
 });
 
