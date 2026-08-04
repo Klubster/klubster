@@ -296,9 +296,11 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
     : mode === "en_ligne" ? "En ligne (carte bancaire)"
     : mode === "cheque" ? "Par chèque, à remettre au club"
     : "En espèces, à remettre au club";
-  // Pièces demandées pour CE cours (une pièce sans cours_id vaut pour tous).
+  // Pièces demandées pour CE cours (une pièce sans cours_id vaut pour tous), et pour
+  // CET âge — une pièce « mineurs uniquement » ne se demande pas à un adulte. Le même
+  // filtre que la RPC : l'email annonce exactement ce que le dossier attend.
   const piecesDemandees = (org.form_config?.pieces ?? []).filter(
-    (p) => !p.cours_id || p.cours_id === coursId
+    (p) => (!p.cours_id || p.cours_id === coursId) && (!p.mineurs_seulement || estInscriptionMineur)
   );
   // Les modèles vierges partent en pièce jointe : l'adhérent les a sous la main dans
   // sa boîte, sans avoir à retourner sur le site (demande de Mathieu, 28/07/2026).

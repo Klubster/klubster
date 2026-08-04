@@ -209,6 +209,11 @@ export default function FormulaireInscription({
                           {coursLie.nom} uniquement
                         </span>
                       ) : null}
+                      {pc.mineurs_seulement ? (
+                        <span className="mono ml-2 text-[11px] uppercase tracking-wider" style={{ color: accent }}>
+                          mineurs uniquement
+                        </span>
+                      ) : null}
                       {/* Modèle fourni par le club (ex. certificat médical vierge) */}
                       {pc.modele_url ? (
                         <a

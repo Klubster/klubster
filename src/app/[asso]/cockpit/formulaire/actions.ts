@@ -9,8 +9,34 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
   const ctx = await verifierPermission(slug, "site");
   if (!ctx) return { error: "Non autorisé." };
   const { org } = ctx;
+
+  // VALIDATION SERVEUR — le JSON partait en base tel quel. Un champ sans libellé
+  // rendait une étiquette vide sur le formulaire public ; un libellé seulement fait
+  // d'espaces, pareil. On nettoie ce qui se nettoie (trim), on refuse ce qui rendrait
+  // le formulaire public illisible, avec un message que le président comprend.
+  const propre: FormConfig = {
+    ...config,
+    pages: (config.pages ?? []).map((pg) => ({
+      ...pg,
+      titre: (pg.titre ?? "").trim(),
+      champs: (pg.champs ?? []).map((ch) => ({ ...ch, label: (ch.label ?? "").trim() })),
+    })),
+    pieces: (config.pieces ?? []).map((p) => ({ ...p, label: (p.label ?? "").trim() })),
+  };
+  for (const pg of propre.pages) {
+    for (const ch of pg.champs) {
+      if (!ch.label) return { error: "Un champ n’a pas de libellé : donnez-lui un nom, ou supprimez-le." };
+      if (ch.type === "choix" && !(ch.options ?? []).filter((o) => o.trim()).length) {
+        return { error: `La liste de choix « ${ch.label} » n’a aucune option : ajoutez-en, ou changez son type.` };
+      }
+    }
+  }
+  for (const p of propre.pieces) {
+    if (!p.label) return { error: "Une pièce n’a pas de nom : donnez-lui un nom, ou supprimez-la." };
+  }
+
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("organisations").update({ form_config: config }).eq("id", org.id);
+  const { error } = await supabase.from("organisations").update({ form_config: propre }).eq("id", org.id);
   if (error) return { error: error.message };
   return { ok: true };
 }
