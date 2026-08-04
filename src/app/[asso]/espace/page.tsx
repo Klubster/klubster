@@ -176,7 +176,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                       accept="application/pdf,image/png,image/jpeg"
                       className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                     />
-                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">{p.statut === "fournie" ? "REMPLACER" : "TÉLÉCHARGER"}</button>
+                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">{p.statut === "fournie" ? "REMPLACER" : "DÉPOSER"}</button>
                   </form>
                 ) : null}
               </div>

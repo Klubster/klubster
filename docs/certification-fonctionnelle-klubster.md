@@ -41,6 +41,19 @@ Statuts : `PROUVÉE` · `CORRIGÉE ET PROUVÉE` · `PARTIELLE — LIMITE AFFICH�
   vraie levée passerait par l'upload direct navigateur → Storage (chantier
   connu, hors pilote).
 
+- **Pièce facultative comptée comme manquante** : toute pièce configurée est créée
+  `manquante` et entre dans les compteurs « pièces à fournir » (espace, cockpit),
+  que le cron de relances ignore pourtant (obligatoires seules). Incohérence de
+  définition du « dossier incomplet » — à arbitrer produit avant de coder.
+- **Liste publique des pièces non filtrée par le cours sélectionné** : toutes
+  s'affichent avec leur badge (« X uniquement », « mineurs uniquement ») ; seule
+  la création du dossier filtre. Cosmétique, consigné.
+- **Modèles de pièces dans le bucket public `sections`** (URL permanente) : ce
+  sont des documents vierges fournis par le club, aucune donnée personnelle —
+  choix acceptable, consigné.
+- **Deux champs de même libellé** : refusés désormais à l'enregistrement
+  (l'écrasement silencieux de la seconde réponse est documenté et bloqué — PR #20).
+
 ## Domaines restants (non certifiés à ce jour)
 
 Activités/créneaux/changement de cours (J) · messages et campagnes (K) ·
