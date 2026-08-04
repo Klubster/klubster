@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { resteAPayer } from "@/lib/finances";
+import { decisionRelanceFinanciere, destinataireRelance } from "@/lib/relances";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmailDetaille } from "@/lib/resend";
 import { gabaritEmail } from "@/lib/email-gabarit";
@@ -34,8 +35,8 @@ const PLAFOND_JOURS = 7;
 const FENETRE_PIECES = { pieces_30: [30, 44], pieces_60: [60, 74], pieces_90: [90, 104] } as const;
 const FENETRE_IMPAYE = { impaye_1: [7, 13], impaye_2: [21, 27], impaye_3: [45, 51] } as const;
 
-function ageJours(iso: string): number {
-  return Math.floor((Date.now() - new Date(iso).getTime()) / UN_JOUR);
+function ageJours(iso: string, reference: number): number {
+  return Math.floor((reference - new Date(iso).getTime()) / UN_JOUR);
 }
 function dansFenetre(age: number, [min, max]: readonly [number, number]): boolean {
   return age >= min && age <= max;
@@ -76,6 +77,18 @@ async function lancer(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
+  // TEMPS DÉTERMINISTE + DRY-RUN — autorisés uniquement derrière le secret.
+  // `?maintenant=2026-09-15` fixe l'horloge de TOUTE la passe (fenêtres, plafond,
+  // journal) pour rejouer les bornes 7/21/45 sans attendre. `?simulation=1` prépare
+  // tout et n'écrit RIEN : ni réservation, ni envoi, ni statut — il rend le détail
+  // inspectable de chaque message qui serait parti. C'est l'outil de preuve du lot L,
+  // et celui d'un opérateur prudent avant une vraie passe.
+  const url = new URL(request.url);
+  const maintenantParam = url.searchParams.get("maintenant");
+  const horloge = maintenantParam ? new Date(maintenantParam).getTime() : Date.now();
+  if (Number.isNaN(horloge)) return NextResponse.json({ error: "Paramètre maintenant invalide." }, { status: 400 });
+  const simulation = url.searchParams.get("simulation") === "1";
+
   const admin = createSupabaseAdminClient();
   if (!admin) return NextResponse.json({ error: "Base indisponible." }, { status: 500 });
 
@@ -91,7 +104,7 @@ async function lancer(request: NextRequest) {
   if (orgs.length === 0) return NextResponse.json({ ok: true, envoyes: 0 });
 
   // Journal des 60 derniers jours : pour le plafond (7 j) et la déduplication par motif.
-  const depuis = new Date(Date.now() - 60 * UN_JOUR).toISOString();
+  const depuis = new Date(horloge - 60 * UN_JOUR).toISOString();
   const { data: journalData, error: journalErr } = await chargerTout((debut, fin) =>
     admin
       .from("emails_journal")
@@ -104,7 +117,7 @@ async function lancer(request: NextRequest) {
   // Outbox : ne comptent comme « déjà pris » que les envois RÉUSSIS (`envoye`) ou une
   // réservation `en_cours` dont le bail court encore. Une réservation morte (crash avant
   // envoi, bail expiré) ou un `echoue` reste reprenable — la réservation atomique tranche.
-  const maintenant = Date.now();
+  const maintenant = horloge;
   const journal = (journalData ?? []).filter(
     (j) =>
       j.statut === "envoye" ||
@@ -114,7 +127,7 @@ async function lancer(request: NextRequest) {
   const motifOrgRecent = (orgId: string, motif: string, jours: number) =>
     journal.some(
       (j) => j.organisation_id === orgId && j.motif === motif && !j.adherent_id &&
-        Date.now() - new Date(j.envoye_le).getTime() < jours * UN_JOUR
+        horloge - new Date(j.envoye_le).getTime() < jours * UN_JOUR
     );
   const motifsEnvoyes = new Set(journal.map((j) => `${j.adherent_id}:${j.motif}`));
   const dernierEnvoi = new Map<string, string>();
@@ -126,7 +139,7 @@ async function lancer(request: NextRequest) {
   const souslePlafond = (adherentId: string) => {
     const dernier = dernierEnvoi.get(adherentId);
     if (!dernier) return true;
-    return Date.now() - new Date(dernier).getTime() >= PLAFOND_JOURS * UN_JOUR;
+    return horloge - new Date(dernier).getTime() >= PLAFOND_JOURS * UN_JOUR;
   };
 
   // Adhésions à considérer : uniquement les statuts ACTIFS. On exclut ainsi la liste
@@ -136,7 +149,7 @@ async function lancer(request: NextRequest) {
   const { data: adhData, error: adhErr } = await chargerTout((debut, fin) =>
     admin
       .from("adhesions")
-      .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, cours(nom), adherents(prenom, email), reglements(montant_centimes)")
+      .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, mode_paiement, litige_le, cours(nom), adherents(prenom, email, date_naissance, infos), reglements(montant_centimes, mode)")
       .in("statut", ["en_attente", "en_retard", "paye"])
       .order("id")
       .range(debut, fin)
@@ -173,7 +186,7 @@ async function lancer(request: NextRequest) {
     clesObligatoires.set(o.id, cles);
   }
 
-  type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation };
+  type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation; montantCentimes?: number };
   const aEnvoyer: Envoi[] = [];
   // Adhésions dont le retard est constaté à la 3e fenêtre (statut posé après l'envoi).
   const aMarquerEnRetard: string[] = [];
@@ -192,11 +205,14 @@ async function lancer(request: NextRequest) {
     if ((adh.saison ?? "") !== saison) continue;
     const adherentId = adh.adherent_id;
     if (!adherentId || dejaCeTour.has(adherentId)) continue;
-    const email = adh.adherents?.email ?? null;
+    // Mineur → l'email du responsable légal fait foi (même règle que le ciblage des
+    // messages, `destinataireRelance` partagée) ; un mineur sans adresse propre n'est
+    // plus silencieusement oublié — c'est le parent qui reçoit la relance.
+    const email = adh.adherents ? destinataireRelance(adh.adherents) : null;
     if (!email) continue;
     if (!souslePlafond(adherentId)) continue;
     const cfg = lireEmailsConfig(org.emails_config);
-    const age = ageJours(adh.created_at);
+    const age = ageJours(adh.created_at, horloge);
     const prenom = adh.adherents?.prenom ?? "";
     const coursNom = adh.cours?.nom ?? null;
 
@@ -239,11 +255,21 @@ async function lancer(request: NextRequest) {
 
     // 2) Cotisation impayée.
     if (cfg.relance_impaye && (adh.statut === "en_attente" || adh.statut === "en_retard")) {
-      const regle = (adh.reglements ?? []).reduce((s, r) => s + (r.montant_centimes ?? 0), 0);
-      // LA tolérance (5 c), la même que les RPC d'encaissement : un dossier soldé à
-      // 3 centimes près n'est plus relancé.
-      const reste = resteAPayer(adh.montant_centimes ?? 0, regle);
-      if (reste > 0) {
+      // LA DÉCISION vit dans src/lib/relances.ts — la même que l'écran et la fiche.
+      // Elle exclut d'elle-même : échéancier Stripe en cours (une échéance future
+      // n'est pas un retard), litige, remboursé, soldé (tolérance 5 c comprise).
+      const decision = decisionRelanceFinanciere({
+        montantCentimes: adh.montant_centimes ?? 0,
+        statut: adh.statut ?? "en_attente",
+        modePaiement: adh.mode_paiement ?? null,
+        litigeLe: adh.litige_le ?? null,
+        reglements: (adh.reglements ?? []).map((r) => ({
+          montantCentimes: r.montant_centimes ?? 0,
+          mode: (r as { mode?: string | null }).mode ?? null,
+        })),
+      });
+      const reste = decision.montantCentimes;
+      if (decision.relancer) {
         const etapes: [keyof typeof FENETRE_IMPAYE, readonly [number, number]][] = [
           ["impaye_1", FENETRE_IMPAYE.impaye_1],
           ["impaye_2", FENETRE_IMPAYE.impaye_2],
@@ -255,13 +281,16 @@ async function lancer(request: NextRequest) {
           if (motifsEnvoyes.has(`${adherentId}:${motifSaison}`) || motifsEnvoyes.has(`${adherentId}:${motif}`)) continue;
           if (!dansFenetre(age, fenetre)) continue;
           const montant = (reste / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
+          const rejet = decision.motif === "echeance_rejetee";
           const enLigne = !!compteConnecte(org);
           aEnvoyer.push({
-            adherentId, motif: motifSaison, orgId: org.id, to: email, club: org,
-            objet: `Cotisation ${org.nom} — il reste ${montant} € à régler`,
+            adherentId, motif: motifSaison, orgId: org.id, to: email, club: org, montantCentimes: reste,
+            objet: rejet ? `Cotisation ${org.nom} — une échéance n’a pas pu être prélevée` : `Cotisation ${org.nom} — il reste ${montant} € à régler`,
             para: [
               `Bonjour ${prenom},`,
-              `Votre adhésion au ${org.nom}${coursNom ? ` (${coursNom})` : ""} n'est pas encore soldée : il reste ${montant} € à régler.`,
+              rejet
+                ? `Le prélèvement d'une échéance de votre adhésion au ${org.nom}${coursNom ? ` (${coursNom})` : ""} n'a pas abouti : il reste ${montant} € à régler.`
+                : `Votre adhésion au ${org.nom}${coursNom ? ` (${coursNom})` : ""} n'est pas encore soldée : il reste ${montant} € à régler.`,
               enLigne
                 ? `Vous pouvez régler en ligne depuis votre espace adhérent, ou directement auprès du club. Si c'est déjà fait, merci de ne pas tenir compte de ce message.`
                 : `Vous pouvez régulariser directement auprès du club. Si c'est déjà fait, merci de ne pas tenir compte de ce message.`,
@@ -297,7 +326,7 @@ async function lancer(request: NextRequest) {
   // Récap hebdomadaire : le lundi seulement, au plus un par semaine, et seulement s'il y a
   // quelque chose à signaler (sinon on n'envoie rien — pas de bruit).
   const estLundi = new Date().getUTCDay() === 1;
-  const il7j = Date.now() - 7 * UN_JOUR;
+  const il7j = horloge - 7 * UN_JOUR;
   // Adhésions regroupées par club, pour les agrégats du récap.
   const adhParOrg = new Map<string, AdhesionLigne[]>();
   for (const a of adhesions) {
@@ -351,7 +380,7 @@ async function lancer(request: NextRequest) {
 
     // 2) Fin d'essai approche (J-5) — ton Klubster, en complément des emails Stripe.
     if (org.abonnement_statut === "essai" && org.abonnement_essai_fin && !motifOrgRecent(org.id, "fin_essai", 20)) {
-      const restJours = Math.ceil((new Date(org.abonnement_essai_fin).getTime() - Date.now()) / UN_JOUR);
+      const restJours = Math.ceil((new Date(org.abonnement_essai_fin).getTime() - horloge) / UN_JOUR);
       if (restJours >= 3 && restJours <= 6) {
         aEnvoyerClub.push({
           orgId: org.id, motif: "fin_essai", periode: org.abonnement_essai_fin.slice(0, 10), to: contact, club: org,
@@ -384,6 +413,29 @@ async function lancer(request: NextRequest) {
     const r = data as { statut: string; id?: string };
     return r;
   };
+
+  // ——— SIMULATION : tout est préparé, rien n'est écrit ni envoyé. Le détail rend
+  // chaque décision inspectable (destinataire, motif, montant, fenêtre) — l'outil de
+  // preuve du lot L, utilisable aussi par un opérateur avant une vraie passe.
+  if (simulation) {
+    return NextResponse.json({
+      ok: true,
+      simulation: true,
+      horloge: new Date(horloge).toISOString(),
+      prepares: aEnvoyer.map((e) => ({
+        organisation: e.club.slug,
+        adherentId: e.adherentId,
+        destinataire: e.to,
+        motif: e.motif,
+        objet: e.objet,
+        // Montant recalculé côté serveur (decisionRelanceFinanciere) — inspectable
+        // en simulation pour prouver l'exactitude sans envoyer d'email.
+        montantCentimes: e.montantCentimes ?? null,
+      })),
+      recapsClub: aEnvoyerClub.length,
+      marquesEnRetard: aMarquerEnRetard.length,
+    });
+  }
 
   for (const e of aEnvoyer) {
     let r: { statut: string; id?: string };
@@ -471,7 +523,14 @@ type AdhesionLigne = {
   statut: string | null;
   saison: string | null;
   created_at: string;
+  mode_paiement: string | null;
+  litige_le: string | null;
   cours: { nom: string } | null;
-  adherents: { prenom: string | null; email: string | null } | null;
-  reglements: Array<{ montant_centimes: number }> | null;
+  adherents: {
+    prenom: string | null;
+    email: string | null;
+    date_naissance: string | null;
+    infos: Record<string, string> | null;
+  } | null;
+  reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
 };

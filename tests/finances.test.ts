@@ -155,7 +155,7 @@ describe("paiements — les écrans lisent la même règle", () => {
       "src/app/api/cron/relances/route.ts",
       "src/app/[asso]/cockpit/paiements/PaiementsClient.tsx",
       "src/app/[asso]/cockpit/adherents/[id]/page.tsx",
-    ]) expect(lire(f), f).toMatch(/resteAPayer\(/);
+    ]) expect(lire(f), f).toMatch(/resteAPayer\(|decisionRelanceFinanciere\(/);
   });
 
   it("le cockpit trésorerie inclut les impayés sans mode de paiement", () => {
