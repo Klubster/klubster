@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { resteAPayer } from "@/lib/finances";
-import { decisionRelanceFinanciere } from "@/lib/relances";
+import { decisionRelanceFinanciere, destinataireRelance } from "@/lib/relances";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmailDetaille } from "@/lib/resend";
 import { gabaritEmail } from "@/lib/email-gabarit";
@@ -149,7 +149,7 @@ async function lancer(request: NextRequest) {
   const { data: adhData, error: adhErr } = await chargerTout((debut, fin) =>
     admin
       .from("adhesions")
-      .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, mode_paiement, litige_le, cours(nom), adherents(prenom, email), reglements(montant_centimes, mode)")
+      .select("id, organisation_id, adherent_id, montant_centimes, statut, saison, created_at, mode_paiement, litige_le, cours(nom), adherents(prenom, email, date_naissance, infos), reglements(montant_centimes, mode)")
       .in("statut", ["en_attente", "en_retard", "paye"])
       .order("id")
       .range(debut, fin)
@@ -186,7 +186,7 @@ async function lancer(request: NextRequest) {
     clesObligatoires.set(o.id, cles);
   }
 
-  type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation };
+  type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation; montantCentimes?: number };
   const aEnvoyer: Envoi[] = [];
   // Adhésions dont le retard est constaté à la 3e fenêtre (statut posé après l'envoi).
   const aMarquerEnRetard: string[] = [];
@@ -205,7 +205,10 @@ async function lancer(request: NextRequest) {
     if ((adh.saison ?? "") !== saison) continue;
     const adherentId = adh.adherent_id;
     if (!adherentId || dejaCeTour.has(adherentId)) continue;
-    const email = adh.adherents?.email ?? null;
+    // Mineur → l'email du responsable légal fait foi (même règle que le ciblage des
+    // messages, `destinataireRelance` partagée) ; un mineur sans adresse propre n'est
+    // plus silencieusement oublié — c'est le parent qui reçoit la relance.
+    const email = adh.adherents ? destinataireRelance(adh.adherents) : null;
     if (!email) continue;
     if (!souslePlafond(adherentId)) continue;
     const cfg = lireEmailsConfig(org.emails_config);
@@ -281,7 +284,7 @@ async function lancer(request: NextRequest) {
           const rejet = decision.motif === "echeance_rejetee";
           const enLigne = !!compteConnecte(org);
           aEnvoyer.push({
-            adherentId, motif: motifSaison, orgId: org.id, to: email, club: org,
+            adherentId, motif: motifSaison, orgId: org.id, to: email, club: org, montantCentimes: reste,
             objet: rejet ? `Cotisation ${org.nom} — une échéance n’a pas pu être prélevée` : `Cotisation ${org.nom} — il reste ${montant} € à régler`,
             para: [
               `Bonjour ${prenom},`,
@@ -425,6 +428,9 @@ async function lancer(request: NextRequest) {
         destinataire: e.to,
         motif: e.motif,
         objet: e.objet,
+        // Montant recalculé côté serveur (decisionRelanceFinanciere) — inspectable
+        // en simulation pour prouver l'exactitude sans envoyer d'email.
+        montantCentimes: e.montantCentimes ?? null,
       })),
       recapsClub: aEnvoyerClub.length,
       marquesEnRetard: aMarquerEnRetard.length,
@@ -520,6 +526,11 @@ type AdhesionLigne = {
   mode_paiement: string | null;
   litige_le: string | null;
   cours: { nom: string } | null;
-  adherents: { prenom: string | null; email: string | null } | null;
+  adherents: {
+    prenom: string | null;
+    email: string | null;
+    date_naissance: string | null;
+    infos: Record<string, string> | null;
+  } | null;
   reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
 };
