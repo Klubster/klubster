@@ -121,3 +121,29 @@ describe("la démonstration ne peut pas atteindre les données réelles", () => 
     expect(accueil + bandeau).toMatch(/\/creer|CRÉER MON CLUB/);
   });
 });
+<<<<<<< HEAD
+=======
+
+describe("la démonstration montre le produit qu'on livre", () => {
+  it("utilise LA hiérarchie du cockpit réel, pas une mise en page parallèle", () => {
+    // Défaut trouvé au lot R : la démo affichait trois cartes sur le même plan —
+    // l'écran d'AVANT la refonte de hiérarchisation (#15). Un prospect découvrait
+    // après inscription un cockpit qui ne ressemblait pas à celui qu'on lui avait
+    // montré. La démo consomme désormais `calculerPriorites`, la même fonction.
+    const demo = readFileSync(join(process.cwd(), "src/app/demo/page.tsx"), "utf8");
+    expect(demo).toMatch(/from ["']@\/lib\/priorites["']/);
+    expect(demo).toMatch(/calculerPriorites\(/);
+    expect(demo).toMatch(/À TRAITER MAINTENANT/);
+    expect(demo).toMatch(/À SURVEILLER/);
+    expect(demo).toMatch(/resumeAttention\(/);
+  });
+
+  it("porte les mêmes repères visuels que le produit (aucune rondeur, mêmes tokens)", () => {
+    for (const f of TOUS) {
+      // border-radius: 0 est imposé globalement ; aucune classe `rounded-*` ne doit
+      // réapparaître par la démo — la marque n'a pas de coins arrondis.
+      expect(codeSeul(f), f).not.toMatch(/\brounded-/);
+    }
+  });
+});
+>>>>>>> fix/demo-alignement-cockpit

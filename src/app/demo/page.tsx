@@ -5,6 +5,7 @@ import RailDemo from "./RailDemo";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { Confirmation, Cur } from "@/components/demo/Simulation";
 import { chiffresDuClub, dateDemo, jourEtCours } from "@/lib/demo/selecteurs";
+import { calculerPriorites, resumeAttention, type Priorite } from "@/lib/priorites";
 import { CLUB } from "@/lib/demo/donnees";
 
 /**
@@ -32,19 +33,6 @@ function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neut
   );
 }
 
-function Carte({ n, label, href, action, vide }: { n: string; label: string; href: string; action: string; vide?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={`group bg-paper px-6 py-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] md:px-7 ${vide ? "opacity-50" : ""}`}
-      style={{ outlineColor: "#1E7A4F" }}
-    >
-      <div className="mono text-[34px] font-bold tracking-[-0.02em]">{n}</div>
-      <div className="mono mt-1 text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mono mt-4 text-[11px] text-ink-faint group-hover:text-ink">→ {action}</div>
-    </Link>
-  );
-}
 
 function Geste({ titre, desc, href, action }: { titre: string; desc: string; href: string; action: string }) {
   return (
@@ -60,6 +48,26 @@ function Geste({ titre, desc, href, action }: { titre: string; desc: string; hre
   );
 }
 
+/* Une ligne de priorité — même rendu que `LignePriorite` du cockpit réel. */
+function LigneDemo({ p, accent }: { p: Priorite; accent: string }) {
+  return (
+    <Link
+      href={p.href}
+      className="group flex min-h-[56px] flex-col gap-1 bg-paper px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+    >
+      <span className="flex items-baseline gap-4">
+        <span className="mono text-[22px] font-bold tabular-nums" style={{ color: accent }}>
+          {p.nombre}
+        </span>
+        <span className="text-[15px] leading-snug">{p.texte}</span>
+      </span>
+      <span className="mono shrink-0 text-[11px] uppercase tracking-label text-ink-faint group-hover:text-ink">
+        {p.action} →
+      </span>
+    </Link>
+  );
+}
+
 export default function DemoAujourdhui() {
   const { etat } = useDemo();
   const c = chiffresDuClub(etat);
@@ -71,11 +79,33 @@ export default function DemoAujourdhui() {
   // en retard, et PIÈCES attendues — des pièces, pas des dossiers. J'avais d'abord
   // additionné les dossiers incomplets, ce qui faussait le titre sans que rien ne le
   // signale : un adhérent à qui il manque deux pièces ne compte pas pour un.
-  const attention = c.enAttente + c.enRetard + c.piecesAttendues;
-  const titre =
-    attention === 0
-      ? "Le club est prêt."
-      : `${attention} chose${attention > 1 ? "s" : ""} mérite${attention > 1 ? "nt" : ""} votre attention.`;
+  // LA MÊME hiérarchie que le cockpit réel (lot #15) : `calculerPriorites` est une
+  // fonction pure, sans Supabase — la démonstration peut donc l'appeler telle quelle.
+  // Avant ce raccord, la démo montrait trois cartes sur le même plan, c'est-à-dire
+  // l'écran d'AVANT la refonte : un prospect découvrait après inscription un cockpit
+  // qui ne ressemblait pas à celui qu'on lui avait montré.
+  const priorites = calculerPriorites({
+    slug: "demo",
+    enAttente: c.enAttente,
+    enRetard: c.enRetard,
+    dossiersIncomplets: c.dossiersIncomplets,
+    nouvelles7j: c.nouvelles7j,
+    litiges: 0,
+    // Cours au complet : même définition que le produit — les statuts qui occupent
+    // une place, comparés à `places_max`.
+    coursComplets: etat.cours
+      .filter((co) => co.places_max != null &&
+        etat.adhesions.filter((a) => a.cours_id === co.id && ["en_attente", "paye", "en_retard"].includes(a.statut)).length >= co.places_max)
+      .map((co) => co.nom),
+    coursPresqueComplets: [],
+    adherents: c.adherents,
+    coursOuverts: etat.cours.length,
+  }).map((pr) => ({ ...pr, href: pr.href.replace("/demo/cockpit", "/demo") }));
+  const aTraiter = priorites.filter((pr) => pr.niveau === "traiter");
+  const aSurveiller = priorites.filter((pr) => pr.niveau === "surveiller");
+  const infos = priorites.filter((pr) => pr.niveau === "info");
+  const attention = aTraiter.length;
+  const titre = resumeAttention(priorites).titre;
   const sousTitre =
     attention === 0
       ? coursDuJour.length > 0
@@ -105,34 +135,35 @@ export default function DemoAujourdhui() {
           <Confirmation />
         </div>
 
-        {/* À FAIRE — l'action avant la statistique */}
-        <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-3">
-          <Carte
-            n={String(c.enAttente)}
-            label={`DOSSIER${c.enAttente > 1 ? "S" : ""} À TERMINER`}
-            href="/demo/paiements"
-            action="OUVRIR"
-            vide={c.enAttente === 0}
-          />
-          <Carte
-            n={String(c.enRetard)}
-            label={`COTISATION${c.enRetard > 1 ? "S" : ""} À RELANCER`}
-            href="/demo/messages"
-            action="RELANCER"
-            vide={c.enRetard === 0}
-          />
-          {/* La troisième carte compte les INSCRIPTIONS des sept derniers jours, et mène
-              aux paiements. J'y avais mis les dossiers incomplets : c'était une carte
-              de mon invention. Les dossiers incomplets restent visibles là où ils sont
-              utiles — dans la fiche et dans les listes. */}
-          <Carte
-            n={String(c.nouvelles7j)}
-            label={`INSCRIPTION${c.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
-            href="/demo/paiements"
-            action="VÉRIFIER"
-            vide={c.nouvelles7j === 0}
-          />
-        </div>
+        {/* CE QUI DEMANDE VOTRE ATTENTION — la MÊME hiérarchie que le cockpit réel.
+            Trois cartes sur le même plan, c'était l'écran d'avant le lot #15 : un
+            chiffre neutre y pesait autant qu'une urgence. La démonstration doit
+            montrer le produit qu'on livre, pas celui d'il y a trois semaines. */}
+        {aTraiter.length > 0 ? (
+          <div className="border-b border-line px-6 py-8 md:px-10">
+            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+              À TRAITER MAINTENANT<Cur />
+            </p>
+            <div className="mt-5 flex flex-col gap-px bg-line">
+              {aTraiter.map((pr) => (
+                <LigneDemo key={pr.cle} p={pr} accent="#B23B3B" />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {aSurveiller.length > 0 ? (
+          <div className="border-b border-line px-6 py-8 md:px-10">
+            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#8A6508" }}>
+              À SURVEILLER<Cur />
+            </p>
+            <div className="mt-5 flex flex-col gap-px bg-line">
+              {aSurveiller.map((pr) => (
+                <LigneDemo key={pr.cle} p={pr} accent="#8A6508" />
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* LE CLUB AUJOURD'HUI */}
         <div className="border-b border-line px-6 py-8 md:px-10">
@@ -145,33 +176,22 @@ export default function DemoAujourdhui() {
               c'était une meilleure version hypothétique du produit, pas son jumeau.
               Une démonstration qui améliore ce qu'elle montre ment sur ce qu'on achète. */}
           <div className="mt-5">
-            <Point etat={c.nouvelles7j > 0 ? "ok" : "neutre"}>
-              {c.nouvelles7j > 0
-                ? `${c.nouvelles7j} nouvelle${c.nouvelles7j > 1 ? "s" : ""} inscription${c.nouvelles7j > 1 ? "s" : ""} cette semaine`
-                : "Pas de nouvelle inscription cette semaine"}
-            </Point>
-            <Point etat={c.enRetard > 0 ? "urgent" : "ok"}>
-              {c.enRetard > 0
-                ? `${c.enRetard} cotisation${c.enRetard > 1 ? "s" : ""} en retard`
-                : c.enAttente > 0
-                  ? "Aucune cotisation en retard"
-                  : "Tous les paiements sont à jour"}
-            </Point>
-            <Point etat={c.enAttente > 0 ? "attention" : "ok"}>
-              {c.enAttente > 0
-                ? `${c.enAttente} dossier${c.enAttente > 1 ? "s" : ""} en attente de règlement`
-                : "Aucun dossier en attente"}
-            </Point>
-            {c.piecesAttendues > 0 ? (
-              <Point etat="attention">
-                {c.piecesAttendues} pièce{c.piecesAttendues > 1 ? "s" : ""} de dossier attendue
-                {c.piecesAttendues > 1 ? "s" : ""}
+            {/* Les lignes d'état viennent du niveau `info` des MÊMES priorités : le
+                cockpit fait exactement cela. Les recopier ici les ferait apparaître
+                DEUX FOIS — une fois en priorité, une fois en état — et diverger au
+                premier changement de vocabulaire. */}
+            {infos.map((pr) => (
+              <Point key={pr.cle} etat="neutre">
+                {pr.nombre} {pr.texte}
               </Point>
-            ) : null}
+            ))}
             {coursDuJour.length > 0 ? (
               <Point etat="neutre">
-                Ce {jourSemaine} : {coursDuJour.map((k) => `${k.nom} ${k.debut}–${k.fin}`).join(" · ")}
+                Ce {jourSemaine} : {coursDuJour.map((co) => `${co.nom} ${co.debut}–${co.fin}`).join(" · ")}
               </Point>
+            ) : null}
+            {aTraiter.length === 0 && aSurveiller.length === 0 ? (
+              <Point etat="ok">Rien ne demande votre attention aujourd&apos;hui.</Point>
             ) : null}
           </div>
         </div>
