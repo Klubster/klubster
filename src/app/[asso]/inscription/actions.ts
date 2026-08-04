@@ -436,6 +436,10 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
       // ⚠️ redirect() lève NEXT_REDIRECT : appelé DANS le try, il était avalé par le catch
       // et l'adhérent n'était jamais envoyé chez Stripe. Il doit rester en dehors.
       if (urlPaiement) redirect(urlPaiement);
+      // Le checkout n'a pas pu être créé : le DIRE. Avant, l'adhérent atterrissait sur
+      // « merci » comme si tout allait bien, croyait avoir payé, et l'adhésion restait
+      // en attente sans que personne ne le sache.
+      redirect(`/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paiement=indisponible`);
     }
   }
 

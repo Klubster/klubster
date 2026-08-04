@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function MerciPage(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ prenom?: string; mode?: string; paye?: string; attente?: string }>;
+    searchParams: Promise<{ prenom?: string; mode?: string; paye?: string; attente?: string; paiement?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -21,8 +21,12 @@ export default async function MerciPage(
   const paye = searchParams?.paye === "1";
   const attente = searchParams?.attente === "1";
   const mode = searchParams?.mode;
+  // `paiement=indisponible` : le paiement en ligne n'a pas pu démarrer. Le dire
+  // clairement — l'adhérent croyait avoir payé, la cotisation restait due en silence.
+  const paiementIndisponible = searchParams?.paiement === "indisponible";
   const reglement =
-    mode === "cheque" ? "Règlement par chèque : à remettre au club."
+    paiementIndisponible ? "⚠ Le paiement en ligne n'a pas pu démarrer : votre inscription est bien enregistrée, mais AUCUN paiement n'a été effectué. Vous pourrez régler depuis votre espace adhérent, ou directement auprès du club."
+    : mode === "cheque" ? "Règlement par chèque : à remettre au club."
     : mode === "especes" ? "Règlement en espèces : à remettre au club."
     : mode === "en_ligne" && !paye ? "Paiement en ligne non finalisé : vous pourrez régler auprès du club."
     : null;

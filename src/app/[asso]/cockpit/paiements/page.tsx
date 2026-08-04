@@ -20,8 +20,9 @@ const LIBELLE_MODE: Record<string, string> = {
   remboursement: "Remboursements",
 };
 
-export default async function PaiementsPage(props: { params: Promise<{ asso: string }> }) {
+export default async function PaiementsPage(props: { params: Promise<{ asso: string }>; searchParams?: Promise<{ erreur?: string; saison?: string }> }) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -71,7 +72,9 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
     .select("id, montant_centimes, mode_paiement, statut, created_at, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
-    .in("mode_paiement", ["cheque", "especes"])
+    // Un renouvellement de saison ou un import crée l'adhésion SANS mode de paiement :
+    // ces impayés n'apparaissaient jamais ici (alors que les relances les voyaient).
+    .or("mode_paiement.in.(cheque,especes),mode_paiement.is.null")
     .order("created_at", { ascending: false });
 
   const brut = (data ?? []) as unknown as Array<{
@@ -202,6 +205,11 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
           </p>
         </form>
 
+        {searchParams?.erreur === "encaisse" ? (
+          <p className="mono mb-6 text-[12px]" style={{ color: "#B23B3B" }}>
+            L’encaissement n’a pas pu être enregistré. Rien n’a été modifié — réessayez.
+          </p>
+        ) : null}
         <PaiementsClient slug={org.slug} nomClub={org.nom} lignes={lignes} />
       </div>
     </main>

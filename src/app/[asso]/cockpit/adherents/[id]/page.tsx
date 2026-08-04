@@ -5,6 +5,8 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
+import { resteAPayer } from "@/lib/finances";
+import { saisonCourante } from "@/lib/saison";
 import { modifierAdherent, basculerPiece } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
@@ -118,9 +120,17 @@ export default async function FicheAdherent(
     : { data: [] };
   const listeReglements = (reglements ?? []) as unknown as Reglement[];
 
-  const totalRegle = listeReglements.reduce((s, r) => s + r.montant_centimes, 0);
-  const totalDu = listeAdhesions.reduce((s, a) => s + (a.montant_centimes ?? 0), 0);
-  const reste = Math.max(totalDu - totalRegle, 0);
+  // Le bloc trésorerie parle de LA saison courante : « Reste 420 € » sur un adhérent
+  // à jour depuis deux ans venait d'un total toutes saisons confondues. Le détail par
+  // adhésion, lui, garde tout l'historique.
+  const saisonActuelle = saisonCourante(org);
+  const adhesionsSaison = listeAdhesions.filter((a) => a.saison === saisonActuelle && !["annule", "rembourse", "liste_attente"].includes(a.statut ?? ""));
+  const idsSaison = new Set(adhesionsSaison.map((a) => a.id));
+  const totalRegle = listeReglements.filter((r) => idsSaison.has(r.adhesion_id)).reduce((s, r) => s + r.montant_centimes, 0);
+  const totalDu = adhesionsSaison.reduce((s, a) => s + (a.montant_centimes ?? 0), 0);
+  // LA tolérance (5 c) — la même que les RPC d'encaissement : fini l'adhésion à la fois
+  // « payée » et « reste 0,03 € » selon l'écran.
+  const reste = resteAPayer(totalDu, totalRegle);
 
   // Solde restant par adhésion : ce que l'ajout de règlement doit cibler.
   const regleParAdhesion = new Map<string, number>();
@@ -130,7 +140,7 @@ export default async function FicheAdherent(
   const soldes = listeAdhesions.map((a) => ({
     id: a.id,
     cours: a.cours?.nom ?? a.saison ?? "Adhésion",
-    resteCentimes: Math.max((a.montant_centimes ?? 0) - (regleParAdhesion.get(a.id) ?? 0), 0),
+    resteCentimes: resteAPayer(a.montant_centimes ?? 0, regleParAdhesion.get(a.id) ?? 0),
   }));
 
   const infos = (adherent.infos ?? {}) as Record<string, string>;
@@ -305,7 +315,7 @@ export default async function FicheAdherent(
               <div className="bg-bg-alt px-5 py-4">
                 {peutVoirArgent ? (
                   <p className="mono text-[12px]">
-                    Réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
+                    Saison {saisonActuelle} — réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
                     {reste > 0 ? (
                       <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
                     ) : (

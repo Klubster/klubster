@@ -93,6 +93,9 @@ export default async function Adherents(
     // un filtre qui ne filtre rien fait croire au président que tout le club est en défaut.
     requete = requete.in("id", idsIncomplets.length > 0 ? idsIncomplets : [ID_IMPOSSIBLE]);
   }
+  // Le badge affiché est adhesions[0] : sans ordre, PostgREST rend les adhésions dans
+  // un ordre quelconque et le badge pouvait venir d'une saison ancienne.
+  requete = requete.order("created_at", { referencedTable: "adhesions", ascending: false });
 
   if (q) {
     // Les caractères de filtre PostgREST (virgule, parenthèses) sont retirés :
@@ -277,6 +280,8 @@ export default async function Adherents(
                           {ad.statut === "paye" ? "Payé"
                             : ad.statut === "en_retard" ? "En retard"
                             : ad.statut === "liste_attente" ? "Liste d’attente"
+                            : ad.statut === "rembourse" ? "Remboursé"
+                            : ad.statut === "annule" ? "Annulée"
                             : "En attente"}
                         </span>
                         {typeof ad.montant_centimes === "number" ? (

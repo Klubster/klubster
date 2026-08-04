@@ -151,10 +151,14 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       const total = bornerEcheances(sub.metadata?.echeances ?? 1);
       if (adhesionId && typeof obj.amount_paid === "number" && obj.amount_paid > 0) {
         await verifierCompte(admin, adhesionId, event.account!);
+        // Le rang d'échéance ne compte QUE les prélèvements en ligne : un règlement
+        // manuel ou un remboursement au milieu produisait « Échéance 4/3 (Stripe) ».
         const { count } = await admin
           .from("reglements")
           .select("id", { count: "exact", head: true })
-          .eq("adhesion_id", adhesionId);
+          .eq("adhesion_id", adhesionId)
+          .eq("mode", "en_ligne")
+          .gt("montant_centimes", 0);
         const rang = (count ?? 0) + 1;
         await appelerRpc(admin, adhesionId, obj.amount_paid, `Échéance ${rang}/${total} (Stripe)`, event.id);
       }

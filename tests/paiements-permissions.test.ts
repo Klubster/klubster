@@ -141,7 +141,7 @@ describe("fiche adhérent — pas de faux zéro", () => {
     // Le point de tout ce lot : une RLS qui rend un tableau vide ne doit JAMAIS se lire
     // « cette personne n'a rien payé ». C'est la différence entre « je ne sais pas » et
     // « je sais que non », et elle se paie en appels téléphoniques inutiles.
-    expect(FICHE).toMatch(/\{peutVoirArgent \? \([\s\S]*?Réglé :/);
+    expect(FICHE).toMatch(/\{peutVoirArgent \? \([\s\S]*?réglé :/);
     expect(FICHE).toMatch(/réservé au président et au trésorier/);
   });
 });
