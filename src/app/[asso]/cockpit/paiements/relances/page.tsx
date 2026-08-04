@@ -52,7 +52,7 @@ export default async function RelancesPage(
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(id, prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
+    .select("id, montant_centimes, statut, mode_paiement, adherent:adherents(id, prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
     .order("created_at", { ascending: true });
@@ -62,6 +62,11 @@ export default async function RelancesPage(
   // vérifie le rôle en base. Cette page l'exige déjà, mais le garde de page ne protège
   // que la page.
   const { data: relancesData } = await supabase.rpc("adhesions_finance", { p_org: org.id });
+  // litige_le vit derrière adhesions_finance (grants par colonne — un select direct
+  // échouerait pour le trésorier) : on le rattache ici, comme derniere_relance.
+  const litigeParId = new Map(
+    ((relancesData ?? []) as { id: string; litige_le: string | null }[]).map((r) => [r.id, r.litige_le])
+  );
   const relanceParId = new Map(
     ((relancesData ?? []) as { id: string; derniere_relance: string | null }[]).map((a) => [a.id, a.derniere_relance])
   );
@@ -72,7 +77,7 @@ export default async function RelancesPage(
       montantCentimes: l.montant_centimes ?? 0,
       statut: l.statut ?? "en_attente",
       modePaiement: l.mode_paiement ?? null,
-      litigeLe: l.litige_le ?? null,
+      litigeLe: litigeParId.get(l.id) ?? null,
       reglements: (l.reglements ?? []).map((r) => ({ montantCentimes: r.montant_centimes, mode: (r as { mode?: string | null }).mode ?? null })),
     });
   const reste = (l: Ligne) => decisionDe(l).montantCentimes;

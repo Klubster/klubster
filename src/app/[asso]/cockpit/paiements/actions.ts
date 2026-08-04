@@ -40,7 +40,6 @@ type LigneImpaye = {
   montant_centimes: number | null;
   statut: string | null;
   mode_paiement: string | null;
-  litige_le: string | null;
   adherent: { prenom: string; nom: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null } | null;
   cours: { nom: string } | null;
   reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
@@ -61,15 +60,16 @@ function texteRelance(prenom: string, club: string, cours: string | null, resteC
 
 // LA DÉCISION (src/lib/relances.ts) — la même que le cron et l'écran : exclut
 // d'elle-même échéancier Stripe en cours, litige, remboursé, annulé, soldé.
-const decisionDe = (l: LigneImpaye) =>
+// le litige vient du volet financier (adhesions_finance) chargé par l'appelant
+const decisionDe = (l: LigneImpaye, litigeLe: string | null = null) =>
   decisionRelanceFinanciere({
     montantCentimes: l.montant_centimes ?? 0,
     statut: (l as { statut?: string | null }).statut ?? "en_attente",
     modePaiement: (l as { mode_paiement?: string | null }).mode_paiement ?? null,
-    litigeLe: (l as { litige_le?: string | null }).litige_le ?? null,
+    litigeLe,
     reglements: (l.reglements ?? []).map((r) => ({ montantCentimes: r.montant_centimes, mode: (r as { mode?: string | null }).mode ?? null })),
   });
-const resteDe = (l: LigneImpaye) => decisionDe(l).montantCentimes;
+const resteDe = (l: LigneImpaye, litigeLe: string | null = null) => decisionDe(l, litigeLe).montantCentimes;
 
 /**
  * Relancer une personne. On recharge son solde côté serveur (jamais confiance au client),
@@ -81,15 +81,17 @@ export async function relancerImpaye(slug: string, adhesionId: string) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
+    .select("id, montant_centimes, statut, mode_paiement, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("id", adhesionId)
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
     .maybeSingle();
 
   const l = data as unknown as LigneImpaye | null;
+  const { data: fin } = await supabase.rpc("adhesions_finance", { p_org: org.id });
+  const litige = ((fin ?? []) as { id: string; litige_le: string | null }[]).find((f) => f.id === adhesionId)?.litige_le ?? null;
   const email = l?.adherent ? destinataireRelance(l.adherent as never) : null;
-  if (!l || !email || !decisionDe(l).relancer) redirect(`/${slug}/cockpit/paiements/relances?erreur=email`);
+  if (!l || !email || !decisionDe(l, litige).relancer) redirect(`/${slug}/cockpit/paiements/relances?erreur=email`);
 
   const m = texteRelance(l.adherent!.prenom, org.nom, l.cours?.nom ?? null, resteDe(l), !!compteConnecte(org));
   const res = await envoyerLotPersonnalise({
@@ -110,16 +112,18 @@ export async function relancerTousImpayes(slug: string) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
+    .select("id, montant_centimes, statut, mode_paiement, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"]);
 
   const enLigne = !!compteConnecte(org);
+  const { data: finTous } = await supabase.rpc("adhesions_finance", { p_org: org.id });
+  const litigeParIdAction = new Map(((finTous ?? []) as { id: string; litige_le: string | null }[]).map((f) => [f.id, f.litige_le]));
   const messages: Array<{ to: string; objet: string; texte: string }> = [];
   const ids: string[] = [];
   for (const l of (data ?? []) as unknown as LigneImpaye[]) {
     const email = l.adherent ? destinataireRelance(l.adherent as never) : null;
-    if (!email || !decisionDe(l).relancer) continue;
+    if (!email || !decisionDe(l, litigeParIdAction.get(l.id) ?? null).relancer) continue;
     const m = texteRelance(l.adherent!.prenom, org.nom, l.cours?.nom ?? null, resteDe(l), enLigne);
     messages.push({ to: email, objet: m.objet, texte: m.texte });
     ids.push(l.id);
