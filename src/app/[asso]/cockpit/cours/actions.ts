@@ -116,7 +116,7 @@ export async function supprimerCours(slug: string, coursId: string) {
     // et on s'arrête là — quitte à laisser le président sans solution, plutôt que de
     // l'envoyer en chercher une qui n'existe pas.
     return {
-      erreur: `Ce cours compte ${count} adhérent${count! > 1 ? "s" : ""} : leurs dossiers y sont rattachés.`,
+      erreur: `Ce cours compte ${count} adhérent${count! > 1 ? "s" : ""} : déplacez-les d’abord, depuis leur fiche (« Changer de cours »).`,
     };
   }
 
