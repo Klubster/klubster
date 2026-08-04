@@ -123,6 +123,8 @@ describe("pièces facultatives — la règle unique du dossier incomplet (arbitr
 
   it("la fiche affiche la mention Facultative", () => {
     expect(FICHE).toMatch(/Facultative/);
+  });
+});
 
 describe("lot J — changement de cours et pièces filtrées", () => {
   const CHANGER = lire("supabase/migrations/20260804120000_changer_cours.sql");

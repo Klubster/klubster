@@ -479,7 +479,7 @@ export default async function FicheAdherent(
                     </form>
                     {/* Reçue par email : le certificat est dans la boîte du club, pas dans
                         l'espace — le cas le plus courant en début de saison. */}
-                    {p.statut !== "par_email" && p.statut !== "fournie" && p.statut !== "recue" ? (
+                    {!estFournie(p.statut) ? (
                       <form action={marquerPieceParEmail.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
                         <button className="mono text-[11px] uppercase tracking-wide text-ink-soft hover:underline">
                           ✉ Par email
