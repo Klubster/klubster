@@ -70,3 +70,12 @@ describe("formulaire — l'enregistrement refuse ce qui rendrait le public illis
     expect(BUILDER).toMatch(/\{erreur \?\? "Erreur d’enregistrement"\}/);
   });
 });
+
+describe("formulaire — deux champs identiques (audit du 04/08)", () => {
+  it("un libellé dupliqué est refusé en nommant le doublon", () => {
+    // Deux champs de même libellé partagent la même clé dans `adherents.infos` :
+    // la seconde réponse écrasait la première, en silence.
+    expect(ACTIONS).toMatch(/Deux champs portent le même libellé/);
+    expect(ACTIONS).toMatch(/toLowerCase\(\)/);
+  });
+});

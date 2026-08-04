@@ -34,6 +34,16 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
   for (const p of propre.pieces) {
     if (!p.label) return { error: "Une pièce n’a pas de nom : donnez-lui un nom, ou supprimez-la." };
   }
+  // Deux champs portant le même libellé écrivent sous LA MÊME clé dans le dossier :
+  // la seconde réponse écrase la première, en silence. Refusé en nommant le doublon.
+  const vus = new Set<string>();
+  for (const pg of propre.pages) {
+    for (const ch of pg.champs) {
+      const cle = ch.label.toLowerCase();
+      if (vus.has(cle)) return { error: `Deux champs portent le même libellé « ${ch.label} » : renommez-en un, sinon la seconde réponse écraserait la première.` };
+      vus.add(cle);
+    }
+  }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from("organisations").update({ form_config: propre }).eq("id", org.id);
