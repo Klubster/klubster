@@ -17,6 +17,9 @@ export interface Piece {
   label: string;
   obligatoire: boolean;
   cours_id?: string | null; // pièce demandée uniquement pour ce cours (null/absent = tous)
+  /** Pièce exigée uniquement pour les adhérents mineurs (autorisation parentale, etc.).
+   *  La minorité est déduite de la date de naissance côté serveur, jamais d'un champ posté. */
+  mineurs_seulement?: boolean;
   /** Fichier modèle à télécharger par l'adhérent (ex. certificat médical vierge). */
   modele_url?: string | null;
   modele_nom?: string | null;

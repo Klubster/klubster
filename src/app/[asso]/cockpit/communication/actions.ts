@@ -67,7 +67,9 @@ export async function envoyerMessage(
       .from("pieces_adherent")
       .select("adherent_id, statut")
       .eq("organisation_id", org.id)
-      .eq("statut", STATUT_PIECE_MANQUANTE);
+      .eq("statut", STATUT_PIECE_MANQUANTE)
+      // règle du 04/08 : le ciblage « dossiers incomplets » ne vise que les obligatoires
+      .eq("obligatoire", true);
     const ids = new Set((pieces ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
     cibles = cibles.filter((a) => ids.has(a.id));
   } else if (groupe !== "tous") {

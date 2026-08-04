@@ -119,10 +119,13 @@ export default function FormBuilder({
     setPages(config.pages.map((p) => (p.id === pid ? { ...p, champs: p.champs.map((ch) => (ch.id === cid ? { ...ch, ...patch } : ch)) } : p)));
   }
 
+  const [erreur, setErreur] = useState<string | null>(null);
   async function save() {
     setState("saving");
+    setErreur(null);
     const res = await saveFormConfig(slug, config);
     setState(res?.ok ? "ok" : "err");
+    if (!res?.ok) setErreur(res?.error ?? null);
     if (res?.ok) {
       // Le brouillon a rempli son office : la version en ligne EST le brouillon.
       try {
@@ -504,6 +507,17 @@ export default function FormBuilder({
                   <input type="checkbox" checked={pc.obligatoire} onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, obligatoire: e.target.checked } : p)))} />
                   OBLIGATOIRE
                 </label>
+                <label
+                  className="mono flex items-center gap-1.5 text-[11px] text-ink-soft"
+                  title="Cette pièce n'est demandée que si l'adhérent est mineur (autorisation parentale, etc.)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!pc.mineurs_seulement}
+                    onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, mineurs_seulement: e.target.checked || undefined } : p)))}
+                  />
+                  MINEURS UNIQUEMENT
+                </label>
                 <Btn onClick={() => setPieces(move(config.pieces, i, -1))}>↑</Btn>
                 <Btn onClick={() => setPieces(move(config.pieces, i, 1))}>↓</Btn>
                 <Btn onClick={() => setPieces(config.pieces.filter((p) => p.id !== pc.id))}>✕</Btn>
@@ -578,7 +592,11 @@ export default function FormBuilder({
             {state === "saving" ? "ENREGISTREMENT…" : "ENREGISTRER →"}
           </button>
           {state === "ok" ? <span className="mono text-[12px] text-brand">✓ Enregistré</span> : null}
-          {state === "err" ? <span className="mono text-[12px]" style={{ color: "#B23B3B" }}>Erreur d&apos;enregistrement</span> : null}
+          {state === "err" ? (
+            // Le message du serveur dit QUOI corriger (« Un champ n'a pas de libellé… ») —
+            // pas un « Erreur d'enregistrement » générique.
+            <span className="mono text-[12px]" style={{ color: "#B23B3B" }}>{erreur ?? "Erreur d’enregistrement"}</span>
+          ) : null}
           <Link href={`/${slug}/inscription`} className="mono ml-auto text-[12px] text-ink-soft hover:text-ink">VOIR LE FORMULAIRE →</Link>
         </div>
       </div>

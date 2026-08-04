@@ -195,7 +195,9 @@ export async function getAujourdhui(organisationId: string): Promise<Aujourdhui>
       .from("pieces_adherent")
       .select("adherent_id")
       .eq("organisation_id", organisationId)
-      .eq("statut", STATUT_PIECE_MANQUANTE),
+      .eq("statut", STATUT_PIECE_MANQUANTE)
+      // règle du 04/08 : seules les pièces OBLIGATOIRES rendent un dossier incomplet
+      .eq("obligatoire", true),
   ]);
 
   const evenements: EvenementClub[] = [

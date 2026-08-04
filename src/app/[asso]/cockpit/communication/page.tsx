@@ -56,7 +56,9 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
     .from("pieces_adherent")
     .select("adherent_id, statut")
     .eq("organisation_id", org.id)
-    .eq("statut", STATUT_PIECE_MANQUANTE);
+    .eq("statut", STATUT_PIECE_MANQUANTE)
+    // règle du 04/08 : le ciblage « dossiers incomplets » ne vise que les obligatoires
+    .eq("obligatoire", true);
 
   const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null }[];
   const adhesions = (insData ?? []) as { adherent_id: string; cours_id: string | null }[];

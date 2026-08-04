@@ -161,8 +161,12 @@ async function lancer(request: NextRequest) {
   const { data: piecesData, error: piecesErr } = await chargerTout((debut, fin) =>
     admin
       .from("pieces_adherent")
-      .select("adherent_id, cle, statut")
+      .select("adherent_id, cle, statut, obligatoire")
       .eq("statut", "manquante")
+      // RÈGLE PRODUIT (04/08/2026) : l'instantané `obligatoire` de la ligne fait foi,
+      // PAS la config actuelle du formulaire — un changement de config ne modifie
+      // jamais silencieusement les dossiers existants.
+      .eq("obligatoire", true)
       .order("id")
       .range(debut, fin)
   );
@@ -176,15 +180,6 @@ async function lancer(request: NextRequest) {
   }
 
   const orgsPar = new Map(orgs.map((o) => [o.id, o]));
-  // Clés des pièces OBLIGATOIRES par club (depuis form_config).
-  const clesObligatoires = new Map<string, Set<string>>();
-  for (const o of orgs) {
-    const cles = new Set<string>();
-    for (const p of o.form_config?.pieces ?? []) {
-      if (p.obligatoire) cles.add(p.id);
-    }
-    clesObligatoires.set(o.id, cles);
-  }
 
   type Envoi = { adherentId: string; motif: string; orgId: string; to: string; objet: string; para: string[]; club: Organisation; montantCentimes?: number };
   const aEnvoyer: Envoi[] = [];
@@ -217,9 +212,9 @@ async function lancer(request: NextRequest) {
     const coursNom = adh.cours?.nom ?? null;
 
     // 1) Pièces obligatoires manquantes.
-    const oblig = clesObligatoires.get(org.id) ?? new Set<string>();
+    // les lignes lues sont déjà « obligatoires et manquantes » : la présence suffit
     const manquantes = piecesManquantes.get(adherentId) ?? new Set<string>();
-    const aUneManquante = [...manquantes].some((c) => oblig.has(c));
+    const aUneManquante = manquantes.size > 0;
     if (aUneManquante) {
       const etapes: [keyof typeof FENETRE_PIECES, boolean][] = [
         ["pieces_30", cfg.relance_pieces_30],
@@ -348,7 +343,6 @@ async function lancer(request: NextRequest) {
       const saison = saisonCourante(org);
       const liste = (adhParOrg.get(org.id) ?? []).filter((a) => (a.saison ?? "") === saison);
       const nouvelles = liste.filter((a) => new Date(a.created_at).getTime() >= il7j).length;
-      const oblig = clesObligatoires.get(org.id) ?? new Set<string>();
       let impayes = 0;
       let dossiers = 0;
       for (const a of liste) {
@@ -357,7 +351,7 @@ async function lancer(request: NextRequest) {
         const reste = (a.montant_centimes ?? 0) - regle;
         if ((a.statut === "en_attente" || a.statut === "en_retard") && reste > 0) impayes++;
         const manq = piecesManquantes.get(a.adherent_id);
-        if (manq && [...manq].some((c) => oblig.has(c))) dossiers++;
+        if (manq && manq.size > 0) dossiers++;
       }
       // Rien à signaler : on n'envoie pas.
       if (nouvelles > 0 || impayes > 0 || dossiers > 0) {
