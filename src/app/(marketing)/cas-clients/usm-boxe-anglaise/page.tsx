@@ -158,6 +158,24 @@ export default function CasUsmBoxe() {
               la saison avance.
             </p>
           </Reveal>
+
+          {/* La preuve avant le discours : le vrai club, tel que le voient les familles.
+              CTA secondaire — l'action commerciale reste « DEVENIR CLUB FONDATEUR » en
+              bas de page. Jamais /demo ici : c'est la véritable vitrine publique. */}
+          <Reveal className="mt-10">
+            <div className="border border-line px-6 py-6 md:px-7">
+              <p className="max-w-prose text-[15px] leading-relaxed text-ink-soft">
+                Klubster est né ici, à l’USM Boxe Anglaise de Montauban. Découvrez la page
+                que voient aujourd’hui les adhérents et les familles.
+              </p>
+              <Link
+                href="/usmboxe"
+                className="mono mt-5 block w-full border border-ink px-7 py-3.5 text-center text-[13px] hover:bg-ink hover:text-paper sm:inline-block sm:w-auto"
+              >
+                VOIR LE CLUB USM BOXE →
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 

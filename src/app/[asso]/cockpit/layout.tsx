@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import ChatCockpit from "@/components/site/ChatCockpit";
@@ -15,6 +16,14 @@ export default async function CockpitLayout({
   const { asso } = await params;
   const org = await getOrganisationBySlug(asso);
   const profile = await getProfile();
+
+  // Un compte connecté SANS club qui ouvre une URL de cockpit tombait sur une 404 sèche
+  // ou revoyait le formulaire de connexion : impasse constatée en exerçant l'onboarding.
+  // On l'envoie vers un écran qui explique et propose la suite — sans rien révéler du
+  // club visé par l'URL. Les pages du cockpit gardent leurs propres contrôles d'accès.
+  if (profile && !profile.organisation_id && profile.role !== "super_admin") {
+    redirect("/sans-club");
+  }
   const membre =
     !!org &&
     !!profile &&

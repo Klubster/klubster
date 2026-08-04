@@ -71,9 +71,22 @@ export async function deconnexion() {
   redirect("/");
 }
 
+/**
+ * Toute erreur d'authentification passe ici avant l'écran. GoTrue répond en anglais
+ * technique (« Email address "…" is invalid ») : montré tel quel à un bénévole, c'est
+ * illisible et ça ressemble à une panne. Vu en test le 02/08 sur l'onglet Créer un
+ * compte. Le repli est volontairement générique : jamais le message brut à l'écran —
+ * il part dans les journaux serveur, où il est utile.
+ */
 function traduire(msg: string): string {
   if (/Invalid login credentials/i.test(msg)) return "Email ou mot de passe incorrect.";
-  if (/already registered/i.test(msg)) return "Un compte existe déjà avec cet email.";
+  if (/already registered|already been registered/i.test(msg)) return "Un compte existe déjà avec cet email. Connectez-vous, ou utilisez « Mot de passe oublié ? ».";
   if (/Password should be at least/i.test(msg)) return `Le mot de passe doit faire au moins ${LONGUEUR_MIN_MDP} caractères.`;
-  return msg;
+  if (/is invalid|Unable to validate email|invalid format/i.test(msg)) return "Cette adresse email ne semble pas valide. Vérifiez-la (exemple : prenom@monclub.fr).";
+  if (/Email not confirmed/i.test(msg)) return "Votre email n’est pas encore confirmé. Ouvrez le message que nous vous avons envoyé, puis reconnectez-vous.";
+  if (/rate limit|For security purposes|too many requests/i.test(msg)) return "Trop de tentatives rapprochées. Patientez une minute, puis réessayez.";
+  if (/signup.*disabled/i.test(msg)) return "Les créations de compte sont momentanément suspendues. Réessayez un peu plus tard.";
+  if (/fetch|network|timeout/i.test(msg)) return "Le serveur n’a pas répondu. Vérifiez votre connexion et réessayez.";
+  console.error("auth non traduit:", msg);
+  return "Une erreur est survenue. Réessayez ; si cela persiste, écrivez-nous depuis la page d’accueil.";
 }
