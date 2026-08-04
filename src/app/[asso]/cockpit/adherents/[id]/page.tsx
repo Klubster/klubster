@@ -4,7 +4,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
-import { modifierAdherent, basculerPiece } from "../actions";
+import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail } from "../actions";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
 import Remboursement from "./Remboursement";
@@ -334,12 +334,40 @@ export default async function FicheAdherent(
                     <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
                       <button
                         className="mono text-[11px] uppercase tracking-wide hover:underline"
-                        style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
+                        style={{ color: p.statut === "recue" || p.statut === "fournie" ? "#1E7A4F" : p.statut === "par_email" ? "#1E7A4F" : "#8A6508" }}
                       >
-                        {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
+                        {p.statut === "recue" || p.statut === "fournie" ? "✓ Reçue"
+                          : p.statut === "par_email" ? "✉ Reçue par email"
+                          : "○ Manquante"}
                       </button>
                     </form>
+                    {/* Reçue par email : le certificat est dans la boîte du club, pas dans
+                        l'espace — le cas le plus courant en début de saison. */}
+                    {p.statut !== "par_email" && p.statut !== "fournie" && p.statut !== "recue" ? (
+                      <form action={marquerPieceParEmail.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
+                        <button className="mono text-[11px] uppercase tracking-wide text-ink-soft hover:underline">
+                          ✉ Par email
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
+                  {/* Dépôt par un bénévole — promesse publique. Mêmes contrôles que le
+                      dépôt adhérent (PDF/JPEG/PNG, 5 Mo, premiers octets). */}
+                  <form
+                    action={deposerPieceCockpit.bind(null, org.slug, adherent.id, p.id)}
+                    className="mono flex w-full flex-wrap items-center gap-2 pl-1 pt-1 text-[11px]"
+                  >
+                    <input
+                      type="file"
+                      name="fichier"
+                      accept="application/pdf,image/png,image/jpeg"
+                      required
+                      className="max-w-[240px] text-[11px]"
+                    />
+                    <button className="border border-line px-3 py-1.5 uppercase tracking-wide hover:bg-ink hover:text-paper">
+                      {p.chemin ? "Remplacer le fichier" : "Déposer pour l’adhérent"}
+                    </button>
+                  </form>
                 </div>
               ))}
             </div>
