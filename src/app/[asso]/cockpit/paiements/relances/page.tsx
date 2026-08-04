@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { resteAPayer } from "@/lib/finances";
+import { decisionRelanceFinanciere, destinataireRelance } from "@/lib/relances";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
@@ -17,10 +17,12 @@ type Ligne = {
   id: string;
   montant_centimes: number | null;
   statut: string | null;
+  mode_paiement: string | null;
+  litige_le: string | null;
   derniere_relance: string | null;
-  adherent: { id: string; prenom: string; nom: string; email: string | null } | null;
+  adherent: { id: string; prenom: string; nom: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null } | null;
   cours: { nom: string } | null;
-  reglements: Array<{ montant_centimes: number }> | null;
+  reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
 };
 
 function depuis(dateIso: string): string {
@@ -50,7 +52,7 @@ export default async function RelancesPage(
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, statut, adherent:adherents(id, prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
+    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(id, prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
     .order("created_at", { ascending: true });
@@ -64,13 +66,20 @@ export default async function RelancesPage(
     ((relancesData ?? []) as { id: string; derniere_relance: string | null }[]).map((a) => [a.id, a.derniere_relance])
   );
 
-  // LA tolérance (5 c), partagée avec les RPC : une adhésion soldée à 3 centimes près
-  // n'est plus « impayée » ici tout en étant « payée » ailleurs.
-  const reste = (l: Ligne) => resteAPayer(l.montant_centimes ?? 0, (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0));
+  // LA DÉCISION vient de src/lib/relances.ts — la même que le cron et la fiche.
+  const decisionDe = (l: Ligne) =>
+    decisionRelanceFinanciere({
+      montantCentimes: l.montant_centimes ?? 0,
+      statut: l.statut ?? "en_attente",
+      modePaiement: l.mode_paiement ?? null,
+      litigeLe: l.litige_le ?? null,
+      reglements: (l.reglements ?? []).map((r) => ({ montantCentimes: r.montant_centimes, mode: (r as { mode?: string | null }).mode ?? null })),
+    });
+  const reste = (l: Ligne) => decisionDe(l).montantCentimes;
   const impayes = ((data ?? []) as unknown as Ligne[])
     .map((l) => ({ ...l, derniere_relance: relanceParId.get(l.id) ?? null }))
     .map((l) => ({ ...l, reste: reste(l) }))
-    .filter((l) => l.reste > 0)
+    .filter((l) => decisionDe(l).relancer)
     .sort((a, b) => (a.adherent?.nom ?? "").localeCompare(b.adherent?.nom ?? ""));
 
   const avecEmail = impayes.filter((l) => l.adherent?.email);

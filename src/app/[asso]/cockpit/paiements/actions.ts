@@ -38,9 +38,12 @@ const eurRelance = (c: number) => (c / 100).toLocaleString("fr-FR", { minimumFra
 type LigneImpaye = {
   id: string;
   montant_centimes: number | null;
-  adherent: { prenom: string; nom: string; email: string | null } | null;
+  statut: string | null;
+  mode_paiement: string | null;
+  litige_le: string | null;
+  adherent: { prenom: string; nom: string; email: string | null; date_naissance: string | null; infos: Record<string, string> | null } | null;
   cours: { nom: string } | null;
-  reglements: Array<{ montant_centimes: number }> | null;
+  reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
 };
 
 // Un email de relance clair, avec le montant restant de la personne. Ni comptable, ni culpabilisant.
@@ -56,8 +59,17 @@ function texteRelance(prenom: string, club: string, cours: string | null, resteC
   };
 }
 
-const resteDe = (l: LigneImpaye) =>
-  resteAPayer(l.montant_centimes ?? 0, (l.reglements ?? []).reduce((s, r) => s + r.montant_centimes, 0));
+// LA DÉCISION (src/lib/relances.ts) — la même que le cron et l'écran : exclut
+// d'elle-même échéancier Stripe en cours, litige, remboursé, annulé, soldé.
+const decisionDe = (l: LigneImpaye) =>
+  decisionRelanceFinanciere({
+    montantCentimes: l.montant_centimes ?? 0,
+    statut: (l as { statut?: string | null }).statut ?? "en_attente",
+    modePaiement: (l as { mode_paiement?: string | null }).mode_paiement ?? null,
+    litigeLe: (l as { litige_le?: string | null }).litige_le ?? null,
+    reglements: (l.reglements ?? []).map((r) => ({ montantCentimes: r.montant_centimes, mode: (r as { mode?: string | null }).mode ?? null })),
+  });
+const resteDe = (l: LigneImpaye) => decisionDe(l).montantCentimes;
 
 /**
  * Relancer une personne. On recharge son solde côté serveur (jamais confiance au client),
@@ -69,15 +81,15 @@ export async function relancerImpaye(slug: string, adhesionId: string) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
+    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("id", adhesionId)
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
     .maybeSingle();
 
   const l = data as unknown as LigneImpaye | null;
-  const email = l?.adherent?.email ?? null;
-  if (!l || !email || resteDe(l) <= 0) redirect(`/${slug}/cockpit/paiements/relances?erreur=email`);
+  const email = l?.adherent ? destinataireRelance(l.adherent as never) : null;
+  if (!l || !email || !decisionDe(l).relancer) redirect(`/${slug}/cockpit/paiements/relances?erreur=email`);
 
   const m = texteRelance(l.adherent!.prenom, org.nom, l.cours?.nom ?? null, resteDe(l), !!compteConnecte(org));
   const res = await envoyerLotPersonnalise({
@@ -98,7 +110,7 @@ export async function relancerTousImpayes(slug: string) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("adhesions")
-    .select("id, montant_centimes, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
+    .select("id, montant_centimes, statut, mode_paiement, litige_le, adherent:adherents(prenom, nom, email, date_naissance, infos), cours:cours(nom), reglements(montant_centimes, mode)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"]);
 
@@ -106,8 +118,8 @@ export async function relancerTousImpayes(slug: string) {
   const messages: Array<{ to: string; objet: string; texte: string }> = [];
   const ids: string[] = [];
   for (const l of (data ?? []) as unknown as LigneImpaye[]) {
-    const email = l.adherent?.email ?? null;
-    if (!email || resteDe(l) <= 0) continue;
+    const email = l.adherent ? destinataireRelance(l.adherent as never) : null;
+    if (!email || !decisionDe(l).relancer) continue;
     const m = texteRelance(l.adherent!.prenom, org.nom, l.cours?.nom ?? null, resteDe(l), enLigne);
     messages.push({ to: email, objet: m.objet, texte: m.texte });
     ids.push(l.id);
