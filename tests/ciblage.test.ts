@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { resoudreDestinataires, type DonneesCiblage } from "../src/lib/ciblage";
 
 /** Fixtures de TEST — aucun rapport avec des personnes réelles. */
@@ -94,5 +96,51 @@ describe("ciblage — la source unique décide qui reçoit", () => {
     // d'isolation vit côté requêtes (organisation_id) et RLS, prouvés par ailleurs.
     const d = resoudreDestinataires({ ...donnees(), adherents: [], adhesions: [] }, "tous");
     expect(d).toEqual([]);
+  });
+
+  it("opposition : exclu de « tous », des cours et de « parents » (communications facultatives)", () => {
+    const base = donnees();
+    const opposes = {
+      ...base,
+      adherents: base.adherents.map((a) =>
+        a.id === "majeur" ? { ...a, opposition_communications: "2026-08-04T10:00:00Z" } : a
+      ),
+    };
+    expect(resoudreDestinataires(opposes, "tous").map((x) => x.email)).not.toContain("majeur@test.example");
+    expect(resoudreDestinataires(opposes, "cours-a").map((x) => x.email)).not.toContain("majeur@test.example");
+    // témoin : sans opposition, il y était
+    expect(resoudreDestinataires(base, "tous").map((x) => x.email)).toContain("majeur@test.example");
+  });
+
+  it("opposition : « dossiers incomplets » reste servi — message nécessaire, pas une communication", () => {
+    const base = donnees();
+    const opposes = {
+      ...base,
+      adherents: base.adherents.map((a) =>
+        a.id === "majeur" ? { ...a, opposition_communications: "2026-08-04T10:00:00Z" } : a
+      ),
+    };
+    expect(resoudreDestinataires(opposes, "incomplet").map((x) => x.email)).toEqual(["majeur@test.example"]);
+  });
+
+  it("opposition par adhérent : le parent opposé via un enfant reste joignable au titre de l'autre", () => {
+    const base = donnees();
+    const opposes = {
+      ...base,
+      adherents: base.adherents.map((a) =>
+        a.id === "mineur1" ? { ...a, opposition_communications: "2026-08-04T10:00:00Z" } : a
+      ),
+    };
+    // mineur1 opposé → il sort ; mineur2 (même famille, sans adresse propre) porte
+    // toujours l'adresse du parent dans « parents ».
+    expect(resoudreDestinataires(opposes, "parents").length).toBe(1);
+  });
+
+  it("les messages NÉCESSAIRES ignorent l'opposition : le cron de relances ne lit pas la colonne", () => {
+    // Sentinelle de règle produit : l'opposition ne vise QUE les communications
+    // facultatives. Si un jour quelqu'un ajoute ce filtre au cron, les relances de
+    // pièces et de cotisation cesseraient de partir — ce test tombe avant.
+    const cron = readFileSync(join(process.cwd(), "src/app/api/cron/relances/route.ts"), "utf8");
+    expect(cron).not.toMatch(/opposition_communications/);
   });
 });

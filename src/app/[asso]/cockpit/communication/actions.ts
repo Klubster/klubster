@@ -44,7 +44,7 @@ export async function envoyerMessage(
   // TOUT le ciblage vit dans src/lib/ciblage.ts — la même fonction que le compteur
   // affiché. Ici on ne fait que charger les données et lui passer la main.
   const [{ data: adherents }, { data: adhesions }, { data: pieces }] = await Promise.all([
-    supabase.from("adherents").select("id, email, date_naissance, infos").eq("organisation_id", org.id),
+    supabase.from("adherents").select("id, email, date_naissance, infos, opposition_communications").eq("organisation_id", org.id),
     supabase.from("adhesions").select("adherent_id, cours_id, saison, statut").eq("organisation_id", org.id),
     supabase.from("pieces_adherent").select("adherent_id").eq("organisation_id", org.id)
       .eq("statut", "manquante").eq("obligatoire", true),

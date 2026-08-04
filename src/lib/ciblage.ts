@@ -19,7 +19,15 @@
  *  - « dossiers incomplets » = au moins une pièce OBLIGATOIRE manquante (instantané
  *    `pieces_adherent.obligatoire`) ;
  *  - déduplication par adresse normalisée (minuscules, espaces retirés) : deux
- *    enfants d'un même parent, ou une boîte familiale partagée, font UN destinataire.
+ *    enfants d'un même parent, ou une boîte familiale partagée, font UN destinataire ;
+ *  - OPPOSITION (clôture lot K, 04/08/2026) : `adherents.opposition_communications`
+ *    (une date — c'est la traçabilité) exclut l'adhérent des communications
+ *    FACULTATIVES : « tous », « parents », un cours. Elle n'exclut PAS le ciblage
+ *    « dossiers incomplets » — c'est un message de gestion du dossier, nécessaire à
+ *    l'exécution de l'adhésion, comme les relances (qui ne lisent pas cette colonne).
+ *    Pas d'interrupteur global « plus aucun email » : la distinction est la règle.
+ *    L'opposition est PAR ADHÉRENT : un parent opposé via un enfant reste joignable
+ *    au titre d'un autre enfant non opposé — c'est assumé et documenté.
  *
  * Module PUR (aucune requête) : les données entrent, la liste sort — testable à la
  * ligne près.
@@ -30,6 +38,8 @@ export interface AdherentCiblage {
   email: string | null;
   date_naissance: string | null;
   infos: Record<string, string> | null;
+  /** Date d'opposition aux communications facultatives ; null = pas d'opposition. */
+  opposition_communications?: string | null;
 }
 
 export interface AdhesionCiblage {
@@ -86,6 +96,12 @@ export function resoudreDestinataires(donnees: DonneesCiblage, groupe: string): 
   }
 
   let cibles = donnees.adherents.filter((a) => joignables.has(a.id));
+
+  // Opposition : ne s'applique qu'aux communications facultatives. « incomplet »
+  // est un message de gestion du dossier — il reste servi malgré l'opposition.
+  if (groupe !== "incomplet") {
+    cibles = cibles.filter((a) => !a.opposition_communications);
+  }
 
   let resoudreEmail = (a: AdherentCiblage): string | null => a.email;
 

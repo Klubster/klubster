@@ -26,7 +26,7 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
 
   const supabase = await createSupabaseServerClient();
   const [{ data: adhData }, { data: insData }, { data: coursData }, { data: piecesData }] = await Promise.all([
-    supabase.from("adherents").select("id, email, date_naissance, infos").eq("organisation_id", org.id),
+    supabase.from("adherents").select("id, email, date_naissance, infos, opposition_communications").eq("organisation_id", org.id),
     supabase.from("adhesions").select("adherent_id, cours_id, saison, statut").eq("organisation_id", org.id),
     supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre"),
     supabase.from("pieces_adherent").select("adherent_id").eq("organisation_id", org.id)
