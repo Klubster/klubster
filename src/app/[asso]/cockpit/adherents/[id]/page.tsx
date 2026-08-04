@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -324,7 +325,7 @@ export default async function FicheAdherent(
 
           {/* Encaisser un règlement : président et trésorier seulement. */}
           {peut(profile.role, "paiements") ? (
-            <AjoutReglement slug={org.slug} adhesions={soldes} accent={org.couleur_primaire ?? "#111111"} />
+            <AjoutReglement slug={org.slug} adhesions={soldes} accent={normaliserCouleur(org.couleur_primaire)} />
           ) : null}
 
           {listeReglements.length > 0 ? (

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { enregistrerReglement } from "@/app/[asso]/cockpit/paiements/actions";
+import { texteSur, survolDe } from "@/lib/contraste";
 
 export interface AdhesionSolde {
   id: string;
@@ -131,8 +132,8 @@ export default function AjoutReglement({
         <button
           onClick={enregistrer}
           disabled={enCours}
-          className="mono w-full px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-40 sm:w-auto"
-          style={{ background: accent }}
+          className="mono w-full px-6 py-3 text-[12px] transition-colors hover:bg-[var(--survol)] disabled:opacity-40 sm:w-auto"
+          style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
         >
           {enCours ? "…" : etat === "ok" ? "ENREGISTRÉ ✓" : "ENREGISTRER"}
         </button>

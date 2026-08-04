@@ -1,3 +1,4 @@
+import { normaliserCouleur, texteSur, survolDe } from "@/lib/contraste";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -31,7 +32,7 @@ export default async function EmailsPage(props: {
   if (!estPresident) redirect(`/${asso}/cockpit?acces=refuse`);
 
   const cfg = lireEmailsConfig(org.emails_config);
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   return (
     <main className="min-h-screen text-ink">
@@ -91,8 +92,8 @@ export default async function EmailsPage(props: {
           </p>
 
           <button
-            className="mono mt-2 w-full px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90 sm:w-auto"
-            style={{ background: accent }}
+            className="mono mt-2 w-full px-6 py-3 text-[13px] transition-colors hover:bg-[var(--survol)] sm:w-auto"
+            style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
           >
             ENREGISTRER →
           </button>

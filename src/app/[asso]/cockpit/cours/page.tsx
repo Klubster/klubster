@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -93,7 +94,7 @@ export default async function CoursPage(
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
   const peutPromouvoir = peut(profile.role, "adherents_ecriture");
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
   const ajouter = ajouterCoursSimple.bind(null, org.slug);
 
   return (

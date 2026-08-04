@@ -1,7 +1,7 @@
 "use client";
 import { startTransition, useActionState, useState } from "react";
 import { formatPrix } from "@/lib/format";
-import { texteSur } from "@/lib/contraste";
+import { survolDe, texteSur } from "@/lib/contraste";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
@@ -302,8 +302,8 @@ function BoutonValider({ accent, enCours }: { accent: string; enCours: boolean }
     <button
       type="submit"
       disabled={enCours}
-      className="mono w-full px-6 py-4 text-[14px] disabled:opacity-60"
-      style={{ background: accent, color: texteSur(accent) }}
+      className="mono w-full px-6 py-4 text-[14px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-60"
+      style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
     >
       {enCours ? "INSCRIPTION EN COURS…" : "VALIDER MON INSCRIPTION →"}
     </button>

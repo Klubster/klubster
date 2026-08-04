@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import MenuMobile from "@/components/site/MenuMobile";
-import { texteSur } from "@/lib/contraste";
+import { texteSur, survolDe, normaliserCouleur } from "@/lib/contraste";
 import type { Organisation } from "@/types/db";
 
 export interface LienSection {
@@ -32,7 +32,7 @@ export function SiteHeader({
    *  le lien ne faisait rien, ce qui est pire que de ne pas l'afficher. */
   liens?: LienSection[];
 }) {
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
   // La couleur du club est un hex libre : sur un accent clair (jaune, bleu ciel…),
   // le blanc codé en dur devenait illisible. texteSur choisit blanc ou encre.
   const texteAccent = texteSur(accent);
@@ -93,8 +93,8 @@ export function SiteHeader({
           ) : null}
           <Link
             href={`/${org.slug}/inscription`}
-            className="mono px-4 py-3 text-[12px] transition-opacity hover:opacity-90"
-            style={{ background: accent, color: texteAccent }}
+            className="mono px-4 py-3 text-[12px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            style={{ background: accent, color: texteAccent, ["--survol" as string]: survolDe(accent) }}
           >
             S&apos;INSCRIRE →
           </Link>

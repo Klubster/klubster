@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationPubliqueBySlug } from "@/lib/queries";
@@ -15,7 +16,7 @@ export default async function MerciPage(
   const params = await props.params;
   const org = await getOrganisationPubliqueBySlug(params.asso);
   if (!org) notFound();
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
   const prenom = searchParams?.prenom?.trim();
   const paye = searchParams?.paye === "1";
   const attente = searchParams?.attente === "1";
