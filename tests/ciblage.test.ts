@@ -84,7 +84,9 @@ describe("ciblage — la source unique décide qui reçoit", () => {
     const a = resoudreDestinataires(donnees(), "cours-a").map((x) => x.email).sort();
     expect(a).toEqual(["attente@test.example", "deux@test.example", "majeur@test.example", "mineur1@test.example"]);
     const b = resoudreDestinataires(donnees(), "cours-b").map((x) => x.email).sort();
-    expect(b).toEqual(["deux@test.example", "mineur1@test.example", "parent@test.example"]);
+    // mineur2 (cours-b) n'a pas d'adresse propre : hors « parents », il n'est pas
+    // joignable — c'est le libellé du groupe qui le dit, pas un oubli.
+    expect(b).toEqual(["deux@test.example", "parent@test.example"]);
   });
 
   it("une autre association est hors périmètre par construction (les données entrantes sont déjà cadrées)", () => {

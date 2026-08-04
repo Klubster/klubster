@@ -6,35 +6,35 @@ const lire = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 const ACTIONS = lire("src/app/[asso]/cockpit/communication/actions.ts");
 const PAGE = lire("src/app/[asso]/cockpit/communication/page.tsx");
 const CLIENT = lire("src/app/[asso]/cockpit/communication/Communication.tsx");
+const LIB = lire("src/lib/ciblage.ts");
 
-describe("messages — « prévenez les parents » écrit AU représentant légal", () => {
-  it("l'envoi résout l'adresse du représentant, avec repli sur le compte", () => {
-    expect(ACTIONS).toMatch(/Responsable légal — email/);
-    expect(ACTIONS).toMatch(/\|\| a\.email/);
+describe("messages — une SEULE source décide qui reçoit", () => {
+  it("l'envoi et la page consomment resoudreDestinataires — aucune copie des règles", () => {
+    expect(ACTIONS).toMatch(/resoudreDestinataires\(/);
+    expect(PAGE).toMatch(/resoudreDestinataires\(/);
+    // plus aucune règle locale : ni minorité ni représentant dans l'action/page
+    expect(ACTIONS).not.toMatch(/function estMineur/);
+    expect(PAGE).not.toMatch(/seuilMineur/);
   });
 
-  it("un mineur sans adresse personnelle n'est plus exclu du ciblage parents", () => {
-    // l'ancien code filtrait .not("email","is",null) AVANT le groupe
-    expect(ACTIONS).not.toMatch(/\.not\("email", "is", null\)/);
+  it("le client n'invente rien : il lit la liste précalculée du groupe", () => {
+    expect(CLIENT).toMatch(/listes\[groupe\] \?\? \[\]/);
   });
 
-  it("le compteur affiché suit LA MÊME résolution que l'envoi", () => {
-    expect(PAGE).toMatch(/Responsable légal — email/);
-    expect(CLIENT).toMatch(/groupe === "parents" \? m\.emailParent : m\.email/);
+  it("« parents » écrit au représentant légal, repli sur le compte — dans la lib", () => {
+    expect(LIB).toMatch(/Responsable légal — email/);
+    expect(LIB).toMatch(/\|\| a\.email/);
   });
 
-  it("déduplication par adresse : deux enfants d'un même parent = un destinataire", () => {
-    expect(ACTIONS).toMatch(/parEmail\.has\(email\)/);
-    expect(CLIENT).toMatch(/new Set\(/);
-    expect(CLIENT).toMatch(/toLowerCase\(\)/);
-  });
-});
-
-describe("messages — le ciblage « dossiers incomplets » suit la règle du 04/08", () => {
-  it("manquante ET obligatoire, plus jamais « recue »", () => {
+  it("« incomplets » = obligatoires manquantes ; requêtes alignées des deux côtés", () => {
     for (const f of [ACTIONS, PAGE]) {
-      expect(f).not.toMatch(/"recue"/);
       expect(f).toMatch(/\.eq\("obligatoire", true\)/);
+      expect(f).not.toMatch(/"recue"/);
     }
+  });
+
+  it("le périmètre est la saison courante, l'annulé et le remboursé sont dehors, la liste d'attente dedans", () => {
+    expect(LIB).toMatch(/STATUTS_JOIGNABLES = new Set\(\["en_attente", "paye", "en_retard", "liste_attente"\]\)/);
+    expect(LIB).toMatch(/saisonCourante/);
   });
 });
