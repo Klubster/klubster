@@ -129,12 +129,26 @@ export interface LigneImport {
   email?: string | null;
   telephone?: string | null;
   coursId?: string | null;
+  /** ISO `aaaa-mm-jj`, déjà validée côté client (`dateIso`) — revalidée en base. */
+  naissance?: string | null;
+  /** Email du responsable légal — même clé que le ciblage et les relances. */
+  responsable?: string | null;
+  /** Somme déjà encaissée par le club avant Klubster, en centimes. */
+  montantCentimes?: number | null;
+  /** Numéro de la ligne dans le fichier, pour un bilan qui parle à l'utilisateur. */
+  ligne?: number | null;
 }
 
 export interface ResultatImport {
   crees: number;
   ignores: number;
   erreurs: string[];
+  /** Détail par ligne créée : ce que l'import a réellement fait. */
+  listeAttente: number;
+  sansCours: number;
+  doublons: string[];
+  /** Somme des règlements repris, en centimes. */
+  repriseCentimes: number;
 }
 
 const MAX_LIGNES = 2000;
@@ -153,11 +167,12 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
   const org = await garde(slug);
   const erreurs: string[] = [];
 
+  const vide: ResultatImport = { crees: 0, ignores: 0, erreurs: [], listeAttente: 0, sansCours: 0, doublons: [], repriseCentimes: 0 };
   if (!Array.isArray(lignes) || lignes.length === 0) {
-    return { crees: 0, ignores: 0, erreurs: ["Aucune ligne à importer."] };
+    return { ...vide, erreurs: ["Aucune ligne à importer."] };
   }
   if (lignes.length > MAX_LIGNES) {
-    return { crees: 0, ignores: 0, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
+    return { ...vide, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -182,23 +197,29 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
   const nomsPris = new Set((existants ?? []).map((a) => cle(a.prenom ?? "", a.nom ?? "")));
 
   const aCreer: Array<{ ligne: LigneImport; index: number }> = [];
+  const doublons: string[] = [];
   let ignores = 0;
 
   lignes.forEach((l, i) => {
+    const numero = Number(l.ligne ?? i + 2);
     const prenom = String(l.prenom ?? "").trim().slice(0, 80);
     const nom = String(l.nom ?? "").trim().slice(0, 80);
     if (!prenom || !nom) {
-      erreurs.push(`Ligne ${i + 2} : prénom ou nom manquant — ignorée.`);
+      erreurs.push(`Ligne ${numero} : prénom ou nom manquant — ignorée.`);
       ignores++;
       return;
     }
 
     const email = String(l.email ?? "").trim().toLowerCase().slice(0, 160);
+    // Un doublon est NOMMÉ. Avant, « 2 lignes ignorées — doublons ou données
+    // incomplètes » laissait le club chercher lesquelles, sans jamais les trouver.
     if (email && emailsPris.has(email)) {
+      doublons.push(`Ligne ${numero} : ${prenom} ${nom} (${email}) est déjà adhérent — ignorée.`);
       ignores++;
       return;
     }
     if (!email && nomsPris.has(cle(prenom, nom))) {
+      doublons.push(`Ligne ${numero} : ${prenom} ${nom} existe déjà (même prénom et nom, sans email) — ignorée.`);
       ignores++;
       return;
     }
@@ -207,34 +228,54 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
     if (email) emailsPris.add(email);
     nomsPris.add(cle(prenom, nom));
 
-    aCreer.push({ ligne: { ...l, prenom, nom, email: email || null }, index: i });
+    aCreer.push({ ligne: { ...l, prenom, nom, email: email || null, ligne: numero }, index: i });
   });
 
-  if (aCreer.length === 0) return { crees: 0, ignores, erreurs };
+  if (aCreer.length === 0) return { ...vide, ignores, erreurs, doublons };
 
   // Adhérent + adhésion créés ensemble dans une seule transaction (RPC) : un échec
   // en cours de route annule tout, plus d'adhérents orphelins sans adhésion.
   const rows = aCreer.map(({ ligne }) => ({
+    ligne: ligne.ligne,
     prenom: ligne.prenom,
     nom: ligne.nom,
     email: ligne.email,
     telephone: String(ligne.telephone ?? "").trim().slice(0, 30) || null,
+    // Revalidée en base aussi : une date impossible ne doit pas entrer par le client.
+    date_naissance: ligne.naissance ?? null,
+    responsable_email: String(ligne.responsable ?? "").trim().toLowerCase().slice(0, 160) || null,
+    montant_regle_centimes: Math.max(0, Math.round(Number(ligne.montantCentimes ?? 0))) || 0,
     // On ne transmet le cours que s'il appartient au club (tarif re-vérifié en base).
     cours_id: ligne.coursId && tarifs.has(ligne.coursId) ? ligne.coursId : null,
   }));
 
-  const { data: crees, error } = await supabase.rpc("inserer_adherents_adhesions", {
+  // `importer_adherents` (migration 20260804170000) suit les MÊMES règles que
+  // l'inscription publique : capacité verrouillée puis liste d'attente, pièces du
+  // cours filtrées par `cours_id` et `mineurs_seulement`, instantané `obligatoire`,
+  // tarif lu en base, reprise du montant déjà encaissé. Une transaction pour tout.
+  const { data: bilan, error } = await supabase.rpc("importer_adherents", {
     p_org: org.id,
     p_rows: rows,
   });
 
   if (error) {
-    console.error("inserer_adherents_adhesions", error.message);
-    return { crees: 0, ignores, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
+    console.error("importer_adherents", error.message);
+    return { ...vide, ignores, doublons, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
   }
 
+  const b = (bilan ?? {}) as { crees?: number; liste_attente?: number; sans_cours?: number; lignes?: Array<{ regle_centimes?: number }> };
+  const reprise = (b.lignes ?? []).reduce((s, l) => s + Number(l.regle_centimes ?? 0), 0);
+
   revalidatePath(`/${slug}/cockpit/adherents`);
-  return { crees: Number(crees ?? 0), ignores, erreurs };
+  return {
+    crees: Number(b.crees ?? 0),
+    ignores,
+    erreurs,
+    doublons,
+    listeAttente: Number(b.liste_attente ?? 0),
+    sansCours: Number(b.sans_cours ?? 0),
+    repriseCentimes: reprise,
+  };
 }
 
 /**
