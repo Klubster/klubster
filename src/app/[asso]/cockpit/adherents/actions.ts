@@ -433,7 +433,7 @@ export async function deposerPieceCockpit(
   pieceId: string,
   formData: FormData
 ): Promise<void> {
-  const { org } = await garde(slug);
+  const org = await garde(slug);
   const fichier = formData.get("fichier");
   if (!(fichier instanceof File) || fichier.size === 0) {
     redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_vide`);
@@ -495,7 +495,7 @@ export async function marquerPieceParEmail(
   pieceId: string,
   statutActuel: string
 ): Promise<void> {
-  const { org } = await garde(slug);
+  const org = await garde(slug);
   const supabase = await createSupabaseServerClient();
   // bascule : par_email ↔ manquante (un clic de trop se répare d'un clic)
   const nouveau = statutActuel === "par_email" ? "manquante" : "par_email";
