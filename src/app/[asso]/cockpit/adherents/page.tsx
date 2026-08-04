@@ -104,20 +104,25 @@ export default async function Adherents(
           </h1>
           {/* Empilés pleine largeur sur mobile : deux boutons longs côte à côte
               wrappaient de travers sous le titre. */}
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <Link
-              href={`/${org.slug}/cockpit/adherents/import`}
-              className="mono border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
-            >
-              IMPORTER UN FICHIER
-            </Link>
-            <Link
-              href={`/${org.slug}/cockpit/adherents/nouveau`}
-              className="mono bg-ink px-5 py-3 text-center text-[12px] text-paper hover:bg-ink/90"
-            >
-              AJOUTER UN ADHÉRENT →
-            </Link>
-          </div>
+          {/* Import et ajout : président et secrétaire seulement. Montrer ces boutons à un
+              rôle qui n'a pas l'écriture, c'est l'envoyer vers un refus — un lien mort.
+              Vu en test le 02/08 avec le rôle Lecture seule. */}
+          {peut(profile.role, "adherents_ecriture") ? (
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+              <Link
+                href={`/${org.slug}/cockpit/adherents/import`}
+                className="mono border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
+              >
+                IMPORTER UN FICHIER
+              </Link>
+              <Link
+                href={`/${org.slug}/cockpit/adherents/nouveau`}
+                className="mono bg-ink px-5 py-3 text-center text-[12px] text-paper hover:bg-ink/90"
+              >
+                AJOUTER UN ADHÉRENT →
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         {searchParams?.renouvelees !== undefined ? (
@@ -250,11 +255,15 @@ export default async function Adherents(
           </div>
         ) : null}
 
-        <p className="mono mt-10 text-[11px] text-ink-soft">
-          <a href={`/${org.slug}/cockpit/export`} className="underline underline-offset-2 hover:text-ink">
-            Exporter la liste complète en CSV
-          </a>
-        </p>
+        {/* L'export CSV est refusé par la route aux rôles sans écriture : ne pas tendre
+            un lien qui finit en erreur. Même règle que les boutons d'ajout ci-dessus. */}
+        {peut(profile.role, "adherents_ecriture") ? (
+          <p className="mono mt-10 text-[11px] text-ink-soft">
+            <a href={`/${org.slug}/cockpit/export`} className="underline underline-offset-2 hover:text-ink">
+              Exporter la liste complète en CSV
+            </a>
+          </p>
+        ) : null}
       </div>
     </main>
   );

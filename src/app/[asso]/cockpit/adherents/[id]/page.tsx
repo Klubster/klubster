@@ -193,7 +193,12 @@ export default async function FicheAdherent(
           </div>
         ) : null}
 
-        {/* ——— COORDONNÉES (modifiables) ——— */}
+        {/* ——— COORDONNÉES ———
+            Modifiables par le président et le secrétaire uniquement (matrice
+            `adherents_ecriture`, portée en base par `adherents_write_role`). Aux autres
+            rôles on montre les valeurs, pas un formulaire : un « ENREGISTRER » qui finit
+            en erreur RLS ressemblerait à une panne. Vu en test le 02/08 (Lecture seule). */}
+        {peut(profile.role, "adherents_ecriture") ? (
         <form action={modifier} className="mt-10">
           <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
             COORDONNÉES<Cur />
@@ -220,6 +225,34 @@ export default async function FicheAdherent(
             ENREGISTRER LA FICHE
           </button>
         </form>
+        ) : (
+        <section className="mt-10">
+          <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
+            COORDONNÉES<Cur />
+          </p>
+          <div className="mt-4 grid grid-cols-1 gap-4 border border-line px-5 py-4 sm:grid-cols-2">
+            <div>
+              <p className="mono text-[10px] uppercase tracking-label text-ink-soft">PRÉNOM</p>
+              <p className="mt-1 text-[15px]">{adherent.prenom}</p>
+            </div>
+            <div>
+              <p className="mono text-[10px] uppercase tracking-label text-ink-soft">NOM</p>
+              <p className="mt-1 text-[15px]">{adherent.nom}</p>
+            </div>
+            <div>
+              <p className="mono text-[10px] uppercase tracking-label text-ink-soft">EMAIL</p>
+              <p className="mt-1 text-[15px]">{adherent.email ?? "—"}</p>
+            </div>
+            <div>
+              <p className="mono text-[10px] uppercase tracking-label text-ink-soft">TÉLÉPHONE</p>
+              <p className="mt-1 text-[15px]">{adherent.telephone ?? "—"}</p>
+            </div>
+          </div>
+          <p className="mono mt-2 text-[11px] text-ink-faint">
+            La modification des fiches est réservée au président et au secrétaire.
+          </p>
+        </section>
+        )}
 
         {/* ——— ADHÉSION & TRÉSORERIE ——— */}
         <section className="mt-14">
