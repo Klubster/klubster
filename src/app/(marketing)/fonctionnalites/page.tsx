@@ -800,7 +800,7 @@ export default function Fonctionnalites() {
               "L’aperçu vous montre le résultat avant que rien ne soit enregistré",
               "Les doublons sont ignorés, jamais écrasés",
               "Exportez la liste complète de vos adhérents en un clic, quand vous voulez",
-              "Vos données sont hébergées dans l’Union européenne, jamais revendues",
+              "Votre base est hébergée dans l’Union européenne, vos données ne sont jamais revendues",
               "Vous résiliez depuis votre cockpit, sans engagement ni préavis",
             ]}
           />
