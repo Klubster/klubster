@@ -6,6 +6,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { resendConfigured, type EnvoiResultat } from "@/lib/resend";
 import { envoyerCampagne } from "@/lib/campagnes";
+import { resoudreDestinataires, type AdherentCiblage, type AdhesionCiblage } from "@/lib/ciblage";
+import { saisonCourante } from "@/lib/saison";
 
 
 /**
