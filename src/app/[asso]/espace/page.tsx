@@ -57,7 +57,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
   }
   const { data: piecesData } = await supabase
     .from("pieces_adherent").select("id, label, statut, obligatoire").eq("adherent_id", a.id).order("created_at");
-  const pieces = (piecesData ?? []) as { id: string; label: string; statut: string }[];
+  const pieces = (piecesData ?? []) as { id: string; label: string; statut: string; obligatoire: boolean | null }[];
   // RÈGLE PRODUIT (04/08/2026) : seules les pièces OBLIGATOIRES manquantes rendent
   // le dossier incomplet. Une facultative absente ne génère ni compteur ni relance.
   const manquantes = pieces.filter((p) => p.statut === "manquante" && p.obligatoire !== false).length;
