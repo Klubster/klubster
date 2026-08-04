@@ -130,7 +130,16 @@ export default async function CoursPage(
         ) : null}
         {searchParams?.promo === "1" ? (
           <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
-            ✓ Place donnée. La personne a été prévenue par email.
+            ✓ Place donnée. Pensez à prévenir la personne — aucun email automatique n’est envoyé.
+          </p>
+        ) : null}
+        {/* La RPC refuse la promotion quand le cours est déjà plein — sinon le club
+            découvrait un cours en surcapacité le soir de la reprise. Sans ce message,
+            le bouton semblait ne rien faire : un refus muet est indiscernable d'un bug. */}
+        {searchParams?.promo === "0" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#8A6508" }}>
+            Aucune place n’est libre dans ce cours : personne n’a été promu. Augmentez la
+            capacité du cours, ou attendez qu’une place se libère.
           </p>
         ) : null}
 
@@ -140,15 +149,17 @@ export default async function CoursPage(
           ))}
         </div>
 
-        {/* Liste d'attente — premier arrivé, premier servi. Donner une place prévient la personne. */}
+        {/* Liste d'attente — premier arrivé, premier servi. Aucun email automatique :
+            c'est la décision produit du pilote, l'écran ne doit jamais prétendre le contraire. */}
         {listeAttente.length > 0 ? (
           <section className="mt-12">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               LISTE D’ATTENTE — {listeAttente.length} personne{listeAttente.length > 1 ? "s" : ""}<Cur />
             </p>
             <p className="mt-2 max-w-prose text-[14px] text-ink-soft">
-              Inscrites quand leur cours était complet. Donnez une place dès qu’une se libère : la personne
-              est prévenue par email et son adhésion devient « en attente » de règlement.
+              Inscrites quand leur cours était complet. Donnez une place dès qu’une se libère : l’adhésion
+              devient « en attente » de règlement. Prévenez ensuite la personne vous-même — aucun email
+              automatique n’est envoyé.
             </p>
             <div className="mt-4 border border-line">
               {listeAttente.map((a) => {
