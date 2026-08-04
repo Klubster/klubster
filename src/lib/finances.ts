@@ -77,7 +77,17 @@ export function etatFinancier(a: AdhesionFinanciere): BilanFinancier {
   else if (regle > 0) etat = "partiellement_regle";
   else etat = "paiement_attendu";
 
-  return { etat, regleCentimes: regle, resteCentimes: etat === "regle" ? 0 : reste, tropPercuCentimes: tropPercu };
+  // Un état où RIEN n'est dû doit annoncer zéro, pas un solde théorique.
+  //
+  // Découvert au lot P en mettant l'état et le montant côte à côte dans l'export :
+  // un adhérent en liste d'attente sortait avec « Liste d'attente — rien n'est dû »
+  // ET « Reste à payer : 90,00 € ». Le club aurait réclamé 90 € à quelqu'un qui n'a
+  // même pas de place. Idem pour une adhésion annulée ou remboursée. Le libellé et
+  // le nombre viennent de la même fonction : ils ne peuvent plus se contredire.
+  const rienNEstDu = etat === "regle" || etat === "liste_attente" || etat === "annule" ||
+                     etat === "rembourse" || etat === "aucun_paiement_attendu";
+
+  return { etat, regleCentimes: regle, resteCentimes: rienNEstDu ? 0 : reste, tropPercuCentimes: tropPercu };
 }
 
 /** Vocabulaire bénévole — jamais le jargon Stripe. Partagé par tous les écrans. */
