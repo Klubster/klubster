@@ -223,7 +223,7 @@ export default async function CoursPage(
             (docs/roadmap-ecarts-demo.md) ; tant qu'il n'existe pas, on énonce le fait
             sans prescrire un geste impossible. */}
         <p className="mono mt-10 text-[11px] leading-relaxed text-ink-soft">
-          Un cours qui compte des adhérents ne peut pas être supprimé : leurs dossiers y sont rattachés.
+          Un cours qui compte des adhérents ne peut pas être supprimé : déplacez-les d’abord, depuis leur fiche (« Changer de cours »).
         </p>
       </div>
     </main>

@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { resteAPayer } from "@/lib/finances";
 import { saisonCourante } from "@/lib/saison";
-import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail } from "../actions";
+import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
@@ -30,6 +30,7 @@ type Adhesion = {
   montant_centimes: number | null;
   mode_paiement: string | null;
   created_at: string;
+  cours_id?: string | null;
   stripe_payment_intent: string | null;
   litige_le: string | null;
   cours: { nom: string } | null;
@@ -41,7 +42,7 @@ type Sante = { resultat: string | null; signataire_nom: string | null; created_a
 export default async function FicheAdherent(
   props: {
     params: Promise<{ asso: string; id: string }>;
-    searchParams: Promise<{ ok?: string; erreur?: string; rembourse?: string }>;
+    searchParams: Promise<{ ok?: string; erreur?: string; rembourse?: string; detail?: string; ecart?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -74,7 +75,7 @@ export default async function FicheAdherent(
   const [{ data: adhesions }, { data: pieces }, { data: sante }] = await Promise.all([
     supabase
       .from("adhesions")
-      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, cours(nom)")
+      .select("id, statut, saison, montant_centimes, mode_paiement, created_at, cours_id, cours(nom)")
       .eq("adherent_id", params.id)
       .order("created_at", { ascending: false }),
     supabase.from("pieces_adherent").select("id, cle, label, statut, obligatoire, chemin").eq("adherent_id", params.id),
@@ -147,6 +148,16 @@ export default async function FicheAdherent(
   const infos = (adherent.infos ?? {}) as Record<string, string>;
   const modifier = modifierAdherent.bind(null, org.slug, adherent.id);
   const litige = listeAdhesions.find((a) => a.litige_le);
+
+  // Changement de cours : l'adhésion ACTIVE de la saison courante, et les cours cibles.
+  const saisonAct = saisonCourante(org);
+  const adhesionCourante = listeAdhesions.find(
+    (a) => a.saison === saisonAct && ["en_attente", "paye", "en_retard"].includes(a.statut ?? "")
+  ) ?? null;
+  const { data: tousCours } = await supabase
+    .from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
+  const autresCours = ((tousCours ?? []) as { id: string; nom: string }[])
+    .filter((c) => c.id !== adhesionCourante?.cours_id);
 
   return (
     <main className="min-h-screen text-ink">
@@ -353,6 +364,34 @@ export default async function FicheAdherent(
             </div>
           ) : null}
         </section>
+
+        {/* ——— CHANGEMENT DE COURS (saison courante, adhésion active) ——— */}
+        {searchParams?.ok === "cours" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+            ✓ Cours changé.{searchParams?.ecart ? ` Le tarif du nouveau cours diffère de ${(Number(searchParams.ecart) / 100).toLocaleString("fr-FR")} € : ajustez le règlement (avoir ou complément).` : ""}
+          </p>
+        ) : null}
+        {searchParams?.erreur === "cours" ? (
+          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>{searchParams?.detail ?? "Le changement de cours a échoué."}</p>
+        ) : null}
+        {adhesionCourante && peut(profile.role, "adherents_ecriture") && autresCours.length > 0 ? (
+          <details className="mt-8 border border-line bg-paper">
+            <summary className="mono cursor-pointer px-5 py-3 text-[11px] uppercase tracking-label text-ink-soft">
+              Changer de cours (saison en cours)
+            </summary>
+            <form action={changerCours.bind(null, org.slug, adherent.id, adhesionCourante.id)} className="flex flex-wrap items-center gap-3 px-5 pb-4">
+              <select name="nouveau_cours" required className="min-h-[44px] border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink">
+                {autresCours.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nom}</option>
+                ))}
+              </select>
+              <button className="mono min-h-[44px] border border-ink px-4 py-2 text-[12px] uppercase hover:bg-ink hover:text-paper">Déplacer →</button>
+              <span className="mono w-full text-[11px] text-ink-faint">
+                Cours complet = refus. Sans règlement, le montant dû devient le tarif du nouveau cours ; sinon il est conservé et l’écart vous est indiqué.
+              </span>
+            </form>
+          </details>
+        ) : null}
 
         {/* ——— PIÈCES ——— */}
         <section className="mt-14">

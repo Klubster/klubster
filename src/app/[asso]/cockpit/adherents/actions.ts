@@ -558,4 +558,22 @@ export async function marquerPieceParEmail(
     .eq("organisation_id", org.id);
   if (error) console.error("marquerPieceParEmail", error.message);
   redirect(`/${slug}/cockpit/adherents/${adherentId}${error ? "?erreur=piece" : ""}`);
+ * Changer un adhérent de cours — le geste que « supprimer un cours peuplé »
+ * réclamait sans l'offrir. Toute la décision vit dans la RPC `changer_cours`
+ * (capacité verrouillée, tarif honnête, pièces du nouveau cours, audit) ;
+ * l'action ne fait que porter le résultat à l'écran.
+ */
+export async function changerCours(slug: string, adherentId: string, adhesionId: string, formData: FormData): Promise<void> {
+  await garde(slug);
+  const nouveau = String(formData.get("nouveau_cours") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(nouveau)) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours_choix`);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("changer_cours", { p_adhesion_id: adhesionId, p_nouveau_cours_id: nouveau });
+  if (error) {
+    // le message de la RPC est écrit pour un bénévole : on le transmet tel quel
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours&detail=${encodeURIComponent(error.message)}`);
+  }
+  const r = (data as Array<{ ecart_centimes: number; montant_ajuste: boolean; nouveau_cours: string }> | null)?.[0];
+  const ecart = r && !r.montant_ajuste && r.ecart_centimes !== 0 ? `&ecart=${r.ecart_centimes}` : "";
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=cours${ecart}`);
 }

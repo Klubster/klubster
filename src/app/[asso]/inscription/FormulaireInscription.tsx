@@ -60,6 +60,9 @@ export default function FormulaireInscription({
   const [etat, formAction, enCours] = useActionState(inscrireAdherent, null);
   const [verifEnCours, setVerifEnCours] = useState(false);
   const [erreurJeton, setErreurJeton] = useState(false);
+  // Le cours choisi pilote la liste des pièces affichées : fini les pièces des autres
+  // cours avec de simples badges — on montre CE que CE dossier demandera.
+  const [coursChoisi, setCoursChoisi] = useState<string>(coursPreselectionne ?? cours[0]?.id ?? "");
   // Compat : `?erreur=…` reste honoré pour les redirections venant d'ailleurs
   // (ex. retour Stripe) ; l'état de l'action, plus récent, prime.
   const erreur = etat?.erreur ?? erreurInitiale;
@@ -165,7 +168,8 @@ export default function FormulaireInscription({
               id="cours"
               name="cours"
               required
-              defaultValue={coursPreselectionne ?? undefined}
+              value={coursChoisi}
+              onChange={(e) => setCoursChoisi(e.target.value)}
               className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
             >
               {cours.map((c) => (
@@ -194,11 +198,11 @@ export default function FormulaireInscription({
         <RemisesInscription remises={remises} accent={accent} />
 
         {/* PIÈCES (info) */}
-        {pieces.length > 0 ? (
+        {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).length > 0 ? (
           <fieldset>
             <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
-              {pieces.map((pc) => {
+              {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).map((pc) => {
                 const coursLie = pc.cours_id ? cours.find((c) => c.id === pc.cours_id) : null;
                 return (
                   <div key={pc.id} className="flex items-center justify-between gap-3 px-5 py-3 text-[14px]">
