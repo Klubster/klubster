@@ -8,6 +8,7 @@ import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEm
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
 import Remboursement from "./Remboursement";
+import DepotPiece from "@/components/cockpit/DepotPiece";
 import { peut } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -366,21 +367,10 @@ export default async function FicheAdherent(
                   </div>
                   {/* Dépôt par un bénévole — promesse publique. Mêmes contrôles que le
                       dépôt adhérent (PDF/JPEG/PNG, 5 Mo, premiers octets). */}
-                  <form
+                  <DepotPiece
                     action={deposerPieceCockpit.bind(null, org.slug, adherent.id, p.id)}
-                    className="mono flex w-full flex-wrap items-center gap-2 pl-1 pt-1 text-[11px]"
-                  >
-                    <input
-                      type="file"
-                      name="fichier"
-                      accept="application/pdf,image/png,image/jpeg"
-                      required
-                      className="max-w-[240px] text-[11px]"
-                    />
-                    <button className="border border-line px-3 py-1.5 uppercase tracking-wide hover:bg-ink hover:text-paper">
-                      {p.chemin ? "Remplacer le fichier" : "Déposer pour l’adhérent"}
-                    </button>
-                  </form>
+                    libelle={p.chemin ? "Remplacer le fichier" : "Déposer pour l’adhérent"}
+                  />
                 </div>
               ))}
             </div>
