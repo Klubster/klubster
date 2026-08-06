@@ -57,7 +57,7 @@ export default function DepotPiece({
       >
         {envoi ? "ENVOI…" : libelle}
       </button>
-      {erreur ? <span className="w-full" style={{ color: "#B23B3B" }}>{erreur}</span> : null}
+      {erreur ? <span className="w-full text-danger">{erreur}</span> : null}
     </form>
   );
 }

@@ -26,7 +26,7 @@ function codeSeul(chemin: string): string {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-const ZONES_MIGREES = ["src/app/[asso]/cockpit", "src/app/[asso]/espace"];
+const ZONES_MIGREES = ["src/app/[asso]", "src/app/admin", "src/app/connexion", "src/components/cockpit"];
 
 describe("lot S — plus d'hex de statut inline dans les zones migrées", () => {
   const fichiers = ZONES_MIGREES.flatMap((z) => fichiersTsx(join(RACINE, z)));
@@ -35,9 +35,14 @@ describe("lot S — plus d'hex de statut inline dans les zones migrées", () => 
     expect(fichiers.length).toBeGreaterThan(20);
   });
 
-  // Exception assumée : les pastilles d'aperçu des templates (identite) montrent la
-  // couleur du thème lui-même — l'hex y est le contenu, pas un style de statut.
-  const EXCEPTIONS_STYLE_HEX = ["src/app/[asso]/cockpit/identite/page.tsx"];
+  // Exceptions assumées : les pastilles d'aperçu des templates (identite) montrent la
+  // couleur du thème lui-même — l'hex y est le contenu — et l'image OpenGraph est un
+  // rendu Satori où les classes Tailwind n'existent pas.
+  const EXCEPTIONS_STYLE_HEX = [
+    "src/app/[asso]/cockpit/identite/page.tsx",
+    "src/app/[asso]/opengraph-image.tsx",
+    "src/app/[asso]/icone/route.tsx", // icône PWA : rendu Satori, pas de classes
+  ];
 
   it("aucun style inline ne porte un hex littéral (hors aperçus de thème)", () => {
     // Cible : style={{ … "#B23B3B" … }}. Les couleurs dynamiques du club (variables,
@@ -50,7 +55,9 @@ describe("lot S — plus d'hex de statut inline dans les zones migrées", () => 
   });
 
   it("les anciens hex de statut ne réapparaissent nulle part dans le code migré", () => {
-    const interdit = /#(B23B3B|1E7A4F|8A6508|B8860B|FBEDED)\b/;
+    // #8A6A2F : un QUATRIÈME ocre découvert pendant la migration (admin, connexion) —
+    // la preuve vivante de ce que produit l'absence de token.
+    const interdit = /#(B23B3B|1E7A4F|8A6508|8A6A2F|B8860B|FBEDED)\b/;
     for (const f of fichiers) {
       expect(codeSeul(f), f).not.toMatch(interdit);
     }

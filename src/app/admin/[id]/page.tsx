@@ -105,7 +105,7 @@ export default async function FicheClubAdmin(props: { params: Promise<{ id: stri
             <Ligne label="ENCAISSÉ PAR LE CLUB">{formatMontant(c.encaisseCentimes)}</Ligne>
             <Ligne label="RESTE DÛ PAR SES ADHÉRENTS">
               {c.resteDuCentimes > 0 ? (
-                <span style={{ color: "#8A6A2F" }}>{formatMontant(c.resteDuCentimes)}</span>
+                <span className="text-warning">{formatMontant(c.resteDuCentimes)}</span>
               ) : (
                 "Rien"
               )}
@@ -120,7 +120,7 @@ export default async function FicheClubAdmin(props: { params: Promise<{ id: stri
           </p>
           <div className="mt-4">
             <Ligne label="STATUT">
-              <span style={{ color: c.statutAbo === "impaye" ? "#B23B3B" : undefined }}>
+              <span className={c.statutAbo === "impaye" ? "text-danger" : undefined}>
                 {LIBELLE_STATUT[c.statutAbo] ?? c.statutAbo}
               </span>
             </Ligne>
