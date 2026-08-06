@@ -437,7 +437,9 @@ export default function Fonctionnalites() {
 
       {/* HERO — la promesse à gauche, le produit à droite. La page s'ouvre sur l'outil. */}
       <section className="border-b border-line">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:grid-cols-[1fr_420px] md:gap-16 md:px-8 md:pt-24 md:pb-24">
+        {/* S14 : deux colonnes à partir de lg seulement — à 768, la colonne fixe de
+            420 px + la largeur minimale de l'aperçu débordaient de 116 px. */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:px-8 md:pt-24 md:pb-24 lg:grid-cols-[1fr_420px] lg:gap-16">
           <div>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
             {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
@@ -474,7 +476,7 @@ export default function Fonctionnalites() {
 
           {/* Le produit, dès la première seconde. Légèrement incliné pour ne pas figer la page.
               Colonne un peu plus étroite (420 au lieu de 460) : le titre reste l'entrée. */}
-          <div className="md:rotate-[1.2deg] md:transition-transform md:hover:rotate-0">
+          <div className="lg:rotate-[1.2deg] lg:transition-transform lg:hover:rotate-0">
             <CockpitPreview />
           </div>
         </div>

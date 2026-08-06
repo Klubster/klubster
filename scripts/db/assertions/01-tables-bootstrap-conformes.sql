@@ -117,12 +117,48 @@ begin
             or (n.nspname = 'public' and c.oid in (select oid from harnais.empreinte where genre = 'table')))
   ),
   attendu as (select * from contraintes where schema = 'verif'),
-  reel    as (select * from contraintes where schema = 'public')
+  reel    as (select * from contraintes where schema = 'public'),
+  -- ——— Évolutions LÉGITIMES postérieures à 0017 ——————————————————————————————
+  -- Des migrations datées droppent explicitement certaines contraintes de 0017 pour
+  -- les remplacer. Les exiger encore serait comparer au passé. Chaque exception est
+  -- nommée, datée, et COMPENSÉE plus bas par la vérification que sa remplaçante
+  -- existe bien — l'assertion est donc renforcée, pas affaiblie.
+  remplacees(tbl, motif) as (values
+    -- 20260803180000_controle_terrain : UNIQUE (adherent_id, date) →
+    -- UNIQUE NULLS NOT DISTINCT (adherent_id, cours_id, date)
+    ('presences',  'UNIQUE (adherent_id, date)'),
+    -- 20260803230000_paiements_coherence : montant > 0 → montant <> 0 (remboursements),
+    -- et mode élargi à 'remboursement'
+    ('reglements', '(montant_centimes > 0)'),
+    ('reglements', '''cheque''::text, ''especes''::text, ''en_ligne''::text, ''autre''::text')
+  )
   select string_agg(format('%s : %s', a.tbl, a.def), E'\n    ' order by a.tbl, a.def) into ecarts
     from attendu a
-   where not exists (select 1 from reel r where r.tbl = a.tbl and r.def = a.def);
+   where not exists (select 1 from reel r where r.tbl = a.tbl and r.def = a.def)
+     and not exists (select 1 from remplacees x where x.tbl = a.tbl and a.def like '%' || x.motif || '%');
 
   if ecarts is not null then
     raise exception E'Contrainte(s) de 0017 absente(s) de la table créée par le bootstrap :\n    %', ecarts;
+  end if;
+
+  -- ——— Les remplaçantes existent réellement ————————————————————————————————————
+  if not exists (
+    select 1 from pg_constraint con join pg_class c on c.oid = con.conrelid
+     where c.relname = 'presences'
+       and pg_get_constraintdef(con.oid) ilike '%nulls not distinct (adherent_id, cours_id, date)%'
+  ) then
+    raise exception 'presences : la contrainte UNIQUE remplaçante (adherent_id, cours_id, date) est absente';
+  end if;
+  if not exists (
+    select 1 from pg_constraint con join pg_class c on c.oid = con.conrelid
+     where c.relname = 'reglements' and pg_get_constraintdef(con.oid) like '%montant_centimes <> 0%'
+  ) then
+    raise exception 'reglements : la contrainte remplaçante montant_centimes <> 0 est absente';
+  end if;
+  if not exists (
+    select 1 from pg_constraint con join pg_class c on c.oid = con.conrelid
+     where c.relname = 'reglements' and pg_get_constraintdef(con.oid) like '%remboursement%'
+  ) then
+    raise exception 'reglements : le mode « remboursement » est absent de la contrainte de mode';
   end if;
 end $$;
