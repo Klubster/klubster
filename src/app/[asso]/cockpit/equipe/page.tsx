@@ -1,3 +1,4 @@
+import { Button, classesBouton } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -138,7 +139,7 @@ export default async function EquipePage(
                       <option key={r.cle} value={r.cle}>{r.label}</option>
                     ))}
                   </select>
-                  <button className="mono min-h-[44px] border border-ink px-3 py-2 text-[11px] hover:bg-ink hover:text-paper sm:min-h-0">OK</button>
+                  <button className={classesBouton("secondary", { className: "px-3 py-2 text-[11px] sm:min-h-0" })}>APPLIQUER</button>
                 </form>
               )}
 
@@ -180,7 +181,7 @@ export default async function EquipePage(
               placeholder="email du bénévole"
               className="min-w-[240px] flex-1 border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
             />
-            <button className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">AJOUTER →</button>
+            <Button className="w-full sm:w-auto">AJOUTER →</Button>
           </div>
         </form>
       </div>

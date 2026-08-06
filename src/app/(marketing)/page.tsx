@@ -393,7 +393,7 @@ export default function Home() {
               </div>
               <div className="bg-paper px-5 py-4">
                 <div className="mono text-[10px] uppercase tracking-label text-ink-soft">DOSSIER</div>
-                <div className="mono mt-2 text-[15px] font-bold" style={{ color: "#B23B3B" }}>✕ 1 pièce manquante</div>
+                <div className="mono mt-2 text-[15px] font-bold text-danger">✕ 1 pièce manquante</div>
               </div>
             </div>
 

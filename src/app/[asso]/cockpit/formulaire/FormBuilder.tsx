@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { saveFormConfig, uploaderModelePiece } from "./actions";
@@ -156,8 +157,7 @@ export default function FormBuilder({
         {brouillonRestaure ? (
           <div className="mono mt-6 flex flex-wrap items-center gap-4 border border-line bg-bg-alt px-4 py-3 text-[12px]">
             <span className="text-brand">✓ Brouillon restauré — modifications non enregistrées.</span>
-            <button
-              type="button"
+            <button              type="button"
               onClick={ignorerBrouillon}
               className="text-ink-faint underline underline-offset-2 hover:text-ink"
             >
@@ -210,15 +210,13 @@ export default function FormBuilder({
             </p>
             {/* Empilés sur mobile : deux modèles côte à côte se coupaient à mi-mot. */}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
+              <button                type="button"
                 onClick={() => setConfig(formulaireType("sportive"))}
                 className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
               >
                 ASSOCIATION SPORTIVE →
               </button>
-              <button
-                type="button"
+              <button                type="button"
                 onClick={() => setConfig(formulaireType("culturelle"))}
                 className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
               >
@@ -293,9 +291,8 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setPages([...config.pages, { id: uid(), titre: `Page ${config.pages.length + 1}`, champs: [] }])}
-            className="mono mt-6 border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          <button            onClick={() => setPages([...config.pages, { id: uid(), titre: `Page ${config.pages.length + 1}`, champs: [] }])}
+            className={classesBouton("secondary", { className: "mt-6" })}
           >
             + AJOUTER UNE PAGE
           </button>
@@ -355,8 +352,7 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setConfig((c) => ({ ...c, remises: [...(c.remises ?? []), { id: uid(), label: "", montant_centimes: 0, exigeCode: false }] }))}
+          <button            onClick={() => setConfig((c) => ({ ...c, remises: [...(c.remises ?? []), { id: uid(), label: "", montant_centimes: 0, exigeCode: false }] }))}
             className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
           >
             + AJOUTER UNE RÉDUCTION
@@ -426,8 +422,7 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() =>
+          <button            onClick={() =>
               setConfig((c) => ({
                 ...c,
                 mineur: { autorisations: [...(c.mineur?.autorisations ?? []), { id: uid(), label: "", obligatoire: false }] },
@@ -529,8 +524,7 @@ export default function FormBuilder({
                       <a href={pc.modele_url} target="_blank" rel="noreferrer" className="text-brand underline underline-offset-2">
                         MODÈLE JOINT ✓ {pc.modele_nom ? `(${pc.modele_nom})` : ""}
                       </a>
-                      <button
-                        type="button"
+                      <button                        type="button"
                         onClick={() => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, modele_url: null, modele_nom: null } : p)))}
                         className="text-ink-faint underline underline-offset-2 hover:text-ink"
                       >
@@ -553,9 +547,8 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true }])}
-            className="mono mt-6 border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          <button            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true }])}
+            className={classesBouton("secondary", { className: "mt-6" })}
           >
             + AJOUTER UNE PIÈCE
           </button>
@@ -588,7 +581,7 @@ export default function FormBuilder({
 
         {/* SAVE — flex-wrap : sur mobile, bouton pleine largeur puis état et lien dessous. */}
         <div className="mt-14 flex flex-wrap items-center gap-5 border-t border-line pt-6">
-          <button onClick={save} disabled={state === "saving"} className="mono w-full bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40 sm:w-auto">
+          <button onClick={save} disabled={state === "saving"} className={classesBouton("primary", { className: "w-full px-6 text-[13px] sm:w-auto" })}>
             {state === "saving" ? "ENREGISTREMENT…" : "ENREGISTRER →"}
           </button>
           {state === "ok" ? <span className="mono text-[12px] text-brand">✓ Enregistré</span> : null}

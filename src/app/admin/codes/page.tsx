@@ -1,3 +1,4 @@
+import { classesBouton } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { verifierSuperAdmin } from "@/lib/admin";
@@ -160,7 +161,7 @@ export default async function CodesPromoPage(props: {
 
               {/* Encre plutôt qu'aplat vert : le vert reste un détail dans la console.
                   Pleine largeur sur téléphone, comme les champs au-dessus. */}
-              <button className="mono mt-7 w-full bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 sm:w-auto">
+              <button className={classesBouton("primary", { className: "mt-7 w-full px-6 text-[13px] sm:w-auto" })}>
                 CRÉER LE CODE →
               </button>
             </form>

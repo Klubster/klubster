@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getActualites } from "@/lib/queries";
@@ -97,7 +98,7 @@ export default async function ActualitePage(
               <p className="mono mt-2 text-[11px] text-ink-faint">JPG ou PNG, format paysage conseillé.</p>
             </div>
           </div>
-          <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">PUBLIER →</button>
+          <Button className="w-full px-6 sm:w-auto">PUBLIER →</Button>
         </form>
 
         {/* ——— Les actualités publiées ——— */}

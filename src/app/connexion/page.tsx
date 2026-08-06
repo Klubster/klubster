@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -147,7 +148,7 @@ function ConnexionInner() {
         <button
           type="submit"
           disabled={loading || !email || (mode !== "oubli" && !password) || (mode === "signup" && !prenom)}
-          className="mono mt-8 w-full bg-ink px-6 py-4 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40"
+          className={classesBouton("primary", { className: "mt-8 w-full px-6 py-4 text-[13px]" })}
         >
           {loading ? "…" : mode === "oubli" ? "ENVOYER LE LIEN →" : mode === "login" ? "SE CONNECTER →" : "CRÉER MON COMPTE →"}
         </button>

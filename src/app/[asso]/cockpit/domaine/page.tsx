@@ -1,3 +1,4 @@
+import { classesBouton } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -76,7 +77,7 @@ export default async function DomainePage(
                     required
                     className="mono w-full border border-line bg-paper px-4 py-3 outline-none focus:border-ink sm:flex-1"
                   />
-                  <button className="mono whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90">
+                  <button className={classesBouton("primary", { className: "whitespace-nowrap" })}>
                     CONNECTER →
                   </button>
                 </div>

@@ -1,3 +1,4 @@
+import { classesBouton } from "@/components/ui/Button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
@@ -170,7 +171,7 @@ export default function CasUsmBoxe() {
               </p>
               <Link
                 href="/usmboxe"
-                className="mono mt-5 block w-full border border-ink px-7 py-3.5 text-center text-[13px] hover:bg-ink hover:text-paper sm:inline-block sm:w-auto"
+                className={classesBouton("secondary", { className: "mt-5 w-full px-7 text-[13px] sm:w-auto" })}
               >
                 VOIR LE CLUB USM BOXE →
               </Link>
