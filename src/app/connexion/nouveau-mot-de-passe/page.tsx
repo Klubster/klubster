@@ -57,7 +57,7 @@ export default function NouveauMotDePasse() {
           <Champ label="CONFIRMEZ" value={confirmation} onChange={setConfirmation} />
         </div>
 
-        {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
+        {err ? <p className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
 
         <button
           onClick={valider}

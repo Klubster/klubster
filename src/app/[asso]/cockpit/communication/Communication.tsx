@@ -104,8 +104,10 @@ export default function Communication({
         />
       </div>
 
+      {/* Lot S : le vert de confirmation passe de #279B65 (3,1:1, sous AA) au token
+          success — même sens, enfin lisible. */}
       {envoi ? (
-        <p className="mono text-[12px]" style={{ color: envoi.ok ? "#279B65" : "#B23B3B" }}>{envoi.texte}</p>
+        <p className={`mono text-[12px] ${envoi.ok ? "text-success" : "text-danger"}`}>{envoi.texte}</p>
       ) : null}
 
       {/* L'action d'envoi est LE geste de la page : pleine largeur au pouce. */}

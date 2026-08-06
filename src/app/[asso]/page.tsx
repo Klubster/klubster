@@ -536,7 +536,7 @@ export default async function VitrinePage(
 
           {searchParams?.erreur ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
-              <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
+              <p className="mono text-[13px] text-danger">
                 {searchParams.erreur === "photo"
                   ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (3 Mo maximum par photo)."
                   : searchParams.erreur === "vide"
@@ -912,8 +912,7 @@ function Controles({
         <button
           title={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page (réversible)"}
           aria-label={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page"}
-          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide hover:bg-bg-alt"
-          style={{ color: "#B23B3B" }}
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide text-danger hover:bg-bg-alt"
         >
           × <span className="hidden sm:inline">{custom ? "Supprimer" : "Retirer"}</span>
         </button>

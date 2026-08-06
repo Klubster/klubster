@@ -479,7 +479,7 @@ export default function FormBuilder({
             à faire remplir, par exemple&nbsp;: il lui est envoyé par email avec sa confirmation
             d&apos;inscription, et reste téléchargeable depuis son espace.
           </p>
-          {modeleErr ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{modeleErr}</p> : null}
+          {modeleErr ? <p className="mono mt-3 text-[12px] text-danger">{modeleErr}</p> : null}
           <div className="mt-6 divide-y divide-line border border-line bg-paper">
             {config.pieces.length === 0 ? (
               <p className="px-4 py-4 text-[14px] text-ink-soft">Aucune pièce demandée pour l&apos;instant.</p>
@@ -572,7 +572,7 @@ export default function FormBuilder({
               Le nombre maximal de mensualités (jusqu&apos;à 12) se règle dans le cockpit, sous la
               carte Stripe. L&apos;adhérent choisit ensuite librement dans cette limite.
             </p>
-            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#8A6508" }}>
+            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed text-warning">
               ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
               transaction pour une carte européenne). Plus il y a d&apos;échéances, plus la part fixe
               est prélevée souvent : le club perçoit un peu moins qu&apos;en paiement unique.
@@ -595,7 +595,7 @@ export default function FormBuilder({
           {state === "err" ? (
             // Le message du serveur dit QUOI corriger (« Un champ n'a pas de libellé… ») —
             // pas un « Erreur d'enregistrement » générique.
-            <span className="mono text-[12px]" style={{ color: "#B23B3B" }}>{erreur ?? "Erreur d’enregistrement"}</span>
+            <span className="mono text-[12px] text-danger">{erreur ?? "Erreur d’enregistrement"}</span>
           ) : null}
           <Link href={`/${slug}/inscription`} className="mono ml-auto text-[12px] text-ink-soft hover:text-ink">VOIR LE FORMULAIRE →</Link>
         </div>

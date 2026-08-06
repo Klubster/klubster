@@ -95,10 +95,10 @@ export default async function EquipePage(
           un encadrant contrôle au bord du terrain sans toucher à l’argent.
         </p>
 
-        {searchParams?.ok === "role" ? <p className="mono mt-5 text-[12px]" style={{ color: "#1E7A4F" }}>Rôle mis à jour.</p> : null}
-        {searchParams?.ok === "retire" ? <p className="mono mt-5 text-[12px]" style={{ color: "#1E7A4F" }}>Membre retiré.</p> : null}
+        {searchParams?.ok === "role" ? <p className="mono mt-5 text-[12px] text-success">Rôle mis à jour.</p> : null}
+        {searchParams?.ok === "retire" ? <p className="mono mt-5 text-[12px] text-success">Membre retiré.</p> : null}
         {searchParams?.ajout ? (
-          <p role="status" className="mono mt-5 text-[12px]" style={{ color: searchParams.ajout === "ok" ? "#1E7A4F" : "#B23B3B" }}>
+          <p role="status" className={`mono mt-5 text-[12px] ${searchParams.ajout === "ok" ? "text-success" : "text-danger"}`}>
             {messageAjout[searchParams.ajout] ?? messageAjout["erreur-inconnue"]}
           </p>
         ) : null}
@@ -106,7 +106,7 @@ export default async function EquipePage(
             générique qu'un échec silencieux — c'est le point de bascule que ce projet a
             déjà payé une fois, sur `?erreur=confirmation` sans texte. */}
         {searchParams?.erreur ? (
-          <p role="status" className="mono mt-5 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p role="status" className="mono mt-5 text-[12px] text-danger">
             {messageErreur[searchParams.erreur] ?? messageErreur.inconnue}
           </p>
         ) : null}

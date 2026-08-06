@@ -108,10 +108,10 @@ export default async function RelancesPage(
         <h1 className="mt-4 text-3xl font-medium md:text-4xl">Relancer les impayés.</h1>
 
         {searchParams.relance ? (
-          <p className="mono mt-6 text-[13px]" style={{ color: "#1E7A4F" }}>✓ Relance envoyée.</p>
+          <p className="mono mt-6 text-[13px] text-success">✓ Relance envoyée.</p>
         ) : null}
         {searchParams.relances !== undefined ? (
-          <p className="mono mt-6 text-[13px]" style={{ color: searchParams.relances === "0" ? "#8A6508" : "#1E7A4F" }}>
+          <p className={`mono mt-6 text-[13px] ${searchParams.relances === "0" ? "text-warning" : "text-success"}`}>
             {searchParams.relances === "0"
               ? "Personne à relancer par email (aucun impayé avec adresse email)."
               : `✓ ${searchParams.relances} relance(s) envoyée(s).`}
@@ -119,7 +119,7 @@ export default async function RelancesPage(
           </p>
         ) : null}
         {searchParams.erreur ? (
-          <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[13px] text-danger">
             {searchParams.erreur === "email"
               ? "Cette personne n’a pas d’email, ou n’a plus rien à régler."
               : "L’envoi a échoué. Réessayez."}

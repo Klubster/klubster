@@ -51,24 +51,24 @@ export default async function CodesPromoPage(props: {
           Ces codes s’appliquent à l’abonnement Klubster, saisis par le club dans son cockpit. Utiles pour
           les pilotes (première saison offerte) ou une remise ponctuelle.
         </p>
-        <p className="mono mt-4 text-[11px] uppercase tracking-label" style={{ color: stripeModeTest ? "#8A6A2F" : "#279B65" }}>
+        <p className={`mono mt-4 text-[11px] uppercase tracking-label ${stripeModeTest ? "text-warning" : "text-success"}`}>
           {stripeModeTest ? "MODE TEST — codes de test" : "MODE PRODUCTION — codes réels"}
           <Cur />
         </p>
 
         {searchParams?.ok ? (
-          <p className="mono mt-6 border border-brand px-4 py-3 text-[12px]" style={{ color: "#279B65" }}>
+          <p className="mono mt-6 border border-brand px-4 py-3 text-[12px] text-success">
             Code « {searchParams.ok} » créé. Il est prêt à être communiqué au club.
           </p>
         ) : null}
         {searchParams?.erreur ? (
-          <p className="mono mt-6 border border-line px-4 py-3 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 border border-line px-4 py-3 text-[12px] text-danger">
             {searchParams.erreur}
           </p>
         ) : null}
 
         {!configure ? (
-          <p className="mono mt-10 text-[13px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-10 text-[13px] text-danger">
             Stripe n’est pas configuré : impossible de créer un code pour l’instant.
           </p>
         ) : (
@@ -170,7 +170,7 @@ export default async function CodesPromoPage(props: {
               CODES EXISTANTS ({codes.length})<Cur />
             </h2>
             {erreurLecture ? (
-              <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{erreurLecture}</p>
+              <p className="mono mt-4 text-[12px] text-danger">{erreurLecture}</p>
             ) : codes.length === 0 ? (
               <p className="mt-4 text-[14px] text-ink-soft">Aucun code pour l’instant.</p>
             ) : (

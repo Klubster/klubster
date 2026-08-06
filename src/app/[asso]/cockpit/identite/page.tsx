@@ -62,13 +62,13 @@ export default async function IdentitePage(
           <p className="mono mt-6 text-[12px] text-brand">✓ Police et fond mis à jour sur tout votre site.</p>
         ) : null}
         {searchParams?.erreur === "image" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Image non reconnue ou trop lourde (PNG, JPG ou WebP, 3 Mo max).</p>
+          <p className="mono mt-6 text-[12px] text-danger">Image non reconnue ou trop lourde (PNG, JPG ou WebP, 3 Mo max).</p>
         ) : searchParams?.erreur === "vide" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Choisissez d&apos;abord un fichier.</p>
+          <p className="mono mt-6 text-[12px] text-danger">Choisissez d&apos;abord un fichier.</p>
         ) : searchParams?.erreur === "couleur" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Code couleur invalide (ex. attendu : #1A6FB5).</p>
+          <p className="mono mt-6 text-[12px] text-danger">Code couleur invalide (ex. attendu : #1A6FB5).</p>
         ) : searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>L&apos;enregistrement a échoué. Réessayez.</p>
+          <p className="mono mt-6 text-[12px] text-danger">L&apos;enregistrement a échoué. Réessayez.</p>
         ) : null}
 
         {/* LOGO */}

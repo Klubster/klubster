@@ -186,7 +186,7 @@ export default function RemiseClient({
         ))}
       </div>
 
-      {erreur ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{erreur}</p> : null}
+      {erreur ? <p className="mono mt-3 text-[12px] text-danger">{erreur}</p> : null}
 
       <button
         onClick={genererEtImprimer}

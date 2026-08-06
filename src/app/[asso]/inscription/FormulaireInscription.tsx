@@ -97,28 +97,28 @@ export default function FormulaireInscription({
     <>
       {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici. */}
       {erreur === "compte" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe ({LONGUEUR_MIN_MDP} caractères minimum), puis réessayez dans quelques minutes.
         </p>
       ) : erreur === "trop_de_tentatives" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Trop de tentatives d&apos;inscription depuis cet appareil. Patientez quelques minutes, puis réessayez.
         </p>
       ) : erreur === "robot" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
         </p>
       ) : erreur === "suspendu" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Les inscriptions en ligne de ce club sont momentanément fermées. Rapprochez-vous directement du club.
         </p>
       ) : erreur === "champs" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Le formulaire est incomplet : vérifiez les champs obligatoires. Pour un mineur, les coordonnées du
           responsable légal et les autorisations requises doivent être renseignées.
         </p>
       ) : erreur && erreur !== "compte_existant" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
+        <p className="mono mt-6 text-[13px] text-danger">Une erreur est survenue. Vérifiez vos informations.</p>
       ) : null}
 
       <form onSubmit={surSoumission} className="mt-12 space-y-10">
@@ -286,7 +286,7 @@ export default function FormulaireInscription({
         <Turnstile />
 
         {erreurJeton ? (
-          <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
+          <p className="mono text-[13px] text-danger">
             La vérification anti-robot n&apos;a pas abouti. Vérifiez votre connexion et réessayez —
             votre saisie est conservée.
           </p>
@@ -325,7 +325,7 @@ function Field({ label, name, type = "text", required, autoComplete, messageErre
       <label htmlFor={name} className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
       <input id={name} name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
       {messageErreur ? (
-        <p className="mono mt-2 text-[12px]" style={{ color: "#B23B3B" }}>{messageErreur}</p>
+        <p className="mono mt-2 text-[12px] text-danger">{messageErreur}</p>
       ) : null}
     </div>
   );

@@ -338,12 +338,12 @@ export default async function Cockpit(
               par rôle vivent dans `src/lib/priorites.ts`, testés séparément. */}
           {aTraiter.length > 0 ? (
             <div className="border-b border-line px-6 py-8 md:px-10">
-              <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+              <p className="mono text-[11px] uppercase tracking-label text-danger">
                 À TRAITER MAINTENANT<Cur />
               </p>
               <div className="mt-5 flex flex-col gap-px bg-line">
                 {aTraiter.map((p) => (
-                  <LignePriorite key={p.cle} p={p} accent="#B23B3B" />
+                  <LignePriorite key={p.cle} p={p} accent="text-danger" />
                 ))}
               </div>
             </div>
@@ -351,12 +351,12 @@ export default async function Cockpit(
 
           {aSurveiller.length > 0 ? (
             <div className="border-b border-line px-6 py-8 md:px-10">
-              <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#8A6508" }}>
+              <p className="mono text-[11px] uppercase tracking-label text-warning">
                 À SURVEILLER<Cur />
               </p>
               <div className="mt-5 flex flex-col gap-px bg-line">
                 {aSurveiller.map((p) => (
-                  <LignePriorite key={p.cle} p={p} accent="#8A6508" />
+                  <LignePriorite key={p.cle} p={p} accent="text-warning" />
                 ))}
               </div>
             </div>
@@ -387,8 +387,8 @@ export default async function Cockpit(
               persuadé d'avoir mal cliqué. Un échec muet est indiscernable d'un bug — et
               c'est le point d'abandon n°1 relevé sur l'authentification. */}
           {searchParams?.acces === "refuse" ? (
-            <div className="border-b border-line px-6 py-5 md:px-10" style={{ background: "#FBEDED" }}>
-              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+            <div className="border-b border-line px-6 py-5 md:px-10 bg-danger-soft">
+              <p className="mono text-[12px] text-danger">
                 Cette page n’est pas accessible avec votre rôle ({libelleRole(profile?.role)}).
                 Demandez au président de vous l’ouvrir depuis « Votre équipe ».
               </p>
@@ -417,7 +417,7 @@ export default async function Cockpit(
                 Souscription abandonnée — vous pourrez la reprendre quand vous voudrez.
               </p>
             ) : searchParams?.abonnement === "nonconfig" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 Les paiements ne sont pas encore activés côté plateforme. Écrivez-nous, nous réglons ça.
               </p>
             ) : searchParams?.abonnement === "aucun" ? (
@@ -425,11 +425,11 @@ export default async function Cockpit(
                 Aucun abonnement en cours pour l&apos;instant.
               </p>
             ) : searchParams?.abonnement === "codeinconnu" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 Ce code promo n&apos;est pas reconnu (ou n&apos;est plus actif). Vérifiez la saisie, ou laissez le champ vide.
               </p>
             ) : searchParams?.abonnement === "erreur" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 La souscription n&apos;a pas pu démarrer. Réessayez dans un instant ; si cela persiste, écrivez-nous.
               </p>
             ) : null}
@@ -438,8 +438,7 @@ export default async function Cockpit(
                 quelqu'un croie avoir encaissé une cotisation. */}
             {stripeModeTest ? (
               <p
-                className="mono mb-6 border px-4 py-3 text-[11px] uppercase tracking-label"
-                style={{ borderColor: "#8A6508", color: "#8A6508" }}
+                className="mono mb-6 border border-warning px-4 py-3 text-[11px] uppercase tracking-label text-warning"
               >
                 ⚠ Stripe en mode test — aucun paiement réel.
                 {!stripeCleCoherente() ? " La clé configurée ne correspond pas au mode : vérifiez les variables d’environnement." : ""}
@@ -523,7 +522,7 @@ export default async function Cockpit(
                         vous est envoyée chaque mois par email.
                       </>
                     ) : (
-                      <span style={{ color: "#B23B3B" }}>
+                      <span className="text-danger">
                         Dernier paiement refusé. Mettez à jour votre carte pour éviter la coupure.
                       </span>
                     )}
@@ -619,7 +618,7 @@ export default async function Cockpit(
               </p>
             ) : null}
             {searchParams?.stripe === "erreur" ? (
-              <p className="mono mt-3 text-[11px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mt-3 text-[11px] text-danger">
                 La connexion à Stripe a échoué. Réessayez dans un instant ; si cela persiste, écrivez-nous.
               </p>
             ) : null}
@@ -690,10 +689,13 @@ export default async function Cockpit(
 
 /* Point d'état — vert prêt, orange attention, rouge urgent. Avec retenue. */
 function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neutre"; children: React.ReactNode }) {
-  const couleur = etat === "ok" ? "#279B65" : etat === "attention" ? "#8A6508" : etat === "urgent" ? "#B23B3B" : "#C2C2BD";
+  // Lot S : classes token au lieu d'hex inline. Le ✓ vert reste `brand` (symbole, pas du
+  // texte) ; attention/urgent passent par les tokens de statut, lisibles AA.
+  const couleur =
+    etat === "ok" ? "text-brand" : etat === "attention" ? "text-warning" : etat === "urgent" ? "text-danger" : "text-ink-faint";
   return (
     <div className="flex items-baseline gap-4 border-b border-line py-3 last:border-b-0">
-      <span className="mono text-[13px]" style={{ color: couleur }}>{etat === "ok" ? "✓" : "●"}</span>
+      <span className={`mono text-[13px] ${couleur}`}>{etat === "ok" ? "✓" : "●"}</span>
       <span className="text-[15px]">{children}</span>
     </div>
   );
@@ -701,14 +703,16 @@ function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neut
 
 /* Une ligne de priorité : le nombre, la phrase, le geste — et un lien qui filtre déjà.
    Toute la ligne est cliquable : au bord du ring, on vise mal une petite flèche. */
-function LignePriorite({ p, accent }: { p: Priorite; accent: string }) {
+// `accent` est une classe token (`text-danger` / `text-warning`), plus un hex : la
+// sémantique des niveaux vit dans les tokens, le composant ne fait que la porter.
+function LignePriorite({ p, accent }: { p: Priorite; accent: "text-danger" | "text-warning" }) {
   return (
     <Link
       href={p.href}
       className="group flex min-h-[56px] flex-col gap-1 bg-paper px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
     >
       <span className="flex items-baseline gap-4">
-        <span className="mono text-[22px] font-bold tabular-nums" style={{ color: accent }}>
+        <span className={`mono text-[22px] font-bold tabular-nums ${accent}`}>
           {p.nombre}
         </span>
         <span className="text-[15px] leading-snug">{p.texte}</span>

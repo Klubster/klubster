@@ -120,7 +120,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
           SOLDE TOTAL : <span className="font-bold text-ink">{eur(totalSolde)}</span>
         </span>
       </div>
-      {erreur ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{erreur}</p> : null}
+      {erreur ? <p className="mono mt-3 text-[12px] text-danger">{erreur}</p> : null}
 
       {/* Lignes */}
       <div className="mt-6 divide-y divide-line border border-line bg-paper">
@@ -136,7 +136,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                 <div className="text-[15px] font-medium">
                   {l.prenom} {l.nom}
                   {l.statut === "en_retard" ? (
-                    <span className="mono ml-2 text-[10px] uppercase tracking-wider" style={{ color: "#B23B3B" }}>EN RETARD</span>
+                    <span className="mono ml-2 text-[10px] uppercase tracking-wider text-danger">EN RETARD</span>
                   ) : null}
                 </div>
                 <div className="text-[13px] text-ink-soft">
