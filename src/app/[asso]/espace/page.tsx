@@ -11,14 +11,12 @@ import { deconnexion } from "@/app/connexion/actions";
 import { updateInfos, uploadPiece } from "./actions";
 import { formatPrix } from "@/lib/format";
 import { texteAttestation, type QSType, type QSResultat } from "@/lib/sante";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 
 export const dynamic = "force-dynamic";
 
-const STATUT_LABEL: Record<string, string> = {
-  paye: "Payé", en_attente: "En attente", en_retard: "En retard", rembourse: "Remboursé", annule: "Annulé",
-  // Sans cette entrée, l'adhérent en liste d'attente lisait « liste_attente » en clair.
-  liste_attente: "Liste d’attente",
-};
+// S7 : la table locale des libellés est morte — libelleAdhesion (ui/StatutBadge) est
+// LA source, la même que le cockpit. Plus jamais deux orthographes pour un statut.
 
 export default async function EspacePage(props: { params: Promise<{ asso: string }> }) {
   const params = await props.params;
@@ -51,14 +49,29 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
 
   const a = adherent as { id: string; prenom: string; nom: string; email: string | null; telephone: string | null; infos: Record<string, string> };
   const qrSvg = await QRCode.toString(a.id, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
-  const { data: adhesion } = await supabase
-    .from("adhesions").select("id, statut, montant_centimes, mode_paiement, cours_id")
-    .eq("adherent_id", a.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
-  let coursNom = "";
-  if (adhesion?.cours_id) {
-    const { data: c } = await supabase.from("cours").select("nom").eq("id", adhesion.cours_id).maybeSingle();
-    coursNom = (c as { nom?: string } | null)?.nom ?? "";
+  // S7 : TOUTES les adhésions, plus seulement la dernière. Un adhérent inscrit à deux
+  // cours voyait le paiement de l'un sous le nom de l'autre ; les saisons passées
+  // disparaissaient. La saison courante s'affiche en premier, les autres se replient.
+  const { data: adhesionsData } = await supabase
+    .from("adhesions").select("id, statut, montant_centimes, mode_paiement, cours_id, saison")
+    .eq("adherent_id", a.id).order("created_at", { ascending: false });
+  const adhesions = (adhesionsData ?? []) as {
+    id: string; statut: string | null; montant_centimes: number; mode_paiement: string | null;
+    cours_id: string | null; saison: string | null;
+  }[];
+  const saison = saisonCourante(org);
+  const courantes = adhesions.filter((x) => x.saison === saison);
+  const anciennes = adhesions.filter((x) => x.saison !== saison);
+  // L'adhésion « de référence » de la carte : la première de la saison courante,
+  // sinon la plus récente — même logique que la fiche cockpit.
+  const adhesion = courantes[0] ?? adhesions[0] ?? null;
+  const coursIds = [...new Set(adhesions.map((x) => x.cours_id).filter((x): x is string => !!x))];
+  const nomsCours = new Map<string, string>();
+  if (coursIds.length > 0) {
+    const { data: cs } = await supabase.from("cours").select("id, nom").in("id", coursIds);
+    for (const c of (cs ?? []) as { id: string; nom: string }[]) nomsCours.set(c.id, c.nom);
   }
+  const coursNom = adhesion?.cours_id ? nomsCours.get(adhesion.cours_id) ?? "" : "";
   const { data: piecesData } = await supabase
     .from("pieces_adherent").select("id, label, statut, obligatoire").eq("adherent_id", a.id).order("created_at");
   const pieces = (piecesData ?? []) as { id: string; label: string; statut: string; obligatoire: boolean | null }[];
@@ -99,9 +112,21 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
               <div className="mono text-[11px] uppercase tracking-label text-paper/60">{org.nom}</div>
               <div className="mt-2 text-2xl font-medium leading-tight">{a.prenom} {a.nom}</div>
               <div className="mono mt-1 text-[13px] uppercase tracking-wide text-paper/60">Saison {saisonCourante(org)}</div>
-              <p className="mono mt-5 max-w-[36ch] text-[12px] leading-relaxed text-paper/50">
-                Présentez ce code à l&apos;accueil pour l&apos;appel.
-              </p>
+              {/* S7 : une place en liste d'attente ou une adhésion annulée n'est pas une
+                  carte valide — le dire ICI, avant que l'adhérent la présente à l'accueil. */}
+              {adhesion?.statut === "liste_attente" ? (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] uppercase leading-relaxed tracking-wide text-paper/80">
+                  ⏳ En liste d’attente — votre carte s’activera dès qu’une place se libère.
+                </p>
+              ) : adhesion?.statut === "annule" ? (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] uppercase leading-relaxed tracking-wide text-paper/80">
+                  Adhésion annulée — cette carte n’est plus active.
+                </p>
+              ) : (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] leading-relaxed text-paper/50">
+                  Présentez ce code à l&apos;accueil pour l&apos;appel.
+                </p>
+              )}
               <Link
                 href={`/${org.slug}/espace/facture`}
                 className="mono mt-5 inline-block border border-paper/40 px-4 py-2 text-[13px] hover:bg-paper hover:text-ink"
@@ -121,14 +146,58 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
           </div>
         </div>
       </div>
-      {/* ADHÉSION */}
+      {/* ADHÉSION — S7 : une adhésion = trois repères ; plusieurs = une ligne par cours,
+          chacune avec SON règlement. Le statut porte la teinte sémantique (succès/attente/
+          retard), jamais la couleur du club : elle décore, elle ne juge pas. */}
       <div className="mt-12">
-        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MON ADHÉSION<span style={{ color: accent }}>_</span></p>
-        <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
-          <Kpi label="COURS" value={coursNom || "—"} />
-          <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
-          <Kpi label="RÈGLEMENT" value={adhesion ? (STATUT_LABEL[adhesion.statut] ?? "En attente") : "—"} accent={adhesion?.statut === "paye" ? accent : undefined} />
-        </div>
+        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">
+          {courantes.length > 1 ? <>MES ADHÉSIONS — SAISON {saison}</> : <>MON ADHÉSION</>}
+          <span style={{ color: accent }}>_</span>
+        </p>
+        {courantes.length > 1 ? (
+          <div className="mt-4 divide-y divide-line border border-line bg-paper">
+            {courantes.map((x) => (
+              <div key={x.id} className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                <span className="text-[15px] font-medium">{(x.cours_id && nomsCours.get(x.cours_id)) || "Cours"}</span>
+                <span className="mono text-[13px]">
+                  {formatPrix(x.montant_centimes)}
+                  <span className={`ml-3 uppercase tracking-wide ${classeTexteAdhesion(x.statut)}`}>
+                    {libelleAdhesion(x.statut)}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
+            <Kpi label="COURS" value={coursNom || "—"} />
+            <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
+            <Kpi
+              label="RÈGLEMENT"
+              value={adhesion ? libelleAdhesion(adhesion.statut) : "—"}
+              classe={adhesion ? classeTexteAdhesion(adhesion.statut) : undefined}
+            />
+          </div>
+        )}
+        {anciennes.length > 0 ? (
+          // Repliées sans JavaScript : l'historique rassure sans encombrer.
+          <details className="mt-3 border border-line bg-paper">
+            <summary className="mono cursor-pointer px-5 py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              Saisons précédentes ({anciennes.length})
+            </summary>
+            <div className="divide-y divide-line border-t border-line">
+              {anciennes.map((x) => (
+                <div key={x.id} className="flex flex-col gap-1 px-5 py-3 text-ink-soft sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                  <span className="text-[14px]">
+                    {(x.cours_id && nomsCours.get(x.cours_id)) || "Cours"}
+                    <span className="mono ml-2 text-[11px] uppercase">{x.saison ?? "—"}</span>
+                  </span>
+                  <span className="mono text-[12px] uppercase tracking-wide">{libelleAdhesion(x.statut)}</span>
+                </div>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
       {/* INFOS */}
       <div className="mt-12">
@@ -243,11 +312,13 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
   );
 }
 
-function Kpi({ label, value, accent }: { label: string; value: string; accent?: string }) {
+// S7 : le Kpi prend une CLASSE sémantique (text-success/warning/danger), plus la couleur
+// du club — « Payé » en couleur d'accent laissait croire que le vert du thème jugeait.
+function Kpi({ label, value, classe }: { label: string; value: string; classe?: string }) {
   return (
     <div className="bg-paper px-5 py-5">
       <div className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mt-2 text-[18px] font-medium" style={accent ? { color: accent } : undefined}>{value}</div>
+      <div className={`mt-2 text-[18px] font-medium ${classe ?? ""}`}>{value}</div>
     </div>
   );
 }
