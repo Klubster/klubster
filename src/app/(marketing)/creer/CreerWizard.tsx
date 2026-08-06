@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { THEME_TEMPLATES, THEME_MODES, type ThemeTemplateId, type ThemeMode } from "@/lib/themes";
@@ -289,7 +290,8 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
               onClick={() => i < etape && setEtape(i)}
               className={`bg-paper px-3 py-3 text-left ${i <= etape ? "" : "opacity-40"}`}
             >
-              <div className="mono text-[10px]" style={{ color: i <= etape ? "#279B65" : undefined }}>
+              {/* S10 : le vert de progression est l'accent de marque — classe, pas hex. */}
+              <div className={`mono text-[10px] ${i <= etape ? "text-brand" : ""}`}>
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="mono mt-1 hidden truncate text-[10px] uppercase tracking-wider text-ink-soft sm:block">{label}</div>
@@ -328,8 +330,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
                     <button
                       key={t.id}
                       onClick={() => setTemplate(t.id)}
-                      className="bg-paper p-4 text-left"
-                      style={{ outline: actif ? "2px solid #279B65" : "none", outlineOffset: -2 }}
+                      className={`bg-paper p-4 text-left ${actif ? "outline outline-2 -outline-offset-2 outline-brand" : ""}`}
                     >
                       <div className="border border-line px-4 py-5" style={{ background: fond, color: encre }}>
                         <div className="text-[26px] leading-none" style={{ fontFamily: t.sans }}>Aa</div>
@@ -342,7 +343,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
                       </div>
                       <div className="mt-3 flex items-baseline justify-between gap-2">
                         <span className={`text-[14px] ${actif ? "font-medium" : ""}`}>
-                          <span className="mono mr-2 text-[11px]" style={{ color: actif ? "#279B65" : "#C2C2BD" }}>
+                          <span className={`mono mr-2 text-[11px] ${actif ? "text-brand" : "text-ink-faint"}`}>
                             {actif ? "■" : "□"}
                           </span>
                           {t.label}
@@ -428,7 +429,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
                 ) : null}
               </div>
               {logoErr ? (
-                <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{logoErr}</p>
+                <p className="mono mt-3 text-[12px] text-danger">{logoErr}</p>
               ) : (
                 <p className="mt-3 text-[13px] text-ink-soft">PNG, JPG ou SVG, 3 Mo max. Sans logo, l&apos;initiale du club fait le travail.</p>
               )}
@@ -636,8 +637,8 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
                 />
               </div>
 
-              {compteMsg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{compteMsg}</p> : null}
-              {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
+              {compteMsg ? <p className="mono mt-4 text-[12px] text-success">{compteMsg}</p> : null}
+              {err ? <p className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
             </div>
           )}
 
@@ -657,7 +658,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
                   en qualité de représentant habilité de l&apos;association.
                 </span>
               </label>
-              {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
+              {err ? <p className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
             </div>
           )}
 
@@ -669,7 +670,7 @@ export default function CreerWizard({ connecte: connecteInitial = true, fondateu
               <button
                 onClick={surCompte ? validerCompte : suivant}
                 disabled={!peutContinuer || loading}
-                className="mono bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 disabled:opacity-30"
+                className={classesBouton("primary", { className: "px-6" })}
               >
                 {surCompte ? (loading ? "…" : compteMode === "signup" ? "CRÉER MON COMPTE →" : "SE CONNECTER →") : "CONTINUER →"}
               </button>

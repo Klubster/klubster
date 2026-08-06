@@ -148,7 +148,7 @@ export default function ImportAdherents({
             </div>
           ) : null}
           {resultat.sansCours > 0 ? (
-            <div style={{ color: "#8A6508" }}>
+            <div className="text-warning">
               <span className="font-medium">{resultat.sansCours}</span> sans cours : rattaché
               {resultat.sansCours > 1 ? "s" : ""} à aucune saison, donc absent
               {resultat.sansCours > 1 ? "s" : ""} des compteurs, des relances et de la trésorerie.
@@ -176,7 +176,7 @@ export default function ImportAdherents({
         ) : null}
 
         {resultat.erreurs.length > 0 ? (
-          <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
+          <ul className="mono mt-4 space-y-1 text-[12px] text-warning">
             {resultat.erreurs.slice(0, 12).map((e, i) => (
               <li key={i}>{e}</li>
             ))}
@@ -210,7 +210,7 @@ export default function ImportAdherents({
             virgule, peu importe. La première ligne doit contenir les noms des colonnes.
           </p>
           {erreurFichier ? (
-            <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+            <p className="mono mt-3 text-[12px] text-danger">
               {erreurFichier}
             </p>
           ) : null}
@@ -308,7 +308,7 @@ export default function ImportAdherents({
             </div>
 
             {problemes.length > 0 ? (
-              <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
+              <ul className="mono mt-4 space-y-1 text-[12px] text-warning">
                 {problemes.map((p, i) => (
                   <li key={i}>⚠ {p}</li>
                 ))}

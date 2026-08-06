@@ -178,7 +178,7 @@ export default function CoursEditeur({
       </div>
 
       {erreur ? (
-        <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-4 text-[12px] text-danger">
           {erreur}
         </p>
       ) : null}
@@ -202,7 +202,7 @@ export default function CoursEditeur({
         ) : confirme ? (
           <span className="flex items-center gap-3">
             <span className="mono text-[11px] text-ink-soft">Supprimer définitivement ?</span>
-            <button onClick={supprimer} className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+            <button onClick={supprimer} className="mono text-[12px] text-danger">
               OUI
             </button>
             <button onClick={() => setConfirme(false)} className="mono text-[12px] text-ink-soft">
