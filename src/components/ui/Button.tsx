@@ -1,13 +1,24 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost";
+// Réécrit au Lot S. La première version (text-sm, shadow-sm) contredisait la DA réelle :
+// le produit n'a aucune ombre et ses boutons sont Space Mono 12-13px. Ce composant reprend
+// le motif dominant mesuré sur 42 fichiers (docs/lot-s-inventaire-interface.md) — le brancher
+// ne change donc pas l'apparence des écrans, il en supprime les divergences.
+type Variant = "primary" | "secondary" | "ghost" | "danger";
+
 const base =
-  "inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 disabled:opacity-50 disabled:pointer-events-none";
+  "mono inline-flex min-h-[44px] items-center justify-center gap-2 px-5 py-3 text-[12px] " +
+  "transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/40 " +
+  "disabled:pointer-events-none disabled:opacity-40";
+
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-white hover:bg-ink/90 shadow-sm",
-  secondary: "border border-ink/15 text-ink hover:bg-bg-alt",
-  ghost: "text-ink-soft hover:text-ink hover:bg-bg-alt",
+  primary: "bg-ink text-paper hover:bg-ink/90",
+  secondary: "border border-ink text-ink hover:bg-ink hover:text-paper",
+  ghost: "text-ink-soft hover:bg-bg-alt hover:text-ink",
+  // Destructif : bordure et texte danger au repos, le plein rouge n'apparaît qu'à
+  // l'intention confirmée (survol). Jamais la couleur du club pour un geste destructif.
+  danger: "border border-danger text-danger hover:bg-danger hover:text-paper",
 };
 
 export function Button({

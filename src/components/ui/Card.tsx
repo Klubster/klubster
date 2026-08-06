@@ -4,7 +4,9 @@ export function Card({ className, children }: { className?: string; children: Re
   return (
     <div
       className={cn(
-        "border border-line bg-surface shadow-sm transition-shadow hover:shadow-md",
+        // Lot S : plus d'ombre — la DA réelle du produit n'en a aucune (0 shadow-* mesuré
+        // dans src/app). La carte est une ligne nette sur papier, rien d'autre.
+        "border border-line bg-surface",
         className
       )}
     >
