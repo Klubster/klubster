@@ -50,10 +50,21 @@ connexion. Découverte au passage d'un QUATRIÈME ocre (`#8A6A2F`) — ajouté �
 - `/demo` : **aucun hôte contacté hors localhost** pendant la navigation (mesuré au réseau).
 - Cockpit mobile 390 : hiérarchie À TRAITER / À SURVEILLER intacte, tokens rendus.
 
+## Preuve runtime de la frontière d'erreur (6 août)
+
+Un `throw new Error("preuve-lot-s")` conditionné à `PREUVE_LOT_S=1` a été posé
+temporairement dans `cockpit/cours/page.tsx`, build de production, route ouverte en
+président connecté : l'écran maison s'affiche (titre compréhensible, Réessayer, retour
+cockpit) et le contrôle textuel confirme **aucune trace de l'erreur brute ni de stack**
+(`erreurBrute: false, stackVisible: false`). Capture : `docs/lot-s-captures/09-erreur-cockpit-390.png`.
+L'injection a été retirée aussitôt (`git diff` vierge, `grep PREUVE_LOT_S` = 0), les
+15 sentinelles rejouées vertes. Le `throw` n'a jamais été commité.
+
 ## Limites honnêtes
 
 - Pas d'appareil physique (iPhone/Android) : émulation viewport uniquement.
-- `error.tsx` vérifié par sentinelles, pas déclenché en navigateur.
+- `error.tsx` prouvé au runtime sur une route (cours) ; les autres frontières partagent
+  le même composant `ErreurEcran` et sont couvertes par les sentinelles.
 - Charge machine anormale pendant la session (load > 500, indépendante du projet) :
   des timeouts de tests sont possibles localement ; ils disparaissent avec
   `--maxWorkers=2` et n'existent pas en CI.
