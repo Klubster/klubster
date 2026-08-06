@@ -44,27 +44,41 @@ end $$;
 -- contrainte. **Ajouter le moindre membre échouait**, quel que soit le rôle visé. Ce n'est
 -- pas un test de confort : c'est le geste que le produit promet et ne tenait pas.
 begin;
+  -- Le compte LIBRE naît côté fixtures (superutilisateur du harnais), AVANT la bascule
+  -- authenticated : la RLS interdit — à raison — à un président de créer un profil.
+  insert into auth.users (id, email)
+  values ('0a000000-0000-4000-8000-00000000009f', 'libre@example.com');
+  insert into public.profiles (id, email, role)
+  values ('0a000000-0000-4000-8000-00000000009f', 'libre@example.com', 'adherent');
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"0a000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
   do $$
   declare resultat text; role_apres text;
   begin
-    -- Un compte hors équipe : l'adhérent du club A.
+    -- Depuis 20260802200000, un compte DÉJÀ rattaché au club (l'adhérent du club A
+    -- porte organisation_id = A) rend « deja_membre » : l'écran affiche alors le
+    -- message exact au lieu d'un ajout fantôme. C'est le contrat, on le vérifie.
     select public.equipe_ajouter('adherent.a@example.com') into resultat;
-    if resultat <> 'ok' then raise exception 'equipe_ajouter a rendu « % »', resultat; end if;
+    if resultat <> 'deja_membre' then
+      raise exception 'equipe_ajouter (déjà rattaché) devrait rendre « deja_membre », a rendu « % »', resultat;
+    end if;
 
-    select role into role_apres from public.profiles where email = 'adherent.a@example.com';
+    -- Le chemin « ok » se prouve sur le compte réellement LIBRE créé en fixture.
+    select public.equipe_ajouter('libre@example.com') into resultat;
+    if resultat <> 'ok' then raise exception 'equipe_ajouter (compte libre) a rendu « % »', resultat; end if;
+
+    select role into role_apres from public.profiles where email = 'libre@example.com';
     if role_apres <> 'lecture' then
       raise exception 'un membre ajouté devrait être en lecture, trouvé « % »', role_apres;
     end if;
 
-    -- Puis on le promeut trésorier — le geste exact de l'écran Équipe.
+    -- Puis on promeut l'adhérent trésorier — le geste exact de l'écran Équipe.
     perform public.equipe_definir_role('0a000000-0000-4000-8000-0000000000a3'::uuid, 'tresorier');
     select role into role_apres from public.profiles where email = 'adherent.a@example.com';
     if role_apres <> 'tresorier' then
       raise exception 'le rôle attribué devrait être tresorier, trouvé « % »', role_apres;
     end if;
-    raise notice 'Équipe : ajout puis promotion en trésorier — les deux aboutissent.';
+    raise notice 'Équipe : deja_membre exact, ajout d''un compte libre, promotion en trésorier — les trois aboutissent.';
   end $$;
 rollback;
 
