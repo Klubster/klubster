@@ -194,7 +194,7 @@ export default function DemoRemise() {
                         return copie;
                       })
                     }
-                    className="h-5 w-5 shrink-0 accent-[#1E7A4F]"
+                    className="h-5 w-5 shrink-0 accent-success"
                   />
                   <div className="min-w-[160px] flex-1">
                     <div className="text-[15px]">{c.nom}</div>
@@ -207,7 +207,7 @@ export default function DemoRemise() {
             </div>
 
             {erreur ? (
-              <p role="alert" className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p role="alert" className="mono mt-3 text-[12px] text-danger">
                 {erreur}
               </p>
             ) : null}

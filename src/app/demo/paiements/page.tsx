@@ -165,7 +165,7 @@ export default function DemoPaiements() {
           </div>
 
           {erreur ? (
-            <p role="alert" className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+            <p role="alert" className="mono mt-3 text-[12px] text-danger">
               {erreur}
             </p>
           ) : null}
@@ -184,13 +184,13 @@ export default function DemoPaiements() {
                       checked={selection.has(adhesion.id)}
                       onChange={() => basculer(adhesion.id)}
                       aria-label={`Sélectionner ${nom(adhesion.adherent_id)}`}
-                      className="h-5 w-5 shrink-0 accent-[#1E7A4F]"
+                      className="h-5 w-5 shrink-0 accent-success"
                     />
                     <div className="min-w-[180px] flex-1">
                       <div className="text-[15px]">
                         {nom(adhesion.adherent_id)}
                         {adhesion.statut === "en_retard" ? (
-                          <span className="mono ml-2 text-[10px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+                          <span className="mono ml-2 text-[10px] uppercase tracking-label text-danger">
                             EN RETARD
                           </span>
                         ) : null}

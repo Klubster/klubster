@@ -22,10 +22,12 @@ import { CLUB } from "@/lib/demo/donnees";
  */
 
 function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neutre"; children: React.ReactNode }) {
-  const couleur = etat === "ok" ? "#279B65" : etat === "attention" ? "#8A6508" : etat === "urgent" ? "#B23B3B" : "#C2C2BD";
+  // S8 : mêmes classes token que le Point du cockpit réel — la démo suit, ne recopie pas.
+  const couleur =
+    etat === "ok" ? "text-brand" : etat === "attention" ? "text-warning" : etat === "urgent" ? "text-danger" : "text-ink-faint";
   return (
     <div className="flex items-baseline gap-4 border-b border-line py-3 last:border-b-0">
-      <span className="mono text-[13px]" style={{ color: couleur }}>
+      <span className={`mono text-[13px] ${couleur}`}>
         {etat === "ok" ? "✓" : "●"}
       </span>
       <span className="text-[15px]">{children}</span>
@@ -38,8 +40,7 @@ function Geste({ titre, desc, href, action }: { titre: string; desc: string; hre
   return (
     <Link
       href={href}
-      className="group bg-paper px-5 py-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
-      style={{ outlineColor: "#1E7A4F" }}
+      className="group bg-paper px-5 py-5 outline-success focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
     >
       <div className="text-[15px] font-medium">{titre}</div>
       <div className="mt-1 text-[13px] text-ink-soft">{desc}</div>
@@ -49,14 +50,15 @@ function Geste({ titre, desc, href, action }: { titre: string; desc: string; hre
 }
 
 /* Une ligne de priorité — même rendu que `LignePriorite` du cockpit réel. */
-function LigneDemo({ p, accent }: { p: Priorite; accent: string }) {
+// S8 : `accent` est une classe token, comme LignePriorite du cockpit réel.
+function LigneDemo({ p, accent }: { p: Priorite; accent: "text-danger" | "text-warning" }) {
   return (
     <Link
       href={p.href}
       className="group flex min-h-[56px] flex-col gap-1 bg-paper px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
     >
       <span className="flex items-baseline gap-4">
-        <span className="mono text-[22px] font-bold tabular-nums" style={{ color: accent }}>
+        <span className={`mono text-[22px] font-bold tabular-nums ${accent}`}>
           {p.nombre}
         </span>
         <span className="text-[15px] leading-snug">{p.texte}</span>
@@ -141,12 +143,12 @@ export default function DemoAujourdhui() {
             montrer le produit qu'on livre, pas celui d'il y a trois semaines. */}
         {aTraiter.length > 0 ? (
           <div className="border-b border-line px-6 py-8 md:px-10">
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+            <p className="mono text-[11px] uppercase tracking-label text-danger">
               À TRAITER MAINTENANT<Cur />
             </p>
             <div className="mt-5 flex flex-col gap-px bg-line">
               {aTraiter.map((pr) => (
-                <LigneDemo key={pr.cle} p={pr} accent="#B23B3B" />
+                <LigneDemo key={pr.cle} p={pr} accent="text-danger" />
               ))}
             </div>
           </div>
@@ -154,12 +156,12 @@ export default function DemoAujourdhui() {
 
         {aSurveiller.length > 0 ? (
           <div className="border-b border-line px-6 py-8 md:px-10">
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#8A6508" }}>
+            <p className="mono text-[11px] uppercase tracking-label text-warning">
               À SURVEILLER<Cur />
             </p>
             <div className="mt-5 flex flex-col gap-px bg-line">
               {aSurveiller.map((pr) => (
-                <LigneDemo key={pr.cle} p={pr} accent="#8A6508" />
+                <LigneDemo key={pr.cle} p={pr} accent="text-warning" />
               ))}
             </div>
           </div>

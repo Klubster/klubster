@@ -173,9 +173,14 @@ describe("paiements — les écrans lisent la même règle", () => {
   });
 
   it("l'espace adhérent a un libellé pour la liste d'attente, et un repli", () => {
+    // S7 : la table locale de l'espace est morte — la garantie vit désormais dans LA
+    // table partagée (ui/StatutBadge), que l'espace consomme. Même exigence, au bon
+    // endroit : le libellé existe, et un statut absent/inconnu replie sur « En attente ».
     const f = lire("src/app/[asso]/espace/page.tsx");
-    expect(f).toMatch(/liste_attente: "Liste d’attente"/);
-    expect(f).toMatch(/\?\? "En attente"/);
+    expect(f).toMatch(/libelleAdhesion/);
+    const table = lire("src/components/ui/StatutBadge.tsx");
+    expect(table).toMatch(/liste_attente: \{ label: "Liste d’attente"/);
+    expect(table).toMatch(/\?\? ADHESION\.en_attente/);
   });
 
   it("le reçu n'affiche jamais « Gratuit » pour une somme", () => {

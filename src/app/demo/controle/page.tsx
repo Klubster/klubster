@@ -153,7 +153,7 @@ export default function DemoControle() {
         {/* ——— Le verdict ——————————————————————————————————————————————————— */}
         {introuvable ? (
           <div className="mt-10 border border-line bg-paper p-6">
-            <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
+            <p className="mono text-[13px] text-danger">
               Adhérent introuvable.
             </p>
             <p className="mono mt-3 max-w-prose text-[11px] leading-relaxed text-ink-soft">
@@ -209,7 +209,7 @@ function Etat({ label, ok, okText, koText }: { label: string; ok: boolean; okTex
   return (
     <div className="bg-paper px-5 py-4">
       <div className="mono text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mono mt-2 text-[15px] font-bold" style={{ color: ok ? "#1E7A4F" : "#B23B3B" }}>
+      <div className={`mono mt-2 text-[15px] font-bold ${ok ? "text-success" : "text-danger"}`}>
         {ok ? `✓ ${okText}` : `✕ ${koText}`}
       </div>
     </div>
