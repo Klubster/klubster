@@ -485,6 +485,7 @@ export default async function Cockpit(
                       <input
                         type="text"
                         name="code"
+                        aria-label="Code promo (facultatif)"
                         placeholder="Code promo (facultatif)"
                         spellCheck={false}
                         autoComplete="off"

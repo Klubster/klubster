@@ -1,0 +1,159 @@
+{
+ "route": "/",
+ "titre": "Klubster — Logiciel de gestion d'association et de club",
+ "tabOrdre": [
+  {
+   "tag": "A",
+   "nom": "Aller au contenu",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "k_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Accueil",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Fonctionnalités",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Tarifs",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Le premier club",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "ESPACE PRÉSIDENT",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "CRÉER MON CLUBCRÉER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "CRÉER MON CLUB →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Voir le site public d’un club →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "DEVENIR CLUB FONDATEUR →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "CRÉER MON CLUB →",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "LIRE LE CAS DU PREMIER CLUB →",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "CRÉER MON CLUB →",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "k_",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "contact@klubster.fr",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "06 31 83 84 17",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Créer mon club",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Tarifs",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Fonctionnalités",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Le premier club",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Espace président",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "Mentions légales",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "CGU",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "CGV",
+   "focusVisible": true,
+   "visible": false
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [],
+ "imagesSansAlt": 0
+}

@@ -1,0 +1,99 @@
+{
+ "route": "/demo",
+ "titre": "Démonstration — Klubster",
+ "tabOrdre": [
+  {
+   "tag": "BUTTON",
+   "nom": "RÉINITIALISER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "QUITTER LA DÉMONSTRATION",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "CRÉER MON CLUB →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Klubster — accueil",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "01 AUJOURD’HUI_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "02 INSCRIPTIONS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "03 CONTRÔLE_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "04 PAIEMENTS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "05 MESSAGES_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "06 ACTUALITÉS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "07 SITE_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "4cotisations en retardVOIR LES DOS",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "5dossiers incomplets — au moins un",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "7règlements attendus (chèque, espè",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "1cours complet : Hatha YogaVOIR LE",
+   "focusVisible": true,
+   "visible": true
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [],
+ "imagesSansAlt": 0
+}

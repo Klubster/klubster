@@ -2,9 +2,13 @@
 
 Mesures Puppeteer sur `next build && next start`, localhost uniquement.
 
-## Démo certifiée (S9)
-- 14 routes parcourues à 390 px : **0 erreur console** (donc 0 erreur d'hydratation),
-  **0 hôte externe**, **0 débordement**.
+## Démo certifiée (S9) — 18/18 routes exercées dans le navigateur
+- 14 routes statiques parcourues à 390 px : **0 erreur console** (donc 0 erreur
+  d'hydratation), **0 hôte externe**, **0 débordement**.
+- Les 4 routes dynamiques (`actualites/[id]`, `adherents/[id]`, `messages/[id]`,
+  `piece/[id]`) exercées ensuite sur les ids de l'état initial (`n1`, `a12`, `m1`,
+  `pf1`) : rendu correct, 0 erreur console, 0 hôte externe, **0 réponse 404**,
+  0 débordement à 390 px ; navigation fiche → liste restée SPA (`a33` → liste).
 - Geste rejoué en navigation SPA : ajout d'un adhérent → **effectif 34 → 35**, fiche
   `a-sim1` ouverte, nom visible dans la liste (`geste-ajout-spa-1280.png`) ; rechargement
   dur → état intégralement perdu (isolation prouvée).

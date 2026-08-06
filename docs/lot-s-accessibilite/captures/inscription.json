@@ -1,0 +1,183 @@
+{
+ "route": "/club-a/inscription",
+ "titre": "Klubster — Toute votre association, au même endroit",
+ "tabOrdre": [
+  {
+   "tag": "A",
+   "nom": "← Club A",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "SELECT",
+   "nom": "Boxe adultes A — 250 €/anBoxe lois",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "VALIDER MON INSCRIPTION →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "← Club A",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "SELECT",
+   "nom": "Boxe adultes A — 250 €/anBoxe lois",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "VALIDER MON INSCRIPTION →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "← Club A",
+   "focusVisible": true,
+   "visible": false
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [],
+ "imagesSansAlt": 0
+}

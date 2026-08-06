@@ -95,7 +95,10 @@ export default function FormulaireInscription({
 
   return (
     <>
-      {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici. */}
+      {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici.
+          S13 : role="alert" — l'erreur s'annonce au lecteur d'écran dès son rendu,
+          sans dépendre de la couleur ni de la position. */}
+      <div role="alert">
       {erreur === "compte" ? (
         <p className="mono mt-6 text-[13px] text-danger">
           Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe ({LONGUEUR_MIN_MDP} caractères minimum), puis réessayez dans quelques minutes.
@@ -120,6 +123,7 @@ export default function FormulaireInscription({
       ) : erreur && erreur !== "compte_existant" ? (
         <p className="mono mt-6 text-[13px] text-danger">Une erreur est survenue. Vérifiez vos informations.</p>
       ) : null}
+      </div>
 
       <form onSubmit={surSoumission} className="mt-12 space-y-10">
         <NaissanceProvider>

@@ -1,0 +1,161 @@
+{
+ "route": "/club-a/cockpit",
+ "titre": "Klubster — Toute votre association, au même endroit",
+ "tabOrdre": [
+  {
+   "tag": "A",
+   "nom": "k_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "DÉCONNEXION",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "01 AUJOURD'HUI_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "02 INSCRIPTIONS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "03 CONTRÔLE_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "04 PAIEMENTS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "05 MESSAGES_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "06 ACTUALITÉS_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "07 SITE_",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "5dossiers incomplets — au moins un",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "7nouvelles inscriptions cette sema",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "2règlements attendus (chèque, espè",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "1bientôt complet : Boxe loisir mer",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "APPLIQUER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "COMMENCER LES TROIS MOIS OFFERTS →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "CONNECTER STRIPE →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Gérer les adhérentsChercher, consu",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Cours et tarifsHoraires, tarifs, n",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Envoyer un messageAux adhérents, p",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Encaisser une cotisationChèque ou ",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Faire l'appelScanner la carte ou c",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Publier une actualitéÀ la une du s",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Modifier le siteSections, photos, ",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Formulaire d'inscriptionChamps, pi",
+   "focusVisible": true,
+   "visible": true
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [
+  "INPUT#code"
+ ],
+ "imagesSansAlt": 0
+}

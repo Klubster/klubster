@@ -251,6 +251,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                     <input
                       type="file"
                       name="file"
+                      aria-label={`${p.statut === "fournie" ? "Remplacer" : "Déposer"} — ${p.label} (PDF, JPG ou PNG)`}
                       accept="application/pdf,image/png,image/jpeg"
                       className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                     />
@@ -323,11 +324,14 @@ function Kpi({ label, value, classe }: { label: string; value: string; classe?: 
   );
 }
 
+// S13 : le libellé est RELIÉ au champ (htmlFor/id) — il était voisin, donc muet
+// pour un lecteur d'écran.
 function Champ({ label, name, type, defaultValue }: { label: string; name: string; type: string; defaultValue: string }) {
+  const id = `espace-${name}`;
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
-      <input name={name} type={type} defaultValue={defaultValue} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+      <label htmlFor={id} className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
+      <input id={id} name={name} type={type} defaultValue={defaultValue} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
     </div>
   );
 }
