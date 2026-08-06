@@ -15,7 +15,9 @@ const TEINTES: Record<Teinte, { dot: string; text: string }> = {
   neutre: { dot: "bg-ink-soft", text: "text-ink-soft" },
 };
 
-const ADHESION: Record<StatutAdhesion, { label: string; teinte: Teinte }> = {
+// Exportée en S6 : les écrans qui affichent le statut en texte simple (listes denses)
+// consomment LA même table que le badge — plus jamais deux libellés pour un même statut.
+export const ADHESION: Record<StatutAdhesion, { label: string; teinte: Teinte }> = {
   paye: { label: "Payé", teinte: "success" },
   en_attente: { label: "En attente", teinte: "warning" },
   en_retard: { label: "En retard", teinte: "danger" },
@@ -29,6 +31,21 @@ const PIECE: Record<StatutPiece, { label: string; teinte: Teinte }> = {
   fournie: { label: "Fournie", teinte: "success" },
   par_email: { label: "Reçue par email", teinte: "success" },
 };
+
+/**
+ * Libellé + classe texte du statut, pour les affichages hors badge. Tolérants :
+ * certaines requêtes typent le statut `string | null` — un statut absent ou inconnu
+ * s'affiche « En attente », exactement le repli des anciennes ternaires d'écran.
+ */
+function entree(statut: string | null | undefined) {
+  return ADHESION[(statut ?? "en_attente") as StatutAdhesion] ?? ADHESION.en_attente;
+}
+export function libelleAdhesion(statut: string | null | undefined): string {
+  return entree(statut).label;
+}
+export function classeTexteAdhesion(statut: string | null | undefined): string {
+  return TEINTES[entree(statut).teinte].text;
+}
 
 function Badge({ label, teinte }: { label: string; teinte: Teinte }) {
   const t = TEINTES[teinte];

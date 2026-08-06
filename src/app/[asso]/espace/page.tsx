@@ -1,4 +1,5 @@
 import { normaliserCouleur } from "@/lib/contraste";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { saisonCourante } from "@/lib/saison";
@@ -150,7 +151,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
             </div>
           ) : null}
           <div className="border-t border-line px-5 py-3">
-            <button className="mono bg-ink px-5 py-2.5 text-[13px] text-paper hover:bg-ink/90">ENREGISTRER →</button>
+            <Button compact className="text-[13px]">ENREGISTRER →</Button>
           </div>
         </form>
       </div>
@@ -184,7 +185,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
                       accept="application/pdf,image/png,image/jpeg"
                       className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                     />
-                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">{p.statut === "fournie" ? "REMPLACER" : "DÉPOSER"}</button>
+                    <Button variant="secondary" compact className="px-3 py-1.5">{p.statut === "fournie" ? "REMPLACER" : "DÉPOSER"}</Button>
                   </form>
                 ) : null}
               </div>

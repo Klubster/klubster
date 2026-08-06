@@ -1,4 +1,6 @@
 import { normaliserCouleur } from "@/lib/contraste";
+import { Button } from "@/components/ui/Button";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -247,9 +249,9 @@ export default async function FicheAdherent(
               <input id="f-tel" name="telephone" type="tel" defaultValue={adherent.telephone ?? ""} autoComplete="tel" className={CHAMP} />
             </div>
           </div>
-          <button className="mono mt-6 w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">
+          <Button className="mt-6 w-full px-6 sm:w-auto">
             ENREGISTRER LA FICHE
-          </button>
+          </Button>
         </form>
         ) : (
         <section className="mt-10">
@@ -308,9 +310,9 @@ export default async function FicheAdherent(
               )}
             </div>
             <form action={basculerOppositionCommunications.bind(null, org.slug, adherent.id)}>
-              <button className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+              <Button variant="secondary" compact>
                 {adherent.opposition_communications ? "Lever l'opposition" : "Enregistrer l'opposition"}
-              </button>
+              </Button>
             </form>
           </div>
         </section>
@@ -328,18 +330,8 @@ export default async function FicheAdherent(
                 <div key={a.id} className="border-b border-line px-5 py-4 last:border-b-0">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <span className="text-[15px] font-medium">{a.cours?.nom ?? "Cours"}</span>
-                    <span
-                      className={`mono text-[11px] uppercase tracking-wide ${
-                        a.statut === "paye" ? "text-success"
-                        : a.statut === "en_retard" ? "text-danger"
-                        : a.statut === "liste_attente" ? "text-ink-soft"
-                        : "text-warning"
-                      }`}
-                    >
-                      {a.statut === "paye" ? "Payé"
-                        : a.statut === "en_retard" ? "En retard"
-                        : a.statut === "liste_attente" ? "Liste d’attente"
-                        : "En attente"}
+                    <span className={`mono text-[11px] uppercase tracking-wide ${classeTexteAdhesion(a.statut)}`}>
+                      {libelleAdhesion(a.statut)}
                     </span>
                   </div>
                   <p className="mono mt-1 text-[12px] text-ink-soft">
@@ -418,7 +410,7 @@ export default async function FicheAdherent(
                   <option key={c.id} value={c.id}>{c.nom}</option>
                 ))}
               </select>
-              <button className="mono min-h-[44px] border border-ink px-4 py-2 text-[12px] uppercase hover:bg-ink hover:text-paper">Déplacer →</button>
+              <Button variant="secondary" className="px-4 py-2 uppercase">Déplacer →</Button>
               <span className="mono w-full text-[11px] text-ink-faint">
                 Cours complet = refus. Sans règlement, le montant dû devient le tarif du nouveau cours ; sinon il est conservé et l’écart vous est indiqué.
               </span>

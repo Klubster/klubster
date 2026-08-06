@@ -7,6 +7,7 @@ import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnem
 import { palierPourEffectif, PALIERS, joursEssai, estFondateur, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
 import type { CodePromo } from "@/lib/stripe";
 import BoutonAttente from "@/components/BoutonAttente";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 import { peut, libelleRole } from "@/lib/roles";
@@ -489,7 +490,9 @@ export default async function Cockpit(
                         autoComplete="off"
                         className="mono w-full border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink sm:w-52"
                       />
-                      <BoutonAttente attente="VÉRIFICATION…" className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
+                      {/* Contrôle tertiaire volontairement plus discret que le CTA de
+                          souscription juste en dessous : ghost, pas secondary. */}
+                      <BoutonAttente attente="VÉRIFICATION…" variant="ghost" className="border border-line hover:border-ink">
                         APPLIQUER
                       </BoutonAttente>
                     </form>
@@ -500,7 +503,8 @@ export default async function Cockpit(
                     {/* Action principale de la page : pleine largeur au pouce. */}
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
+                      variant="primary"
+                      className="w-full whitespace-nowrap sm:w-auto"
                     >
                       {fondateur ? "COMMENCER LES TROIS MOIS OFFERTS" : "COMMENCER LE MOIS OFFERT"} →
                     </BoutonAttente>
@@ -530,7 +534,8 @@ export default async function Cockpit(
                   <form action={gererAvecSlug} className="w-full sm:w-auto">
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono w-full whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto"
+                      variant="secondary"
+                      className="w-full whitespace-nowrap sm:w-auto"
                     >
                       FACTURES &amp; RÉSILIATION →
                     </BoutonAttente>
@@ -548,12 +553,14 @@ export default async function Cockpit(
                     0 % de commission.
                   </p>
                   {peutPaiements ? (
-                    <Link
+                    <ButtonLink
+                      variant="ghost"
+                      compact
                       href={`/${org.slug}/cockpit/virements`}
-                      className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
+                      className="whitespace-nowrap border border-line hover:border-ink"
                     >
                       MES VIREMENTS →
-                    </Link>
+                    </ButtonLink>
                   ) : null}
                 </div>
 
@@ -590,9 +597,9 @@ export default async function Cockpit(
                         </option>
                       ))}
                     </select>
-                    <button className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                    <Button variant="secondary" compact>
                       ENREGISTRER
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </>
@@ -605,7 +612,8 @@ export default async function Cockpit(
                 <form action={connecterAvecSlug} className="w-full sm:w-auto">
                   <BoutonAttente
                     attente="OUVERTURE DE STRIPE…"
-                    className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
+                    variant="primary"
+                    className="w-full whitespace-nowrap sm:w-auto"
                   >
                     CONNECTER STRIPE →
                   </BoutonAttente>
