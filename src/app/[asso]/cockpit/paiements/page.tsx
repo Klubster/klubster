@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { EtatVide } from "@/components/ui/EtatVide";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
@@ -20,8 +22,9 @@ const LIBELLE_MODE: Record<string, string> = {
   remboursement: "Remboursements",
 };
 
-export default async function PaiementsPage(props: { params: Promise<{ asso: string }> }) {
+export default async function PaiementsPage(props: { params: Promise<{ asso: string }>; searchParams?: Promise<{ erreur?: string; saison?: string }> }) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
   const profile = await getProfile();
@@ -71,7 +74,9 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
     .select("id, montant_centimes, mode_paiement, statut, created_at, adherent:adherents(prenom, nom, email), cours:cours(nom), reglements(montant_centimes)")
     .eq("organisation_id", org.id)
     .in("statut", ["en_attente", "en_retard"])
-    .in("mode_paiement", ["cheque", "especes"])
+    // Un renouvellement de saison ou un import crée l'adhésion SANS mode de paiement :
+    // ces impayés n'apparaissaient jamais ici (alors que les relances les voyaient).
+    .or("mode_paiement.in.(cheque,especes),mode_paiement.is.null")
     .order("created_at", { ascending: false });
 
   const brut = (data ?? []) as unknown as Array<{
@@ -116,23 +121,17 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
         {/* Empilés pleine largeur sur mobile : les libellés sont longs, deux boutons
             côte à côte finissaient l'un sur deux lignes, l'autre coupé. */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href={`/${org.slug}/cockpit/paiements/remise`}
-            className="mono inline-block border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
-          >
+          <ButtonLink variant="secondary" href={`/${org.slug}/cockpit/paiements/remise`}>
             PRÉPARER UNE REMISE DE CHÈQUES →
-          </Link>
-          <Link
-            href={`/${org.slug}/cockpit/paiements/relances`}
-            className="mono inline-block border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
-          >
+          </ButtonLink>
+          <ButtonLink variant="secondary" href={`/${org.slug}/cockpit/paiements/relances`}>
             RELANCER LES IMPAYÉS →
-          </Link>
+          </ButtonLink>
         </div>
 
         {litiges.length > 0 ? (
-          <div className="mt-8 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+          <div className="mt-8 border px-5 py-4 border-danger bg-danger-soft">
+            <p className="mono text-[11px] uppercase tracking-label text-danger">
               {litiges.length} LITIGE{litiges.length > 1 ? "S" : ""} BANCAIRE{litiges.length > 1 ? "S" : ""} À TRAITER<Cur />
             </p>
             <p className="mt-1.5 text-[14px]">
@@ -164,7 +163,14 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
             </p>
           </div>
           {totaux.size === 0 ? (
-            <p className="px-5 py-4 text-[15px] text-ink-soft">Aucun règlement enregistré sur la période.</p>
+            // Donnée absente sur la période choisie — pas un premier usage : la période
+            // se règle au-dessus, inutile de proposer une action ici.
+            <div className="px-5 py-4">
+              <EtatVide
+                titre="Aucun règlement enregistré sur la période."
+                detail="Changez de période au-dessus, ou revenez après les premiers encaissements."
+              />
+            </div>
           ) : (
             <div className="divide-y divide-line">
               {["especes", "cheque", "en_ligne", "autre", "remboursement"]
@@ -195,13 +201,18 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
               <span className="mono text-[10px] uppercase tracking-label text-ink-soft">Fin</span>
               <input type="date" name="fin" defaultValue={org.saison_fin ?? ""} className="mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
             </label>
-            <button className="mono w-full bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">ENREGISTRER</button>
+            <Button className="w-full sm:w-auto">ENREGISTRER</Button>
           </div>
           <p className="mono mt-3 text-[11px] text-ink-faint">
             Les totaux ci-dessus se limitent à cette période. Laissez vide pour compter depuis le début.
           </p>
         </form>
 
+        {searchParams?.erreur === "encaisse" ? (
+          <p className="mono mb-6 text-[12px] text-danger">
+            L’encaissement n’a pas pu être enregistré. Rien n’a été modifié — réessayez.
+          </p>
+        ) : null}
         <PaiementsClient slug={org.slug} nomClub={org.nom} lignes={lignes} />
       </div>
     </main>

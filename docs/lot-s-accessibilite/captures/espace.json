@@ -1,0 +1,127 @@
+{
+ "route": "/club-a/espace",
+ "titre": "Klubster — Toute votre association, au même endroit",
+ "tabOrdre": [
+  {
+   "tag": "A",
+   "nom": "← Club A",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "DÉCONNEXION",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "VOIR MON REÇU →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "SUMMARY",
+   "nom": "Saisons précédentes (1)",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "ENREGISTRER →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "REMPLACER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Installer l'app sur mon téléphone ",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "← Club A",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "DÉCONNEXION",
+   "focusVisible": true,
+   "visible": false
+  },
+  {
+   "tag": "A",
+   "nom": "VOIR MON REÇU →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "SUMMARY",
+   "nom": "Saisons précédentes (1)",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "ENREGISTRER →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "REMPLACER",
+   "focusVisible": true,
+   "visible": true
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [
+  "INPUT#email",
+  "INPUT#tel",
+  "INPUT#file"
+ ],
+ "imagesSansAlt": 0
+}

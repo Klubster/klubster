@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { saisonCourante } from "@/lib/saison";
 import type { Organisation } from "@/types/db";
 
@@ -17,7 +18,13 @@ import type { Organisation } from "@/types/db";
 export async function coursComplets(
   org: Pick<Organisation, "id" | "saison_debut" | "saison_fin">
 ): Promise<Set<string>> {
-  const supabase = await createSupabaseServerClient();
+  // Défaut relevé le 03/08/2026 en rejouant l'inscription : pour un VISITEUR (anon),
+  // les politiques RLS d'`adhesions` ne rendent aucune ligne — le comptage tombait à
+  // zéro et aucun cours n'était jamais annoncé « complet » sur la page publique,
+  // alors que l'inscription partait bien en liste d'attente. Le comptage passe par le
+  // client service-role : lecture d'agrégat, cadrée à l'organisation passée par le
+  // serveur, aucune donnée renvoyée au navigateur autre que « complet / pas complet ».
+  const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
   const saisonAct = saisonCourante(org);
   const [{ data: placesRows }, { data: adhCount }] = await Promise.all([
     supabase.from("cours").select("id, places_max").eq("organisation_id", org.id),

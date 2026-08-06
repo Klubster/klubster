@@ -1,0 +1,736 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 2,
+ "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+ "name": "Klubster — Logiciel de gestion d'association et de club",
+ "url": "http://localhost:3111/",
+ "busy": true,
+ "children": [
+  {
+   "role": "link",
+   "backendNodeId": 65,
+   "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+   "name": "ALLER AU CONTENU",
+   "url": "http://localhost:3111/#contenu",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 478,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "ALLER AU CONTENU"
+    }
+   ]
+  },
+  {
+   "role": "main",
+   "backendNodeId": 66,
+   "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 70,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "k_",
+     "url": "http://localhost:3111/",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 479,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "k"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 480,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "navigation",
+     "backendNodeId": 72,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "",
+     "children": [
+      {
+       "role": "link",
+       "backendNodeId": 73,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "Accueil",
+       "url": "http://localhost:3111/",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 481,
+         "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+         "name": "Accueil"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 74,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "Fonctionnalités",
+       "url": "http://localhost:3111/fonctionnalites",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 482,
+         "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+         "name": "Fonctionnalités"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 75,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "Tarifs",
+       "url": "http://localhost:3111/#tarifs",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 483,
+         "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+         "name": "Tarifs"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 76,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "Le premier club",
+       "url": "http://localhost:3111/cas-clients/usm-boxe-anglaise",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 484,
+         "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+         "name": "Le premier club"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 78,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "ESPACE PRÉSIDENT",
+     "url": "http://localhost:3111/connexion",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 485,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "ESPACE PRÉSIDENT"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 79,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "CRÉER MON CLUB",
+     "url": "http://localhost:3111/creer?offre=fondateur",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 486,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "CRÉER MON CLUB"
+      }
+     ]
+    },
+    {
+     "role": "image",
+     "backendNodeId": 92,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Une salle de sport vide, au lever du jour.",
+     "url": "http://localhost:3111/_next/image?url=%2F01-hero.jpg&w=1280&q=75"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 489,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "KLUBSTER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 490,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 6,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Toute votre association, au même endroit.",
+     "level": 1
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 493,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Les associations méritent mieux qu’un tableur."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 494,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Une vue claire sur chaque adhérent, sans rouvrir un tableur."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 495,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "L’essentiel pour faire vivre une association : inscriptions, dossiers, paiements, relances et site du club. Sans le superflu — et moins de soirées à courir après les dossiers."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 496,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "À partir de 9 €/mois "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 497,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "·"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 498,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": " Trois mois offerts pour les 15 premiers clubs"
+    },
+    {
+     "role": "link",
+     "backendNodeId": 105,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "CRÉER MON CLUB →",
+     "url": "http://localhost:3111/creer?offre=fondateur",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 499,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "CRÉER MON CLUB →"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 106,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "VOIR LE SITE PUBLIC D’UN CLUB →",
+     "url": "http://localhost:3111/usmboxe",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 500,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "VOIR LE SITE PUBLIC D’UN CLUB →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 501,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "CONÇU PAR UN PRÉSIDENT DE CLUB "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 502,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "·"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 503,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": " CONÇU ET TESTÉ AVEC UN CLUB DE "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 504,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "313"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 505,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": " ADHÉRENTS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 506,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "PRÊT EN MOINS DE 30 MINUTES"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 507,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 508,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "LANCEMENT — 15 CLUBS FONDATEURS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 509,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 510,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Pour les 15 premiers clubs : mise en route accompagnée, import de votre fichier d’adhérents si besoin, et trois premiers mois offerts au lieu d’un. Sans engagement."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 511,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Et une fois lancé, une aide directe : depuis leur cockpit, ils écrivent au créateur de Klubster, qui leur répond en personne."
+    },
+    {
+     "role": "link",
+     "backendNodeId": 118,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "DEVENIR CLUB FONDATEUR →",
+     "url": "http://localhost:3111/creer?offre=fondateur",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 512,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "DEVENIR CLUB FONDATEUR →"
+      }
+     ]
+    },
+    {
+     "role": "image",
+     "backendNodeId": 123,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Un vestiaire vide, lumière de fin de journée.",
+     "url": "http://localhost:3111/_next/image?url=%2F03-vestiaire.jpg&w=1280&q=75"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 513,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "I"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 514,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": " — "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 515,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "POURQUOI"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 516,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 129,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Un club, ce n’est pas une base de données.",
+     "level": 2
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 518,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "C’est une salle qu’on ouvre le soir, des adhérents qui arrivent, et des bénévoles qui donnent déjà beaucoup de leur temps."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 519,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Klubster s’occupe de la part invisible — les inscriptions, les paiements, les documents et les relances. Vous gardez le reste."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 520,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Avant que les adhérents arrivent,"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 521,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "il y a ceux qui font déjà vivre le club."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 522,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Klubster est fait pour eux"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 523,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 524,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "II"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 525,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": " — LE COCKPIT"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 526,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 146,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "La salle ouvre dans quinze minutes.",
+     "level": 2
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 528,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Vous ouvrez Klubster."
+    },
+    {
+     "role": "LineBreak",
+     "backendNodeId": 148,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "\n"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 529,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Vous voyez tout de suite ce qui reste à faire."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 530,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "k"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 531,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 532,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "KLUBSTER.FR/MON-CLUB/COCKPIT"
+    },
+    {
+     "role": "navigation",
+     "backendNodeId": 156,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 533,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "01"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 534,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "AUJOURD’HUI"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 535,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "_"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 536,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "02"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 537,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "INSCRIPTIONS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 538,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "03"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 539,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "CONTRÔLE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 540,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "04"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 541,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "PAIEMENTS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 542,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "05"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 543,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "MESSAGES"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 544,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "06"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 545,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "ACTUALITÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 546,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "07"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 547,
+       "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+       "name": "SITE"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 548,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "BONSOIR, CLAIRE · MERCREDI 4 SEPTEMBRE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 549,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 550,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Le club est presque prêt."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 551,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Deux dossiers à compléter avant ce soir — le reste est à jour."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 552,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "LE CLUB AUJOURD’HUI"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 553,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 554,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "✓"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 555,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "3 nouvelles inscriptions cette semaine"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 556,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "✓"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 557,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "14 paiements reçus cette semaine"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 558,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "⚠"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 559,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "2 dossiers à compléter"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 560,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "●"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 561,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Ce soir : Boxe loisirs 18:30–20:00 · 18 inscrits"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 562,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "2"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 563,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "DOSSIERS À TERMINER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 564,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "0"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 565,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "COTISATION À RELANCER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 566,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "3"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 567,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "INSCRIPTIONS · 7 JOURS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 568,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 569,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "DÉSORMAIS AUSSI"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 570,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 571,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Les impayés, relancés en un clic."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 572,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Chacun reçoit un rappel avec son propre montant restant — ou tout le monde d’un coup."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 573,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Les remboursements et les litiges, sous contrôle."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 574,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Un paiement remboursé ou contesté se suit directement depuis le cockpit."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 575,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Les cours complets gèrent leur liste d’attente."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 576,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "Plus de place ? L’inscription bascule en attente. Vous donnez la place dès qu’elle se libère."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 577,
+     "loaderId": "359ED6F22454A58ADC5C84ADB48ABBD7",
+     "name": "L’état de votre association,"
+    },
+    {
+     "role": "Lin

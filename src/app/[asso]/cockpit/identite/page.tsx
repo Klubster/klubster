@@ -1,3 +1,4 @@
+import { normaliserCouleur, themeClub, accentLisibleSur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -32,7 +33,8 @@ export default async function IdentitePage(
   const retirerLogoAvecSlug = retirerLogo.bind(null, org.slug);
   const changerCouleurAvecSlug = changerCouleur.bind(null, org.slug);
   const changerThemeAvecSlug = changerTheme.bind(null, org.slug);
-  const couleur = org.couleur_primaire ?? "#279B65";
+  const couleur = normaliserCouleur(org.couleur_primaire);
+  const apercu = themeClub(org.couleur_primaire);
   const templateActuel = org.theme_template ?? "editorial";
   const modeActuel = org.theme_mode ?? "blanc";
 
@@ -60,13 +62,13 @@ export default async function IdentitePage(
           <p className="mono mt-6 text-[12px] text-brand">✓ Police et fond mis à jour sur tout votre site.</p>
         ) : null}
         {searchParams?.erreur === "image" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Image non reconnue ou trop lourde (PNG, JPG ou WebP, 3 Mo max).</p>
+          <p className="mono mt-6 text-[12px] text-danger">Image non reconnue ou trop lourde (PNG, JPG ou WebP, 3 Mo max).</p>
         ) : searchParams?.erreur === "vide" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Choisissez d&apos;abord un fichier.</p>
+          <p className="mono mt-6 text-[12px] text-danger">Choisissez d&apos;abord un fichier.</p>
         ) : searchParams?.erreur === "couleur" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Code couleur invalide (ex. attendu : #1A6FB5).</p>
+          <p className="mono mt-6 text-[12px] text-danger">Code couleur invalide (ex. attendu : #1A6FB5).</p>
         ) : searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>L&apos;enregistrement a échoué. Réessayez.</p>
+          <p className="mono mt-6 text-[12px] text-danger">L&apos;enregistrement a échoué. Réessayez.</p>
         ) : null}
 
         {/* LOGO */}
@@ -168,6 +170,39 @@ export default async function IdentitePage(
           <p className="mt-3 text-[13px] text-ink-soft">
             Collez le code hexadécimal de votre couleur (logo, maillot…). Elle s&apos;applique en touches d&apos;accent.
           </p>
+
+          {/* PRÉVISUALISATION RÉELLE — les mêmes règles que la vitrine (texteSur,
+              survolDe, bordureSur), pas une maquette. Un bénévole voit ce que verront
+              ses adhérents, sans jargon : on ne montre aucun ratio ni sigle WCAG. */}
+          <div className="mt-6 border-t border-line pt-5">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">APERÇU AVEC VOTRE COULEUR</p>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <span
+                className="mono inline-block px-6 py-3 text-[13px]"
+                style={{ background: apercu.accent, color: apercu.texteSurAccent }}
+              >
+                S&apos;INSCRIRE →
+              </span>
+              <span
+                className="mono inline-block px-6 py-3 text-[13px]"
+                style={{ background: apercu.survol, color: apercu.texteSurAccent }}
+              >
+                AU SURVOL
+              </span>
+              <span
+                className="mono inline-block px-4 py-2 text-[12px]"
+                style={{
+                  border: `1px solid ${apercu.bordure}`,
+                  color: accentLisibleSur(apercu.accent, "#FCFCFA"),
+                }}
+              >
+                ADHÉSION 2026-2027
+              </span>
+            </div>
+            <p className="mt-4 text-[13px] text-ink-soft">
+              Votre couleur est conservée. Le texte est automatiquement adapté pour rester lisible.
+            </p>
+          </div>
         </section>
       </div>
     </main>

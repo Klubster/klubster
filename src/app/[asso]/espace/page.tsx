@@ -1,3 +1,5 @@
+import { normaliserCouleur } from "@/lib/contraste";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { saisonCourante } from "@/lib/saison";
@@ -9,12 +11,12 @@ import { deconnexion } from "@/app/connexion/actions";
 import { updateInfos, uploadPiece } from "./actions";
 import { formatPrix } from "@/lib/format";
 import { texteAttestation, type QSType, type QSResultat } from "@/lib/sante";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 
 export const dynamic = "force-dynamic";
 
-const STATUT_LABEL: Record<string, string> = {
-  paye: "Payé", en_attente: "En attente", en_retard: "En retard", rembourse: "Remboursé", annule: "Annulé",
-};
+// S7 : la table locale des libellés est morte — libelleAdhesion (ui/StatutBadge) est
+// LA source, la même que le cockpit. Plus jamais deux orthographes pour un statut.
 
 export default async function EspacePage(props: { params: Promise<{ asso: string }> }) {
   const params = await props.params;
@@ -29,7 +31,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
 
   const org = await getOrganisationBySlug(params.asso);
   if (!org) notFound();
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   const supabase = await createSupabaseServerClient();
   const { data: adherent } = await supabase
@@ -47,18 +49,35 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
 
   const a = adherent as { id: string; prenom: string; nom: string; email: string | null; telephone: string | null; infos: Record<string, string> };
   const qrSvg = await QRCode.toString(a.id, { type: "svg", margin: 0, errorCorrectionLevel: "M" });
-  const { data: adhesion } = await supabase
-    .from("adhesions").select("id, statut, montant_centimes, mode_paiement, cours_id")
-    .eq("adherent_id", a.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
-  let coursNom = "";
-  if (adhesion?.cours_id) {
-    const { data: c } = await supabase.from("cours").select("nom").eq("id", adhesion.cours_id).maybeSingle();
-    coursNom = (c as { nom?: string } | null)?.nom ?? "";
+  // S7 : TOUTES les adhésions, plus seulement la dernière. Un adhérent inscrit à deux
+  // cours voyait le paiement de l'un sous le nom de l'autre ; les saisons passées
+  // disparaissaient. La saison courante s'affiche en premier, les autres se replient.
+  const { data: adhesionsData } = await supabase
+    .from("adhesions").select("id, statut, montant_centimes, mode_paiement, cours_id, saison")
+    .eq("adherent_id", a.id).order("created_at", { ascending: false });
+  const adhesions = (adhesionsData ?? []) as {
+    id: string; statut: string | null; montant_centimes: number; mode_paiement: string | null;
+    cours_id: string | null; saison: string | null;
+  }[];
+  const saison = saisonCourante(org);
+  const courantes = adhesions.filter((x) => x.saison === saison);
+  const anciennes = adhesions.filter((x) => x.saison !== saison);
+  // L'adhésion « de référence » de la carte : la première de la saison courante,
+  // sinon la plus récente — même logique que la fiche cockpit.
+  const adhesion = courantes[0] ?? adhesions[0] ?? null;
+  const coursIds = [...new Set(adhesions.map((x) => x.cours_id).filter((x): x is string => !!x))];
+  const nomsCours = new Map<string, string>();
+  if (coursIds.length > 0) {
+    const { data: cs } = await supabase.from("cours").select("id, nom").in("id", coursIds);
+    for (const c of (cs ?? []) as { id: string; nom: string }[]) nomsCours.set(c.id, c.nom);
   }
+  const coursNom = adhesion?.cours_id ? nomsCours.get(adhesion.cours_id) ?? "" : "";
   const { data: piecesData } = await supabase
-    .from("pieces_adherent").select("id, label, statut").eq("adherent_id", a.id).order("created_at");
-  const pieces = (piecesData ?? []) as { id: string; label: string; statut: string }[];
-  const manquantes = pieces.filter((p) => p.statut === "manquante").length;
+    .from("pieces_adherent").select("id, label, statut, obligatoire").eq("adherent_id", a.id).order("created_at");
+  const pieces = (piecesData ?? []) as { id: string; label: string; statut: string; obligatoire: boolean | null }[];
+  // RÈGLE PRODUIT (04/08/2026) : seules les pièces OBLIGATOIRES manquantes rendent
+  // le dossier incomplet. Une facultative absente ne génère ni compteur ni relance.
+  const manquantes = pieces.filter((p) => p.statut === "manquante" && p.obligatoire !== false).length;
 
   const { data: qsanteData } = await supabase
     .from("questionnaires_sante")
@@ -93,9 +112,21 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
               <div className="mono text-[11px] uppercase tracking-label text-paper/60">{org.nom}</div>
               <div className="mt-2 text-2xl font-medium leading-tight">{a.prenom} {a.nom}</div>
               <div className="mono mt-1 text-[13px] uppercase tracking-wide text-paper/60">Saison {saisonCourante(org)}</div>
-              <p className="mono mt-5 max-w-[36ch] text-[12px] leading-relaxed text-paper/50">
-                Présentez ce code à l&apos;accueil pour l&apos;appel.
-              </p>
+              {/* S7 : une place en liste d'attente ou une adhésion annulée n'est pas une
+                  carte valide — le dire ICI, avant que l'adhérent la présente à l'accueil. */}
+              {adhesion?.statut === "liste_attente" ? (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] uppercase leading-relaxed tracking-wide text-paper/80">
+                  ⏳ En liste d’attente — votre carte s’activera dès qu’une place se libère.
+                </p>
+              ) : adhesion?.statut === "annule" ? (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] uppercase leading-relaxed tracking-wide text-paper/80">
+                  Adhésion annulée — cette carte n’est plus active.
+                </p>
+              ) : (
+                <p className="mono mt-5 max-w-[36ch] text-[12px] leading-relaxed text-paper/50">
+                  Présentez ce code à l&apos;accueil pour l&apos;appel.
+                </p>
+              )}
               <Link
                 href={`/${org.slug}/espace/facture`}
                 className="mono mt-5 inline-block border border-paper/40 px-4 py-2 text-[13px] hover:bg-paper hover:text-ink"
@@ -115,14 +146,58 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
           </div>
         </div>
       </div>
-      {/* ADHÉSION */}
+      {/* ADHÉSION — S7 : une adhésion = trois repères ; plusieurs = une ligne par cours,
+          chacune avec SON règlement. Le statut porte la teinte sémantique (succès/attente/
+          retard), jamais la couleur du club : elle décore, elle ne juge pas. */}
       <div className="mt-12">
-        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">MON ADHÉSION<span style={{ color: accent }}>_</span></p>
-        <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
-          <Kpi label="COURS" value={coursNom || "—"} />
-          <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
-          <Kpi label="RÈGLEMENT" value={adhesion ? (STATUT_LABEL[adhesion.statut] ?? adhesion.statut) : "—"} accent={adhesion?.statut === "paye" ? accent : undefined} />
-        </div>
+        <p className="mono text-[12px] uppercase tracking-label text-ink-soft">
+          {courantes.length > 1 ? <>MES ADHÉSIONS — SAISON {saison}</> : <>MON ADHÉSION</>}
+          <span style={{ color: accent }}>_</span>
+        </p>
+        {courantes.length > 1 ? (
+          <div className="mt-4 divide-y divide-line border border-line bg-paper">
+            {courantes.map((x) => (
+              <div key={x.id} className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                <span className="text-[15px] font-medium">{(x.cours_id && nomsCours.get(x.cours_id)) || "Cours"}</span>
+                <span className="mono text-[13px]">
+                  {formatPrix(x.montant_centimes)}
+                  <span className={`ml-3 uppercase tracking-wide ${classeTexteAdhesion(x.statut)}`}>
+                    {libelleAdhesion(x.statut)}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
+            <Kpi label="COURS" value={coursNom || "—"} />
+            <Kpi label="COTISATION" value={adhesion ? formatPrix(adhesion.montant_centimes) : "—"} />
+            <Kpi
+              label="RÈGLEMENT"
+              value={adhesion ? libelleAdhesion(adhesion.statut) : "—"}
+              classe={adhesion ? classeTexteAdhesion(adhesion.statut) : undefined}
+            />
+          </div>
+        )}
+        {anciennes.length > 0 ? (
+          // Repliées sans JavaScript : l'historique rassure sans encombrer.
+          <details className="mt-3 border border-line bg-paper">
+            <summary className="mono cursor-pointer px-5 py-3 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
+              Saisons précédentes ({anciennes.length})
+            </summary>
+            <div className="divide-y divide-line border-t border-line">
+              {anciennes.map((x) => (
+                <div key={x.id} className="flex flex-col gap-1 px-5 py-3 text-ink-soft sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                  <span className="text-[14px]">
+                    {(x.cours_id && nomsCours.get(x.cours_id)) || "Cours"}
+                    <span className="mono ml-2 text-[11px] uppercase">{x.saison ?? "—"}</span>
+                  </span>
+                  <span className="mono text-[12px] uppercase tracking-wide">{libelleAdhesion(x.statut)}</span>
+                </div>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
       {/* INFOS */}
       <div className="mt-12">
@@ -145,7 +220,7 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
             </div>
           ) : null}
           <div className="border-t border-line px-5 py-3">
-            <button className="mono bg-ink px-5 py-2.5 text-[13px] text-paper hover:bg-ink/90">ENREGISTRER →</button>
+            <Button compact className="text-[13px]">ENREGISTRER →</Button>
           </div>
         </form>
       </div>
@@ -158,20 +233,31 @@ export default async function EspacePage(props: { params: Promise<{ asso: string
               // Une ligne = une pièce. Sur téléphone, le libellé au-dessus et les
               // actions en dessous : l'input fichier natif débordait de l'écran.
               <div key={p.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
-                <span className="flex-1 text-[15px]">{p.label}</span>
-                {p.statut === "fournie" ? (
-                  <span className="mono text-[13px]" style={{ color: accent }}>✓ FOURNIE</span>
-                ) : (
+                <span className="flex-1 text-[15px]">
+                  {p.label}
+                  {p.obligatoire === false ? <span className="mono ml-2 text-[11px] uppercase text-ink-faint">Facultative</span> : null}
+                </span>
+                {/* Une pièce fournie reste remplaçable : mauvaise photo, mauvais scan,
+                    certificat mis à jour — deux dépôts font deux objets, rien n'est
+                    écrasé, la fiche pointe simplement vers le dernier. */}
+                {p.statut === "fournie" || p.statut === "par_email" ? (
+                  <span className="mono text-[13px]" style={{ color: accent }}>
+                    {p.statut === "par_email" ? "✉ REÇUE PAR EMAIL" : "✓ FOURNIE"}
+                  </span>
+                ) : null}
+                {p.statut !== "par_email" ? (
                   <form action={uploadPiece.bind(null, org.slug)} className="flex min-w-0 flex-wrap items-center gap-2">
                     <input type="hidden" name="pieceId" value={p.id} />
                     <input
                       type="file"
                       name="file"
+                      aria-label={`${p.statut === "fournie" ? "Remplacer" : "Déposer"} — ${p.label} (PDF, JPG ou PNG)`}
+                      accept="application/pdf,image/png,image/jpeg"
                       className="mono w-full max-w-[240px] text-[12px] text-ink-soft file:mr-2 file:cursor-pointer file:border file:border-line file:bg-transparent file:px-3 file:py-1.5 file:font-[inherit] file:text-[12px] file:text-ink"
                     />
-                    <button className="mono border border-ink px-3 py-1.5 text-[12px] hover:bg-ink hover:text-paper">TÉLÉCHARGER</button>
+                    <Button variant="secondary" compact className="px-3 py-1.5">{p.statut === "fournie" ? "REMPLACER" : "DÉPOSER"}</Button>
                   </form>
-                )}
+                ) : null}
               </div>
             ))}
           </div>
@@ -227,20 +313,25 @@ function Shell({ org, accent, deconnexion: withLogout, children }: { org: { slug
   );
 }
 
-function Kpi({ label, value, accent }: { label: string; value: string; accent?: string }) {
+// S7 : le Kpi prend une CLASSE sémantique (text-success/warning/danger), plus la couleur
+// du club — « Payé » en couleur d'accent laissait croire que le vert du thème jugeait.
+function Kpi({ label, value, classe }: { label: string; value: string; classe?: string }) {
   return (
     <div className="bg-paper px-5 py-5">
       <div className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mt-2 text-[18px] font-medium" style={accent ? { color: accent } : undefined}>{value}</div>
+      <div className={`mt-2 text-[18px] font-medium ${classe ?? ""}`}>{value}</div>
     </div>
   );
 }
 
+// S13 : le libellé est RELIÉ au champ (htmlFor/id) — il était voisin, donc muet
+// pour un lecteur d'écran.
 function Champ({ label, name, type, defaultValue }: { label: string; name: string; type: string; defaultValue: string }) {
+  const id = `espace-${name}`;
   return (
     <div className="bg-paper px-5 py-4">
-      <label className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
-      <input name={name} type={type} defaultValue={defaultValue} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
+      <label htmlFor={id} className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}</label>
+      <input id={id} name={name} type={type} defaultValue={defaultValue} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
     </div>
   );
 }

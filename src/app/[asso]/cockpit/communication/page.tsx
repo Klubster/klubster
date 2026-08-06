@@ -6,6 +6,9 @@ import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Communication from "./Communication";
 import Historique, { type CampagneListe } from "./Historique";
+import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
+import { resoudreDestinataires, type AdherentCiblage, type AdhesionCiblage } from "@/lib/ciblage";
+import { saisonCourante } from "@/lib/saison";
 
 export const dynamic = "force-dynamic";
 
@@ -23,17 +26,29 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: adhData } = await supabase
-    .from("adherents")
-    .select("id, email, date_naissance")
-    .eq("organisation_id", org.id);
-  const { data: insData } = await supabase.from("adhesions").select("adherent_id, cours_id").eq("organisation_id", org.id);
-  const { data: coursData } = await supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
+  const [{ data: adhData }, { data: insData }, { data: coursData }, { data: piecesData }] = await Promise.all([
+    supabase.from("adherents").select("id, email, date_naissance, infos, opposition_communications").eq("organisation_id", org.id),
+    supabase.from("adhesions").select("adherent_id, cours_id, saison, statut").eq("organisation_id", org.id),
+    supabase.from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre"),
+    supabase.from("pieces_adherent").select("adherent_id").eq("organisation_id", org.id)
+      .eq("statut", STATUT_PIECE_MANQUANTE).eq("obligatoire", true),
+  ]);
 
-  // L'historique n'est chargé QUE si le profil a la permission « messages ». La RLS le
-  // refuserait de toute façon depuis la 0025, mais on ne lance pas une requête dont on
-  // sait qu'elle ne doit rien rendre — et l'absence de section vaut mieux qu'une section
-  // vide qui laisserait croire qu'aucun message n'a jamais été envoyé.
+  // LA MÊME résolution que l'envoi (src/lib/ciblage.ts) : le compteur affiché est,
+  // par construction, le nombre qui partirait. Les listes sont précalculées par
+  // groupe ; le client ne recalcule rien.
+  const donnees = {
+    adherents: (adhData ?? []) as AdherentCiblage[],
+    adhesions: (insData ?? []) as AdhesionCiblage[],
+    incompletIds: new Set(((piecesData ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id)),
+    saisonCourante: saisonCourante(org),
+  };
+  const cours = ((coursData ?? []) as { id: string; nom: string }[]);
+  const listes: Record<string, string[]> = {};
+  for (const g of ["tous", "parents", "incomplet", ...cours.map((c) => c.id)]) {
+    listes[g] = resoudreDestinataires(donnees, g).map((d) => d.email);
+  }
+
   const peutVoirHistorique = !!(await verifierPermission(params.asso, "messages"));
   let campagnes: CampagneListe[] = [];
   if (peutVoirHistorique) {
@@ -47,39 +62,6 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
       .limit(25);
     campagnes = (campData ?? []) as CampagneListe[];
   }
-  // Dossiers incomplets : les adhérents dont une pièce n'est pas encore reçue.
-  const { data: piecesData } = await supabase
-    .from("pieces_adherent")
-    .select("adherent_id, statut")
-    .eq("organisation_id", org.id)
-    .neq("statut", "recue");
-
-  const adherents = (adhData ?? []) as { id: string; email: string | null; date_naissance: string | null }[];
-  const adhesions = (insData ?? []) as { adherent_id: string; cours_id: string | null }[];
-  const cours = (coursData ?? []) as { id: string; nom: string }[];
-  const incompletIds = new Set((piecesData ?? []).map((p) => (p as { adherent_id: string }).adherent_id));
-
-  const coursByAdh = new Map<string, string[]>();
-  for (const r of adhesions) {
-    if (!r.cours_id) continue;
-    const arr = coursByAdh.get(r.adherent_id) ?? [];
-    arr.push(r.cours_id);
-    coursByAdh.set(r.adherent_id, arr);
-  }
-
-  // Mineur = né il y a moins de 18 ans. Même règle que côté serveur, pour un compte cohérent.
-  const seuilMineur = new Date();
-  seuilMineur.setFullYear(seuilMineur.getFullYear() - 18);
-
-  const membres = adherents
-    .filter((a) => a.email)
-    .map((a) => ({
-      email: a.email as string,
-      coursIds: coursByAdh.get(a.id) ?? [],
-      mineur: a.date_naissance ? new Date(a.date_naissance) > seuilMineur : false,
-      incomplet: incompletIds.has(a.id),
-    }));
-
   return (
     <main className="min-h-screen text-ink">
       <header className="flex items-center justify-between border-b border-line px-6 py-4 md:px-8">
@@ -96,11 +78,11 @@ export default async function MessageriePage(props: { params: Promise<{ asso: st
             : "Choisissez un groupe, écrivez votre message : Klubster prépare l'email et l'ouvre dans votre messagerie, les adhérents en copie cachée."}
         </p>
 
-        {membres.length === 0 ? (
+        {listes["tous"].length === 0 && listes["parents"].length === 0 ? (
           <p className="mono mt-8 text-[12px] text-ink-soft">Aucun adhérent avec un email pour le moment.</p>
         ) : (
           <Communication
-            membres={membres}
+            listes={listes}
             cours={cours}
             contactEmail={org.email_contact}
             slug={org.slug}

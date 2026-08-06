@@ -1,3 +1,4 @@
+import { classesBouton } from "@/components/ui/Button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
@@ -97,8 +98,8 @@ function Chute({ children }: { children: React.ReactNode }) {
    inscrite en boxe éducative, qui règle sa cotisation en huit échéances.
    ———————————————————————————————————————————————————————————————————— */
 
-const VERT = "#1E7A4F";
-const AMBRE = "#8A6508";
+const VERT = "text-success";
+const AMBRE = "text-warning";
 
 /** La mention sous chaque reconstruction : dire ce qu’on regarde, sans le crier. */
 function Mention({ centre = false }: { centre?: boolean }) {
@@ -184,7 +185,7 @@ function ApercuFiche() {
       <div className="p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[22px] font-medium leading-tight tracking-[-0.01em]">Louise Martin</p>
-          <span className="mono text-[10px] uppercase tracking-label" style={{ color: VERT }}>Dossier complet</span>
+          <span className={`mono text-[10px] uppercase tracking-label ${VERT}`}>Dossier complet</span>
         </div>
         <p className="mt-1 text-[13px] text-ink-soft">Boxe éducative · Saison 2026-2027</p>
 
@@ -196,7 +197,7 @@ function ApercuFiche() {
             "Certificat médical reçu",
           ].map((l) => (
             <div key={l} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-              <span className="mono text-[11px]" style={{ color: VERT }}>✓</span>
+              <span className={`mono text-[11px] ${VERT}`}>✓</span>
               <span className="flex-1 text-[12px]">{l}</span>
             </div>
           ))}
@@ -246,10 +247,10 @@ function ApercuPaiements() {
             { nom: "Lucas Bernard", mode: "Échéancier", etat: "Retard", ok: false },
           ].map((l) => (
             <div key={l.nom} className="flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
-              <span className="mono text-[11px]" style={{ color: l.ok ? VERT : AMBRE }}>{l.ok ? "✓" : "●"}</span>
+              <span className={`mono text-[11px] ${l.ok ? VERT : AMBRE}`}>{l.ok ? "✓" : "●"}</span>
               <span className="flex-1 text-[12px]">{l.nom}</span>
               <span className="mono hidden text-[10px] uppercase tracking-label text-ink-soft sm:inline">{l.mode}</span>
-              <span className="mono w-16 text-right text-[10px] uppercase tracking-label" style={{ color: l.ok ? VERT : AMBRE }}>
+              <span className={`mono w-16 text-right text-[10px] uppercase tracking-label ${l.ok ? VERT : AMBRE}`}>
                 {l.etat}
               </span>
             </div>
@@ -279,7 +280,7 @@ function ApercuControle() {
             "Présence enregistrée",
           ].map((l) => (
             <div key={l} className="flex items-center gap-3 bg-paper px-4 py-3">
-              <span className="mono text-[11px]" style={{ color: VERT }}>✓</span>
+              <span className={`mono text-[11px] ${VERT}`}>✓</span>
               <span className="text-[12px]">{l}</span>
             </div>
           ))}
@@ -321,7 +322,7 @@ function ApercuMessages() {
             ].map((l) => (
               <div key={l} className="flex items-center justify-between gap-3 border-b border-line px-3 py-2.5 last:border-b-0">
                 <span className="text-[12px]">{l}</span>
-                <span className="mono text-[10px] uppercase tracking-label" style={{ color: VERT }}>Actif</span>
+                <span className={`mono text-[10px] uppercase tracking-label ${VERT}`}>Actif</span>
               </div>
             ))}
           </div>
@@ -436,7 +437,9 @@ export default function Fonctionnalites() {
 
       {/* HERO — la promesse à gauche, le produit à droite. La page s'ouvre sur l'outil. */}
       <section className="border-b border-line">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:grid-cols-[1fr_420px] md:gap-16 md:px-8 md:pt-24 md:pb-24">
+        {/* S14 : deux colonnes à partir de lg seulement — à 768, la colonne fixe de
+            420 px + la largeur minimale de l'aperçu débordaient de 116 px. */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-16 pb-16 md:px-8 md:pt-24 md:pb-24 lg:grid-cols-[1fr_420px] lg:gap-16">
           <div>
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">FONCTIONNALITÉS<Cur /></p>
             {/* Pas de max-w en ch : « Moins d’administration. » fait 23 caractères et se
@@ -460,7 +463,7 @@ export default function Fonctionnalites() {
                 </Link>
                 <Link
                   href="/usmboxe"
-                  className="mono inline-block border border-ink px-7 py-3.5 text-[13px] text-ink hover:bg-ink hover:text-paper"
+                  className={classesBouton("secondary", { className: "px-7 text-[13px]" })}
                 >
                   VOIR UN VRAI CLUB →
                 </Link>
@@ -473,7 +476,7 @@ export default function Fonctionnalites() {
 
           {/* Le produit, dès la première seconde. Légèrement incliné pour ne pas figer la page.
               Colonne un peu plus étroite (420 au lieu de 460) : le titre reste l'entrée. */}
-          <div className="md:rotate-[1.2deg] md:transition-transform md:hover:rotate-0">
+          <div className="lg:rotate-[1.2deg] lg:transition-transform lg:hover:rotate-0">
             <CockpitPreview />
           </div>
         </div>
@@ -692,7 +695,7 @@ export default function Fonctionnalites() {
             </p>
             <Link
               href="/usmboxe"
-              className="mono mt-6 inline-block border border-ink px-6 py-3 text-[13px] text-ink hover:bg-ink hover:text-paper"
+              className={classesBouton("secondary", { className: "mt-6 px-6 text-[13px]" })}
             >
               VISITER LE SITE DU CLUB →
             </Link>
@@ -777,7 +780,7 @@ export default function Fonctionnalites() {
           <Mention />
           <Link
             href="/usmboxe"
-            className="mono mt-6 inline-block border border-ink px-6 py-3 text-[13px] text-ink hover:bg-ink hover:text-paper"
+            className={classesBouton("secondary", { className: "mt-6 px-6 text-[13px]" })}
           >
             VISITER LE SITE DU CLUB →
           </Link>
@@ -800,7 +803,7 @@ export default function Fonctionnalites() {
               "L’aperçu vous montre le résultat avant que rien ne soit enregistré",
               "Les doublons sont ignorés, jamais écrasés",
               "Exportez la liste complète de vos adhérents en un clic, quand vous voulez",
-              "Vos données sont hébergées dans l’Union européenne, jamais revendues",
+              "Votre base est hébergée dans l’Union européenne, vos données ne sont jamais revendues",
               "Vous résiliez depuis votre cockpit, sans engagement ni préavis",
             ]}
           />

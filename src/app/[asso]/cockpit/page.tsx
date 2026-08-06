@@ -4,12 +4,15 @@ import { getOrganisationBySlug, getCockpitStats, getCoursByOrganisation, getAujo
 import { getProfile } from "@/lib/auth";
 import { deconnexion } from "@/app/connexion/actions";
 import { connecterStripe, definirEcheancesMax, souscrireAbonnement, gererAbonnement, appliquerCodePromo } from "./stripe-actions";
-import { palierPourEffectif, PALIERS, JOURS_ESSAI, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
+import { palierPourEffectif, PALIERS, joursEssai, estFondateur, stripeModeTest, stripeCleCoherente, detailCodePromo } from "@/lib/stripe";
 import type { CodePromo } from "@/lib/stripe";
 import BoutonAttente from "@/components/BoutonAttente";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { compteConnecte, statutAbonnement } from "@/lib/stripe-org";
 import { formatPrix } from "@/lib/format";
 import { peut, libelleRole } from "@/lib/roles";
+import { calculerPriorites, filtrerParRole, resumeAttention, type Priorite } from "@/lib/priorites";
+import { getRemplissageCours, getLitigesOuverts } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +35,14 @@ export default async function Cockpit(
   const autorise = profile && (profile.organisation_id === org.id || profile.role === "super_admin");
   if (!autorise) redirect(`/connexion?next=/${org.slug}/cockpit`);
 
-  const [s, auj, cours] = await Promise.all([
+  const [s, auj, cours, remplissage, litiges] = await Promise.all([
     getCockpitStats(org.slug),
     getAujourdhui(org.id),
     getCoursByOrganisation(org.id),
+    getRemplissageCours(org.id),
+    // Un litige n'est lisible que par les rôles financiers : la requête est donc évitée
+    // pour les autres plutôt que filtrée après coup.
+    peut(profile?.role, "paiements") ? getLitigesOuverts(org.id) : Promise.resolve(0),
   ]);
 
   const prenom = profile?.prenom?.trim();
@@ -60,6 +67,10 @@ export default async function Cockpit(
   const abo = statutAbonnement(org);
   const palier = palierPourEffectif(s.equipage);
   const prixMensuel = PALIERS[palier];
+  // Ce que le club voit doit être ce que Stripe applique : la durée vient de
+  // `joursEssai(rang)`, la même fonction que le checkout.
+  const jrsEssai = joursEssai(org.fondateur_rang);
+  const fondateur = estFondateur(org.fondateur_rang);
   const finEssai = org.abonnement_essai_fin
     ? new Date(org.abonnement_essai_fin).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })
     : null;
@@ -76,14 +87,39 @@ export default async function Cockpit(
     .flatMap((c) => (c.creneaux ?? []).filter((k) => k.jour === jourSemaine).map((k) => ({ nom: c.nom, debut: k.debut, fin: k.fin })))
     .sort((a, b) => (a.debut < b.debut ? -1 : 1));
 
-  // L'état du club, en une phrase.
-  const attention = s.enAttente + s.enRetard + auj.piecesAttendues;
-  const titre =
-    attention === 0
-      ? "Le club est prêt."
-      : `${attention} chose${attention > 1 ? "s" : ""} mérite${attention > 1 ? "nt" : ""} votre attention.`;
+  // Un cours est « presque complet » à deux places près : au-delà, l'alerte crie trop tôt
+  // et le président apprend à l'ignorer. Sans capacité déclarée, aucun jugement possible.
+  const coursComplets = remplissage
+    .filter((c) => c.placesMax != null && c.placesMax > 0 && c.occupees >= c.placesMax)
+    .map((c) => c.nom);
+  const coursPresqueComplets = remplissage
+    .filter((c) => c.placesMax != null && c.placesMax > 0 && c.occupees < c.placesMax && c.placesMax - c.occupees <= 2)
+    .map((c) => c.nom);
+
+  // Les priorités sont calculées une fois, puis filtrées par le rôle : un secrétaire ne
+  // voit pas les retards de cotisation, un trésorier ne voit pas les dossiers incomplets.
+  const toutesPriorites = calculerPriorites({
+    slug: org.slug,
+    enAttente: s.enAttente,
+    enRetard: s.enRetard,
+    dossiersIncomplets: auj.dossiersIncomplets,
+    nouvelles7j: auj.nouvelles7j,
+    litiges,
+    coursComplets,
+    coursPresqueComplets,
+    adherents: s.equipage,
+    coursOuverts: cours.length,
+  });
+  const priorites = filtrerParRole(toutesPriorites, (a) => peut(profile?.role, a));
+  const aTraiter = priorites.filter((p) => p.niveau === "traiter");
+  const aSurveiller = priorites.filter((p) => p.niveau === "surveiller");
+  const infos = priorites.filter((p) => p.niveau === "info");
+
+  // L'état du club, en une phrase — sur les seules choses à traiter par CE rôle.
+  const resume = resumeAttention(priorites);
+  const titre = resume.titre;
   const sousTitre =
-    attention === 0
+    resume.urgent === 0
       ? coursCeSoir.length > 0
         ? `Tout est à jour pour ${coursCeSoir.length > 1 ? "les cours" : "le cours"} de ce ${jourSemaine}.`
         : "Tous les dossiers sont à jour."
@@ -296,42 +332,53 @@ export default async function Cockpit(
             </div>
           ) : null}
 
-          {/* LE CLUB AUJOURD'HUI — l'essentiel en 3 secondes */}
+          {/* CE QUI DEMANDE VOTRE ATTENTION — trois niveaux, et rien de plus.
+              Avant : sept indicateurs sur le même plan, dont trois cartes réservées aux
+              rôles financiers — un secrétaire ouvrait un cockpit sans une seule action,
+              alors que les dossiers incomplets sont son travail. Le calcul et le filtrage
+              par rôle vivent dans `src/lib/priorites.ts`, testés séparément. */}
+          {aTraiter.length > 0 ? (
+            <div className="border-b border-line px-6 py-8 md:px-10">
+              <p className="mono text-[11px] uppercase tracking-label text-danger">
+                À TRAITER MAINTENANT<Cur />
+              </p>
+              <div className="mt-5 flex flex-col gap-px bg-line">
+                {aTraiter.map((p) => (
+                  <LignePriorite key={p.cle} p={p} accent="text-danger" />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {aSurveiller.length > 0 ? (
+            <div className="border-b border-line px-6 py-8 md:px-10">
+              <p className="mono text-[11px] uppercase tracking-label text-warning">
+                À SURVEILLER<Cur />
+              </p>
+              <div className="mt-5 flex flex-col gap-px bg-line">
+                {aSurveiller.map((p) => (
+                  <LignePriorite key={p.cle} p={p} accent="text-warning" />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* LE CLUB AUJOURD'HUI — l'état, sans injonction. */}
           <div className="border-b border-line px-6 py-8 md:px-10">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">LE CLUB AUJOURD&apos;HUI<Cur /></p>
             <div className="mt-5">
-              <Point etat={auj.nouvelles7j > 0 ? "ok" : "neutre"}>
-                {auj.nouvelles7j > 0 ? (
-                  <>{auj.nouvelles7j} nouvelle{auj.nouvelles7j > 1 ? "s" : ""} inscription{auj.nouvelles7j > 1 ? "s" : ""} cette semaine</>
-                ) : (
-                  <>Pas de nouvelle inscription cette semaine</>
-                )}
-              </Point>
-              <Point etat={s.enRetard > 0 ? "urgent" : "ok"}>
-                {s.enRetard > 0 ? (
-                  <>{s.enRetard} cotisation{s.enRetard > 1 ? "s" : ""} en retard</>
-                ) : s.enAttente > 0 ? (
-                  <>Aucune cotisation en retard</>
-                ) : (
-                  <>Tous les paiements sont à jour</>
-                )}
-              </Point>
-              <Point etat={s.enAttente > 0 ? "attention" : "ok"}>
-                {s.enAttente > 0 ? (
-                  <>{s.enAttente} dossier{s.enAttente > 1 ? "s" : ""} en attente de règlement</>
-                ) : (
-                  <>Aucun dossier en attente</>
-                )}
-              </Point>
-              {auj.piecesAttendues > 0 ? (
-                <Point etat="attention">
-                  {auj.piecesAttendues} pièce{auj.piecesAttendues > 1 ? "s" : ""} de dossier attendue{auj.piecesAttendues > 1 ? "s" : ""}
+              {infos.map((p) => (
+                <Point key={p.cle} etat="neutre">
+                  {p.nombre} {p.texte}
                 </Point>
-              ) : null}
+              ))}
               {coursCeSoir.length > 0 ? (
                 <Point etat="neutre">
                   Ce {jourSemaine} : {coursCeSoir.map((c) => `${c.nom} ${c.debut}–${c.fin}`).join(" · ")}
                 </Point>
+              ) : null}
+              {aTraiter.length === 0 && aSurveiller.length === 0 ? (
+                <Point etat="ok">Rien ne demande votre attention aujourd&apos;hui.</Point>
               ) : null}
             </div>
           </div>
@@ -341,51 +388,14 @@ export default async function Cockpit(
               persuadé d'avoir mal cliqué. Un échec muet est indiscernable d'un bug — et
               c'est le point d'abandon n°1 relevé sur l'authentification. */}
           {searchParams?.acces === "refuse" ? (
-            <div className="border-b border-line px-6 py-5 md:px-10" style={{ background: "#FBEDED" }}>
-              <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+            <div className="border-b border-line px-6 py-5 md:px-10 bg-danger-soft">
+              <p className="mono text-[12px] text-danger">
                 Cette page n’est pas accessible avec votre rôle ({libelleRole(profile?.role)}).
                 Demandez au président de vous l’ouvrir depuis « Votre équipe ».
               </p>
             </div>
           ) : null}
 
-          {/* À FAIRE — l'action avant la statistique.
-              Les deux cartes qui mènent aux encaissements ne s'affichent qu'aux rôles qui
-              peuvent y entrer : sans cela, un encadrant clique et tombe sur un refus.
-              Proposer une porte fermée est une façon de mentir sur ce qu'on offre. */}
-          <div className="grid grid-cols-1 gap-px border-b border-line bg-line sm:grid-cols-3">
-            {peutPaiements ? (
-              <Carte
-                n={String(s.enAttente)}
-                label={`DOSSIER${s.enAttente > 1 ? "S" : ""} À TERMINER`}
-                href={`/${org.slug}/cockpit/paiements`}
-                action="OUVRIR"
-                vide={s.enAttente === 0}
-              />
-            ) : null}
-            {/* « 9 cotisations à relancer » est un chiffre de trésorerie, même s'il mène
-                à la messagerie. Un secrétaire garde son entrée par le geste « Envoyer un
-                message » ; il n'a pas besoin de savoir combien de familles doivent de
-                l'argent au club. */}
-            {peutPaiements ? (
-              <Carte
-                n={String(s.enRetard)}
-                label={`COTISATION${s.enRetard > 1 ? "S" : ""} À RELANCER`}
-                href={`/${org.slug}/cockpit/communication`}
-                action="RELANCER"
-                vide={s.enRetard === 0}
-              />
-            ) : null}
-            {peutPaiements ? (
-              <Carte
-                n={String(auj.nouvelles7j)}
-                label={`INSCRIPTION${auj.nouvelles7j > 1 ? "S" : ""} · 7 JOURS`}
-                href={`/${org.slug}/cockpit/paiements`}
-                action="VÉRIFIER"
-                vide={auj.nouvelles7j === 0}
-              />
-            ) : null}
-          </div>
 
           {/* PAIEMENTS / STRIPE — président uniquement.
               Cette section mêle deux choses, et les deux lui appartiennent : la
@@ -408,7 +418,7 @@ export default async function Cockpit(
                 Souscription abandonnée — vous pourrez la reprendre quand vous voudrez.
               </p>
             ) : searchParams?.abonnement === "nonconfig" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 Les paiements ne sont pas encore activés côté plateforme. Écrivez-nous, nous réglons ça.
               </p>
             ) : searchParams?.abonnement === "aucun" ? (
@@ -416,11 +426,11 @@ export default async function Cockpit(
                 Aucun abonnement en cours pour l&apos;instant.
               </p>
             ) : searchParams?.abonnement === "codeinconnu" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 Ce code promo n&apos;est pas reconnu (ou n&apos;est plus actif). Vérifiez la saisie, ou laissez le champ vide.
               </p>
             ) : searchParams?.abonnement === "erreur" ? (
-              <p className="mono mb-5 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mb-5 text-[12px] text-danger">
                 La souscription n&apos;a pas pu démarrer. Réessayez dans un instant ; si cela persiste, écrivez-nous.
               </p>
             ) : null}
@@ -429,8 +439,7 @@ export default async function Cockpit(
                 quelqu'un croie avoir encaissé une cotisation. */}
             {stripeModeTest ? (
               <p
-                className="mono mb-6 border px-4 py-3 text-[11px] uppercase tracking-label"
-                style={{ borderColor: "#8A6508", color: "#8A6508" }}
+                className="mono mb-6 border border-warning px-4 py-3 text-[11px] uppercase tracking-label text-warning"
               >
                 ⚠ Stripe en mode test — aucun paiement réel.
                 {!stripeCleCoherente() ? " La clé configurée ne correspond pas au mode : vérifiez les variables d’environnement." : ""}
@@ -461,8 +470,8 @@ export default async function Cockpit(
                         <p className="mt-2 text-[15px] text-ink">{codePromo.nom}</p>
                       ) : null}
                       <p className="mt-1 text-[15px] text-ink-soft">
-                        Vous bénéficiez de <span className="text-ink">{codePromo.avantage}</span>, après votre
-                        mois d&apos;essai.
+                        Vous bénéficiez de <span className="text-ink">{codePromo.avantage}</span>, après vos{" "}
+                        {jrsEssai} jours offerts.
                       </p>
                       <Link
                         href={`/${org.slug}/cockpit#paiements`}
@@ -476,12 +485,15 @@ export default async function Cockpit(
                       <input
                         type="text"
                         name="code"
+                        aria-label="Code promo (facultatif)"
                         placeholder="Code promo (facultatif)"
                         spellCheck={false}
                         autoComplete="off"
                         className="mono w-full border border-line bg-paper px-3 py-3 text-[12px] uppercase outline-none placeholder:normal-case focus:border-ink sm:w-52"
                       />
-                      <BoutonAttente attente="VÉRIFICATION…" className="mono border border-line px-5 py-3 text-[12px] hover:border-ink">
+                      {/* Contrôle tertiaire volontairement plus discret que le CTA de
+                          souscription juste en dessous : ghost, pas secondary. */}
+                      <BoutonAttente attente="VÉRIFICATION…" variant="ghost" className="border border-line hover:border-ink">
                         APPLIQUER
                       </BoutonAttente>
                     </form>
@@ -492,9 +504,10 @@ export default async function Cockpit(
                     {/* Action principale de la page : pleine largeur au pouce. */}
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
+                      variant="primary"
+                      className="w-full whitespace-nowrap sm:w-auto"
                     >
-                      COMMENCER LE MOIS OFFERT →
+                      {fondateur ? "COMMENCER LES TROIS MOIS OFFERTS" : "COMMENCER LE MOIS OFFERT"} →
                     </BoutonAttente>
                   </form>
                 </div>
@@ -503,7 +516,8 @@ export default async function Cockpit(
                   <p className="max-w-prose text-[15px]">
                     {abo === "essai" ? (
                       <>
-                        <span className="mono text-brand">✓</span> Mois offert en cours
+                        <span className="mono text-brand">✓</span>{" "}
+                        {fondateur ? "Trois mois offerts en cours" : "Mois offert en cours"}
                         {finEssai ? <> — premier prélèvement le {finEssai}.</> : "."}
                       </>
                     ) : abo === "actif" ? (
@@ -513,7 +527,7 @@ export default async function Cockpit(
                         vous est envoyée chaque mois par email.
                       </>
                     ) : (
-                      <span style={{ color: "#B23B3B" }}>
+                      <span className="text-danger">
                         Dernier paiement refusé. Mettez à jour votre carte pour éviter la coupure.
                       </span>
                     )}
@@ -521,7 +535,8 @@ export default async function Cockpit(
                   <form action={gererAvecSlug} className="w-full sm:w-auto">
                     <BoutonAttente
                       attente="OUVERTURE DE STRIPE…"
-                      className="mono w-full whitespace-nowrap border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto"
+                      variant="secondary"
+                      className="w-full whitespace-nowrap sm:w-auto"
                     >
                       FACTURES &amp; RÉSILIATION →
                     </BoutonAttente>
@@ -539,12 +554,14 @@ export default async function Cockpit(
                     0 % de commission.
                   </p>
                   {peutPaiements ? (
-                    <Link
+                    <ButtonLink
+                      variant="ghost"
+                      compact
                       href={`/${org.slug}/cockpit/virements`}
-                      className="mono whitespace-nowrap border border-line px-5 py-2.5 text-[12px] hover:border-ink"
+                      className="whitespace-nowrap border border-line hover:border-ink"
                     >
                       MES VIREMENTS →
-                    </Link>
+                    </ButtonLink>
                   ) : null}
                 </div>
 
@@ -581,9 +598,9 @@ export default async function Cockpit(
                         </option>
                       ))}
                     </select>
-                    <button className="mono border border-ink px-5 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                    <Button variant="secondary" compact>
                       ENREGISTRER
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </>
@@ -596,7 +613,8 @@ export default async function Cockpit(
                 <form action={connecterAvecSlug} className="w-full sm:w-auto">
                   <BoutonAttente
                     attente="OUVERTURE DE STRIPE…"
-                    className="mono w-full whitespace-nowrap bg-ink px-5 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto"
+                    variant="primary"
+                    className="w-full whitespace-nowrap sm:w-auto"
                   >
                     CONNECTER STRIPE →
                   </BoutonAttente>
@@ -609,7 +627,7 @@ export default async function Cockpit(
               </p>
             ) : null}
             {searchParams?.stripe === "erreur" ? (
-              <p className="mono mt-3 text-[11px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mt-3 text-[11px] text-danger">
                 La connexion à Stripe a échoué. Réessayez dans un instant ; si cela persiste, écrivez-nous.
               </p>
             ) : null}
@@ -680,22 +698,37 @@ export default async function Cockpit(
 
 /* Point d'état — vert prêt, orange attention, rouge urgent. Avec retenue. */
 function Point({ etat, children }: { etat: "ok" | "attention" | "urgent" | "neutre"; children: React.ReactNode }) {
-  const couleur = etat === "ok" ? "#279B65" : etat === "attention" ? "#8A6508" : etat === "urgent" ? "#B23B3B" : "#C2C2BD";
+  // Lot S : classes token au lieu d'hex inline. Le ✓ vert reste `brand` (symbole, pas du
+  // texte) ; attention/urgent passent par les tokens de statut, lisibles AA.
+  const couleur =
+    etat === "ok" ? "text-brand" : etat === "attention" ? "text-warning" : etat === "urgent" ? "text-danger" : "text-ink-faint";
   return (
     <div className="flex items-baseline gap-4 border-b border-line py-3 last:border-b-0">
-      <span className="mono text-[13px]" style={{ color: couleur }}>{etat === "ok" ? "✓" : "●"}</span>
+      <span className={`mono text-[13px] ${couleur}`}>{etat === "ok" ? "✓" : "●"}</span>
       <span className="text-[15px]">{children}</span>
     </div>
   );
 }
 
-/* Carte d'action : le chiffre, la tâche, le geste. */
-function Carte({ n, label, href, action, vide }: { n: string; label: string; href: string; action: string; vide?: boolean }) {
+/* Une ligne de priorité : le nombre, la phrase, le geste — et un lien qui filtre déjà.
+   Toute la ligne est cliquable : au bord du ring, on vise mal une petite flèche. */
+// `accent` est une classe token (`text-danger` / `text-warning`), plus un hex : la
+// sémantique des niveaux vit dans les tokens, le composant ne fait que la porter.
+function LignePriorite({ p, accent }: { p: Priorite; accent: "text-danger" | "text-warning" }) {
   return (
-    <Link href={href} className={`group bg-paper px-6 py-7 md:px-7 ${vide ? "opacity-50" : ""}`}>
-      <div className="mono text-[34px] font-bold tracking-[-0.02em]">{n}</div>
-      <div className="mono mt-1 text-[10px] uppercase tracking-label text-ink-soft">{label}</div>
-      <div className="mono mt-4 text-[11px] text-ink-faint group-hover:text-ink">→ {action}</div>
+    <Link
+      href={p.href}
+      className="group flex min-h-[56px] flex-col gap-1 bg-paper px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+    >
+      <span className="flex items-baseline gap-4">
+        <span className={`mono text-[22px] font-bold tabular-nums ${accent}`}>
+          {p.nombre}
+        </span>
+        <span className="text-[15px] leading-snug">{p.texte}</span>
+      </span>
+      <span className="mono shrink-0 text-[11px] uppercase tracking-label text-ink-faint group-hover:text-ink">
+        {p.action} →
+      </span>
     </Link>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { enregistrerReglement } from "@/app/[asso]/cockpit/paiements/actions";
+import { texteSur, survolDe } from "@/lib/contraste";
 
 export interface AdhesionSolde {
   id: string;
@@ -74,12 +75,14 @@ export default function AjoutReglement({
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
         {dues.length > 1 ? (
-          <label className="block">
+          <label className="block w-full min-w-0 sm:w-auto">
             <span className="mono text-[10px] uppercase tracking-label text-ink-soft">Adhésion</span>
             <select
               value={adhesionId}
               onChange={(e) => changerAdhesion(e.target.value)}
-              className="mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+              // S14 : `max-w-full` — la largeur intrinsèque de l'option la plus longue
+              // (« Boxe adultes A — reste 240,00 € ») faisait déborder la fiche à 320 px.
+              className="mt-1.5 block w-full max-w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink sm:w-auto"
             >
               {dues.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -131,15 +134,15 @@ export default function AjoutReglement({
         <button
           onClick={enregistrer}
           disabled={enCours}
-          className="mono w-full px-6 py-3 text-[12px] text-white transition-opacity hover:opacity-90 disabled:opacity-40 sm:w-auto"
-          style={{ background: accent }}
+          className="mono w-full px-6 py-3 text-[12px] transition-colors hover:bg-[var(--survol)] disabled:opacity-40 sm:w-auto"
+          style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
         >
           {enCours ? "…" : etat === "ok" ? "ENREGISTRÉ ✓" : "ENREGISTRER"}
         </button>
       </div>
 
       {erreur ? (
-        <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-3 text-[12px] text-danger">
           {erreur}
         </p>
       ) : null}

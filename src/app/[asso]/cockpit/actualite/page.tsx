@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug, getActualites } from "@/lib/queries";
@@ -50,7 +51,7 @@ export default async function ActualitePage(
         {searchParams?.ok ? <p className="mono mt-6 text-[12px] text-brand">✓ Actualité publiée — visible sur votre vitrine.</p> : null}
         {searchParams?.supprime ? <p className="mono mt-6 text-[12px] text-ink-soft">Actualité supprimée.</p> : null}
         {searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[12px] text-danger">
             {searchParams.erreur === "image"
               ? "L’image n’a pas pu être envoyée. Utilisez un JPEG, PNG ou WebP."
               : searchParams.erreur === "vide"
@@ -97,7 +98,7 @@ export default async function ActualitePage(
               <p className="mono mt-2 text-[11px] text-ink-faint">JPG ou PNG, format paysage conseillé.</p>
             </div>
           </div>
-          <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">PUBLIER →</button>
+          <Button className="w-full px-6 sm:w-auto">PUBLIER →</Button>
         </form>
 
         {/* ——— Les actualités publiées ——— */}
@@ -119,7 +120,7 @@ export default async function ActualitePage(
                   </div>
                   {/* Pas d'édition en v1 : supprimer puis republier fait le travail. */}
                   <form action={supprimerActualite.bind(null, org.slug, a.id)}>
-                    <button className="mono shrink-0 border border-line px-3 py-2 text-[11px] uppercase tracking-wide hover:border-ink" style={{ color: "#B23B3B" }}>
+                    <button className="mono shrink-0 border border-line px-3 py-2 text-[11px] uppercase tracking-wide hover:border-ink text-danger">
                       Supprimer
                     </button>
                   </form>

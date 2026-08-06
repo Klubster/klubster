@@ -185,7 +185,7 @@ export default async function SuperAdmin(
               : `${s.enEssai} en essai, aucune abonnée payante pour l’instant. Le revenu démarre à la fin des premiers mois offerts.`}
           </p>
           {s.tronque ? (
-            <p className="mono mt-4 text-[12px]" style={{ color: "#8A6A2F" }}>
+            <p className="mono mt-4 text-[12px] text-warning">
               Volume au-delà du plafond de lecture : les totaux ci-dessous sont partiels.
               Il est temps de passer les agrégats côté base.
             </p>
@@ -361,7 +361,7 @@ export default async function SuperAdmin(
                       <p className="mono text-[10px] uppercase tracking-label text-ink-faint">ENCAISSÉ</p>
                     </div>
                     <div className="min-w-[110px]">
-                      <p className="mono text-[15px]" style={{ color: c.statutAbo === "impaye" ? "#B23B3B" : undefined }}>
+                      <p className={`mono text-[15px] ${c.statutAbo === "impaye" ? "text-danger" : ""}`}>
                         {LIBELLE_STATUT[c.statutAbo] ?? c.statutAbo}
                       </p>
                       <p className="mono text-[10px] uppercase tracking-label text-ink-faint">

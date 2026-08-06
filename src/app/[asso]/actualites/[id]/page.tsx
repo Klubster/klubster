@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -39,7 +40,7 @@ export default async function ActualiteDetailPage(
   const res = await charger(asso, id);
   if (!res) notFound();
   const { org, actu } = res;
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   return (
     <ThemeVitrine org={org}>

@@ -51,8 +51,7 @@ export default function Remboursement({
         <button
           type="submit"
           disabled={enCours}
-          className="mono border px-4 py-2.5 text-[12px] disabled:opacity-40"
-          style={{ borderColor: "#B23B3B", color: "#B23B3B" }}
+          className="mono border border-danger px-4 py-2.5 text-[12px] text-danger disabled:opacity-40"
         >
           {enCours ? "Remboursement…" : "Confirmer le remboursement"}
         </button>

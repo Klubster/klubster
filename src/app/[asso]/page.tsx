@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getOrganisationPubliqueBySlug, getCoursByOrganisation, getActualites } from "@/lib/queries";
 import { getMode } from "@/lib/themes";
-import { texteSur, accentLisibleSur } from "@/lib/contraste";
+import { texteSur, accentLisibleSur, normaliserCouleur, survolDe } from "@/lib/contraste";
 import { getProfile } from "@/lib/auth";
 import { formatPrix, embedCarte, lienCarte, creneauxTries, formatCreneau } from "@/lib/format";
 import { coursComplets } from "@/lib/complets";
@@ -100,7 +100,7 @@ export default async function VitrinePage(
     coursComplets(org),
     getActualites(org.id),
   ]);
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
   // Garde-fous de contraste : la couleur du club est un hex libre (jaune, bleu ciel…).
   // Blanc codé en dur sur ce fond, ou l'accent posé en couleur de texte sur le papier,
   // pouvait tomber sous 3:1 (audit du 23/07, signalé par 2 grilles). `texteSur` choisit
@@ -108,6 +108,9 @@ export default async function VitrinePage(
   // jusqu'à 4,5:1. En mode noir, l'accent reste tel quel : l'assombrissement ne sait
   // qu'assombrir et empirerait le contraste sur fond sombre.
   const texteSurAccent = texteSur(accent);
+  // Survol : une vraie variante de la couleur, jamais une opacité — passer un fond
+  // clair à 90 % le rendait encore plus proche du papier, donc moins lisible.
+  const survolAccent = survolDe(accent);
   const accentTexte = getMode(org.theme_mode) === "noir" ? accent : accentLisibleSur(accent, "#FCFCFA");
 
   // Admin de CE club (ou super-admin) : accès Cockpit + mode Édition de page.
@@ -509,7 +512,7 @@ export default async function VitrinePage(
               </span>
             </span>
             <div className="flex items-center gap-2">
-              <a href="#ajouter" className="mono px-4 py-2 text-[13px] hover:opacity-90" style={{ background: accent, color: texteSurAccent }}>
+              <a href="#ajouter" className="mono px-4 py-2 text-[13px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink" style={{ background: accent, color: texteSurAccent, ["--survol" as string]: survolAccent }}>
                 AJOUTER UN CHAPITRE
               </a>
               <Link href={`/${org.slug}`} className="mono border border-ink px-4 py-2 text-[13px] hover:bg-ink hover:text-paper">
@@ -533,7 +536,7 @@ export default async function VitrinePage(
 
           {searchParams?.erreur ? (
             <div className="mx-auto max-w-5xl px-6 pb-3 md:px-8">
-              <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
+              <p className="mono text-[13px] text-danger">
                 {searchParams.erreur === "photo"
                   ? "La photo n’a pas pu être envoyée. Vérifiez le format (image) et la taille (3 Mo maximum par photo)."
                   : searchParams.erreur === "vide"
@@ -636,8 +639,8 @@ export default async function VitrinePage(
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link
                   href={`/${org.slug}/inscription`}
-                  className="mono px-6 py-3 text-[14px] transition-opacity hover:opacity-90"
-                  style={{ background: accent, color: texteSurAccent }}
+                  className="mono px-6 py-3 text-[14px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  style={{ background: accent, color: texteSurAccent, ["--survol" as string]: survolAccent }}
                 >
                   S&apos;INSCRIRE →
                 </Link>
@@ -855,8 +858,8 @@ function EditeurHero({
       ) : null}
 
       <button
-        className="mono mt-7 px-6 py-3 text-[14px] transition-opacity hover:opacity-90"
-        style={{ background: accent, color: texteSur(accent) }}
+        className="mono mt-7 px-6 py-3 text-[14px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
       >
         ENREGISTRER L’EN-TÊTE →
       </button>
@@ -909,8 +912,7 @@ function Controles({
         <button
           title={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page (réversible)"}
           aria-label={custom ? "Supprimer ce chapitre" : "Retirer ce chapitre de la page"}
-          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide hover:bg-bg-alt"
-          style={{ color: "#B23B3B" }}
+          className="mono flex items-center gap-1.5 bg-paper px-3 py-2 text-[12px] uppercase tracking-wide text-danger hover:bg-bg-alt"
         >
           × <span className="hidden sm:inline">{custom ? "Supprimer" : "Retirer"}</span>
         </button>

@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { saveFormConfig, uploaderModelePiece } from "./actions";
@@ -119,10 +120,13 @@ export default function FormBuilder({
     setPages(config.pages.map((p) => (p.id === pid ? { ...p, champs: p.champs.map((ch) => (ch.id === cid ? { ...ch, ...patch } : ch)) } : p)));
   }
 
+  const [erreur, setErreur] = useState<string | null>(null);
   async function save() {
     setState("saving");
+    setErreur(null);
     const res = await saveFormConfig(slug, config);
     setState(res?.ok ? "ok" : "err");
+    if (!res?.ok) setErreur(res?.error ?? null);
     if (res?.ok) {
       // Le brouillon a rempli son office : la version en ligne EST le brouillon.
       try {
@@ -153,8 +157,7 @@ export default function FormBuilder({
         {brouillonRestaure ? (
           <div className="mono mt-6 flex flex-wrap items-center gap-4 border border-line bg-bg-alt px-4 py-3 text-[12px]">
             <span className="text-brand">✓ Brouillon restauré — modifications non enregistrées.</span>
-            <button
-              type="button"
+            <button              type="button"
               onClick={ignorerBrouillon}
               className="text-ink-faint underline underline-offset-2 hover:text-ink"
             >
@@ -207,15 +210,13 @@ export default function FormBuilder({
             </p>
             {/* Empilés sur mobile : deux modèles côte à côte se coupaient à mi-mot. */}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
+              <button                type="button"
                 onClick={() => setConfig(formulaireType("sportive"))}
                 className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
               >
                 ASSOCIATION SPORTIVE →
               </button>
-              <button
-                type="button"
+              <button                type="button"
                 onClick={() => setConfig(formulaireType("culturelle"))}
                 className="mono border border-line bg-paper px-5 py-3 text-[12px] text-ink hover:border-ink"
               >
@@ -290,9 +291,8 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setPages([...config.pages, { id: uid(), titre: `Page ${config.pages.length + 1}`, champs: [] }])}
-            className="mono mt-6 border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          <button            onClick={() => setPages([...config.pages, { id: uid(), titre: `Page ${config.pages.length + 1}`, champs: [] }])}
+            className={classesBouton("secondary", { className: "mt-6" })}
           >
             + AJOUTER UNE PAGE
           </button>
@@ -352,8 +352,7 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setConfig((c) => ({ ...c, remises: [...(c.remises ?? []), { id: uid(), label: "", montant_centimes: 0, exigeCode: false }] }))}
+          <button            onClick={() => setConfig((c) => ({ ...c, remises: [...(c.remises ?? []), { id: uid(), label: "", montant_centimes: 0, exigeCode: false }] }))}
             className="mono mt-4 border border-line px-4 py-2 text-[12px] text-ink-soft hover:border-ink hover:text-ink"
           >
             + AJOUTER UNE RÉDUCTION
@@ -423,8 +422,7 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() =>
+          <button            onClick={() =>
               setConfig((c) => ({
                 ...c,
                 mineur: { autorisations: [...(c.mineur?.autorisations ?? []), { id: uid(), label: "", obligatoire: false }] },
@@ -476,7 +474,7 @@ export default function FormBuilder({
             à faire remplir, par exemple&nbsp;: il lui est envoyé par email avec sa confirmation
             d&apos;inscription, et reste téléchargeable depuis son espace.
           </p>
-          {modeleErr ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{modeleErr}</p> : null}
+          {modeleErr ? <p className="mono mt-3 text-[12px] text-danger">{modeleErr}</p> : null}
           <div className="mt-6 divide-y divide-line border border-line bg-paper">
             {config.pieces.length === 0 ? (
               <p className="px-4 py-4 text-[14px] text-ink-soft">Aucune pièce demandée pour l&apos;instant.</p>
@@ -504,6 +502,17 @@ export default function FormBuilder({
                   <input type="checkbox" checked={pc.obligatoire} onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, obligatoire: e.target.checked } : p)))} />
                   OBLIGATOIRE
                 </label>
+                <label
+                  className="mono flex items-center gap-1.5 text-[11px] text-ink-soft"
+                  title="Cette pièce n'est demandée que si l'adhérent est mineur (autorisation parentale, etc.)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!pc.mineurs_seulement}
+                    onChange={(e) => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, mineurs_seulement: e.target.checked || undefined } : p)))}
+                  />
+                  MINEURS UNIQUEMENT
+                </label>
                 <Btn onClick={() => setPieces(move(config.pieces, i, -1))}>↑</Btn>
                 <Btn onClick={() => setPieces(move(config.pieces, i, 1))}>↓</Btn>
                 <Btn onClick={() => setPieces(config.pieces.filter((p) => p.id !== pc.id))}>✕</Btn>
@@ -515,8 +524,7 @@ export default function FormBuilder({
                       <a href={pc.modele_url} target="_blank" rel="noreferrer" className="text-brand underline underline-offset-2">
                         MODÈLE JOINT ✓ {pc.modele_nom ? `(${pc.modele_nom})` : ""}
                       </a>
-                      <button
-                        type="button"
+                      <button                        type="button"
                         onClick={() => setPieces(config.pieces.map((p) => (p.id === pc.id ? { ...p, modele_url: null, modele_nom: null } : p)))}
                         className="text-ink-faint underline underline-offset-2 hover:text-ink"
                       >
@@ -539,9 +547,8 @@ export default function FormBuilder({
               </div>
             ))}
           </div>
-          <button
-            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true }])}
-            className="mono mt-6 border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
+          <button            onClick={() => setPieces([...config.pieces, { id: uid(), label: "", obligatoire: true }])}
+            className={classesBouton("secondary", { className: "mt-6" })}
           >
             + AJOUTER UNE PIÈCE
           </button>
@@ -558,7 +565,7 @@ export default function FormBuilder({
               Le nombre maximal de mensualités (jusqu&apos;à 12) se règle dans le cockpit, sous la
               carte Stripe. L&apos;adhérent choisit ensuite librement dans cette limite.
             </p>
-            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#8A6508" }}>
+            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed text-warning">
               ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
               transaction pour une carte européenne). Plus il y a d&apos;échéances, plus la part fixe
               est prélevée souvent : le club perçoit un peu moins qu&apos;en paiement unique.
@@ -574,11 +581,15 @@ export default function FormBuilder({
 
         {/* SAVE — flex-wrap : sur mobile, bouton pleine largeur puis état et lien dessous. */}
         <div className="mt-14 flex flex-wrap items-center gap-5 border-t border-line pt-6">
-          <button onClick={save} disabled={state === "saving"} className="mono w-full bg-ink px-6 py-3 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40 sm:w-auto">
+          <button onClick={save} disabled={state === "saving"} className={classesBouton("primary", { className: "w-full px-6 text-[13px] sm:w-auto" })}>
             {state === "saving" ? "ENREGISTREMENT…" : "ENREGISTRER →"}
           </button>
           {state === "ok" ? <span className="mono text-[12px] text-brand">✓ Enregistré</span> : null}
-          {state === "err" ? <span className="mono text-[12px]" style={{ color: "#B23B3B" }}>Erreur d&apos;enregistrement</span> : null}
+          {state === "err" ? (
+            // Le message du serveur dit QUOI corriger (« Un champ n'a pas de libellé… ») —
+            // pas un « Erreur d'enregistrement » générique.
+            <span className="mono text-[12px] text-danger">{erreur ?? "Erreur d’enregistrement"}</span>
+          ) : null}
           <Link href={`/${slug}/inscription`} className="mono ml-auto text-[12px] text-ink-soft hover:text-ink">VOIR LE FORMULAIRE →</Link>
         </div>
       </div>

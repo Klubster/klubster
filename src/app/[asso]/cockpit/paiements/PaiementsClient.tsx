@@ -2,6 +2,8 @@
 /* Encaissements chèques & espèces : acomptes, solde par ligne, sélection,
    export CSV et relance email des lignes choisies. */
 import { useMemo, useState, useTransition } from "react";
+import { resteAPayer } from "@/lib/finances";
+import { fichierCsv } from "@/lib/csv-export";
 import { useRouter } from "next/navigation";
 import { enregistrerReglement } from "./actions";
 
@@ -32,7 +34,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
   const modeDe = (l: LignePaiement): "especes" | "cheque" | "autre" =>
     modeLigne[l.id] ?? (l.mode === "cheque" ? "cheque" : l.mode === "autre" ? "autre" : "especes");
 
-  const soldeDe = (l: LignePaiement) => Math.max(l.montantCentimes - l.regleCentimes, 0);
+  const soldeDe = (l: LignePaiement) => resteAPayer(l.montantCentimes, l.regleCentimes);
   const totalSolde = useMemo(() => lignes.reduce((s, l) => s + soldeDe(l), 0), [lignes]);
   const cibles = selection.size > 0 ? lignes.filter((l) => selection.has(l.id)) : lignes;
 
@@ -72,8 +74,8 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
         new Date(l.inscritLe).toLocaleDateString("fr-FR"),
       ]),
     ];
-    const csv = lignesCsv.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    // Même écriture que l'export serveur : injection de formule neutralisée, BOM, CRLF.
+    const blob = new Blob([fichierCsv(lignesCsv)], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `reglements-en-attente-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -118,7 +120,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
           SOLDE TOTAL : <span className="font-bold text-ink">{eur(totalSolde)}</span>
         </span>
       </div>
-      {erreur ? <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>{erreur}</p> : null}
+      {erreur ? <p className="mono mt-3 text-[12px] text-danger">{erreur}</p> : null}
 
       {/* Lignes */}
       <div className="mt-6 divide-y divide-line border border-line bg-paper">
@@ -134,7 +136,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                 <div className="text-[15px] font-medium">
                   {l.prenom} {l.nom}
                   {l.statut === "en_retard" ? (
-                    <span className="mono ml-2 text-[10px] uppercase tracking-wider" style={{ color: "#B23B3B" }}>EN RETARD</span>
+                    <span className="mono ml-2 text-[10px] uppercase tracking-wider text-danger">EN RETARD</span>
                   ) : null}
                 </div>
                 <div className="text-[13px] text-ink-soft">

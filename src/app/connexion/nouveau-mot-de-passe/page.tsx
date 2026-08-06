@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { useState } from "react";
 import Link from "next/link";
 import { definirNouveauMotDePasse } from "../actions";
@@ -57,12 +58,12 @@ export default function NouveauMotDePasse() {
           <Champ label="CONFIRMEZ" value={confirmation} onChange={setConfirmation} />
         </div>
 
-        {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
+        {err ? <p className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
 
         <button
           onClick={valider}
           disabled={loading || !password || !confirmation}
-          className="mono mt-8 w-full bg-ink px-6 py-4 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40"
+          className={classesBouton("primary", { className: "mt-8 w-full px-6 py-4 text-[13px]" })}
         >
           {loading ? "…" : "ENREGISTRER →"}
         </button>

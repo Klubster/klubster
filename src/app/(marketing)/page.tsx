@@ -53,7 +53,7 @@ const FAQ_JSON_LD = {
       name: "Où vont les données de mes adhérents ?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Elles sont hébergées dans l'Union européenne. Elles vous appartiennent, et ne sont ni revendues ni exploitées.",
+        text: "La base de données est hébergée dans l'Union européenne (Irlande) et les traitements serveur s'exécutent à Paris. Trois prestataires sont établis aux États-Unis — Vercel, Resend et Cloudflare — sous clauses contractuelles types. Vos données vous appartiennent, et ne sont ni revendues ni exploitées.",
       },
     },
   ],
@@ -133,7 +133,7 @@ const OBJECTIONS: [string, string][] = [
   ],
   [
     "Où vont les données de mes adhérents ?",
-    "Elles sont hébergées dans l’Union européenne. Elles vous appartiennent, et ne sont ni revendues ni exploitées.",
+    "La base de données est hébergée dans l’Union européenne (Irlande) et les traitements serveur s’exécutent à Paris. Trois prestataires sont établis aux États-Unis — Vercel, Resend et Cloudflare — sous clauses contractuelles types ; le détail est dans la politique de confidentialité. Vos données vous appartiennent, et ne sont ni revendues ni exploitées.",
   ],
 ];
 
@@ -393,7 +393,7 @@ export default function Home() {
               </div>
               <div className="bg-paper px-5 py-4">
                 <div className="mono text-[10px] uppercase tracking-label text-ink-soft">DOSSIER</div>
-                <div className="mono mt-2 text-[15px] font-bold" style={{ color: "#B23B3B" }}>✕ 1 pièce manquante</div>
+                <div className="mono mt-2 text-[15px] font-bold text-danger">✕ 1 pièce manquante</div>
               </div>
             </div>
 

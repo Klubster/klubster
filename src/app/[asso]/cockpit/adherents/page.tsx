@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getOrganisationBySlug } from "@/lib/queries";
+import { getOrganisationBySlug, getAdherentsRecents } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix } from "@/lib/format";
 import { peut } from "@/lib/roles";
 import { renouvelerSaison } from "./actions";
+import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { EtatVide } from "@/components/ui/EtatVide";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 
 export const dynamic = "force-dynamic";
+
+// Identifiant qui n'existera jamais : sert à rendre un filtre volontairement vide.
+const ID_IMPOSSIBLE = "00000000-0000-0000-0000-000000000000";
 
 const PAR_PAGE = 25;
 
@@ -29,7 +36,7 @@ type LigneAdherent = {
 export default async function Adherents(
   props: {
     params: Promise<{ asso: string }>;
-    searchParams: Promise<{ q?: string; page?: string; statut?: string; renouvelees?: string }>;
+    searchParams: Promise<{ q?: string; page?: string; statut?: string; renouvelees?: string; dossier?: string; recentes?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
@@ -43,6 +50,10 @@ export default async function Adherents(
 
   const q = (searchParams.q ?? "").trim();
   const statut = searchParams.statut ?? "";
+  // Filtres venus du cockpit : « 3 dossiers incomplets » et « 4 nouvelles inscriptions »
+  // doivent ouvrir EXACTEMENT ces trois et ces quatre lignes, pas la liste entière.
+  const dossierIncomplet = searchParams.dossier === "incomplet";
+  const joursRecents = Math.min(90, Math.max(0, Number(searchParams.recentes ?? 0) || 0));
   const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
   const debut = (page - 1) * PAR_PAGE;
 
@@ -53,12 +64,41 @@ export default async function Adherents(
   // trois résultats page 2, et un total faux. `!inner` force la jointure à filtrer.
   const jointure = statut ? "adhesions!inner(statut, montant_centimes, cours(nom))" : "adhesions(statut, montant_centimes, cours(nom))";
 
+  // Inscriptions récentes : les adhérents dont une ADHÉSION a été créée dans la fenêtre.
+  const idsRecents = joursRecents > 0 ? await getAdherentsRecents(org.id, joursRecents) : [];
+
+  // Dossier incomplet = au moins une pièce manquante. La liste des identifiants est
+  // calculée avant la requête paginée : filtrer après la pagination donnait un total faux.
+  let idsIncomplets: string[] = [];
+  if (dossierIncomplet) {
+    const { data: pcs } = await supabase
+      .from("pieces_adherent")
+      .select("adherent_id")
+      .eq("organisation_id", org.id)
+      .eq("statut", STATUT_PIECE_MANQUANTE);
+    idsIncomplets = [...new Set(((pcs ?? []) as { adherent_id: string }[]).map((x) => x.adherent_id))];
+  }
+
   let requete = supabase
     .from("adherents")
     .select(`id, prenom, nom, email, telephone, created_at, ${jointure}`, { count: "exact" })
     .eq("organisation_id", org.id);
 
   if (statut) requete = requete.eq("adhesions.statut", statut);
+  if (joursRecents > 0) {
+    // Sur la date de l'ADHÉSION, pas celle de la fiche : le cockpit compte les inscriptions
+    // reçues cette semaine, or un adhérent importé l'an dernier peut se réinscrire hier.
+    // Filtrer sur `adherents.created_at` affichait 14 lignes pour « 8 inscriptions ».
+    requete = requete.in("id", idsRecents.length > 0 ? idsRecents : [ID_IMPOSSIBLE]);
+  }
+  if (dossierIncomplet) {
+    // Aucun dossier incomplet ne doit afficher une liste VIDE, pas la liste entière :
+    // un filtre qui ne filtre rien fait croire au président que tout le club est en défaut.
+    requete = requete.in("id", idsIncomplets.length > 0 ? idsIncomplets : [ID_IMPOSSIBLE]);
+  }
+  // Le badge affiché est adhesions[0] : sans ordre, PostgREST rend les adhésions dans
+  // un ordre quelconque et le badge pouvait venir d'une saison ancienne.
+  requete = requete.order("created_at", { referencedTable: "adhesions", ascending: false });
 
   if (q) {
     // Les caractères de filtre PostgREST (virgule, parenthèses) sont retirés :
@@ -79,10 +119,24 @@ export default async function Adherents(
     const s = new URLSearchParams();
     if (q) s.set("q", q);
     if (statut) s.set("statut", statut);
+    if (dossierIncomplet) s.set("dossier", "incomplet");
+    if (joursRecents > 0) s.set("recentes", String(joursRecents));
     if (p > 1) s.set("page", String(p));
     const qs = s.toString();
     return `/${org.slug}/cockpit/adherents${qs ? `?${qs}` : ""}`;
   };
+
+  const filtreActif = dossierIncomplet
+    ? "Dossiers incomplets"
+    : joursRecents > 0
+      ? `Inscriptions des ${joursRecents} derniers jours`
+      : statut === "en_retard"
+        ? "Cotisations en retard"
+        : statut === "en_attente"
+          ? "Règlements en attente"
+          : statut === "paye"
+            ? "Cotisations réglées"
+            : "";
 
   const renouveler = renouvelerSaison.bind(null, org.slug);
 
@@ -99,29 +153,40 @@ export default async function Adherents(
 
       <div className="mx-auto max-w-5xl px-6 py-12 md:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-3xl font-medium tracking-[-0.01em]">
-            {total} adhérent{total > 1 ? "s" : ""}
-          </h1>
+          <div>
+            <h1 className="text-3xl font-medium tracking-[-0.01em]">
+              {total} adhérent{total > 1 ? "s" : ""}
+            </h1>
+            {/* Le filtre venu du cockpit se dit à l'écran, et se retire d'un clic : sans
+                cela, « 3 adhérents » sur un club qui en compte 30 ressemble à une panne. */}
+            {filtreActif ? (
+              <p className="mono mt-2 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-label text-ink-soft">
+                <span className="text-warning">▸ {filtreActif}</span>
+                <Link href={`/${org.slug}/cockpit/adherents`} className="underline underline-offset-2 hover:text-ink">
+                  TOUT VOIR
+                </Link>
+              </p>
+            ) : null}
+          </div>
           {/* Empilés pleine largeur sur mobile : deux boutons longs côte à côte
               wrappaient de travers sous le titre. */}
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <Link
-              href={`/${org.slug}/cockpit/adherents/import`}
-              className="mono border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
-            >
-              IMPORTER UN FICHIER
-            </Link>
-            <Link
-              href={`/${org.slug}/cockpit/adherents/nouveau`}
-              className="mono bg-ink px-5 py-3 text-center text-[12px] text-paper hover:bg-ink/90"
-            >
-              AJOUTER UN ADHÉRENT →
-            </Link>
-          </div>
+          {/* Import et ajout : président et secrétaire seulement. Montrer ces boutons à un
+              rôle qui n'a pas l'écriture, c'est l'envoyer vers un refus — un lien mort.
+              Vu en test le 02/08 avec le rôle Lecture seule. */}
+          {peut(profile.role, "adherents_ecriture") ? (
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+              <ButtonLink variant="secondary" href={`/${org.slug}/cockpit/adherents/import`}>
+                IMPORTER UN FICHIER
+              </ButtonLink>
+              <ButtonLink href={`/${org.slug}/cockpit/adherents/nouveau`}>
+                AJOUTER UN ADHÉRENT →
+              </ButtonLink>
+            </div>
+          ) : null}
         </div>
 
         {searchParams?.renouvelees !== undefined ? (
-          <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-4 text-[12px] text-success">
             {searchParams.renouvelees === "0"
               ? "Tout le monde a déjà une adhésion pour la saison en cours."
               : `${searchParams.renouvelees} adhésion(s) créée(s) pour la nouvelle saison, en attente de règlement.`}
@@ -137,9 +202,9 @@ export default async function Adherents(
                 Recrée une adhésion « en attente » pour chaque adhérent qui n’en a pas encore cette saison, avec son dernier cours.
               </p>
             </div>
-            <button className="mono w-full border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto">
+            <Button variant="secondary" className="w-full sm:w-auto">
               RENOUVELER LA SAISON →
-            </button>
+            </Button>
           </form>
         ) : null}
 
@@ -164,9 +229,7 @@ export default async function Adherents(
             <option value="en_retard">En retard</option>
             <option value="liste_attente">Liste d’attente</option>
           </select>
-          <button className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
-            CHERCHER
-          </button>
+          <Button variant="secondary">CHERCHER</Button>
           {q || statut ? (
             <Link href={`/${org.slug}/cockpit/adherents`} className="mono text-[12px] text-ink-soft hover:text-ink">
               Effacer
@@ -175,11 +238,27 @@ export default async function Adherents(
         </form>
 
         {lignes.length === 0 ? (
-          <p className="mt-12 text-lg text-ink-soft">
-            {q || statut
-              ? "Aucun adhérent ne correspond à cette recherche."
-              : "Aucun adhérent pour l’instant. Ils apparaîtront ici dès la première inscription."}
-          </p>
+          // Deux vides très différents : un filtre sans résultat n'est pas un club sans
+          // adhérents. Le premier propose d'élargir, le second oriente vers l'inscription.
+          <div className="mt-12">
+            {q || statut ? (
+              <EtatVide
+                titre="Aucun adhérent ne correspond à cette recherche."
+                detail="Vérifiez l’orthographe, ou élargissez le filtre de statut."
+                action={{ href: `/${org.slug}/cockpit/adherents`, label: "AFFICHER TOUT LE MONDE" }}
+              />
+            ) : (
+              <EtatVide
+                titre="Aucun adhérent pour l’instant."
+                detail="Ils apparaîtront ici dès la première inscription — en ligne via votre page publique, ou ajoutés à la main."
+                action={
+                  peut(profile.role, "adherents_ecriture")
+                    ? { href: `/${org.slug}/cockpit/adherents/nouveau`, label: "AJOUTER LE PREMIER ADHÉRENT →" }
+                    : undefined
+                }
+              />
+            )}
+          </div>
         ) : (
           <div className="mt-8 border border-line">
             {lignes.map((a) => {
@@ -200,20 +279,9 @@ export default async function Adherents(
                   <span className="mono text-[11px] uppercase tracking-wide">
                     {ad ? (
                       <>
-                        <span
-                          style={{
-                            color:
-                              ad.statut === "paye" ? "#1E7A4F"
-                              : ad.statut === "en_retard" ? "#B23B3B"
-                              : ad.statut === "liste_attente" ? "#6f6f6b"
-                              : "#8A6508",
-                          }}
-                        >
-                          {ad.statut === "paye" ? "Payé"
-                            : ad.statut === "en_retard" ? "En retard"
-                            : ad.statut === "liste_attente" ? "Liste d’attente"
-                            : "En attente"}
-                        </span>
+                        {/* S6 : libellé et teinte viennent de LA table (ui/StatutBadge) —
+                            la liste disait « Annulée » quand la fiche disait « Annulé ». */}
+                        <span className={classeTexteAdhesion(ad.statut)}>{libelleAdhesion(ad.statut)}</span>
                         {typeof ad.montant_centimes === "number" ? (
                           <span className="ml-2 text-ink-soft">{formatPrix(ad.montant_centimes)}</span>
                         ) : null}
@@ -250,11 +318,15 @@ export default async function Adherents(
           </div>
         ) : null}
 
-        <p className="mono mt-10 text-[11px] text-ink-soft">
-          <a href={`/${org.slug}/cockpit/export`} className="underline underline-offset-2 hover:text-ink">
-            Exporter la liste complète en CSV
-          </a>
-        </p>
+        {/* L'export CSV est refusé par la route aux rôles sans écriture : ne pas tendre
+            un lien qui finit en erreur. Même règle que les boutons d'ajout ci-dessus. */}
+        {peut(profile.role, "adherents_ecriture") ? (
+          <p className="mono mt-10 text-[11px] text-ink-soft">
+            <a href={`/${org.slug}/cockpit/export`} className="underline underline-offset-2 hover:text-ink">
+              Exporter la liste complète en CSV
+            </a>
+          </p>
+        ) : null}
       </div>
     </main>
   );

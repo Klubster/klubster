@@ -1,3 +1,4 @@
+import { classesBouton } from "@/components/ui/Button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "@/components/site/Reveal";
@@ -157,6 +158,24 @@ export default function CasUsmBoxe() {
               Relevé le {USM_RELEVE} dans Klubster. Cette page est mise à jour à mesure que
               la saison avance.
             </p>
+          </Reveal>
+
+          {/* La preuve avant le discours : le vrai club, tel que le voient les familles.
+              CTA secondaire — l'action commerciale reste « DEVENIR CLUB FONDATEUR » en
+              bas de page. Jamais /demo ici : c'est la véritable vitrine publique. */}
+          <Reveal className="mt-10">
+            <div className="border border-line px-6 py-6 md:px-7">
+              <p className="max-w-prose text-[15px] leading-relaxed text-ink-soft">
+                Klubster est né ici, à l’USM Boxe Anglaise de Montauban. Découvrez la page
+                que voient aujourd’hui les adhérents et les familles.
+              </p>
+              <Link
+                href="/usmboxe"
+                className={classesBouton("secondary", { className: "mt-5 w-full px-7 text-[13px] sm:w-auto" })}
+              >
+                VOIR LE CLUB USM BOXE →
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>

@@ -131,7 +131,7 @@ export default function FormulaireGalerie({
         ) : null}
 
         {erreur ? (
-          <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-4 text-[12px] text-danger">
             {erreur}
           </p>
         ) : null}

@@ -1,3 +1,5 @@
+import { normaliserCouleur } from "@/lib/contraste";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -93,7 +95,7 @@ export default async function CoursPage(
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
   const peutPromouvoir = peut(profile.role, "adherents_ecriture");
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
   const ajouter = ajouterCoursSimple.bind(null, org.slug);
 
   return (
@@ -117,20 +119,29 @@ export default async function CoursPage(
         </p>
 
         {searchParams?.ok ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             Cours ajouté.
           </p>
         ) : null}
         {searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[12px] text-danger">
             {searchParams.erreur === "promo"
               ? "La promotion a échoué. Réessayez."
               : "L’ajout a échoué. Vérifiez le nom du cours."}
           </p>
         ) : null}
         {searchParams?.promo === "1" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
-            ✓ Place donnée. La personne a été prévenue par email.
+          <p className="mono mt-6 text-[12px] text-success">
+            ✓ Place donnée. Pensez à prévenir la personne — aucun email automatique n’est envoyé.
+          </p>
+        ) : null}
+        {/* La RPC refuse la promotion quand le cours est déjà plein — sinon le club
+            découvrait un cours en surcapacité le soir de la reprise. Sans ce message,
+            le bouton semblait ne rien faire : un refus muet est indiscernable d'un bug. */}
+        {searchParams?.promo === "0" ? (
+          <p className="mono mt-6 text-[12px] text-warning">
+            Aucune place n’est libre dans ce cours : personne n’a été promu. Augmentez la
+            capacité du cours, ou attendez qu’une place se libère.
           </p>
         ) : null}
 
@@ -140,15 +151,17 @@ export default async function CoursPage(
           ))}
         </div>
 
-        {/* Liste d'attente — premier arrivé, premier servi. Donner une place prévient la personne. */}
+        {/* Liste d'attente — premier arrivé, premier servi. Aucun email automatique :
+            c'est la décision produit du pilote, l'écran ne doit jamais prétendre le contraire. */}
         {listeAttente.length > 0 ? (
           <section className="mt-12">
             <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
               LISTE D’ATTENTE — {listeAttente.length} personne{listeAttente.length > 1 ? "s" : ""}<Cur />
             </p>
             <p className="mt-2 max-w-prose text-[14px] text-ink-soft">
-              Inscrites quand leur cours était complet. Donnez une place dès qu’une se libère : la personne
-              est prévenue par email et son adhésion devient « en attente » de règlement.
+              Inscrites quand leur cours était complet. Donnez une place dès qu’une se libère : l’adhésion
+              devient « en attente » de règlement. Prévenez ensuite la personne vous-même — aucun email
+              automatique n’est envoyé.
             </p>
             <div className="mt-4 border border-line">
               {listeAttente.map((a) => {
@@ -166,9 +179,9 @@ export default async function CoursPage(
                     </div>
                     {peutPromouvoir ? (
                       <form action={promouvoir}>
-                        <button className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                        <Button variant="secondary" compact>
                           Donner une place →
-                        </button>
+                        </Button>
                       </form>
                     ) : null}
                   </div>
@@ -200,7 +213,7 @@ export default async function CoursPage(
                 className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
               />
             </label>
-            <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">AJOUTER →</button>
+            <Button className="w-full px-6 sm:w-auto">AJOUTER →</Button>
           </div>
         </form>
 
@@ -211,7 +224,7 @@ export default async function CoursPage(
             (docs/roadmap-ecarts-demo.md) ; tant qu'il n'existe pas, on énonce le fait
             sans prescrire un geste impossible. */}
         <p className="mono mt-10 text-[11px] leading-relaxed text-ink-soft">
-          Un cours qui compte des adhérents ne peut pas être supprimé : leurs dossiers y sont rattachés.
+          Un cours qui compte des adhérents ne peut pas être supprimé : déplacez-les d’abord, depuis leur fiche (« Changer de cours »).
         </p>
       </div>
     </main>

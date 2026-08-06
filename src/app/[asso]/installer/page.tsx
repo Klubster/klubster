@@ -1,3 +1,4 @@
+import { normaliserCouleur, texteSur, survolDe } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationPubliqueBySlug } from "@/lib/queries";
@@ -10,7 +11,7 @@ export default async function InstallerPage(props: { params: Promise<{ asso: str
   const { asso } = await props.params;
   const org = await getOrganisationPubliqueBySlug(asso);
   if (!org) notFound();
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   return (
     <ThemeVitrine org={org}>
@@ -39,8 +40,8 @@ export default async function InstallerPage(props: { params: Promise<{ asso: str
           <div className="mt-12 border-t border-line pt-8">
             <Link
               href={`/${org.slug}/espace`}
-              className="mono px-6 py-3 text-[13px] text-white transition-opacity hover:opacity-90"
-              style={{ background: accent }}
+              className="mono px-6 py-3 text-[13px] transition-colors hover:bg-[var(--survol)]"
+              style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
             >
               OUVRIR MON ESPACE →
             </Link>

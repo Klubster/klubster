@@ -3,17 +3,17 @@
 import { useMemo, useState, useTransition } from "react";
 import { envoyerMessage } from "./actions";
 
-type Membre = { email: string; coursIds: string[]; mineur: boolean; incomplet: boolean };
+
 type Cours = { id: string; nom: string };
 
 export default function Communication({
-  membres,
+  listes,
   cours,
   contactEmail,
   slug,
   envoiDirect,
 }: {
-  membres: Membre[];
+  listes: Record<string, string[]>;
   cours: Cours[];
   contactEmail: string | null;
   slug: string;
@@ -26,17 +26,9 @@ export default function Communication({
   const [envoi, setEnvoi] = useState<{ ok: boolean; texte: string } | null>(null);
   const [enCours, startTransition] = useTransition();
 
-  const emails = useMemo(() => {
-    const list =
-      groupe === "tous"
-        ? membres
-        : groupe === "parents"
-          ? membres.filter((m) => m.mineur)
-          : groupe === "incomplet"
-            ? membres.filter((m) => m.incomplet)
-            : membres.filter((m) => m.coursIds.includes(groupe));
-    return Array.from(new Set(list.map((m) => m.email)));
-  }, [groupe, membres]);
+  // La liste vient de la PAGE, calculée par src/lib/ciblage.ts — la même fonction
+  // que l'envoi serveur. Le compteur affiché EST le nombre qui partirait.
+  const emails = useMemo(() => listes[groupe] ?? [], [groupe, listes]);
 
   const mailto =
     `mailto:${contactEmail ?? ""}` +
@@ -112,8 +104,10 @@ export default function Communication({
         />
       </div>
 
+      {/* Lot S : le vert de confirmation passe de #279B65 (3,1:1, sous AA) au token
+          success — même sens, enfin lisible. */}
       {envoi ? (
-        <p className="mono text-[12px]" style={{ color: envoi.ok ? "#279B65" : "#B23B3B" }}>{envoi.texte}</p>
+        <p className={`mono text-[12px] ${envoi.ok ? "text-success" : "text-danger"}`}>{envoi.texte}</p>
       ) : null}
 
       {/* L'action d'envoi est LE geste de la page : pleine largeur au pouce. */}

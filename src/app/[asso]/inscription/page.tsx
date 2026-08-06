@@ -1,3 +1,4 @@
+import { normaliserCouleur } from "@/lib/contraste";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganisationPubliqueBySlug, getCoursByOrganisation } from "@/lib/queries";
@@ -22,7 +23,7 @@ export default async function InscriptionPage(
   // Club dont l'abonnement est suspendu : les inscriptions en ligne sont fermées. On
   // l'affiche clairement plutôt que de laisser remplir un formulaire refusé à l'envoi.
   if (accesClub(org) === "suspendu") {
-    const accentF = org.couleur_primaire ?? "#111111";
+    const accentF = normaliserCouleur(org.couleur_primaire);
     return (
       <ThemeVitrine org={org}>
         <main className="min-h-screen text-ink">
@@ -59,7 +60,7 @@ export default async function InscriptionPage(
     ? (searchParams!.cours as string)
     : null;
 
-  const accent = org.couleur_primaire ?? "#111111";
+  const accent = normaliserCouleur(org.couleur_primaire);
 
   return (
     <ThemeVitrine org={org}>

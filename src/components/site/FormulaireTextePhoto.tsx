@@ -121,7 +121,7 @@ export default function FormulaireTextePhoto({ slug, accent }: { slug: string; a
       </div>
 
       {photoTropLourde ? (
-        <p className="mono text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono text-[12px] text-danger">
           Cette photo dépasse 3 Mo. Choisissez-en une plus légère — sinon elle n’atteindra pas le serveur.
         </p>
       ) : null}

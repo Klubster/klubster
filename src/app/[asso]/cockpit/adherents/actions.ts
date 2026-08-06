@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { exigerPermission } from "@/lib/garde";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { saisonCourante } from "@/lib/saison";
+import { basculerStatutPiece } from "@/lib/pieces";
+import { validerDocument } from "@/lib/upload";
 import { peut } from "@/lib/roles";
 import { rembourser } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
@@ -59,6 +61,42 @@ export async function modifierAdherent(slug: string, adherentId: string, formDat
 
   revalidatePath(`/${slug}/cockpit/adherents`);
   revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=1`);
+}
+
+/**
+ * Enregistrer ou lever l'opposition aux communications FACULTATIVES (clôture lot K).
+ *
+ * La date posée est la traçabilité de la demande (« il s'est opposé le… »). L'opposition
+ * n'arrête que les messages collectifs (« tous », « parents », un cours) via le ciblage
+ * unique (src/lib/ciblage.ts) ; les messages nécessaires à l'exécution de l'adhésion —
+ * relances de pièces, relances de cotisation, dossiers incomplets — continuent de partir.
+ * Pas de conclusion juridique ici : on enregistre un fait daté, c'est tout.
+ */
+export async function basculerOppositionCommunications(slug: string, adherentId: string) {
+  const org = await garde(slug);
+
+  const supabase = await createSupabaseServerClient();
+  const { data: adh, error: eLecture } = await supabase
+    .from("adherents")
+    .select("opposition_communications")
+    .eq("id", adherentId)
+    .eq("organisation_id", org.id)
+    .single();
+  if (eLecture || !adh) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=enregistrement`);
+
+  const { error } = await supabase
+    .from("adherents")
+    .update({ opposition_communications: adh.opposition_communications ? null : new Date().toISOString() })
+    .eq("id", adherentId)
+    .eq("organisation_id", org.id);
+  if (error) {
+    console.error("basculerOppositionCommunications", error.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=enregistrement`);
+  }
+
+  revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+  revalidatePath(`/${slug}/cockpit/communication`);
   redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=1`);
 }
 
@@ -129,12 +167,26 @@ export interface LigneImport {
   email?: string | null;
   telephone?: string | null;
   coursId?: string | null;
+  /** ISO `aaaa-mm-jj`, déjà validée côté client (`dateIso`) — revalidée en base. */
+  naissance?: string | null;
+  /** Email du responsable légal — même clé que le ciblage et les relances. */
+  responsable?: string | null;
+  /** Somme déjà encaissée par le club avant Klubster, en centimes. */
+  montantCentimes?: number | null;
+  /** Numéro de la ligne dans le fichier, pour un bilan qui parle à l'utilisateur. */
+  ligne?: number | null;
 }
 
 export interface ResultatImport {
   crees: number;
   ignores: number;
   erreurs: string[];
+  /** Détail par ligne créée : ce que l'import a réellement fait. */
+  listeAttente: number;
+  sansCours: number;
+  doublons: string[];
+  /** Somme des règlements repris, en centimes. */
+  repriseCentimes: number;
 }
 
 const MAX_LIGNES = 2000;
@@ -153,11 +205,12 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
   const org = await garde(slug);
   const erreurs: string[] = [];
 
+  const vide: ResultatImport = { crees: 0, ignores: 0, erreurs: [], listeAttente: 0, sansCours: 0, doublons: [], repriseCentimes: 0 };
   if (!Array.isArray(lignes) || lignes.length === 0) {
-    return { crees: 0, ignores: 0, erreurs: ["Aucune ligne à importer."] };
+    return { ...vide, erreurs: ["Aucune ligne à importer."] };
   }
   if (lignes.length > MAX_LIGNES) {
-    return { crees: 0, ignores: 0, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
+    return { ...vide, erreurs: [`Trop de lignes (${lignes.length}). Maximum ${MAX_LIGNES} par import.`] };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -182,23 +235,29 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
   const nomsPris = new Set((existants ?? []).map((a) => cle(a.prenom ?? "", a.nom ?? "")));
 
   const aCreer: Array<{ ligne: LigneImport; index: number }> = [];
+  const doublons: string[] = [];
   let ignores = 0;
 
   lignes.forEach((l, i) => {
+    const numero = Number(l.ligne ?? i + 2);
     const prenom = String(l.prenom ?? "").trim().slice(0, 80);
     const nom = String(l.nom ?? "").trim().slice(0, 80);
     if (!prenom || !nom) {
-      erreurs.push(`Ligne ${i + 2} : prénom ou nom manquant — ignorée.`);
+      erreurs.push(`Ligne ${numero} : prénom ou nom manquant — ignorée.`);
       ignores++;
       return;
     }
 
     const email = String(l.email ?? "").trim().toLowerCase().slice(0, 160);
+    // Un doublon est NOMMÉ. Avant, « 2 lignes ignorées — doublons ou données
+    // incomplètes » laissait le club chercher lesquelles, sans jamais les trouver.
     if (email && emailsPris.has(email)) {
+      doublons.push(`Ligne ${numero} : ${prenom} ${nom} (${email}) est déjà adhérent — ignorée.`);
       ignores++;
       return;
     }
     if (!email && nomsPris.has(cle(prenom, nom))) {
+      doublons.push(`Ligne ${numero} : ${prenom} ${nom} existe déjà (même prénom et nom, sans email) — ignorée.`);
       ignores++;
       return;
     }
@@ -207,34 +266,54 @@ export async function importerAdherents(slug: string, lignes: LigneImport[]): Pr
     if (email) emailsPris.add(email);
     nomsPris.add(cle(prenom, nom));
 
-    aCreer.push({ ligne: { ...l, prenom, nom, email: email || null }, index: i });
+    aCreer.push({ ligne: { ...l, prenom, nom, email: email || null, ligne: numero }, index: i });
   });
 
-  if (aCreer.length === 0) return { crees: 0, ignores, erreurs };
+  if (aCreer.length === 0) return { ...vide, ignores, erreurs, doublons };
 
   // Adhérent + adhésion créés ensemble dans une seule transaction (RPC) : un échec
   // en cours de route annule tout, plus d'adhérents orphelins sans adhésion.
   const rows = aCreer.map(({ ligne }) => ({
+    ligne: ligne.ligne,
     prenom: ligne.prenom,
     nom: ligne.nom,
     email: ligne.email,
     telephone: String(ligne.telephone ?? "").trim().slice(0, 30) || null,
+    // Revalidée en base aussi : une date impossible ne doit pas entrer par le client.
+    date_naissance: ligne.naissance ?? null,
+    responsable_email: String(ligne.responsable ?? "").trim().toLowerCase().slice(0, 160) || null,
+    montant_regle_centimes: Math.max(0, Math.round(Number(ligne.montantCentimes ?? 0))) || 0,
     // On ne transmet le cours que s'il appartient au club (tarif re-vérifié en base).
     cours_id: ligne.coursId && tarifs.has(ligne.coursId) ? ligne.coursId : null,
   }));
 
-  const { data: crees, error } = await supabase.rpc("inserer_adherents_adhesions", {
+  // `importer_adherents` (migration 20260804170000) suit les MÊMES règles que
+  // l'inscription publique : capacité verrouillée puis liste d'attente, pièces du
+  // cours filtrées par `cours_id` et `mineurs_seulement`, instantané `obligatoire`,
+  // tarif lu en base, reprise du montant déjà encaissé. Une transaction pour tout.
+  const { data: bilan, error } = await supabase.rpc("importer_adherents", {
     p_org: org.id,
     p_rows: rows,
   });
 
   if (error) {
-    console.error("inserer_adherents_adhesions", error.message);
-    return { crees: 0, ignores, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
+    console.error("importer_adherents", error.message);
+    return { ...vide, ignores, doublons, erreurs: [...erreurs, "L’import a échoué. Aucun adhérent n’a été créé."] };
   }
 
+  const b = (bilan ?? {}) as { crees?: number; liste_attente?: number; sans_cours?: number; lignes?: Array<{ regle_centimes?: number }> };
+  const reprise = (b.lignes ?? []).reduce((s, l) => s + Number(l.regle_centimes ?? 0), 0);
+
   revalidatePath(`/${slug}/cockpit/adherents`);
-  return { crees: Number(crees ?? 0), ignores, erreurs };
+  return {
+    crees: Number(b.crees ?? 0),
+    ignores,
+    erreurs,
+    doublons,
+    listeAttente: Number(b.liste_attente ?? 0),
+    sansCours: Number(b.sans_cours ?? 0),
+    repriseCentimes: reprise,
+  };
 }
 
 /**
@@ -400,7 +479,10 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
 export async function basculerPiece(slug: string, adherentId: string, pieceId: string, statut: string) {
   const org = await garde(slug);
   const supabase = await createSupabaseServerClient();
-  const nouveau = statut === "recue" ? "manquante" : "recue";
+  // « recue » n'existe pas en base : la contrainte n'accepte que manquante | fournie |
+  // par_email. L'UPDATE échouait donc à chaque clic, l'erreur partait dans les journaux
+  // et la page se rechargeait à l'identique — le président croyait avoir mal cliqué.
+  const nouveau = basculerStatutPiece(statut);
 
   const { error } = await supabase
     .from("pieces_adherent")
@@ -409,7 +491,128 @@ export async function basculerPiece(slug: string, adherentId: string, pieceId: s
     .eq("adherent_id", adherentId) // sinon un id de pièce d'un autre adhérent (même club) passerait
     .eq("organisation_id", org.id);
 
-  if (error) console.error("basculerPiece", error.message);
+  // Un échec ne doit pas ressembler à un succès : le président doit savoir que la pièce
+  // n'a PAS changé d'état, sinon il classe un dossier incomplet comme réglé.
+  if (error) {
+    console.error("basculerPiece", error.message);
+    revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece`);
+  }
   revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
   redirect(`/${slug}/cockpit/adherents/${adherentId}`);
+}
+
+/**
+ * Dépôt d'une pièce PAR UN BÉNÉVOLE, depuis la fiche — promesse publique :
+ * « les documents sont déposés par l'adhérent, ou ajoutés à son dossier par un
+ * bénévole ». Un certificat apporté en main propre au forum des associations se
+ * range ici, sans repasser par l'adhérent.
+ *
+ * Mêmes garanties que le dépôt adhérent : validation par les premiers octets
+ * (PDF/JPEG/PNG, 5 Mo), chemin construit CÔTÉ SERVEUR depuis l'organisation et
+ * l'adhérent — jamais depuis une valeur du navigateur — et écriture Storage par
+ * `createSupabaseStorageClient()` (règle du 21-28/07). `upsert: false` : deux
+ * dépôts font deux objets, on n'écrase jamais un fichier existant.
+ */
+export async function deposerPieceCockpit(
+  slug: string,
+  adherentId: string,
+  pieceId: string,
+  formData: FormData
+): Promise<void> {
+  const org = await garde(slug);
+  const fichier = formData.get("fichier");
+  if (!(fichier instanceof File) || fichier.size === 0) {
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_vide`);
+  }
+  const controle = await validerDocument(fichier as File, 5);
+  if (!controle.ok) {
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_format`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  // La pièce doit exister, dans CE club, pour CET adhérent — sinon rien.
+  const { data: piece } = await supabase
+    .from("pieces_adherent")
+    .select("id")
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id)
+    .maybeSingle();
+  if (!piece) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_introuvable`);
+
+  const storage = createSupabaseStorageClient();
+  if (!storage) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+
+  const ext = controle.ext;
+  const chemin = `${org.id}/${adherentId}/${crypto.randomUUID()}.${ext}`;
+  const octets = Buffer.from(await (fichier as File).arrayBuffer());
+  const { error: eUp } = await storage.storage.from("pieces").upload(chemin, octets, {
+    contentType: controle.contentType,
+    upsert: false,
+  });
+  if (eUp) {
+    console.error("deposerPieceCockpit upload", eUp.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+  }
+
+  const { error: eMaj } = await supabase
+    .from("pieces_adherent")
+    .update({ statut: "fournie", chemin, updated_at: new Date().toISOString() })
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id);
+  if (eMaj) {
+    console.error("deposerPieceCockpit maj", eMaj.message);
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=piece_envoi`);
+  }
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=piece`);
+}
+
+/**
+ * « Reçue par email » : le statut `par_email` existe dans la contrainte depuis
+ * l'origine (`manquante | fournie | par_email`) mais aucun écran ne l'écrivait.
+ * C'est pourtant le cas le plus courant en début de saison : le certificat arrive
+ * dans la boîte du club, pas dans l'espace adhérent. Le bénévole le note ici —
+ * le dossier avance, et on sait OÙ est la pièce.
+ */
+export async function marquerPieceParEmail(
+  slug: string,
+  adherentId: string,
+  pieceId: string,
+  statutActuel: string
+): Promise<void> {
+  const org = await garde(slug);
+  const supabase = await createSupabaseServerClient();
+  // bascule : par_email ↔ manquante (un clic de trop se répare d'un clic)
+  const nouveau = statutActuel === "par_email" ? "manquante" : "par_email";
+  const { error } = await supabase
+    .from("pieces_adherent")
+    .update({ statut: nouveau, updated_at: new Date().toISOString() })
+    .eq("id", pieceId)
+    .eq("adherent_id", adherentId)
+    .eq("organisation_id", org.id);
+  if (error) console.error("marquerPieceParEmail", error.message);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}${error ? "?erreur=piece" : ""}`);
+}
+
+/**
+ * Changer un adhérent de cours — le geste que « supprimer un cours peuplé »
+ * réclamait sans l'offrir. Toute la décision vit dans la RPC `changer_cours`
+ * (capacité verrouillée, tarif honnête, pièces du nouveau cours, audit) ;
+ * l'action ne fait que porter le résultat à l'écran.
+ */
+export async function changerCours(slug: string, adherentId: string, adhesionId: string, formData: FormData): Promise<void> {
+  await garde(slug);
+  const nouveau = String(formData.get("nouveau_cours") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(nouveau)) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours_choix`);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("changer_cours", { p_adhesion_id: adhesionId, p_nouveau_cours_id: nouveau });
+  if (error) {
+    // le message de la RPC est écrit pour un bénévole : on le transmet tel quel
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours&detail=${encodeURIComponent(error.message)}`);
+  }
+  const r = (data as Array<{ ecart_centimes: number; montant_ajuste: boolean; nouveau_cours: string }> | null)?.[0];
+  const ecart = r && !r.montant_ajuste && r.ecart_centimes !== 0 ? `&ecart=${r.ecart_centimes}` : "";
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=cours${ecart}`);
 }

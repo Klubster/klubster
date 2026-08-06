@@ -5,7 +5,7 @@ import type { FormConfig } from "@/types/form";
 export type Role = "super_admin" | "admin_asso" | "encadrant" | "adherent";
 export type PlanAbonnement = "starter" | "club" | "club_plus";
 export type StatutAdhesion =
-  | "en_attente" | "paye" | "en_retard" | "rembourse" | "annule";
+  | "en_attente" | "paye" | "en_retard" | "rembourse" | "annule" | "liste_attente";
 
 export interface Creneau {
   jour: "lundi" | "mardi" | "mercredi" | "jeudi" | "vendredi" | "samedi" | "dimanche";
@@ -39,6 +39,8 @@ export interface Organisation {
   abonnement_subscription_id: string | null;
   abonnement_statut: "aucun" | "essai" | "actif" | "impaye" | "resilie";
   abonnement_essai_fin: string | null;
+  /** Rang d'arrivée dans l'offre de lancement — 1..15 = club fondateur (lot Q). */
+  fondateur_rang?: number | null;
   abonnement_periode_fin: string | null;
   /** Identifiants Stripe du mode test — jamais mélangés avec ceux de production. */
   stripe_test: Record<string, string | null> | null;

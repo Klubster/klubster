@@ -1,4 +1,5 @@
 "use client";
+import { classesBouton } from "@/components/ui/Button";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -127,7 +128,7 @@ function ConnexionInner() {
         </div>
 
         {params.get("message") === "motdepasse" && !msg && !err ? (
-          <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-4 text-[12px] text-success">
             Mot de passe modifié. Connectez-vous.
           </p>
         ) : null}
@@ -136,18 +137,19 @@ function ConnexionInner() {
             est bien créé : sans ce message, le visiteur restait devant un formulaire muet
             après avoir cliqué « Confirmer mon email » (constaté à l'audit du 21/07/2026). */}
         {params.get("erreur") === "confirmation" && !msg && !err ? (
-          <p className="mono mt-4 text-[12px] leading-relaxed" style={{ color: "#8A6A2F" }}>
+          <p className="mono mt-4 text-[12px] leading-relaxed text-warning">
             Votre compte est créé, mais ce lien de confirmation a expiré ou a déjà servi.
             Connectez-vous ci-dessus pour reprendre.
           </p>
         ) : null}
-        {err ? <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>{err}</p> : null}
-        {msg ? <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>{msg}</p> : null}
+        {/* S13 : l'échec de connexion s'annonce (role=alert) — il était muet au lecteur d'écran. */}
+        {err ? <p role="alert" className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
+        {msg ? <p role="status" className="mono mt-4 text-[12px] text-success">{msg}</p> : null}
 
         <button
           type="submit"
           disabled={loading || !email || (mode !== "oubli" && !password) || (mode === "signup" && !prenom)}
-          className="mono mt-8 w-full bg-ink px-6 py-4 text-[13px] text-paper hover:bg-ink/90 disabled:opacity-40"
+          className={classesBouton("primary", { className: "mt-8 w-full px-6 py-4 text-[13px]" })}
         >
           {loading ? "…" : mode === "oubli" ? "ENVOYER LE LIEN →" : mode === "login" ? "SE CONNECTER →" : "CRÉER MON COMPTE →"}
         </button>

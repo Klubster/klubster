@@ -1,0 +1,81 @@
+# Schéma de référence — projet Supabase `basnfuvdjobanejahayt`, lu le 02/08/2026.
+#
+# CE QUE C'EST, ET CE QUE CE N'EST PAS.
+#
+# C'est un extrait DATÉ du catalogue de la base de production : noms de tables, et pour
+# les trois tables que le bootstrap complète, la liste exacte de leurs colonnes. Il a été
+# obtenu par lecture de `pg_attribute` / `pg_attrdef` via le connecteur Supabase déjà
+# autorisé — métadonnées uniquement, aucune ligne de donnée, aucune écriture.
+#
+# Ce N'EST PAS un dump complet du schéma, et ce n'est pas la source de vérité du produit :
+# c'est le point de comparaison qui manquait pour dire si une base reconstruite depuis le
+# dépôt ressemble à la vraie. `scripts/db/assertions/02-ecart-au-schema-de-reference.sql`
+# s'en sert.
+#
+# Il est PARTIEL et VOLONTAIREMENT DATÉ. Un fichier de référence qu'on croit vivant est
+# pire qu'un fichier dont on sait qu'il a un âge. Le jour où la reconstruction canonique
+# sera faite (objectif B), c'est un dump complet qui prendra sa place.
+#
+# Format : `TABLE` <nom>  puis une ligne par colonne : <nom> <type>[ NN][ D=<défaut>]
+
+TABLES actualites adherents adhesions audit_log chat_conversations chat_messages cours emails_journal message_campaigns message_recipients organisations pieces_adherent presences profiles push_subscriptions questionnaires_sante rate_limit reglements resend_events site_chat_conversations site_chat_messages stripe_events
+
+TABLE adherents
+id uuid NN D=gen_random_uuid()
+organisation_id uuid NN
+nom text NN
+prenom text NN
+email text
+telephone text
+date_naissance date
+created_at timestamp with time zone NN D=now()
+user_id uuid
+infos jsonb NN D='{}'::jsonb
+
+TABLE adhesions
+id uuid NN D=gen_random_uuid()
+organisation_id uuid NN
+adherent_id uuid NN
+cours_id uuid
+saison text
+montant_centimes integer NN D=0
+statut text NN D='en_attente'::text
+created_at timestamp with time zone NN D=now()
+mode_paiement text
+stripe_payment_intent text
+litige_le timestamp with time zone
+derniere_relance timestamp with time zone
+
+TABLE organisations
+id uuid NN D=gen_random_uuid()
+slug text NN
+nom text NN
+sport text
+logo_url text
+couleur_primaire text D='#189460'::text
+adresse text
+email_contact text
+telephone text
+stripe_account_id text
+abonnement_plan text D='starter'::text
+publie boolean NN D=false
+created_at timestamp with time zone NN D=now()
+accroche text
+presentation text
+infos_pratiques text
+form_config jsonb NN D='{"pages": [], "pieces": []}'::jsonb
+actualite jsonb
+theme_template text NN D='editorial'::text
+theme_mode text NN D='blanc'::text
+page_config jsonb
+domaine_custom text
+echeances_max integer NN D=1
+abonnement_customer_id text
+abonnement_subscription_id text
+abonnement_statut text NN D='aucun'::text
+abonnement_essai_fin timestamp with time zone
+abonnement_periode_fin timestamp with time zone
+stripe_test jsonb NN D='{}'::jsonb
+saison_debut date
+saison_fin date
+emails_config jsonb NN D='{}'::jsonb

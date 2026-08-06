@@ -1,12 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { lireCsv, deviner, CHAMPS_IMPORT, emailValide, type CleChamp } from "@/lib/csv";
+import { lireCsv, deviner, CHAMPS_IMPORT, emailValide, dateIso, montantCentimes, type CleChamp } from "@/lib/csv";
 import { importerAdherents, type ResultatImport } from "@/app/[asso]/cockpit/adherents/actions";
 
 type Cours = { id: string; nom: string };
 
-const APERCU = 5;
+/**
+ * L'aperçu montre TOUT le fichier (limité au rendu de 200 lignes pour ne pas figer le
+ * navigateur sur 2 000, avec le compte restant annoncé). La promesse publique dit
+ * « vous montre le résultat avant d'enregistrer quoi que ce soit » : en montrer cinq
+ * lignes sur trois cents, ce n'était pas le résultat, c'était un échantillon.
+ */
+const APERCU = 200;
+const eur = (c: number) => (c / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 }) + " €";
 
 export default function ImportAdherents({
   slug,
@@ -59,16 +66,32 @@ export default function ImportAdherents({
 
     let sansNom = 0;
     let emailsInvalides = 0;
+    let datesInvalides = 0;
+    let coursInconnus = 0;
+    let injoignables = 0;
+    const parNom = new Map(cours.map((c) => [c.nom.trim().toLowerCase(), c.id]));
+
     for (const l of lignes) {
       if (!valeur(l, "prenom") || !valeur(l, "nom")) sansNom++;
       const e = valeur(l, "email");
       if (e && !emailValide(e)) emailsInvalides++;
+      const d = valeur(l, "naissance");
+      if (d && !dateIso(d)) datesInvalides++;
+      const c = valeur(l, "cours");
+      if (c && !parNom.has(c.toLowerCase()) && !coursDefaut) coursInconnus++;
+      const r = valeur(l, "responsable");
+      if ((!e || !emailValide(e)) && (!r || !emailValide(r))) injoignables++;
     }
     if (sansNom > 0) p.push(`${sansNom} ligne(s) sans prénom ou sans nom seront ignorées.`);
     if (emailsInvalides > 0) p.push(`${emailsInvalides} email(s) semblent invalides — l’adhérent sera créé sans email.`);
+    if (datesInvalides > 0) p.push(`${datesInvalides} date(s) de naissance illisibles ou impossibles — laissées vides (attendu : 14/03/2010).`);
+    // Sans cours, l'adhérent n'appartient à aucune saison : ni compté, ni relancé,
+    // ni facturé. C'était le défaut le plus silencieux de l'ancien import.
+    if (coursInconnus > 0) p.push(`${coursInconnus} ligne(s) désignent un cours introuvable — choisissez un cours par défaut, sinon ces adhérents ne seront rattachés à aucune saison.`);
+    if (injoignables > 0) p.push(`${injoignables} adhérent(s) sans email ni email de responsable : ils ne recevront aucun message.`);
     return p;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lignes, corresp]);
+  }, [lignes, corresp, coursDefaut, cours]);
 
   const bloquant = corresp.prenom === undefined || corresp.prenom < 0 || corresp.nom === undefined || corresp.nom < 0;
 
@@ -79,15 +102,21 @@ export default function ImportAdherents({
     // On envoie TOUTES les lignes, y compris les incomplètes. Les filtrer ici les ferait
     // disparaître du compte-rendu : l'utilisateur verrait « 4 importés, 1 ignoré » sur un
     // fichier de 6 lignes, et chercherait longtemps la sixième.
-    const charge = lignes.map((l) => {
+    const charge = lignes.map((l, i) => {
       const email = valeur(l, "email");
+      const responsable = valeur(l, "responsable");
       const nomCours = valeur(l, "cours").toLowerCase();
       return {
+        // +2 : une ligne d'en-têtes, et les tableurs comptent à partir de 1.
+        ligne: i + 2,
         prenom: valeur(l, "prenom"),
         nom: valeur(l, "nom"),
         email: email && emailValide(email) ? email : null,
         telephone: valeur(l, "telephone") || null,
-        coursId: parNom.get(nomCours) ?? coursDefaut ?? null,
+        naissance: dateIso(valeur(l, "naissance")),
+        responsable: responsable && emailValide(responsable) ? responsable : null,
+        montantCentimes: montantCentimes(valeur(l, "montant")),
+        coursId: parNom.get(nomCours) || coursDefaut || null,
       };
     }) as Parameters<typeof importerAdherents>[1];
 
@@ -105,13 +134,50 @@ export default function ImportAdherents({
         {resultat.ignores > 0 ? (
           <p className="mt-2 text-[15px] text-ink-soft">
             {resultat.ignores} ligne{resultat.ignores > 1 ? "s" : ""} ignorée{resultat.ignores > 1 ? "s" : ""} sur{" "}
-            {resultat.crees + resultat.ignores} — doublons ou données incomplètes. Aucune fiche existante n’a
-            été écrasée.
+            {resultat.crees + resultat.ignores}. Aucune fiche existante n’a été écrasée.
           </p>
         ) : null}
+
+        {/* Ce que l'import a réellement fait — chaque nombre est un fait vérifiable
+            dans le cockpit juste après. */}
+        <dl className="mono mt-6 space-y-1 text-[12px] text-ink-soft">
+          {resultat.listeAttente > 0 ? (
+            <div>
+              <span className="text-ink">{resultat.listeAttente}</span> placé
+              {resultat.listeAttente > 1 ? "s" : ""} en liste d’attente (cours complet).
+            </div>
+          ) : null}
+          {resultat.sansCours > 0 ? (
+            <div className="text-warning">
+              <span className="font-medium">{resultat.sansCours}</span> sans cours : rattaché
+              {resultat.sansCours > 1 ? "s" : ""} à aucune saison, donc absent
+              {resultat.sansCours > 1 ? "s" : ""} des compteurs, des relances et de la trésorerie.
+              Ouvrez leur fiche pour les inscrire.
+            </div>
+          ) : null}
+          {resultat.repriseCentimes > 0 ? (
+            <div>
+              <span className="text-ink">{eur(resultat.repriseCentimes)}</span> de règlements repris
+              du fichier (mode « autre », note « Reprise de fichier »).
+            </div>
+          ) : null}
+        </dl>
+
+        {resultat.doublons.length > 0 ? (
+          <div className="mt-6">
+            <p className="mono text-[11px] uppercase tracking-label text-ink-soft">DÉJÀ ADHÉRENTS — NON MODIFIÉS</p>
+            <ul className="mono mt-2 space-y-1 text-[12px] text-ink-soft">
+              {resultat.doublons.slice(0, 12).map((d, i) => (
+                <li key={i}>{d}</li>
+              ))}
+              {resultat.doublons.length > 12 ? <li>… et {resultat.doublons.length - 12} autre(s).</li> : null}
+            </ul>
+          </div>
+        ) : null}
+
         {resultat.erreurs.length > 0 ? (
-          <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
-            {resultat.erreurs.slice(0, 8).map((e, i) => (
+          <ul className="mono mt-4 space-y-1 text-[12px] text-warning">
+            {resultat.erreurs.slice(0, 12).map((e, i) => (
               <li key={i}>{e}</li>
             ))}
           </ul>
@@ -144,7 +210,7 @@ export default function ImportAdherents({
             virgule, peu importe. La première ligne doit contenir les noms des colonnes.
           </p>
           {erreurFichier ? (
-            <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+            <p className="mono mt-3 text-[12px] text-danger">
               {erreurFichier}
             </p>
           ) : null}
@@ -242,16 +308,24 @@ export default function ImportAdherents({
             </div>
 
             {problemes.length > 0 ? (
-              <ul className="mono mt-4 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
+              <ul className="mono mt-4 space-y-1 text-[12px] text-warning">
                 {problemes.map((p, i) => (
                   <li key={i}>⚠ {p}</li>
                 ))}
               </ul>
             ) : null}
 
+            {lignes.length > APERCU ? (
+              <p className="mono mt-3 text-[11px] text-ink-soft">
+                {APERCU} premières lignes affichées sur {lignes.length}. Les {lignes.length - APERCU} autres
+                suivent exactement les mêmes règles.
+              </p>
+            ) : null}
+
             <p className="mono mt-6 text-[11px] text-ink-soft">
-              Les adhérents déjà présents (même email, ou mêmes prénom et nom) seront ignorés. Aucune
-              fiche existante ne sera modifiée.
+              Les adhérents déjà présents (même email, ou mêmes prénom et nom) seront ignorés et nommés
+              dans le bilan. Aucune fiche existante ne sera modifiée. Un cours complet place l’adhérent en
+              liste d’attente, et le dossier attendu est créé comme pour une inscription en ligne.
             </p>
 
             <button

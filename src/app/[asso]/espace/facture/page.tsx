@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { formatPrix } from "@/lib/format";
+import { formatMontant } from "@/lib/format";
 import { saisonCourante } from "@/lib/saison";
 import PrintButton from "./PrintButton";
 
@@ -129,13 +129,13 @@ export default async function RecuPage(props: { params: Promise<{ asso: string }
             <tbody>
               <tr className="border-b border-line">
                 <td className="py-4">Cotisation — {coursNom}<div className="text-[12px] text-ink-soft">Saison {saisonCourante(org)}</div></td>
-                <td className="mono py-4 text-right">{formatPrix(montantRecu)}</td>
+                <td className="mono py-4 text-right">{formatMontant(montantRecu)}</td>
               </tr>
             </tbody>
             <tfoot>
               <tr>
                 <td className="py-4 text-right font-medium">Somme réglée</td>
-                <td className="mono py-4 text-right text-[18px] font-bold">{formatPrix(montantRecu)}</td>
+                <td className="mono py-4 text-right text-[18px] font-bold">{formatMontant(montantRecu)}</td>
               </tr>
             </tfoot>
           </table>
@@ -147,7 +147,7 @@ export default async function RecuPage(props: { params: Promise<{ asso: string }
                 {reglements.map((r, i) => (
                   <li key={i} className="flex justify-between text-[13px] text-ink-soft">
                     <span>{new Date(r.created_at).toLocaleDateString("fr-FR")} — {modeLabel(r.mode)}</span>
-                    <span className="mono">{formatPrix(r.montant_centimes)}</span>
+                    <span className="mono">{formatMontant(r.montant_centimes)}</span>
                   </li>
                 ))}
               </ul>
@@ -157,11 +157,11 @@ export default async function RecuPage(props: { params: Promise<{ asso: string }
           <div className="mt-6 border-t border-line pt-4">
             <p className="text-[14px]">
               Reçu de <span className="font-medium">{a.prenom} {a.nom}</span> la somme de{" "}
-              <span className="mono font-medium">{formatPrix(montantRecu)}</span>
+              <span className="mono font-medium">{formatMontant(montantRecu)}</span>
               {modesLisibles ? <> par {modesLisibles.toLowerCase()}</> : null}, au titre de sa cotisation.
             </p>
-            <p className="mono mt-3 text-[12px]" style={{ color: partiel ? "#8C8C88" : "#279B65" }}>
-              {partiel ? `○ PAIEMENT PARTIEL — reste ${formatPrix(reste)} à régler` : "✓ INTÉGRALEMENT RÉGLÉ"}
+            <p className={`mono mt-3 text-[12px] ${partiel ? "text-ink-soft" : "text-success"}`}>
+              {partiel ? `○ PAIEMENT PARTIEL — reste ${formatMontant(reste)} à régler` : "✓ INTÉGRALEMENT RÉGLÉ"}
             </p>
           </div>
 

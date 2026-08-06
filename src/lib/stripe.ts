@@ -115,6 +115,39 @@ async function call(method: "GET" | "POST" | "DELETE", path: string, body?: Dict
 
 export const JOURS_ESSAI = 30;
 
+/**
+ * Clubs fondateurs — les quinze premiers. Trois mois offerts, pas un.
+ *
+ * CE QUI SE PASSAIT AVANT (lot Q, 04/08/2026) : la home, /tarifs, /clubs-fondateurs et
+ * les CGV annonçaient « trois mois d'abonnement offerts » aux quinze premiers clubs,
+ * et le code posait `trial_period_days: 30`. Les deux mois manquants reposaient sur un
+ * code promo que le club devait saisir de lui-même dans son cockpit — un geste que rien
+ * ne lui demande et qu'aucune page ne mentionne. Autrement dit : une facture arrivait
+ * pendant la période annoncée gratuite. C'est le seul défaut de ce lot qui coûte de
+ * l'argent au client, et il portait sur la promesse centrale de la campagne.
+ *
+ * 90 jours, pas « trois mois calendaires » : Stripe raisonne en jours d'essai, les CGV
+ * et l'interface disent donc la même chose que ce que Stripe applique. Un club créé le
+ * 31 janvier n'a pas à se demander ce que vaut « trois mois » en février.
+ */
+export const JOURS_ESSAI_FONDATEUR = 90;
+
+/** Nombre de places de l'offre de lancement. Le rang vient de la base (fondateur_rang). */
+export const PLACES_FONDATEURS = 15;
+
+/** Un club est fondateur si son rang d'arrivée est dans les quinze premiers. */
+export function estFondateur(rang: number | null | undefined): boolean {
+  return typeof rang === "number" && rang >= 1 && rang <= PLACES_FONDATEURS;
+}
+
+/**
+ * LA durée de gratuité d'un club. Une seule fonction décide — l'écran d'abonnement,
+ * le checkout Stripe et les textes du cockpit la consomment tous.
+ */
+export function joursEssai(rang: number | null | undefined): number {
+  return estFondateur(rang) ? JOURS_ESSAI_FONDATEUR : JOURS_ESSAI;
+}
+
 export type PalierAbonnement = "starter" | "club" | "club_plus";
 
 export const PALIERS: Record<PalierAbonnement, { prixCentimes: number; libelle: string }> = {
@@ -318,8 +351,13 @@ export async function createAbonnementCheckout(opts: {
   cancelUrl: string;
   /** Identifiant Stripe (promo_…) déjà résolu via trouverCodePromo. */
   promotionCodeId?: string | null;
+  /** Rang d'arrivée du club (organisations.fondateur_rang) — décide de la gratuité. */
+  fondateurRang?: number | null;
 }) {
   const p = PALIERS[opts.palier];
+  // Trois mois pour les quinze premiers, un mois ensuite. La règle vit dans
+  // `joursEssai`, pas ici : le cockpit affiche exactement ce que Stripe applique.
+  const jours = joursEssai(opts.fondateurRang);
   return call("POST", "/checkout/sessions", {
     mode: "subscription",
     success_url: opts.successUrl,
@@ -351,7 +389,7 @@ export async function createAbonnementCheckout(opts: {
       ? { discounts: [{ promotion_code: opts.promotionCodeId }] }
       : { allow_promotion_codes: true }),
     subscription_data: {
-      trial_period_days: JOURS_ESSAI,
+      trial_period_days: jours,
       trial_settings: { end_behavior: { missing_payment_method: "create_invoice" } },
       metadata: { organisation_id: opts.organisationId, palier: opts.palier },
     },

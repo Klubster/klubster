@@ -1,7 +1,7 @@
 "use client";
 import { startTransition, useActionState, useState } from "react";
 import { formatPrix } from "@/lib/format";
-import { texteSur } from "@/lib/contraste";
+import { survolDe, texteSur } from "@/lib/contraste";
 import { LONGUEUR_MIN_MDP } from "@/lib/mot-de-passe";
 import { inscrireAdherent } from "./actions";
 import QuestionnaireSante from "./QuestionnaireSante";
@@ -60,6 +60,9 @@ export default function FormulaireInscription({
   const [etat, formAction, enCours] = useActionState(inscrireAdherent, null);
   const [verifEnCours, setVerifEnCours] = useState(false);
   const [erreurJeton, setErreurJeton] = useState(false);
+  // Le cours choisi pilote la liste des pièces affichées : fini les pièces des autres
+  // cours avec de simples badges — on montre CE que CE dossier demandera.
+  const [coursChoisi, setCoursChoisi] = useState<string>(coursPreselectionne ?? cours[0]?.id ?? "");
   // Compat : `?erreur=…` reste honoré pour les redirections venant d'ailleurs
   // (ex. retour Stripe) ; l'état de l'action, plus récent, prime.
   const erreur = etat?.erreur ?? erreurInitiale;
@@ -92,31 +95,35 @@ export default function FormulaireInscription({
 
   return (
     <>
-      {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici. */}
+      {/* `compte_existant` s'affiche PRÈS du champ email (plus bas), pas ici.
+          S13 : role="alert" — l'erreur s'annonce au lecteur d'écran dès son rendu,
+          sans dépendre de la couleur ni de la position. */}
+      <div role="alert">
       {erreur === "compte" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Le compte n&apos;a pas pu être créé : vérifiez l&apos;email et le mot de passe ({LONGUEUR_MIN_MDP} caractères minimum), puis réessayez dans quelques minutes.
         </p>
       ) : erreur === "trop_de_tentatives" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Trop de tentatives d&apos;inscription depuis cet appareil. Patientez quelques minutes, puis réessayez.
         </p>
       ) : erreur === "robot" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Nous n&apos;avons pas pu vérifier que vous êtes bien une personne. Rechargez la page et réessayez.
         </p>
       ) : erreur === "suspendu" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Les inscriptions en ligne de ce club sont momentanément fermées. Rapprochez-vous directement du club.
         </p>
       ) : erreur === "champs" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-6 text-[13px] text-danger">
           Le formulaire est incomplet : vérifiez les champs obligatoires. Pour un mineur, les coordonnées du
           responsable légal et les autorisations requises doivent être renseignées.
         </p>
       ) : erreur && erreur !== "compte_existant" ? (
-        <p className="mono mt-6 text-[13px]" style={{ color: "#B23B3B" }}>Une erreur est survenue. Vérifiez vos informations.</p>
+        <p className="mono mt-6 text-[13px] text-danger">Une erreur est survenue. Vérifiez vos informations.</p>
       ) : null}
+      </div>
 
       <form onSubmit={surSoumission} className="mt-12 space-y-10">
         <NaissanceProvider>
@@ -165,7 +172,8 @@ export default function FormulaireInscription({
               id="cours"
               name="cours"
               required
-              defaultValue={coursPreselectionne ?? undefined}
+              value={coursChoisi}
+              onChange={(e) => setCoursChoisi(e.target.value)}
               className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
             >
               {cours.map((c) => (
@@ -194,11 +202,11 @@ export default function FormulaireInscription({
         <RemisesInscription remises={remises} accent={accent} />
 
         {/* PIÈCES (info) */}
-        {pieces.length > 0 ? (
+        {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).length > 0 ? (
           <fieldset>
             <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
-              {pieces.map((pc) => {
+              {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).map((pc) => {
                 const coursLie = pc.cours_id ? cours.find((c) => c.id === pc.cours_id) : null;
                 return (
                   <div key={pc.id} className="flex items-center justify-between gap-3 px-5 py-3 text-[14px]">
@@ -207,6 +215,11 @@ export default function FormulaireInscription({
                       {coursLie ? (
                         <span className="mono ml-2 text-[11px] uppercase tracking-wider" style={{ color: accent }}>
                           {coursLie.nom} uniquement
+                        </span>
+                      ) : null}
+                      {pc.mineurs_seulement ? (
+                        <span className="mono ml-2 text-[11px] uppercase tracking-wider" style={{ color: accent }}>
+                          mineurs uniquement
                         </span>
                       ) : null}
                       {/* Modèle fourni par le club (ex. certificat médical vierge) */}
@@ -277,7 +290,7 @@ export default function FormulaireInscription({
         <Turnstile />
 
         {erreurJeton ? (
-          <p className="mono text-[13px]" style={{ color: "#B23B3B" }}>
+          <p className="mono text-[13px] text-danger">
             La vérification anti-robot n&apos;a pas abouti. Vérifiez votre connexion et réessayez —
             votre saisie est conservée.
           </p>
@@ -302,8 +315,8 @@ function BoutonValider({ accent, enCours }: { accent: string; enCours: boolean }
     <button
       type="submit"
       disabled={enCours}
-      className="mono w-full px-6 py-4 text-[14px] disabled:opacity-60"
-      style={{ background: accent, color: texteSur(accent) }}
+      className="mono w-full px-6 py-4 text-[14px] transition-colors hover:bg-[var(--survol)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-60"
+      style={{ background: accent, color: texteSur(accent), ["--survol" as string]: survolDe(accent) }}
     >
       {enCours ? "INSCRIPTION EN COURS…" : "VALIDER MON INSCRIPTION →"}
     </button>
@@ -316,7 +329,7 @@ function Field({ label, name, type = "text", required, autoComplete, messageErre
       <label htmlFor={name} className="mono text-[11px] uppercase tracking-label text-ink-soft">{label}{required ? " *" : ""}</label>
       <input id={name} name={name} type={type} required={required} autoComplete={autoComplete} className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink" />
       {messageErreur ? (
-        <p className="mono mt-2 text-[12px]" style={{ color: "#B23B3B" }}>{messageErreur}</p>
+        <p className="mono mt-2 text-[12px] text-danger">{messageErreur}</p>
       ) : null}
     </div>
   );

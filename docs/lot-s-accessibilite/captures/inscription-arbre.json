@@ -1,0 +1,418 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 797,
+ "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+ "name": "Klubster — Toute votre association, au même endroit",
+ "url": "http://localhost:3111/club-a/inscription",
+ "children": [
+  {
+   "role": "main",
+   "backendNodeId": 878,
+   "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 820,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "← Club A",
+     "url": "http://localhost:3111/club-a",
+     "focused": true,
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 962,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "← "
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 963,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "Club A"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 964,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "INSCRIPTION"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 965,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 966,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "SECTION 01 — ADHÉSION"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 967,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 885,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "Rejoindre Club A.",
+     "level": 1
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 971,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "Créez votre compte adhérent : vous pourrez ensuite suivre votre dossier, déposer vos pièces et voir votre carte de membre."
+    },
+    {
+     "role": "alert",
+     "backendNodeId": 887,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "",
+     "atomic": true,
+     "live": "assertive",
+     "relevant": "additions text"
+    },
+    {
+     "role": "form",
+     "backendNodeId": 798,
+     "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+     "name": "",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 973,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "IDENTITÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 974,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "_"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 975,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "PRÉNOM"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 976,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": " *"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 800,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "PRÉNOM *",
+       "multiline": false,
+       "readonly": false,
+       "required": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 977,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "NOM"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 978,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": " *"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 801,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "NOM *",
+       "multiline": false,
+       "readonly": false,
+       "required": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 979,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "DATE DE NAISSANCE *"
+      },
+      {
+       "role": "Date",
+       "backendNodeId": 802,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "DATE DE NAISSANCE *",
+       "invalid": "true",
+       "children": [
+        {
+         "role": "spinbutton",
+         "backendNodeId": 904,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Jour Jour",
+         "value": 0,
+         "valuetext": "",
+         "required": false,
+         "valuemax": 31,
+         "valuemin": 1
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 981,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "/"
+        },
+        {
+         "role": "spinbutton",
+         "backendNodeId": 906,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Mois Mois",
+         "value": 0,
+         "valuetext": "",
+         "required": false,
+         "valuemax": 12,
+         "valuemin": 1
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 983,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "/"
+        },
+        {
+         "role": "spinbutton",
+         "backendNodeId": 908,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Année Année",
+         "value": 0,
+         "valuetext": "",
+         "required": false,
+         "valuemax": 275760,
+         "valuemin": 1
+        },
+        {
+         "role": "button",
+         "backendNodeId": 816,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Afficher le sélecteur de date",
+         "haspopup": "menu"
+        }
+       ]
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 985,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "ADRESSE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 986,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": " *"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 803,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "ADRESSE *",
+       "multiline": false,
+       "readonly": false,
+       "required": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 987,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "EMAIL"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 988,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": " *"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 804,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "EMAIL *",
+       "multiline": false,
+       "readonly": false,
+       "required": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 989,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "TÉLÉPHONE"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 805,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "TÉLÉPHONE",
+       "multiline": false,
+       "readonly": false,
+       "required": false
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 990,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "COURS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 991,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "_"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 992,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "COURS SOUHAITÉ"
+      },
+      {
+       "role": "combobox",
+       "backendNodeId": 806,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "COURS SOUHAITÉ",
+       "value": "Boxe adultes A — 250 €/an",
+       "expanded": false,
+       "haspopup": "menu",
+       "children": [
+        {
+         "role": "option",
+         "backendNodeId": 927,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Boxe adultes A — 250 €/an",
+         "selected": true
+        },
+        {
+         "role": "option",
+         "backendNodeId": 930,
+         "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+         "name": "Boxe loisir mercredi — 180 €/an",
+         "selected": false
+        }
+       ]
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 993,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "VOTRE COMPTE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 994,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "_"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 995,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "MOT DE PASSE *"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 807,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "MOT DE PASSE *",
+       "multiline": false,
+       "readonly": false,
+       "required": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 996,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "8"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 997,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": " caractères minimum. Pour accéder à votre espace adhérent."
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 998,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "PAIEMENT"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 999,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "_"
+      },
+      {
+       "role": "radio",
+       "backendNodeId": 808,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "Par chèque À remettre au club.",
+       "checked": true
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1000,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "Par chèque"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1001,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "À remettre au club."
+      },
+      {
+       "role": "radio",
+       "backendNodeId": 809,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "En espèces À remettre au club.",
+       "checked": false
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1002,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "En espèces"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1003,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "À remettre au club."
+      },
+      {
+       "role": "button",
+       "backendNodeId": 815,
+       "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+       "name": "VALIDER MON INSCRIPTION →"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "alert",
+   "backendNodeId": 961,
+   "loaderId": "1EC2D57F5332AB55E9D1AA967DB1F6EB",
+   "name": "",
+   "atomic": true,
+   "live": "assertive",
+   "relevant": "additions text"
+  }
+ ]
+}

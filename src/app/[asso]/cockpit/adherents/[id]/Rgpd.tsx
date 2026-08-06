@@ -44,8 +44,7 @@ export default function Rgpd({
               <button
                 onClick={() => start(() => anonymiserAdherent(slug, adherentId))}
                 disabled={enCours}
-                className="mono text-[12px] disabled:opacity-40"
-                style={{ color: "#B23B3B" }}
+                className="mono text-[12px] text-danger disabled:opacity-40"
               >
                 {enCours ? "…" : "OUI, ANONYMISER"}
               </button>
