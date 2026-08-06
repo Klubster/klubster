@@ -160,6 +160,15 @@ export default function Home() {
             >
               ESPACE PRÉSIDENT
             </Link>
+            {/* La démonstration interactive existait sans porte d'entrée visible :
+                le header la nomme, en lien sobre — le CTA plein reste CRÉER
+                (décision Mathieu, 06/08/2026). */}
+            <Link
+              href="/demo"
+              className="mono hidden text-[12px] tracking-wide text-paper underline decoration-paper/40 underline-offset-4 hover:decoration-paper sm:block"
+            >
+              VOIR LA DÉMO
+            </Link>
             {/* CAMPAGNE CLUBS FONDATEURS — tous les CTA d'action de la home mènent à
                 l'offre. Tant que les quinze places existent, elle EST le parcours normal,
                 pas une seconde porte : deux boutons pour la même intention faisaient
@@ -181,6 +190,7 @@ export default function Home() {
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
+                { href: "/demo", label: "Voir la démo" },
                 { href: "/connexion", label: "Espace président" },
               ]}
             />
@@ -243,10 +253,11 @@ export default function Home() {
             <Link href="/creer?offre=fondateur" className="mono inline-block bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90">
               CRÉER MON CLUB →
             </Link>
-            {/* Lien secondaire : un prospect venu d'un cold email veut souvent VOIR un
-                exemple concret avant de créer le sien. */}
-            <Link href="/usmboxe" className="mono mt-1 block py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
-              Voir le site public d’un club →
+            {/* Le hero répond d'abord à « à quoi ressemble l'outil ? » : le secondaire
+                mène au cockpit de démonstration. Le club réel a déménagé dans la
+                section USM, sa place naturelle (décision Mathieu, 06/08/2026). */}
+            <Link href="/demo" className="mono mt-1 block py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink sm:ml-6 sm:mt-0 sm:inline-block">
+              Explorer le cockpit →
             </Link>
             {/* La preuve sous le CTA : un visiteur venu d'un cold email se demande
                 d'abord « est-ce un vrai produit ? » — on répond avant qu'il scrolle. */}
@@ -324,6 +335,11 @@ export default function Home() {
               Tout ce qui demande habituellement plusieurs fichiers, plusieurs outils et plusieurs vérifications
               est réuni au même endroit. Inscriptions. Paiements. Documents. Présences. Messages.
             </p>
+            {/* Le CTA le plus contextuel de la page : le visiteur vient de voir
+                l'interface, il sait exactement ce qu'il va ouvrir. */}
+            <Link href="/demo" className="mono mt-8 inline-block border border-ink px-6 py-3 text-[13px] text-ink hover:bg-ink hover:text-paper">
+              ESSAYER CE COCKPIT →
+            </Link>
           </Reveal>
         </div>
       </section>
@@ -569,9 +585,16 @@ export default function Home() {
               <p className="mono mt-2 text-[11px] uppercase tracking-label text-ink-soft">
                 <span className="text-brand-dark">{USM_ADHERENTS}</span> adhérents repris dans Klubster pour préparer la saison 2026-2027
               </p>
-              <Link href="/cas-clients/usm-boxe-anglaise" className="mono inline-block py-3.5 text-[12px] text-brand-dark hover:underline">
-                LIRE LE CAS DU PREMIER CLUB →
-              </Link>
+              {/* Le site public du club réel vit ICI, à côté de sa preuve — déplacé
+                  du hero, où le secondaire mène désormais au cockpit de démo. */}
+              <span className="flex flex-wrap items-center gap-x-6">
+                <Link href="/cas-clients/usm-boxe-anglaise" className="mono inline-block py-3.5 text-[12px] text-brand-dark hover:underline">
+                  LIRE LE CAS DU PREMIER CLUB →
+                </Link>
+                <Link href="/usmboxe" className="mono inline-block py-3.5 text-[12px] text-ink-soft hover:text-ink hover:underline">
+                  VOIR LE SITE DU CLUB →
+                </Link>
+              </span>
               <p className="mono mt-4 text-[13px] tracking-wide text-ink">
                 Mathieu Bourdieu — président de l’USM Boxe Anglaise<span className="text-brand">_</span>
               </p>
