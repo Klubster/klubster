@@ -75,12 +75,14 @@ export default function AjoutReglement({
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
         {dues.length > 1 ? (
-          <label className="block">
+          <label className="block w-full min-w-0 sm:w-auto">
             <span className="mono text-[10px] uppercase tracking-label text-ink-soft">Adhésion</span>
             <select
               value={adhesionId}
               onChange={(e) => changerAdhesion(e.target.value)}
-              className="mt-1.5 block border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
+              // S14 : `max-w-full` — la largeur intrinsèque de l'option la plus longue
+              // (« Boxe adultes A — reste 240,00 € ») faisait déborder la fiche à 320 px.
+              className="mt-1.5 block w-full max-w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink sm:w-auto"
             >
               {dues.map((a) => (
                 <option key={a.id} value={a.id}>

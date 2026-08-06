@@ -1,0 +1,129 @@
+{
+ "route": "/club-a/cockpit/adherents",
+ "titre": "Klubster — Toute votre association, au même endroit",
+ "tabOrdre": [
+  {
+   "tag": "A",
+   "nom": "← COCKPIT",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "IMPORTER UN FICHIER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "AJOUTER UN ADHÉRENT →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "RENOUVELER LA SAISON →",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "INPUT",
+   "nom": "Rechercher un adhérent par nom, prénom ou email",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "SELECT",
+   "nom": "Filtrer par statut de paiement",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "BUTTON",
+   "nom": "CHERCHER",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Alice DupontBoxe adultes Aalice@ex",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Ines EssaiBoxe adultes Aadherent7@",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Gaelle ExempleBoxe adultes Aadhere",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Camille FictifBoxe adultes Aadhere",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Driss FictiveBoxe adultes Aadheren",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Bruno MartinBoxe adultes Abruno@ex",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Hugo ModeleBoxe adultes Aadherent6",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Nora NeutreBoxe loisir mercrediadh",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Karim ProvisoireBoxe loisir mercre",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Marius RepereBoxe loisir mercredia",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Jonas SimuleBoxe loisir mercrediad",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Lea TemoinBoxe loisir mercrediadhe",
+   "focusVisible": true,
+   "visible": true
+  },
+  {
+   "tag": "A",
+   "nom": "Elsa TesteurBoxe adultes Aadherent",
+   "focusVisible": true,
+   "visible": true
+  }
+ ],
+ "sansNom": [],
+ "sansLabel": [],
+ "imagesSansAlt": 0
+}

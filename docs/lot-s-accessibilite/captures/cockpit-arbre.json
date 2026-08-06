@@ -1,0 +1,754 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 18,
+ "loaderId": "77F8059596C6C63DE92587683F837419",
+ "name": "Klubster — Toute votre association, au même endroit",
+ "url": "http://localhost:3111/club-a/cockpit",
+ "children": [
+  {
+   "role": "main",
+   "backendNodeId": 97,
+   "loaderId": "77F8059596C6C63DE92587683F837419",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 99,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "k_",
+     "url": "http://localhost:3111/",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 308,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "k"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 309,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 310,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "CLUB A"
+    },
+    {
+     "role": "form",
+     "backendNodeId": 21,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "",
+     "children": [
+      {
+       "role": "button",
+       "backendNodeId": 28,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "DÉCONNEXION"
+      }
+     ]
+    },
+    {
+     "role": "navigation",
+     "backendNodeId": 105,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "",
+     "children": [
+      {
+       "role": "link",
+       "backendNodeId": 106,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "01AUJOURD'HUI_",
+       "url": "http://localhost:3111/club-a/cockpit",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 312,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "01"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 313,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "AUJOURD'HUI"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 314,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 108,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "02INSCRIPTIONS_",
+       "url": "http://localhost:3111/club-a/cockpit/formulaire",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 315,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "02"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 316,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "INSCRIPTIONS"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 317,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 110,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "03CONTRÔLE_",
+       "url": "http://localhost:3111/club-a/cockpit/scanner",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 318,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "03"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 319,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "CONTRÔLE"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 320,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 112,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "04PAIEMENTS_",
+       "url": "http://localhost:3111/club-a/cockpit/paiements",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 321,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "04"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 322,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "PAIEMENTS"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 323,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 114,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "05MESSAGES_",
+       "url": "http://localhost:3111/club-a/cockpit/communication",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 324,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "05"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 325,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "MESSAGES"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 326,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 116,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "06ACTUALITÉS_",
+       "url": "http://localhost:3111/club-a/cockpit/actualite",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 327,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "06"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 328,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "ACTUALITÉS"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 329,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "link",
+       "backendNodeId": 118,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "07SITE_",
+       "url": "http://localhost:3111/club-a",
+       "children": [
+        {
+         "role": "StaticText",
+         "backendNodeId": 330,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "07"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 331,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "SITE"
+        },
+        {
+         "role": "StaticText",
+         "backendNodeId": 332,
+         "loaderId": "77F8059596C6C63DE92587683F837419",
+         "name": "_"
+        }
+       ]
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 333,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "TRÉSORERIE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 334,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "✓ reversée direct"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 335,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "0 % commission"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 336,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "BONJOUR"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 337,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": ", PRESIDENT"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 338,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": " · "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 339,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "JEUDI 6 AOÛT"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 340,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 128,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "2 choses à traiter.",
+     "level": 1
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 342,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Le détail est juste en dessous — rien ne prend plus de quelques minutes."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 343,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "À TRAITER MAINTENANT"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 344,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "link",
+     "backendNodeId": 134,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "5 dossiers incomplets — au moins une pièce manque VOIR LES DOSSIERS →",
+     "url": "http://localhost:3111/club-a/cockpit/adherents?dossier=incomplet",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 345,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "5"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 346,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "dossiers incomplets — au moins une pièce manque"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 347,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "VOIR LES DOSSIERS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 348,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 26,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "7 nouvelles inscriptions cette semaine VÉRIFIER →",
+     "url": "http://localhost:3111/club-a/cockpit/adherents?recentes=7",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 349,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "7"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 350,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "nouvelles inscriptions cette semaine"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 351,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "VÉRIFIER"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 352,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 353,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "À SURVEILLER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 354,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "link",
+     "backendNodeId": 147,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "2 règlements attendus (chèque, espèces, virement) VOIR →",
+     "url": "http://localhost:3111/club-a/cockpit/adherents?statut=en_attente",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 355,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "2"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 356,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "règlements attendus (chèque, espèces, virement)"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 357,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "VOIR"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 358,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 152,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "1 bientôt complet : Boxe loisir mercredi VOIR LES COURS →",
+     "url": "http://localhost:3111/club-a/cockpit/cours",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 359,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "1"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 360,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "bientôt complet : Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 361,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "VOIR LES COURS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 362,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 363,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "LE CLUB AUJOURD'HUI"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 364,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 365,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "●"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 366,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "14"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 367,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "adhérents au club"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 368,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "●"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 369,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "2"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 370,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "cours ouverts"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 371,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "PAIEMENTS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 372,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 373,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "VOTRE ABONNEMENT KLUBSTER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 374,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 375,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Le premier mois est offert — sans carte bancaire."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 376,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": " Ensuite"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 377,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "9"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 378,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": " € par mois — "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 379,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "jusqu’à 300 adhérents"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 380,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": ". Sans engagement, résiliable en un clic."
+    },
+    {
+     "role": "form",
+     "backendNodeId": 23,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "",
+     "children": [
+      {
+       "role": "textbox",
+       "backendNodeId": 24,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Code promo (facultatif)",
+       "multiline": false,
+       "readonly": false,
+       "required": false
+      },
+      {
+       "role": "button",
+       "backendNodeId": 29,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "APPLIQUER"
+      }
+     ]
+    },
+    {
+     "role": "form",
+     "backendNodeId": 25,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "",
+     "children": [
+      {
+       "role": "button",
+       "backendNodeId": 30,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "COMMENCER LES TROIS MOIS OFFERTS →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 384,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Connectez Stripe pour encaisser les cotisations en ligne — l'argent arrive directement sur votre compte, "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 385,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "0 % de commission"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 386,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "."
+    },
+    {
+     "role": "form",
+     "backendNodeId": 22,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "",
+     "children": [
+      {
+       "role": "button",
+       "backendNodeId": 31,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "CONNECTER STRIPE →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 388,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "ACTIONS RAPIDES"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 389,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "_"
+    },
+    {
+     "role": "link",
+     "backendNodeId": 32,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Gérer les adhérents Chercher, consulter, modifier une fiche. OUVRIR →",
+     "url": "http://localhost:3111/club-a/cockpit/adherents",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 390,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Gérer les adhérents"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 391,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Chercher, consulter, modifier une fiche."
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 392,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "OUVRIR"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 393,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 33,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Cours et tarifs Horaires, tarifs, nouvelle activité. MODIFIER →",
+     "url": "http://localhost:3111/club-a/cockpit/cours",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 394,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Cours et tarifs"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 395,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Horaires, tarifs, nouvelle activité."
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 396,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "MODIFIER"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 397,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 34,
+     "loaderId": "77F8059596C6C63DE92587683F837419",
+     "name": "Envoyer un message Aux adhérents, par groupe ou par cours. OUVRIR →",
+     "url": "http://localhost:3111/club-a/cockpit/communication",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 398,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Envoyer un message"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 399,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "Aux adhérents, par groupe ou par cours."
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 400,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": "OUVRIR"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 401,
+       "loaderId": "77F8059596C6C63DE92587683F837419",
+       "name": " →"
+      }

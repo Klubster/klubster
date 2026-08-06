@@ -142,8 +142,9 @@ function ConnexionInner() {
             Connectez-vous ci-dessus pour reprendre.
           </p>
         ) : null}
-        {err ? <p className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
-        {msg ? <p className="mono mt-4 text-[12px] text-success">{msg}</p> : null}
+        {/* S13 : l'échec de connexion s'annonce (role=alert) — il était muet au lecteur d'écran. */}
+        {err ? <p role="alert" className="mono mt-4 text-[12px] text-danger">{err}</p> : null}
+        {msg ? <p role="status" className="mono mt-4 text-[12px] text-success">{msg}</p> : null}
 
         <button
           type="submit"

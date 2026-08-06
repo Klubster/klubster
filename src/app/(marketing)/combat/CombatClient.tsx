@@ -246,8 +246,16 @@ export default function CombatClient() {
         }
       `}</style>
 
+      {/* S13 : l'écran d'intro se passe aussi au clavier — c'était un div muet. */}
       {intro && intro !== "done" ? (
-        <div className={intro === "fight" ? "cmb-intro f" : "cmb-intro"} onClick={() => setIntro("done")}>
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Passer l’animation d’introduction"
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIntro("done"); } }}
+          className={intro === "fight" ? "cmb-intro f" : "cmb-intro"}
+          onClick={() => setIntro("done")}
+        >
           <div>
             <div className="r">ROUND 1</div>
             <div className="s">{intro === "ready" ? "READY" : "FIGHT!"}</div>

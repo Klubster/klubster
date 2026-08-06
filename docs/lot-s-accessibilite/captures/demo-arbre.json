@@ -1,0 +1,804 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 1005,
+ "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+ "name": "Démonstration — Klubster",
+ "url": "http://localhost:3111/demo",
+ "children": [
+  {
+   "role": "StaticText",
+   "backendNodeId": 1192,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "DÉMONSTRATION — CLUB FICTIF · AUCUNE DONNÉE RÉELLE"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1193,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "button",
+   "backendNodeId": 1008,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "RÉINITIALISER"
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1067,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "QUITTER LA DÉMONSTRATION",
+   "url": "http://localhost:3111/clubs-fondateurs",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1195,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "QUITTER LA DÉMONSTRATION"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1068,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "CRÉER MON CLUB →",
+   "url": "http://localhost:3111/creer?offre=fondateur",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1196,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "CRÉER MON CLUB →"
+    }
+   ]
+  },
+  {
+   "role": "banner",
+   "backendNodeId": 1069,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 1070,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Klubster — accueil",
+     "url": "http://localhost:3111/",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1197,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "k"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1198,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1199,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "L’ARBRE ET LE SOUFFLE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1200,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " — "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1201,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "ANGERS"
+    }
+   ]
+  },
+  {
+   "role": "navigation",
+   "backendNodeId": 1074,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Sections du cockpit",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 1075,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "01AUJOURD’HUI_",
+     "url": "http://localhost:3111/demo",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1202,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "01"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1203,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "AUJOURD’HUI"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1204,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1077,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "02INSCRIPTIONS_",
+     "url": "http://localhost:3111/demo/inscriptions",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1205,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "02"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1206,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "INSCRIPTIONS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1207,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1079,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "03CONTRÔLE_",
+     "url": "http://localhost:3111/demo/controle",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1208,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "03"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1209,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "CONTRÔLE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1210,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1081,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "04PAIEMENTS_",
+     "url": "http://localhost:3111/demo/paiements",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1211,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "04"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1212,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "PAIEMENTS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1213,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1083,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "05MESSAGES_",
+     "url": "http://localhost:3111/demo/messages",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1214,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "05"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1215,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "MESSAGES"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1216,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1085,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "06ACTUALITÉS_",
+     "url": "http://localhost:3111/demo/actualites",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1217,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "06"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1218,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "ACTUALITÉS"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1219,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 1087,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "07SITE_",
+     "url": "http://localhost:3111/demo/site",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 1220,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "07"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1221,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "SITE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 1222,
+       "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+       "name": "_"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1223,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "TRÉSORERIE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1224,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "✓ reversée direct"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1225,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "0 % commission"
+    }
+   ]
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1226,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "BONJOUR"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1227,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": " · "
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1228,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "MARDI 20 OCTOBRE"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1229,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "heading",
+   "backendNodeId": 1097,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "2 choses à traiter.",
+   "level": 1
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1231,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Le détail est juste en dessous — rien ne prend plus de quelques minutes."
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1232,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "À TRAITER MAINTENANT"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1233,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1006,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "4 cotisations en retard VOIR LES DOSSIERS →",
+   "url": "http://localhost:3111/demo/adherents?statut=en_retard",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1234,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "4"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1235,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "cotisations en retard"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1236,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "VOIR LES DOSSIERS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1237,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1107,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "5 dossiers incomplets — au moins une pièce manque VOIR LES DOSSIERS →",
+   "url": "http://localhost:3111/demo/adherents?dossier=incomplet",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1238,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "5"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1239,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "dossiers incomplets — au moins une pièce manque"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1240,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "VOIR LES DOSSIERS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1241,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1242,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "À SURVEILLER"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1243,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1116,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "7 règlements attendus (chèque, espèces, virement) VOIR →",
+   "url": "http://localhost:3111/demo/adherents?statut=en_attente",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1244,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "7"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1245,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "règlements attendus (chèque, espèces, virement)"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1246,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "VOIR"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1247,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1007,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "1 cours complet : Hatha Yoga VOIR LES COURS →",
+   "url": "http://localhost:3111/demo/cours",
+   "focused": true,
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1248,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "1"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1249,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "cours complet : Hatha Yoga"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1250,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "VOIR LES COURS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1251,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1252,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "LE CLUB AUJOURD'HUI"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1253,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1254,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "●"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1255,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "34"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1256,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "adhérents au club"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1257,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "●"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1258,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "6"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1259,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "cours ouverts"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1260,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "●"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1261,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Ce "
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1262,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "mardi"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1263,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": " : "
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1264,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Vinyasa Flow 12:30–13:30"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1265,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "ACTIONS RAPIDES"
+  },
+  {
+   "role": "StaticText",
+   "backendNodeId": 1266,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "_"
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1142,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Gérer les adhérents Chercher, consulter, modifier une fiche. OUVRIR →",
+   "url": "http://localhost:3111/demo/adherents",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1267,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Gérer les adhérents"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1268,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Chercher, consulter, modifier une fiche."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1269,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "OUVRIR"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1270,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1146,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Cours et tarifs Horaires, tarifs, nouvelle activité. MODIFIER →",
+   "url": "http://localhost:3111/demo/cours",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1271,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Cours et tarifs"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1272,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Horaires, tarifs, nouvelle activité."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1273,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "MODIFIER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1274,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1150,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Envoyer un message Aux adhérents, par groupe ou par cours. OUVRIR →",
+   "url": "http://localhost:3111/demo/messages",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1275,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Envoyer un message"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1276,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Aux adhérents, par groupe ou par cours."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1277,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "OUVRIR"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1278,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1154,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Encaisser une cotisation Chèque ou espèces, en deux clics. ENCAISSER →",
+   "url": "http://localhost:3111/demo/paiements",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1279,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Encaisser une cotisation"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1280,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Chèque ou espèces, en deux clics."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1281,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "ENCAISSER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1282,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1158,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Faire l'appel Scanner la carte ou chercher un nom. SCANNER →",
+   "url": "http://localhost:3111/demo/controle",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1283,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Faire l'appel"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1284,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Scanner la carte ou chercher un nom."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1285,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "SCANNER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1286,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1162,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   "name": "Publier une actualité À la une du site, et dans « La vie du club ». PUBLIER →",
+   "url": "http://localhost:3111/demo/actualites",
+   "children": [
+    {
+     "role": "StaticText",
+     "backendNodeId": 1287,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "Publier une actualité"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1288,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "À la une du site, et dans « La vie du club »."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1289,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": "PUBLIER"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 1290,
+     "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+     "name": " →"
+    }
+   ]
+  },
+  {
+   "role": "link",
+   "backendNodeId": 1166,
+   "loaderId": "5C232F6B125C38AC4988BD8004E2C96B",
+   

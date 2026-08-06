@@ -1,0 +1,388 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 13,
+ "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+ "name": "Klubster — Toute votre association, au même endroit",
+ "url": "http://localhost:3111/club-a/espace",
+ "children": [
+  {
+   "role": "main",
+   "backendNodeId": 85,
+   "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 30,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "← Club A",
+     "url": "http://localhost:3111/club-a",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 191,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "← "
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 192,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "Club A"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 193,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "ESPACE ADHÉRENT"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 194,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "form",
+     "backendNodeId": 16,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "",
+     "children": [
+      {
+       "role": "button",
+       "backendNodeId": 25,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "DÉCONNEXION"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 196,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "MON ESPACE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 197,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 94,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Bonjour, Alice.",
+     "level": 1
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 201,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Votre dossier est complet."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 202,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "CARTE DE MEMBRE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 203,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 204,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "CLUB A"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 205,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Alice"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 206,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Dupont"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 207,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "SAISON "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 208,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "2025-2026"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 209,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Présentez ce code à l'accueil pour l'appel."
+    },
+    {
+     "role": "link",
+     "backendNodeId": 31,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "VOIR MON REÇU →",
+     "url": "http://localhost:3111/club-a/espace/facture",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 210,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "VOIR MON REÇU →"
+      }
+     ]
+    },
+    {
+     "role": "image",
+     "backendNodeId": 106,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "QR de membre"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 211,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "MES ADHÉSIONS — SAISON "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 212,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "2025-2026"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 213,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 214,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Boxe loisir mercredi"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 215,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "180 €"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 216,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "EN ATTENTE"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 217,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Boxe adultes A"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 218,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "250 €"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 219,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "PAYÉ"
+    },
+    {
+     "role": "DisclosureTriangle",
+     "backendNodeId": 24,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "SAISONS PRÉCÉDENTES (1)",
+     "expanded": false
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 224,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "MES INFORMATIONS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 225,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "form",
+     "backendNodeId": 17,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 226,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "EMAIL"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 18,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "",
+       "value": "alice@example.com",
+       "multiline": false,
+       "readonly": false,
+       "required": false
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 228,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "TÉLÉPHONE"
+      },
+      {
+       "role": "textbox",
+       "backendNodeId": 19,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "",
+       "multiline": false,
+       "readonly": false,
+       "required": false
+      },
+      {
+       "role": "button",
+       "backendNodeId": 26,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "ENREGISTRER →"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 230,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "MES PIÈCES"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 231,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 232,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Pièce d'identité"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 233,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "✓ FOURNIE"
+    },
+    {
+     "role": "form",
+     "backendNodeId": 20,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "",
+     "children": [
+      {
+       "role": "button",
+       "backendNodeId": 27,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "Choisir un fichier",
+       "value": "Aucun fichier choisi"
+      },
+      {
+       "role": "button",
+       "backendNodeId": 28,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "REMPLACER",
+       "focused": true
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 235,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "QUESTIONNAIRE DE SANTÉ"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 236,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "_"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 237,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "J'atteste avoir répondu NON à chacune des rubriques du questionnaire de santé QS-SPORT et reconnais ne pas avoir à fournir de certificat médical."
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 238,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "MAJEUR"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 239,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "SIGNÉ : "
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 240,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Alice Dupont"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 241,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "02/08/2026"
+    },
+    {
+     "role": "link",
+     "backendNodeId": 29,
+     "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+     "name": "Installer l'app sur mon téléphone →",
+     "url": "http://localhost:3111/club-a/installer",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 242,
+       "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+       "name": "Installer l'app sur mon téléphone →"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "role": "alert",
+   "backendNodeId": 176,
+   "loaderId": "ACB7658DDB3D8037B76FC453224C49EA",
+   "name": "",
+   "atomic": true,
+   "live": "assertive",
+   "relevant": "additions text"
+  }
+ ]
+}

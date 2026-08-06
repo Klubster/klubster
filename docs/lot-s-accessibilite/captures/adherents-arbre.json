@@ -1,0 +1,720 @@
+{
+ "role": "RootWebArea",
+ "backendNodeId": 473,
+ "loaderId": "08305A5A760D41F59498EC0941A3C927",
+ "name": "Klubster — Toute votre association, au même endroit",
+ "url": "http://localhost:3111/club-a/cockpit/adherents",
+ "children": [
+  {
+   "role": "main",
+   "backendNodeId": 550,
+   "loaderId": "08305A5A760D41F59498EC0941A3C927",
+   "name": "",
+   "children": [
+    {
+     "role": "link",
+     "backendNodeId": 552,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "← COCKPIT",
+     "url": "http://localhost:3111/club-a/cockpit",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 715,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "← COCKPIT"
+      }
+     ]
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 716,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "ADHÉRENTS"
+    },
+    {
+     "role": "StaticText",
+     "backendNodeId": 717,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "_"
+    },
+    {
+     "role": "heading",
+     "backendNodeId": 558,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "14 adhérents",
+     "level": 1
+    },
+    {
+     "role": "link",
+     "backendNodeId": 560,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "IMPORTER UN FICHIER",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/import",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 721,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "IMPORTER UN FICHIER"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 561,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "AJOUTER UN ADHÉRENT →",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/nouveau",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 722,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "AJOUTER UN ADHÉRENT →"
+      }
+     ]
+    },
+    {
+     "role": "form",
+     "backendNodeId": 474,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 723,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "NOUVELLE SAISON"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 724,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "_"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 725,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Recrée une adhésion « en attente » pour chaque adhérent qui n’en a pas encore cette saison, avec son dernier cours."
+      },
+      {
+       "role": "button",
+       "backendNodeId": 480,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "RENOUVELER LA SAISON →"
+      }
+     ]
+    },
+    {
+     "role": "form",
+     "backendNodeId": 475,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "",
+     "children": [
+      {
+       "role": "searchbox",
+       "backendNodeId": 476,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Rechercher un adhérent par nom, prénom ou email"
+      },
+      {
+       "role": "combobox",
+       "backendNodeId": 477,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Filtrer par statut de paiement",
+       "value": "Tous les dossiers",
+       "expanded": false,
+       "haspopup": "menu",
+       "children": [
+        {
+         "role": "option",
+         "backendNodeId": 580,
+         "loaderId": "08305A5A760D41F59498EC0941A3C927",
+         "name": "Tous les dossiers",
+         "selected": true
+        },
+        {
+         "role": "option",
+         "backendNodeId": 583,
+         "loaderId": "08305A5A760D41F59498EC0941A3C927",
+         "name": "Payés",
+         "selected": false
+        },
+        {
+         "role": "option",
+         "backendNodeId": 586,
+         "loaderId": "08305A5A760D41F59498EC0941A3C927",
+         "name": "En attente",
+         "selected": false
+        },
+        {
+         "role": "option",
+         "backendNodeId": 589,
+         "loaderId": "08305A5A760D41F59498EC0941A3C927",
+         "name": "En retard",
+         "selected": false
+        },
+        {
+         "role": "option",
+         "backendNodeId": 592,
+         "loaderId": "08305A5A760D41F59498EC0941A3C927",
+         "name": "Liste d’attente",
+         "selected": false
+        }
+       ]
+      },
+      {
+       "role": "button",
+       "backendNodeId": 481,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "CHERCHER"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 478,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "AliceDupont Boxe adultes A alice@example.com PAYÉ240 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-0000000000d1",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 728,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Alice"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 729,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Dupont"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 730,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 731,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "alice@example.com"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 732,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 733,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "240 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 482,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "InesEssai Boxe adultes A adherent7@example.org EN ATTENTE250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000107",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 734,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Ines"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 735,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Essai"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 736,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 737,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent7@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 738,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "EN ATTENTE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 739,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 483,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "GaelleExemple Boxe adultes A adherent5@example.org EN RETARD250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000105",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 740,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Gaelle"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 741,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Exemple"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 742,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 743,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent5@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 744,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "EN RETARD"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 745,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 484,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "CamilleFictif Boxe adultes A adherent1@example.org PAYÉ250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000101",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 746,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Camille"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 747,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Fictif"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 748,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 749,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent1@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 750,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 751,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 485,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "DrissFictive Boxe adultes A adherent2@example.org PAYÉ250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000102",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 752,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Driss"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 753,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Fictive"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 754,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 755,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent2@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 756,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 757,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 479,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "BrunoMartin Boxe adultes A bruno@example.com EN ATTENTE250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-0000000000d2",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 758,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Bruno"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 759,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Martin"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 760,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 761,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "bruno@example.com"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 762,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "EN ATTENTE"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 763,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 486,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "HugoModele Boxe adultes A adherent6@example.org PAYÉ250 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000106",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 764,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Hugo"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 765,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Modele"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 766,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe adultes A"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 767,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent6@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 768,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 769,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "250 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 487,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "NoraNeutre Boxe loisir mercredi adherent12@example.org REMBOURSÉ180 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000112",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 770,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Nora"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 771,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Neutre"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 772,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 773,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent12@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 774,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "REMBOURSÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 775,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "180 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 488,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "KarimProvisoire Boxe loisir mercredi adherent9@example.org PAYÉ180 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000109",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 776,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Karim"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 777,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Provisoire"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 778,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 779,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent9@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 780,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 781,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "180 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 489,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "MariusRepere Boxe loisir mercredi adherent11@example.org ANNULÉ180 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000111",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 782,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Marius"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 783,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Repere"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 784,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 785,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent11@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 786,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "ANNULÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 787,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "180 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 490,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "JonasSimule Boxe loisir mercredi adherent8@example.org PAYÉ180 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000108",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 788,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Jonas"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 789,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Simule"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 790,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 791,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent8@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 792,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "PAYÉ"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 793,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "180 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 491,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "LeaTemoin Boxe loisir mercredi adherent10@example.org EN RETARD180 €",
+     "url": "http://localhost:3111/club-a/cockpit/adherents/0a000000-0000-4000-8000-000000000110",
+     "children": [
+      {
+       "role": "StaticText",
+       "backendNodeId": 794,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Lea"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 795,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Temoin"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 796,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "Boxe loisir mercredi"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 797,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "adherent10@example.org"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 798,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "EN RETARD"
+      },
+      {
+       "role": "StaticText",
+       "backendNodeId": 799,
+       "loaderId": "08305A5A760D41F59498EC0941A3C927",
+       "name": "180 €"
+      }
+     ]
+    },
+    {
+     "role": "link",
+     "backendNodeId": 492,
+     "loaderId": "08305A5A760D41F59498EC0941A3C927",
+     "name": "ElsaTesteu

@@ -293,13 +293,38 @@ function Pad({ value, onChange, accent }: { value: string; onChange: (v: string)
     const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
     if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setTexteClavier("");
     onChange("");
+  }
+
+  // S13 — alternative clavier. Le geste de dessin excluait quiconque ne peut pas
+  // tracer à la souris ou au doigt. Taper son nom TRACE la signature dans le même
+  // canvas et produit le même PNG : la règle métier (image de signature + nom du
+  // signataire + date, réponses jamais stockées) est inchangée — seul le moyen de
+  // produire l'image devient accessible. Comportement documenté au rapport S13.
+  const [texteClavier, setTexteClavier] = useState("");
+  function signerAuClavier(nom: string) {
+    setTexteClavier(nom);
+    const canvas = ref.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!nom.trim()) { onChange(""); return; }
+    ctx.save();
+    ctx.font = "italic 34px 'Snell Roundhand', 'Segoe Script', cursive";
+    ctx.fillStyle = "#111111";
+    ctx.textBaseline = "middle";
+    ctx.fillText(nom.trim(), 16, canvas.height / 2);
+    ctx.restore();
+    onChange(canvas.toDataURL("image/png"));
   }
 
   return (
     <div className="mt-2">
       <canvas
         ref={ref}
+        role="img"
+        aria-label={value ? "Signature apposée" : "Zone de signature — vide. Dessinez au doigt ou à la souris, ou utilisez le champ « Signer au clavier » ci-dessous."}
         onPointerDown={start}
         onPointerMove={move}
         onPointerUp={end}
@@ -308,12 +333,28 @@ function Pad({ value, onChange, accent }: { value: string; onChange: (v: string)
         style={{ touchAction: "none" }}
       />
       <div className="mt-2 flex items-center justify-between">
-        <span className="mono text-[11px]" style={{ color: value ? accent : "#999" }}>
+        {/* Le statut s'annonce au lecteur d'écran (aria-live), et sa teinte est
+            sémantique — pas la couleur du club. */}
+        <span role="status" aria-live="polite" className={`mono text-[11px] ${value ? "text-success" : "text-ink-faint"}`}>
           {value ? "✓ signé" : "signez dans le cadre ci-dessus"}
         </span>
-        <button type="button" onClick={effacer} className="mono text-[11px] text-ink-soft hover:text-ink">
+        <button type="button" onClick={effacer} aria-label="Effacer la signature" className="mono text-[11px] text-ink-soft hover:text-ink">
           effacer
         </button>
+      </div>
+      <div className="mt-3">
+        <label htmlFor="signature-clavier" className="mono block text-[11px] uppercase tracking-label text-ink-soft">
+          Ou signer au clavier — tapez votre nom
+        </label>
+        <input
+          id="signature-clavier"
+          type="text"
+          value={texteClavier}
+          onChange={(e) => signerAuClavier(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          className="mt-1 w-full max-w-[320px] border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
+        />
       </div>
     </div>
   );
