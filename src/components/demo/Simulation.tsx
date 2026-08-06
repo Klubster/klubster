@@ -78,8 +78,7 @@ export function Confirmation() {
     <div
       role="status"
       aria-live="polite"
-      className="mono mt-6 flex flex-wrap items-start justify-between gap-3 border px-4 py-3 text-[12px]"
-      style={{ borderColor: "#1E7A4F", background: "#F1F7F3", color: "#1E7A4F" }}
+      className="mono mt-6 flex flex-wrap items-start justify-between gap-3 border border-success bg-success-soft px-4 py-3 text-[12px] text-success"
     >
       <span className="flex-1">✓ {message}</span>
       <button
@@ -221,13 +220,17 @@ export function BoutonSimuler({
   desactive,
   couleur = "#111111",
   pleineLargeur = true,
+  destructif = false,
   nomAccessible,
 }: {
   libelle: string;
   onSimuler: () => void;
   desactive?: boolean;
+  /** Couleur de fond DYNAMIQUE (couleur du club). Pour un geste destructif, ne pas
+   *  passer d'hex : `destructif` applique le token danger du design system. */
   couleur?: string;
   pleineLargeur?: boolean;
+  destructif?: boolean;
   /**
    * Le nom lu par une assistance, quand le libellé visible ne suffit pas à distinguer
    * ce bouton d'un autre.
@@ -272,10 +275,12 @@ export function BoutonSimuler({
       disabled={desactive || enCours}
       aria-label={nomAccessible}
       onClick={() => setEnCours(true)}
-      style={{ background: desactive ? undefined : couleur }}
+      // S8 : un geste destructif porte le token `danger`, jamais un hex ni la couleur
+      // du club — même règle que le variant destructif du design system.
+      style={{ background: desactive || destructif ? undefined : couleur }}
       className={`mono px-6 py-4 text-[13px] text-paper disabled:cursor-not-allowed disabled:bg-ink/20 ${
         pleineLargeur ? "w-full sm:w-auto" : ""
-      } ${desactive ? "" : "hover:opacity-90"}`}
+      } ${desactive ? "" : destructif ? "bg-danger hover:opacity-90" : "hover:opacity-90"}`}
     >
       {enCours ? "SIMULATION…" : libelle}
     </button>

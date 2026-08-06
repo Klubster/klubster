@@ -213,7 +213,7 @@ export default function DemoInscriptions() {
                               champ: { obligatoire: e.target.checked },
                             })
                           }
-                          className="h-5 w-5 accent-[#1E7A4F]"
+                          className="h-5 w-5 accent-success"
                         />
                         OBLIGATOIRE
                       </label>
@@ -292,7 +292,7 @@ export default function DemoInscriptions() {
                       type="checkbox"
                       checked={r.exigeCode}
                       onChange={(e) => envoyer({ type: "form/remise-modifier", id: r.id, remise: { exigeCode: e.target.checked } })}
-                      className="h-5 w-5 accent-[#1E7A4F]"
+                      className="h-5 w-5 accent-success"
                     />
                     CODE JUSTIFICATIF
                   </label>
@@ -351,7 +351,7 @@ export default function DemoInscriptions() {
                     onChange={(e) =>
                       envoyer({ type: "form/autorisation-modifier", id: a.id, autorisation: { obligatoire: e.target.checked } })
                     }
-                    className="h-5 w-5 accent-[#1E7A4F]"
+                    className="h-5 w-5 accent-success"
                   />
                   OBLIGATOIRE
                 </label>
@@ -388,7 +388,7 @@ export default function DemoInscriptions() {
                 type="checkbox"
                 checked={form.sante}
                 onChange={(e) => envoyer({ type: "form/sante", actif: e.target.checked })}
-                className="mt-1 h-5 w-5 accent-[#1E7A4F]"
+                className="mt-1 h-5 w-5 accent-success"
               />
               <span>
                 <span className="text-[15px] font-medium">Inclure le questionnaire de santé QS-SPORT</span>
@@ -453,7 +453,7 @@ export default function DemoInscriptions() {
                     type="checkbox"
                     checked={pc.obligatoire}
                     onChange={(e) => envoyer({ type: "form/piece-modifier", id: pc.id, piece: { obligatoire: e.target.checked } })}
-                    className="h-5 w-5 accent-[#1E7A4F]"
+                    className="h-5 w-5 accent-success"
                   />
                   OBLIGATOIRE
                 </label>
@@ -503,7 +503,7 @@ export default function DemoInscriptions() {
             {/* AVERTISSEMENT REPRIS TEL QUEL. C'est le club qui perd de l'argent sur les
                 échéances multiples, pas Klubster : le taire dans une démonstration
                 commerciale serait exactement ce que ce produit refuse de faire. */}
-            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed" style={{ color: "#8A6508" }}>
+            <p className="mono mt-4 border-t border-line pt-4 text-[11px] leading-relaxed text-warning">
               ⚠ ATTENTION — Stripe facture des frais à CHAQUE prélèvement (≈ 1,5 % + 0,25 € par
               transaction pour une carte européenne). Plus il y a d’échéances, plus la part fixe est
               prélevée souvent : le club perçoit un peu moins qu’en paiement unique.

@@ -27,8 +27,7 @@ export default function DocumentFictif({ params }: { params: Promise<{ id: strin
       <div className="mx-auto max-w-2xl px-6 py-16 md:px-8">
         <div className="border-2 border-line px-8 py-10">
           <p
-            className="mono text-center text-[11px] uppercase tracking-label"
-            style={{ color: "#B23B3B" }}
+            className="mono text-center text-[11px] uppercase tracking-label text-danger"
           >
             DOCUMENT FICTIF — DÉMONSTRATION KLUBSTER
           </p>
@@ -52,8 +51,7 @@ export default function DocumentFictif({ params }: { params: Promise<{ id: strin
           </p>
 
           <p
-            className="mono mt-10 border-t border-line pt-6 text-center text-[11px] uppercase tracking-label"
-            style={{ color: "#B23B3B" }}
+            className="mono mt-10 border-t border-line pt-6 text-center text-[11px] uppercase tracking-label text-danger"
           >
             AUCUN DOCUMENT RÉEL — RIEN N’A ÉTÉ TÉLÉCHARGÉ
           </p>

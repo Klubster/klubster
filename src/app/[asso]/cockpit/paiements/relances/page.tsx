@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EtatVide } from "@/components/ui/EtatVide";
 import { decisionRelanceFinanciere, destinataireRelance } from "@/lib/relances";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -127,7 +128,14 @@ export default async function RelancesPage(
         ) : null}
 
         {impayes.length === 0 ? (
-          <p className="mt-10 text-lg text-ink-soft">Tout le monde est à jour. Rien à relancer.</p>
+          // Variante « club à jour » : une bonne nouvelle, pas un manque. Aucune action —
+          // il n'y a rien à faire, et c'est exactement le message.
+          <div className="mt-10">
+            <EtatVide
+              titre="Tout le monde est à jour."
+              detail="Rien à relancer. Si un impayé survient, il apparaîtra ici et sur l’accueil du cockpit."
+            />
+          </div>
         ) : (
           <>
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-line bg-bg-alt px-5 py-4">

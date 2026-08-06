@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { classesBouton } from "@/components/ui/Button";
 
 // Lot S. Un état vide n'est jamais une impasse : il dit ce qui est vide, pourquoi ce
 // n'est pas grave, et — quand une action existe — quoi faire ensuite. 29 écrans
 // écrivaient chacun leur phrase « Aucun… » sans action : ce composant fixe le motif.
+// S6 : deux vides ne se ressemblent pas — un filtre sans résultat n'est pas un premier
+// usage. C'est aux écrans de choisir titre/détail/action ; le composant fixe la forme.
 export function EtatVide({
   titre,
   detail,
@@ -17,10 +20,7 @@ export function EtatVide({
       <p className="text-[15px] text-ink-soft">{titre}</p>
       {detail ? <p className="mt-2 text-[13px] text-ink-faint">{detail}</p> : null}
       {action ? (
-        <Link
-          href={action.href}
-          className="mono mt-6 inline-flex min-h-[44px] items-center border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper"
-        >
+        <Link href={action.href} className={classesBouton("secondary", { className: "mt-6" })}>
           {action.label}
         </Link>
       ) : null}

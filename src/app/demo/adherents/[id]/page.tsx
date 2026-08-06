@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { BoutonSimuler, CHAMP_DEMO, Confirmation, Cur, EnTeteDemo, LABEL_DEMO } from "@/components/demo/Simulation";
 import { regleDe, resteDe } from "@/lib/demo/selecteurs";
@@ -89,7 +90,7 @@ function Coordonnees({
       </div>
 
       {erreur ? (
-        <p className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-4 text-[12px] text-danger">
           {erreur}
         </p>
       ) : null}
@@ -217,7 +218,7 @@ function EncartReglement({
       </div>
 
       {erreur ? (
-        <p className="mono mt-3 text-[12px]" style={{ color: "#B23B3B" }}>
+        <p className="mono mt-3 text-[12px] text-danger">
           {erreur}
         </p>
       ) : null}
@@ -252,12 +253,7 @@ function EncartReglement({
   );
 }
 
-const ETAT_ADHESION: Record<string, { texte: string; couleur: string }> = {
-  paye: { texte: "Payé", couleur: "#1E7A4F" },
-  en_retard: { texte: "En retard", couleur: "#B23B3B" },
-  liste_attente: { texte: "Liste d’attente", couleur: "#6f6f6b" },
-  en_attente: { texte: "En attente", couleur: "#8A6508" },
-};
+// S8 : libellés et teintes viennent de LA table du produit (ui/StatutBadge).
 
 export default function DemoFicheAdherent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -328,8 +324,8 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
 
         {/* 3 — litige bancaire, s'il y en avait un */}
         {litige ? (
-          <div className="mt-6 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+          <div className="mt-6 border px-5 py-4 border-danger bg-danger-soft">
+            <p className="mono text-[11px] uppercase tracking-label text-danger">
               LITIGE BANCAIRE<Cur />
             </p>
           </div>
@@ -364,13 +360,13 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
           ) : (
             <div className="mt-4 border border-line">
               {adhesions.map((a) => {
-                const e = ETAT_ADHESION[a.statut] ?? ETAT_ADHESION.en_attente;
+                const e = { texte: libelleAdhesion(a.statut), classe: classeTexteAdhesion(a.statut) };
                 const cours = etat.cours.find((c) => c.id === a.cours_id);
                 return (
                   <div key={a.id} className="border-b border-line px-5 py-4 last:border-b-0">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="text-[15px] font-medium">{cours?.nom ?? "Cours"}</span>
-                      <span className="mono text-[11px] uppercase tracking-wide" style={{ color: e.couleur }}>
+                      <span className={`mono text-[11px] uppercase tracking-wide ${e.classe}`}>
                         {e.texte}
                       </span>
                     </div>
@@ -396,7 +392,7 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                           <div className="mt-3 flex flex-wrap items-center gap-4">
                             <BoutonSimuler
                               libelle="SIMULER LE REMBOURSEMENT"
-                              couleur="#B23B3B"
+                              destructif
                               pleineLargeur={false}
                               onSimuler={() => {
                                 const v = parseFloat(montantRemboursement.replace(",", "."));
@@ -440,9 +436,9 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                 <p className="mono text-[12px]">
                   Réglé : <span className="text-ink">{eur(totalRegle)}</span>
                   {reste > 0 ? (
-                    <span style={{ color: "#B23B3B" }}> · Reste {eur(reste)}</span>
+                    <span className="text-danger"> · Reste {eur(reste)}</span>
                   ) : (
-                    <span style={{ color: "#1E7A4F" }}> · Soldé</span>
+                    <span className="text-success"> · Soldé</span>
                   )}
                 </p>
               </div>
@@ -514,8 +510,9 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                       type="button"
                       onClick={() => envoyer({ type: "piece/basculer", id: p.id })}
                       aria-label={`${p.label} — marquer ${p.statut === "recue" ? "manquante" : "reçue"}`}
-                      className="mono min-h-[44px] text-[11px] uppercase tracking-wide hover:underline"
-                      style={{ color: p.statut === "recue" ? "#1E7A4F" : "#8A6508" }}
+                      className={`mono min-h-[44px] text-[11px] uppercase tracking-wide hover:underline ${
+                        p.statut === "recue" ? "text-success" : "text-warning"
+                      }`}
                     >
                       {p.statut === "recue" ? "✓ Reçue" : "○ Manquante"}
                     </button>
@@ -605,8 +602,7 @@ export default function DemoFicheAdherent({ params }: { params: Promise<{ id: st
                     envoyer({ type: "adherent/anonymiser", id });
                     setConfirmeAnonymisation(false);
                   }}
-                  className="mono min-h-[44px] text-[12px]"
-                  style={{ color: "#B23B3B" }}
+                  className="mono min-h-[44px] text-[12px] text-danger"
                 >
                   OUI, SIMULER L’ANONYMISATION
                 </button>

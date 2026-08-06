@@ -7,6 +7,9 @@ import { formatPrix } from "@/lib/format";
 import { peut } from "@/lib/roles";
 import { renouvelerSaison } from "./actions";
 import { STATUT_PIECE_MANQUANTE } from "@/lib/pieces";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { EtatVide } from "@/components/ui/EtatVide";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -172,18 +175,12 @@ export default async function Adherents(
               Vu en test le 02/08 avec le rôle Lecture seule. */}
           {peut(profile.role, "adherents_ecriture") ? (
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <Link
-                href={`/${org.slug}/cockpit/adherents/import`}
-                className="mono border border-ink px-5 py-3 text-center text-[12px] hover:bg-ink hover:text-paper"
-              >
+              <ButtonLink variant="secondary" href={`/${org.slug}/cockpit/adherents/import`}>
                 IMPORTER UN FICHIER
-              </Link>
-              <Link
-                href={`/${org.slug}/cockpit/adherents/nouveau`}
-                className="mono bg-ink px-5 py-3 text-center text-[12px] text-paper hover:bg-ink/90"
-              >
+              </ButtonLink>
+              <ButtonLink href={`/${org.slug}/cockpit/adherents/nouveau`}>
                 AJOUTER UN ADHÉRENT →
-              </Link>
+              </ButtonLink>
             </div>
           ) : null}
         </div>
@@ -205,9 +202,9 @@ export default async function Adherents(
                 Recrée une adhésion « en attente » pour chaque adhérent qui n’en a pas encore cette saison, avec son dernier cours.
               </p>
             </div>
-            <button className="mono w-full border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper sm:w-auto">
+            <Button variant="secondary" className="w-full sm:w-auto">
               RENOUVELER LA SAISON →
-            </button>
+            </Button>
           </form>
         ) : null}
 
@@ -232,9 +229,7 @@ export default async function Adherents(
             <option value="en_retard">En retard</option>
             <option value="liste_attente">Liste d’attente</option>
           </select>
-          <button className="mono border border-ink px-5 py-3 text-[12px] hover:bg-ink hover:text-paper">
-            CHERCHER
-          </button>
+          <Button variant="secondary">CHERCHER</Button>
           {q || statut ? (
             <Link href={`/${org.slug}/cockpit/adherents`} className="mono text-[12px] text-ink-soft hover:text-ink">
               Effacer
@@ -243,11 +238,27 @@ export default async function Adherents(
         </form>
 
         {lignes.length === 0 ? (
-          <p className="mt-12 text-lg text-ink-soft">
-            {q || statut
-              ? "Aucun adhérent ne correspond à cette recherche."
-              : "Aucun adhérent pour l’instant. Ils apparaîtront ici dès la première inscription."}
-          </p>
+          // Deux vides très différents : un filtre sans résultat n'est pas un club sans
+          // adhérents. Le premier propose d'élargir, le second oriente vers l'inscription.
+          <div className="mt-12">
+            {q || statut ? (
+              <EtatVide
+                titre="Aucun adhérent ne correspond à cette recherche."
+                detail="Vérifiez l’orthographe, ou élargissez le filtre de statut."
+                action={{ href: `/${org.slug}/cockpit/adherents`, label: "AFFICHER TOUT LE MONDE" }}
+              />
+            ) : (
+              <EtatVide
+                titre="Aucun adhérent pour l’instant."
+                detail="Ils apparaîtront ici dès la première inscription — en ligne via votre page publique, ou ajoutés à la main."
+                action={
+                  peut(profile.role, "adherents_ecriture")
+                    ? { href: `/${org.slug}/cockpit/adherents/nouveau`, label: "AJOUTER LE PREMIER ADHÉRENT →" }
+                    : undefined
+                }
+              />
+            )}
+          </div>
         ) : (
           <div className="mt-8 border border-line">
             {lignes.map((a) => {
@@ -268,21 +279,9 @@ export default async function Adherents(
                   <span className="mono text-[11px] uppercase tracking-wide">
                     {ad ? (
                       <>
-                        <span
-                          className={
-                            ad.statut === "paye" ? "text-success"
-                            : ad.statut === "en_retard" ? "text-danger"
-                            : ad.statut === "liste_attente" ? "text-ink-soft"
-                            : "text-warning"
-                          }
-                        >
-                          {ad.statut === "paye" ? "Payé"
-                            : ad.statut === "en_retard" ? "En retard"
-                            : ad.statut === "liste_attente" ? "Liste d’attente"
-                            : ad.statut === "rembourse" ? "Remboursé"
-                            : ad.statut === "annule" ? "Annulée"
-                            : "En attente"}
-                        </span>
+                        {/* S6 : libellé et teinte viennent de LA table (ui/StatutBadge) —
+                            la liste disait « Annulée » quand la fiche disait « Annulé ». */}
+                        <span className={classeTexteAdhesion(ad.statut)}>{libelleAdhesion(ad.statut)}</span>
                         {typeof ad.montant_centimes === "number" ? (
                           <span className="ml-2 text-ink-soft">{formatPrix(ad.montant_centimes)}</span>
                         ) : null}

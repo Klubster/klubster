@@ -1,4 +1,5 @@
 import { normaliserCouleur } from "@/lib/contraste";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getOrganisationBySlug } from "@/lib/queries";
@@ -178,9 +179,9 @@ export default async function CoursPage(
                     </div>
                     {peutPromouvoir ? (
                       <form action={promouvoir}>
-                        <button className="mono border border-ink px-4 py-2.5 text-[12px] hover:bg-ink hover:text-paper">
+                        <Button variant="secondary" compact>
                           Donner une place →
-                        </button>
+                        </Button>
                       </form>
                     ) : null}
                   </div>
@@ -212,7 +213,7 @@ export default async function CoursPage(
                 className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
               />
             </label>
-            <button className="mono w-full bg-ink px-6 py-3 text-[12px] text-paper hover:bg-ink/90 sm:w-auto">AJOUTER →</button>
+            <Button className="w-full px-6 sm:w-auto">AJOUTER →</Button>
           </div>
         </form>
 

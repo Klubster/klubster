@@ -152,7 +152,7 @@ export default function DemoImport() {
               </p>
             ) : null}
             {rapport.ignorables.length > 0 ? (
-              <ul className="mono mt-5 space-y-1 text-[12px]" style={{ color: "#8A6508" }}>
+              <ul className="mono mt-5 space-y-1 text-[12px] text-warning">
                 {rapport.ignorables.slice(0, 8).map((e) => (
                   <li key={e}>{e}</li>
                 ))}
@@ -228,7 +228,7 @@ export default function DemoImport() {
               </div>
 
               {erreurFichier ? (
-                <p role="alert" className="mono mt-4 text-[12px]" style={{ color: "#B23B3B" }}>
+                <p role="alert" className="mono mt-4 text-[12px] text-danger">
                   {erreurFichier}
                 </p>
               ) : null}
@@ -252,7 +252,7 @@ export default function DemoImport() {
                     >
                       <label htmlFor={`col-${champ.cle}`} className="text-[15px]">
                         {champ.label}
-                        {champ.requis ? <span style={{ color: "#B23B3B" }}> *</span> : null}
+                        {champ.requis ? <span className="text-danger"> *</span> : null}
                       </label>
                       <select
                         id={`col-${champ.cle}`}
@@ -337,7 +337,7 @@ export default function DemoImport() {
                 ) : null}
 
                 {problemes.length > 0 ? (
-                  <ul className="mono mt-4 space-y-1.5 text-[12px]" style={{ color: "#8A6508" }}>
+                  <ul className="mono mt-4 space-y-1.5 text-[12px] text-warning">
                     {problemes.map((p) => (
                       <li key={p}>⚠ {p}</li>
                     ))}

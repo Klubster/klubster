@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { libelleAdhesion, classeTexteAdhesion } from "@/components/ui/StatutBadge";
 import { useDemo } from "@/components/demo/DemoProvider";
 import { Confirmation, Cur, EnTeteDemo } from "@/components/demo/Simulation";
 import { FILTRES_STATUT, listerAdherents, paginer } from "@/lib/demo/selecteurs";
@@ -20,12 +21,8 @@ import { eur } from "@/lib/demo/donnees";
  * cliquable ici laisserait croire le contraire.
  */
 
-const ETAT_LIGNE: Record<string, { texte: string; couleur: string }> = {
-  paye: { texte: "Payé", couleur: "#1E7A4F" },
-  en_retard: { texte: "En retard", couleur: "#B23B3B" },
-  liste_attente: { texte: "Liste d’attente", couleur: "#6f6f6b" },
-  en_attente: { texte: "En attente", couleur: "#8A6508" },
-};
+// S8 : la table locale est morte — la démo consomme LA table du produit
+// (ui/StatutBadge, import purement visuel : aucune dépendance serveur).
 
 export default function DemoAdherents() {
   const { etat, envoyer } = useDemo();
@@ -169,13 +166,14 @@ export default function DemoAdherents() {
         ) : (
           <div className="mt-8 border border-line">
             {tranche.map(({ adherent, adhesion, nomCours }) => {
-              const e = adhesion ? ETAT_LIGNE[adhesion.statut] ?? ETAT_LIGNE.en_attente : null;
+              const e = adhesion
+                ? { texte: libelleAdhesion(adhesion.statut), classe: classeTexteAdhesion(adhesion.statut) }
+                : null;
               return (
                 <Link
                   key={adherent.id}
                   href={`/demo/adherents/${adherent.id}`}
-                  className="grid grid-cols-1 gap-1 border-b border-line px-5 py-4 last:border-b-0 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] sm:grid-cols-[1fr_1fr_auto] sm:items-center sm:gap-4"
-                  style={{ outlineColor: "#1E7A4F" }}
+                  className="grid grid-cols-1 gap-1 border-b border-line px-5 py-4 outline-success last:border-b-0 hover:bg-bg-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] sm:grid-cols-[1fr_1fr_auto] sm:items-center sm:gap-4"
                 >
                   <span className="text-[15px] font-medium">
                     {adherent.prenom} {adherent.nom}
@@ -188,7 +186,7 @@ export default function DemoAdherents() {
                   </span>
                   <span className="mono text-[11px] uppercase tracking-wide">
                     {e ? (
-                      <span style={{ color: e.couleur }}>{e.texte}</span>
+                      <span className={e.classe}>{e.texte}</span>
                     ) : (
                       <span className="text-ink-faint">Sans adhésion</span>
                     )}

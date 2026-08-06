@@ -94,7 +94,7 @@ describe("lot S — les frontières loading/error existent", () => {
 describe("lot S — tokens de statut lisibles (AA) et composants sans ombre", () => {
   it("tailwind : success/warning/danger portent les valeurs AA décidées au lot S", () => {
     const cfg = readFileSync(join(RACINE, "tailwind.config.ts"), "utf8");
-    expect(cfg).toMatch(/success:\s*"#1E7A4F"/);
+    expect(cfg).toMatch(/success:\s*(\{\s*DEFAULT:\s*)?"#1E7A4F"/);
     expect(cfg).toMatch(/warning:\s*"#8A6508"/);
     expect(cfg).toMatch(/danger:\s*\{\s*DEFAULT:\s*"#B23B3B"/);
   });

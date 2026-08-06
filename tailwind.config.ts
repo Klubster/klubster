@@ -18,7 +18,7 @@ const config: Config = {
         // `#279B65` (3,1:1) et `#B8860B` (2,9:1) restent pour l'accent graphique (`brand`),
         // jamais pour du texte de statut — c'est la raison des 29 `#8A6508` inline
         // que cette passe résorbe (voir docs/lot-s-inventaire-interface.md).
-        success: "#1E7A4F",
+        success: { DEFAULT: "#1E7A4F", soft: "#F1F7F3" },
         warning: "#8A6508",
         danger: { DEFAULT: "#B23B3B", soft: "#FBEDED" },
         info: "#2D5B7A",

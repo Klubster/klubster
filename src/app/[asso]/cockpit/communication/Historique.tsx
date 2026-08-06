@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EtatVide } from "@/components/ui/EtatVide";
 
 /**
  * Historique des campagnes manuelles.
@@ -53,9 +54,13 @@ export default function Historique({ campagnes, slug }: { campagnes: CampagneLis
         <p className="mono text-[11px] uppercase tracking-label text-ink-soft">
           MESSAGES ENVOYÉS<span className="cur">_</span>
         </p>
-        <p className="mono mt-4 text-[12px] text-ink-soft">
-          Aucun message envoyé pour le moment. Ils apparaîtront ici, avec leur état d’acheminement.
-        </p>
+        <div className="mt-4">
+          {/* Premier usage : le composeur est juste au-dessus — pas de lien d'action. */}
+          <EtatVide
+            titre="Aucun message envoyé pour le moment."
+            detail="Composez le premier au-dessus : il apparaîtra ici, avec son état d’acheminement."
+          />
+        </div>
       </section>
     );
   }

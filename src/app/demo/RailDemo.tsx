@@ -45,10 +45,9 @@ export default function RailDemo() {
             key={item.n}
             href={item.href}
             aria-current={actif ? "page" : undefined}
-            className={`mono block min-h-[44px] whitespace-nowrap border-b-2 py-3.5 text-[12px] tracking-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:border-b-0 md:py-[10px] ${
+            className={`mono block min-h-[44px] whitespace-nowrap border-b-2 py-3.5 text-[12px] tracking-wide outline-success focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:border-b-0 md:py-[10px] ${
               actif ? "border-brand font-bold text-ink" : "border-transparent text-ink-soft hover:text-ink"
             }`}
-            style={{ outlineColor: "#1E7A4F" }}
           >
             {item.n} {item.label}
             {actif ? <span className="cur">_</span> : <span className="text-ink-faint">_</span>}
