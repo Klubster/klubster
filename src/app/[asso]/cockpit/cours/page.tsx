@@ -118,19 +118,19 @@ export default async function CoursPage(
         </p>
 
         {searchParams?.ok ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             Cours ajouté.
           </p>
         ) : null}
         {searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[12px] text-danger">
             {searchParams.erreur === "promo"
               ? "La promotion a échoué. Réessayez."
               : "L’ajout a échoué. Vérifiez le nom du cours."}
           </p>
         ) : null}
         {searchParams?.promo === "1" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             ✓ Place donnée. Pensez à prévenir la personne — aucun email automatique n’est envoyé.
           </p>
         ) : null}
@@ -138,7 +138,7 @@ export default async function CoursPage(
             découvrait un cours en surcapacité le soir de la reprise. Sans ce message,
             le bouton semblait ne rien faire : un refus muet est indiscernable d'un bug. */}
         {searchParams?.promo === "0" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#8A6508" }}>
+          <p className="mono mt-6 text-[12px] text-warning">
             Aucune place n’est libre dans ce cours : personne n’a été promu. Augmentez la
             capacité du cours, ou attendez qu’une place se libère.
           </p>

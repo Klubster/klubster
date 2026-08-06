@@ -49,7 +49,7 @@ export default async function NouvelAdherent(
         </p>
 
         {searchParams.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[12px] text-danger">
             {searchParams.erreur === "nom"
               ? "Le prénom et le nom sont obligatoires."
               : "L’enregistrement a échoué. Réessayez."}

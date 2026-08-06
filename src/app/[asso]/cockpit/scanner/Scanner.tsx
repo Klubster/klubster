@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { controlerAdherent, marquerPresent, rechercher, type ControleResult } from "./actions";
 import { ligneControle, COULEURS_CONTROLE, coursParDefaut } from "@/lib/controle";
+import { texteSur } from "@/lib/contraste";
 import type { CoursControle } from "./page";
 
 function Cur() { return <span className="cur">_</span>; }
@@ -233,7 +234,7 @@ export default function Scanner({ slug, nom, accent, cours }: { slug: string; no
             {!result.ok ? (
               result.sessionExpiree ? (
                 <>
-                  <div className="mono text-[16px] font-bold" style={{ color: "#8A6508" }}>⚠ Session expirée</div>
+                  <div className="mono text-[16px] font-bold text-warning">⚠ Session expirée</div>
                   <p className="mt-2 text-[14px] text-ink-soft">Votre connexion a expiré pendant l&apos;appel.</p>
                   <Link href={`/connexion?next=/${slug}/cockpit/scanner`} className="mono mt-4 inline-block border border-ink px-5 py-3 text-[13px] hover:bg-ink hover:text-paper">
                     SE RECONNECTER →
@@ -271,7 +272,9 @@ export default function Scanner({ slug, nom, accent, cours }: { slug: string; no
                         }}
                         disabled={pointage}
                         className="mono min-h-[44px] w-full px-6 py-3 text-[13px] disabled:opacity-40 sm:w-auto"
-                        style={{ background: accent, color: "#FFFFFF" }}
+                        /* Lot S : blanc en dur sur la couleur du club = illisible si le
+                           club choisit une couleur claire. texteSur() garantit ≥ 4,5:1. */
+                        style={{ background: accent, color: texteSur(accent) }}
                       >
                         {pointage ? "…" : `MARQUER PRÉSENT — ${coursNom ?? ""} →`}
                       </button>

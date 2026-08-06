@@ -158,7 +158,7 @@ export default async function Adherents(
                 cela, « 3 adhérents » sur un club qui en compte 30 ressemble à une panne. */}
             {filtreActif ? (
               <p className="mono mt-2 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-label text-ink-soft">
-                <span style={{ color: "#8A6508" }}>▸ {filtreActif}</span>
+                <span className="text-warning">▸ {filtreActif}</span>
                 <Link href={`/${org.slug}/cockpit/adherents`} className="underline underline-offset-2 hover:text-ink">
                   TOUT VOIR
                 </Link>
@@ -189,7 +189,7 @@ export default async function Adherents(
         </div>
 
         {searchParams?.renouvelees !== undefined ? (
-          <p className="mono mt-4 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-4 text-[12px] text-success">
             {searchParams.renouvelees === "0"
               ? "Tout le monde a déjà une adhésion pour la saison en cours."
               : `${searchParams.renouvelees} adhésion(s) créée(s) pour la nouvelle saison, en attente de règlement.`}
@@ -269,13 +269,12 @@ export default async function Adherents(
                     {ad ? (
                       <>
                         <span
-                          style={{
-                            color:
-                              ad.statut === "paye" ? "#1E7A4F"
-                              : ad.statut === "en_retard" ? "#B23B3B"
-                              : ad.statut === "liste_attente" ? "#6f6f6b"
-                              : "#8A6508",
-                          }}
+                          className={
+                            ad.statut === "paye" ? "text-success"
+                            : ad.statut === "en_retard" ? "text-danger"
+                            : ad.statut === "liste_attente" ? "text-ink-soft"
+                            : "text-warning"
+                          }
                         >
                           {ad.statut === "paye" ? "Payé"
                             : ad.statut === "en_retard" ? "En retard"

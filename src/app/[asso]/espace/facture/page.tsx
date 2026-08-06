@@ -160,7 +160,7 @@ export default async function RecuPage(props: { params: Promise<{ asso: string }
               <span className="mono font-medium">{formatMontant(montantRecu)}</span>
               {modesLisibles ? <> par {modesLisibles.toLowerCase()}</> : null}, au titre de sa cotisation.
             </p>
-            <p className="mono mt-3 text-[12px]" style={{ color: partiel ? "#8C8C88" : "#279B65" }}>
+            <p className={`mono mt-3 text-[12px] ${partiel ? "text-ink-soft" : "text-success"}`}>
               {partiel ? `○ PAIEMENT PARTIEL — reste ${formatMontant(reste)} à régler` : "✓ INTÉGRALEMENT RÉGLÉ"}
             </p>
           </div>

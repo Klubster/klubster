@@ -124,12 +124,12 @@ export default async function VirementsPage(
             </p>
 
             {searchParams?.erreur === "lien" ? (
-              <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+              <p className="mono mt-6 text-[12px] text-danger">
                 Impossible d&apos;ouvrir votre compte Stripe pour l&apos;instant. Réessayez dans un instant.
               </p>
             ) : null}
             {panne ? (
-              <p className="mono mt-6 text-[12px]" style={{ color: "#8A6508" }}>
+              <p className="mono mt-6 text-[12px] text-warning">
                 Les montants n&apos;ont pas pu être récupérés auprès de Stripe. Vos fonds ne sont pas affectés —
                 réessayez dans quelques minutes.
               </p>

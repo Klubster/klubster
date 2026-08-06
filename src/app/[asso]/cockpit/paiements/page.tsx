@@ -134,8 +134,8 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
         </div>
 
         {litiges.length > 0 ? (
-          <div className="mt-8 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+          <div className="mt-8 border px-5 py-4 border-danger bg-danger-soft">
+            <p className="mono text-[11px] uppercase tracking-label text-danger">
               {litiges.length} LITIGE{litiges.length > 1 ? "S" : ""} BANCAIRE{litiges.length > 1 ? "S" : ""} À TRAITER<Cur />
             </p>
             <p className="mt-1.5 text-[14px]">
@@ -206,7 +206,7 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
         </form>
 
         {searchParams?.erreur === "encaisse" ? (
-          <p className="mono mb-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mb-6 text-[12px] text-danger">
             L’encaissement n’a pas pu être enregistré. Rien n’a été modifié — réessayez.
           </p>
         ) : null}

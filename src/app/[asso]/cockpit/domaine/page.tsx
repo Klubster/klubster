@@ -53,13 +53,13 @@ export default async function DomainePage(
           <p className="mono mt-6 text-[12px] text-ink-soft">Domaine retiré. Votre site reste accessible sur klubster.fr/{org.slug}.</p>
         ) : null}
         {searchParams?.erreur === "format" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Ce nom de domaine n&apos;est pas valide (ex. attendu : monclub.fr).</p>
+          <p className="mono mt-6 text-[12px] text-danger">Ce nom de domaine n&apos;est pas valide (ex. attendu : monclub.fr).</p>
         ) : searchParams?.erreur === "deja_pris" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>Ce domaine est déjà utilisé par un autre club.</p>
+          <p className="mono mt-6 text-[12px] text-danger">Ce domaine est déjà utilisé par un autre club.</p>
         ) : searchParams?.erreur === "config" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>La connexion de domaines n&apos;est pas encore activée sur la plateforme.</p>
+          <p className="mono mt-6 text-[12px] text-danger">La connexion de domaines n&apos;est pas encore activée sur la plateforme.</p>
         ) : searchParams?.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>La connexion a échoué. Vérifiez le domaine et réessayez.</p>
+          <p className="mono mt-6 text-[12px] text-danger">La connexion a échoué. Vérifiez le domaine et réessayez.</p>
         ) : null}
 
         {!domaine ? (
@@ -99,7 +99,7 @@ export default async function DomainePage(
                 {statut?.verifie ? (
                   <span className="mono text-[12px] text-brand">✓ ACTIF — SSL en place</span>
                 ) : (
-                  <span className="mono text-[12px]" style={{ color: "#8A6508" }}>● EN ATTENTE DES DNS</span>
+                  <span className="mono text-[12px] text-warning">● EN ATTENTE DES DNS</span>
                 )}
               </div>
             </div>

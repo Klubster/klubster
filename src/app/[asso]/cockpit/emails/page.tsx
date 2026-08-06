@@ -60,7 +60,7 @@ export default async function EmailsPage(props: {
           </p>
         ) : null}
         {searchParams?.erreur ? (
-          <p className="mono mt-6 border border-line px-4 py-3 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 border border-line px-4 py-3 text-[12px] text-danger">
             Enregistrement impossible. Réessayez.
           </p>
         ) : null}

@@ -179,17 +179,17 @@ export default async function FicheAdherent(
         </p>
 
         {searchParams.ok ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             ✓ Fiche enregistrée.
           </p>
         ) : null}
         {searchParams.rembourse ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             ✓ Remboursement demandé à Stripe. L’écriture apparaîtra une fois confirmé.
           </p>
         ) : null}
         {searchParams.erreur ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>
+          <p className="mono mt-6 text-[12px] text-danger">
             {searchParams.erreur === "nom"
               ? "Le prénom et le nom sont obligatoires."
               : searchParams.erreur === "piece"
@@ -207,8 +207,8 @@ export default async function FicheAdherent(
         ) : null}
 
         {litige ? (
-          <div className="mt-6 border px-5 py-4" style={{ borderColor: "#B23B3B", background: "#FBEDED" }}>
-            <p className="mono text-[11px] uppercase tracking-label" style={{ color: "#B23B3B" }}>
+          <div className="mt-6 border px-5 py-4 border-danger bg-danger-soft">
+            <p className="mono text-[11px] uppercase tracking-label text-danger">
               LITIGE BANCAIRE<Cur />
             </p>
             <p className="mt-1.5 text-[15px]">
@@ -329,14 +329,12 @@ export default async function FicheAdherent(
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <span className="text-[15px] font-medium">{a.cours?.nom ?? "Cours"}</span>
                     <span
-                      className="mono text-[11px] uppercase tracking-wide"
-                      style={{
-                        color:
-                          a.statut === "paye" ? "#1E7A4F"
-                          : a.statut === "en_retard" ? "#B23B3B"
-                          : a.statut === "liste_attente" ? "#6f6f6b"
-                          : "#8A6508",
-                      }}
+                      className={`mono text-[11px] uppercase tracking-wide ${
+                        a.statut === "paye" ? "text-success"
+                        : a.statut === "en_retard" ? "text-danger"
+                        : a.statut === "liste_attente" ? "text-ink-soft"
+                        : "text-warning"
+                      }`}
                     >
                       {a.statut === "paye" ? "Payé"
                         : a.statut === "en_retard" ? "En retard"
@@ -347,7 +345,7 @@ export default async function FicheAdherent(
                   <p className="mono mt-1 text-[12px] text-ink-soft">
                     Saison {a.saison ?? "—"} · {formatPrix(a.montant_centimes ?? 0)}
                     {a.mode_paiement ? ` · ${a.mode_paiement}` : ""}
-                    {a.litige_le ? <span style={{ color: "#B23B3B" }}> · litige en cours</span> : null}
+                    {a.litige_le ? <span className="text-danger"> · litige en cours</span> : null}
                   </p>
                   {peut(profile.role, "paiements") && a.stripe_payment_intent ? (
                     <Remboursement
@@ -364,9 +362,9 @@ export default async function FicheAdherent(
                   <p className="mono text-[12px]">
                     Saison {saisonActuelle} — réglé : <span className="text-ink">{formatMontant(totalRegle)}</span>
                     {reste > 0 ? (
-                      <span style={{ color: "#B23B3B" }}> · Reste {formatMontant(reste)}</span>
+                      <span className="text-danger"> · Reste {formatMontant(reste)}</span>
                     ) : (
-                      <span style={{ color: "#1E7A4F" }}> · Soldé</span>
+                      <span className="text-success"> · Soldé</span>
                     )}
                   </p>
                 ) : (
@@ -402,12 +400,12 @@ export default async function FicheAdherent(
 
         {/* ——— CHANGEMENT DE COURS (saison courante, adhésion active) ——— */}
         {searchParams?.ok === "cours" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#1E7A4F" }}>
+          <p className="mono mt-6 text-[12px] text-success">
             ✓ Cours changé.{searchParams?.ecart ? ` Le tarif du nouveau cours diffère de ${(Number(searchParams.ecart) / 100).toLocaleString("fr-FR")} € : ajustez le règlement (avoir ou complément).` : ""}
           </p>
         ) : null}
         {searchParams?.erreur === "cours" ? (
-          <p className="mono mt-6 text-[12px]" style={{ color: "#B23B3B" }}>{searchParams?.detail ?? "Le changement de cours a échoué."}</p>
+          <p className="mono mt-6 text-[12px] text-danger">{searchParams?.detail ?? "Le changement de cours a échoué."}</p>
         ) : null}
         {adhesionCourante && peut(profile.role, "adherents_ecriture") && autresCours.length > 0 ? (
           <details className="mt-8 border border-line bg-paper">
@@ -432,10 +430,10 @@ export default async function FicheAdherent(
         <section className="mt-14">
           {/* PIECE_MESSAGES — un dépôt doit répondre : succès comme échec. */}
           {searchParams?.ok === "piece" ? (
-            <p className="mono mb-3 text-[12px]" style={{ color: "#1E7A4F" }}>✓ Pièce enregistrée dans le dossier.</p>
+            <p className="mono mb-3 text-[12px] text-success">✓ Pièce enregistrée dans le dossier.</p>
           ) : null}
           {searchParams?.erreur?.startsWith("piece") ? (
-            <p className="mono mb-3 text-[12px]" style={{ color: "#B23B3B" }}>
+            <p className="mono mb-3 text-[12px] text-danger">
               {searchParams.erreur === "piece_format"
                 ? "Fichier refusé : déposez un PDF, un JPEG ou un PNG de 5 Mo maximum."
                 : searchParams.erreur === "piece_vide"
@@ -471,8 +469,7 @@ export default async function FicheAdherent(
                     ) : null}
                     <form action={basculerPiece.bind(null, org.slug, adherent.id, p.id, p.statut ?? "manquante")}>
                       <button
-                        className="mono text-[11px] uppercase tracking-wide hover:underline"
-                        style={{ color: estFournie(p.statut) ? "#1E7A4F" : "#8A6508" }}
+                        className={`mono text-[11px] uppercase tracking-wide hover:underline ${estFournie(p.statut) ? "text-success" : "text-warning"}`}
                       >
                         {libellePiece(p.statut)}
                       </button>
