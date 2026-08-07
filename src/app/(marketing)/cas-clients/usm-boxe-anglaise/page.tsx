@@ -112,6 +112,9 @@ export default function CasUsmBoxe() {
             <Link href="/connexion" className="mono hidden text-[11px] uppercase tracking-label text-ink-soft hover:text-ink md:block">
               ESPACE PRÉSIDENT
             </Link>
+            <Link href="/demo" className="mono hidden text-[11px] uppercase tracking-label text-ink underline decoration-line underline-offset-4 hover:decoration-ink md:block">
+              VOIR LA DÉMO
+            </Link>
             <Link href="/creer" className="mono hidden bg-brand px-5 py-2.5 text-[12px] uppercase tracking-wide text-white hover:bg-brand-dark md:block">
               CRÉER MON ASSOCIATION
             </Link>
@@ -119,6 +122,7 @@ export default function CasUsmBoxe() {
               ton="sombre"
               liens={[
                 ...LIENS_NAV,
+                { href: "/demo", label: "Voir la démo" },
                 { href: "/connexion", label: "Espace président" },
                 { href: "/creer", label: "Créer mon association" },
               ]}

@@ -417,6 +417,9 @@ export default function Fonctionnalites() {
             <Link href="/cas-clients/usm-boxe-anglaise" className="hover:text-ink">Le premier club</Link>
           </nav>
           <div className="flex items-center gap-3">
+            <Link href="/demo" className="mono hidden text-[12px] tracking-wide text-ink underline decoration-line underline-offset-4 hover:decoration-ink sm:block">
+              VOIR LA DÉMO
+            </Link>
             <Link href="/creer?offre=fondateur" className="mono bg-brand-dark px-4 py-3 text-[12px] text-white hover:opacity-90">
               <span className="hidden sm:inline">CRÉER MON CLUB</span>
               <span className="sm:hidden">CRÉER</span>
@@ -428,6 +431,7 @@ export default function Fonctionnalites() {
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
                 { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
+                { href: "/demo", label: "Voir la démo" },
                 { href: "/connexion", label: "Espace président" },
               ]}
             />

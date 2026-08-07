@@ -137,6 +137,9 @@ export default function ClubsFondateurs() {
             <Link href="/connexion" className="mono hidden text-[11px] uppercase tracking-label text-ink-soft hover:text-ink md:block">
               ESPACE PRÉSIDENT
             </Link>
+            <Link href="/demo" className="mono hidden text-[11px] uppercase tracking-label text-ink underline decoration-line underline-offset-4 hover:decoration-ink md:block">
+              VOIR LA DÉMO
+            </Link>
             <Link
               href="/creer?offre=fondateur"
               className="mono hidden bg-brand-dark px-5 py-2.5 text-[12px] uppercase tracking-wide text-white hover:opacity-90 md:block"
@@ -147,6 +150,7 @@ export default function ClubsFondateurs() {
               ton="sombre"
               liens={[
                 ...LIENS_NAV,
+                { href: "/demo", label: "Voir la démo" },
                 { href: "/connexion", label: "Espace président" },
                 { href: "/creer?offre=fondateur", label: "Créer mon club" },
               ]}
