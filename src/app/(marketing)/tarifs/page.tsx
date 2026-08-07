@@ -134,6 +134,9 @@ export default function Tarifs() {
             <Link href="/connexion" className="mono hidden text-[11px] uppercase tracking-label text-ink-soft hover:text-ink md:block">
               ESPACE PRÉSIDENT
             </Link>
+            <Link href="/demo" className="mono hidden text-[11px] uppercase tracking-label text-ink underline decoration-line underline-offset-4 hover:decoration-ink md:block">
+              VOIR LA DÉMO
+            </Link>
             <Link href="/creer?offre=fondateur" className="mono hidden bg-brand px-5 py-2.5 text-[12px] uppercase tracking-wide text-white hover:bg-brand-dark md:block">
               CRÉER MON CLUB
             </Link>
@@ -144,6 +147,7 @@ export default function Tarifs() {
                 { href: "/fonctionnalites", label: "Fonctionnalités" },
                 { href: "/tarifs", label: "Tarifs" },
                 { href: "/cas-clients/usm-boxe-anglaise", label: "Le premier club" },
+                { href: "/demo", label: "Voir la démo" },
                 { href: "/connexion", label: "Espace président" },
                 { href: "/creer?offre=fondateur", label: "Créer mon club" },
               ]}
