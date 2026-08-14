@@ -8,7 +8,9 @@ lots 4 à 10 sont faits, et ce qui suit décrit l'état réel de la branche, pas
 ## 1. Où en est la branche
 
 ```
-branche : feat/demo-interactive
+branche : feat/demo-judo — la bascule judo, reportée sur origin/main le 14/08/2026
+origine : feat/demo-interactive, qui était restée un ANCÊTRE de main (la release y a
+          été fusionnée depuis : lot S, priorités du cockpit, tokens de couleur)
 fusion  : AUCUNE — ne rien fusionner sans accord explicite de Mathieu
 ```
 
@@ -19,9 +21,9 @@ la branche était à `a45959d` et 24. Deux repères stables, et une commande pou
 
 | Repère | Valeur |
 |---|---|
-| Dernier commit **de code** vérifié par la chaîne complète | `1bb54af` — *la vitrine, les cours, et la preuve que rien ne sort* |
-| Commit **de passation** précédent | `a45959d` |
-| Avance sur `main` avant le présent commit | **24** (`git rev-list --count origin/main..HEAD`) |
+| Base de la branche | `origin/main` au 14/08/2026 — la release y est fusionnée |
+| Ce que `feat/demo-judo` ajoute à `main` | la bascule judo, et rien d'autre (`git rev-list --count origin/main..HEAD`) |
+| Branche d'origine, désormais close | `feat/demo-interactive` (`284ad82`), restée en arrière de `main` |
 
 ```bash
 # L'état courant, toujours vrai, jamais recopié :
@@ -34,14 +36,20 @@ Dernière chaîne complète, lue jusqu'au bout :
 
 | Étape | Résultat |
 |---|---|
-| `npm test` | `TEST_EXIT=0` — **676 tests**, 30 fichiers |
+| `npm test` | `TEST_EXIT=0` — **1095 tests**, 49 fichiers (14/08, sur `feat/demo-judo`) |
 | `npm run build` | `BUILD_EXIT=0` — 18 routes `/demo/*`, 14 prérendues statiques |
 | `npm run typecheck` | `TC_EXIT=0` |
-| `npm run lint` | `LINT_EXIT=0` — 11 avertissements, **tous pré-existants** |
+| `npm run lint` | `LINT_EXIT=0` — 0 erreur, 12 avertissements, **tous pré-existants** |
 
-Les 11 avertissements portent sur `CombatClient`, `HeroFight`, `CreerWizard`,
-`FormBuilder`, `QuestionnaireSante`, `GuideInstallation`, `Citation`, `PushSetup`,
-`Reveal`. Aucun ne vient de `demo`. Ne pas les compter comme une régression.
+Les 12 avertissements portent sur `CombatClient`, `HeroFight`, `CreerWizard`,
+`FormBuilder`, `Scanner`, `QuestionnaireSante`, `GuideInstallation`, `Citation`,
+`PushSetup`, `Reveal` et les deux fichiers de configuration. Aucun ne vient de `demo`.
+Ne pas les compter comme une régression.
+
+⚠️ **Sous forte charge machine, des tests d'interface tombent en `Test timed out in
+5000ms` sans la moindre erreur d'assertion.** C'est arrivé le 14/08 : treize échecs à
+une charge moyenne de 262, zéro échec vingt minutes plus tard sur le même commit. Un
+échec sans message d'assertion se rejoue avant d'être cru.
 
 ---
 
@@ -434,10 +442,10 @@ Ce que les données rendent atteignable, et qu'il ne faut pas casser :
 - **cinq chèques non remis** — matière de la remise ;
 - **trois enfants déjà présents ce soir** — le contrôle montre l'état « déjà présent ».
 
-⚠️ **Une dette assumée, à lever avant toute fusion isolée.** La portée d'âge d'une pièce
-(`form_config.pieces[].mineurs_seulement`) est ce qui évite de réclamer une autorisation
-parentale à un adulte. Elle vient de la migration `20260804090000_pieces_mineurs.sql`, qui
-vit sur `release/klubster-commercial-v1-demo` et **pas sur cette branche** : ni
-`src/types/form.ts` ni le `FormBuilder` ne la connaissent ici. La démonstration devance
-donc son propre tronc. Tenable puisque les deux branches convergent — faux si la release
-n'était pas fusionnée.
+**Dette levée.** La portée d'âge d'une pièce (`form_config.pieces[].mineurs_seulement`) est
+ce qui évite de réclamer une autorisation parentale à un adulte. Elle était absente du tronc
+tant que la release n'était pas fusionnée ; elle y est depuis (migration
+`20260804090000_pieces_mineurs.sql`, `src/types/form.ts`, le `FormBuilder` du cockpit et le
+filtre de `src/app/[asso]/inscription/actions.ts`). La démonstration ne devance plus son
+propre produit : la case « MINEURS UNIQUEMENT » de `/demo/inscriptions` a désormais un
+équivalent exact dans le cockpit réel.

@@ -486,7 +486,7 @@ export default function DemoInscriptions() {
                     type="checkbox"
                     checked={pc.mineurs_seulement}
                     onChange={(e) => envoyer({ type: "form/piece-modifier", id: pc.id, piece: { mineurs_seulement: e.target.checked } })}
-                    className="h-5 w-5 accent-[#1E7A4F]"
+                    className="h-5 w-5 accent-success"
                   />
                   MINEURS UNIQUEMENT
                 </label>

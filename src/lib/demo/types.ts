@@ -193,13 +193,10 @@ export type PieceFormDemo = {
    * invalide vaut ADULTE, pour ne pas réclamer une autorisation parentale à quelqu'un
    * dont on ignore l'âge.
    *
-   * ATTENTION, IL N'EST PAS ENCORE SUR CETTE BRANCHE. Il vient de la migration
-   * `20260804090000_pieces_mineurs.sql`, qui vit sur `release/klubster-commercial-v1-demo`
-   * (voir `docs/reprise-lot-S.md`) : ni `src/types/form.ts` ni le `FormBuilder` de
-   * `feat/demo-interactive` ne le connaissent. La démonstration devance donc son propre
-   * tronc — ce qui est tenable puisque les deux branches convergent, mais qui cesserait
-   * de l'être si la release n'était pas fusionnée. À vérifier avant de fusionner la démo
-   * seule.
+   * La dette est levée : la release a été fusionnée, et le champ existe bel et bien dans
+   * le produit — migration `20260804090000_pieces_mineurs.sql`, `src/types/form.ts`,
+   * le `FormBuilder` du cockpit et le filtre de `src/app/[asso]/inscription/actions.ts`.
+   * La démonstration ne devance donc plus rien : elle montre ce qui est livré.
    */
   mineurs_seulement: boolean;
 };
