@@ -162,7 +162,7 @@ describe("le mode édition", () => {
   it("supprime un chapitre personnalisé — sans retour possible", () => {
     const base = creerEtatDemoInitial();
     monter();
-    clic("Supprimer « Le mot de la présidente »");
+    clic("Supprimer « Le mot du président »");
     expect(vu!.site.custom.length).toBe(base.site.custom.length - 1);
     // Un chapitre supprimé n'entre PAS dans les chapitres retirés : il n'existe plus.
     expect(vu!.site.masquees.length).toBe(0);
@@ -193,7 +193,7 @@ describe("l’ajout d’un chapitre", () => {
     monter();
     clic("Grande citation Une phrase, pleine largeur, comme un manifeste.");
     poser(screen.getByLabelText("TITRE DU CHAPITRE"), "Ce qu’on vient chercher", window.HTMLInputElement);
-    poser(screen.getByLabelText("TEXTE"), "Respirer, c’est déjà pratiquer.", window.HTMLTextAreaElement);
+    poser(screen.getByLabelText("TEXTE"), "Tomber, c’est déjà pratiquer.", window.HTMLTextAreaElement);
     clic(/SIMULER L’AJOUT DU CHAPITRE/);
 
     expect(vu!.site.custom.length).toBe(base.site.custom.length + 1);
@@ -202,7 +202,7 @@ describe("l’ajout d’un chapitre", () => {
     expect(dernier.titre).toBe("Ce qu’on vient chercher");
     // Il est bien rendu, en dernière position.
     expect(chapitresDuSite(vu!).at(-1)!.cle).toBe(dernier.id);
-    expect(screen.getByText(/Respirer, c’est déjà pratiquer/)).toBeTruthy();
+    expect(screen.getByText(/Tomber, c’est déjà pratiquer/)).toBeTruthy();
   });
 
   it("refuse d’ajouter un chapitre sans texte", () => {

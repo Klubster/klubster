@@ -286,14 +286,14 @@ describe("l’aperçu de la vitrine", () => {
     const une = () => document.querySelector('[class*="À LA UNE"], .mono')!;
     expect(screen.getByText("À LA UNE")).toBeTruthy();
 
-    taperTitre("Le studio ferme lundi");
+    taperTitre("Le dojo ferme lundi");
     taperTexte("Reprise mardi.");
     act(() => boutonPublier().click());
     avancer(450);
 
     // « À la une » a changé sous les yeux du visiteur.
     const bloc = screen.getByText("À LA UNE").closest("div")!;
-    expect(bloc.textContent).toContain("Le studio ferme lundi");
+    expect(bloc.textContent).toContain("Le dojo ferme lundi");
     expect(une()).toBeTruthy();
   });
 
@@ -333,7 +333,7 @@ describe("la page publique d’une actualité", () => {
   it("porte le nom du club et non celui de Klubster", () => {
     const base = creerEtatDemoInitial();
     page(base.actualites[1].id);
-    expect(screen.getByText(/← L’Arbre et le Souffle/)).toBeTruthy();
+    expect(screen.getByText(/← Judo Club des Peupliers/)).toBeTruthy();
     expect(screen.getByText(base.actualites[1].titre)).toBeTruthy();
   });
 

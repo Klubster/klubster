@@ -349,9 +349,12 @@ describe("la liste — recherche, filtre, tri, pagination", () => {
 
   it("la recherche porte sur le nom, le prénom et l’email", () => {
     const etat = etatInitial();
-    expect(listerAdherents(etat, { q: "Berthier" })[0]?.adherent.prenom).toBe("Marion");
-    expect(listerAdherents(etat, { q: "marion" })[0]?.adherent.nom).toBe("Berthier");
-    expect(listerAdherents(etat, { q: "s.nguyen@example.com" })[0]?.adherent.nom).toBe("Nguyen");
+    expect(listerAdherents(etat, { q: "Berthier" })[0]?.adherent.prenom).toBe("Lina");
+    expect(listerAdherents(etat, { q: "lina" })[0]?.adherent.nom).toBe("Berthier");
+    // L'adresse d'un dossier de mineur est celle de son parent : chercher par email,
+    // c'est chercher le parent et trouver l'enfant. C'est ce que fait un président qui
+    // reçoit une réponse et veut retrouver le dossier.
+    expect(listerAdherents(etat, { q: "m.nguyen@example.com" })[0]?.adherent.nom).toBe("Nguyen");
   });
 
   it("un adhérent sans email reste trouvable par son nom", () => {
@@ -377,22 +380,23 @@ describe("la liste — recherche, filtre, tri, pagination", () => {
     // La cible est « prénom nom email », en minuscules. Le nettoyage retire la
     // ponctuation sans casser la recherche.
     expect(listerAdherents(etatInitial(), { q: "Berthier)" })).toHaveLength(1);
-    expect(listerAdherents(etatInitial(), { q: "(Marion*)" })).toHaveLength(1);
+    expect(listerAdherents(etatInitial(), { q: "(Lina*)" })).toHaveLength(1);
     expect(listerAdherents(etatInitial(), { q: "Nguyen;" })).toHaveLength(1);
   });
 
   it("les espaces laissés par la ponctuation ne cassent pas la correspondance", () => {
-    // « Berthier, (Marion) » devient « berthier marion ». La cible de Marion Berthier
-    // est « marion berthier marion.berthier@example.com » : elle CONTIENT bien
-    // « berthier marion », à cheval sur le nom et le début de l'email.
+    // « Moreau, (Claire) » devient « moreau claire ». La cible de Claire Moreau est
+    // « claire moreau claire.moreau@example.com » : elle CONTIENT bien « moreau claire »,
+    // à cheval sur le nom et le début de l'email.
     //
     // Ma première version de ce test affirmait le contraire — zéro résultat — et c'est
     // l'assertion qui était fausse, pas le code. Je le note parce que la correspondance
     // est fortuite : elle tient à la façon dont l'adresse est construite, et un autre
-    // adhérent ne l'aurait pas eue.
-    const trouve = listerAdherents(etatInitial(), { q: "Berthier, (Marion)" });
+    // adhérent ne l'aurait pas eue. Un dossier de mineur, justement, ne l'a jamais : son
+    // adresse est celle d'un parent, et ne reprend donc pas le prénom de l'enfant.
+    const trouve = listerAdherents(etatInitial(), { q: "Moreau, (Claire)" });
     expect(trouve).toHaveLength(1);
-    expect(trouve[0].adherent.nom).toBe("Berthier");
+    expect(trouve[0].adherent.nom).toBe("Moreau");
 
     // Chez quelqu'un dont l'adresse ne reprend pas le nom, la même forme ne trouve rien.
     expect(listerAdherents(etatInitial(), { q: "Chevalier, (Michel)" })).toHaveLength(0);

@@ -8,7 +8,9 @@ lots 4 à 10 sont faits, et ce qui suit décrit l'état réel de la branche, pas
 ## 1. Où en est la branche
 
 ```
-branche : feat/demo-interactive
+branche : feat/demo-judo — la bascule judo, reportée sur origin/main le 14/08/2026
+origine : feat/demo-interactive, qui était restée un ANCÊTRE de main (la release y a
+          été fusionnée depuis : lot S, priorités du cockpit, tokens de couleur)
 fusion  : AUCUNE — ne rien fusionner sans accord explicite de Mathieu
 ```
 
@@ -19,9 +21,9 @@ la branche était à `a45959d` et 24. Deux repères stables, et une commande pou
 
 | Repère | Valeur |
 |---|---|
-| Dernier commit **de code** vérifié par la chaîne complète | `1bb54af` — *la vitrine, les cours, et la preuve que rien ne sort* |
-| Commit **de passation** précédent | `a45959d` |
-| Avance sur `main` avant le présent commit | **24** (`git rev-list --count origin/main..HEAD`) |
+| Base de la branche | `origin/main` au 14/08/2026 — la release y est fusionnée |
+| Ce que `feat/demo-judo` ajoute à `main` | la bascule judo, et rien d'autre (`git rev-list --count origin/main..HEAD`) |
+| Branche d'origine, désormais close | `feat/demo-interactive` (`284ad82`), restée en arrière de `main` |
 
 ```bash
 # L'état courant, toujours vrai, jamais recopié :
@@ -34,14 +36,20 @@ Dernière chaîne complète, lue jusqu'au bout :
 
 | Étape | Résultat |
 |---|---|
-| `npm test` | `TEST_EXIT=0` — **676 tests**, 30 fichiers |
+| `npm test` | `TEST_EXIT=0` — **1095 tests**, 49 fichiers (14/08, sur `feat/demo-judo`) |
 | `npm run build` | `BUILD_EXIT=0` — 18 routes `/demo/*`, 14 prérendues statiques |
 | `npm run typecheck` | `TC_EXIT=0` |
-| `npm run lint` | `LINT_EXIT=0` — 11 avertissements, **tous pré-existants** |
+| `npm run lint` | `LINT_EXIT=0` — 0 erreur, 12 avertissements, **tous pré-existants** |
 
-Les 11 avertissements portent sur `CombatClient`, `HeroFight`, `CreerWizard`,
-`FormBuilder`, `QuestionnaireSante`, `GuideInstallation`, `Citation`, `PushSetup`,
-`Reveal`. Aucun ne vient de `demo`. Ne pas les compter comme une régression.
+Les 12 avertissements portent sur `CombatClient`, `HeroFight`, `CreerWizard`,
+`FormBuilder`, `Scanner`, `QuestionnaireSante`, `GuideInstallation`, `Citation`,
+`PushSetup`, `Reveal` et les deux fichiers de configuration. Aucun ne vient de `demo`.
+Ne pas les compter comme une régression.
+
+⚠️ **Sous forte charge machine, des tests d'interface tombent en `Test timed out in
+5000ms` sans la moindre erreur d'assertion.** C'est arrivé le 14/08 : treize échecs à
+une charge moyenne de 262, zéro échec vingt minutes plus tard sur le même commit. Un
+échec sans message d'assertion se rejoue avant d'être cru.
 
 ---
 
@@ -109,9 +117,15 @@ tourner sur la machine de Mathieu, pas dans le bac à sable.
 ### Lot 4 — Messages
 
 Les adhérents **sans email** n'entrent nulle part : le club en a un, le compteur dit donc
-33 sur 34. Le groupe « Parents (adhérents mineurs) » rend **zéro** destinataire — ce club
-de yoga n'accueille aucun mineur — et désactive l'envoi. Son libellé **archivé** diffère
-du libellé affiché : « Responsables légaux des mineurs ».
+33 sur 34. Le groupe « Parents (adhérents mineurs) » sélectionne les adhérents **mineurs**
+et écrit à l'adresse de leur dossier, qui est celle du représentant légal ; il rend donc
+24 destinataires. Son libellé **archivé** diffère du libellé affiché : « Responsables
+légaux des mineurs ».
+
+⚠️ **Corrigé le 13/08/2026, avec le passage au judo.** Le groupe rendait auparavant
+**zéro** en dur, avec le commentaire « aucun mineur dans ce club » — vrai du club de yoga,
+faux dès qu'un club en accueille. Le test qui avait besoin d'un groupe vide s'appuie
+désormais sur un créneau neuf où personne n'est encore inscrit.
 
 **Le compteur qui se trompe tout seul** : « accepté » n'est pas exclusif de « distribué ».
 `nombre_acceptes` est posé à l'envoi et `appliquer_evenement_resend` n'y retouche jamais.
@@ -393,20 +407,45 @@ Pièges déjà payés :
 
 ## 8. Les données du club, et ce qu'elles portent
 
-`L'Arbre et le Souffle`, yoga, Angers. 34 adhérents, 6 cours, une saison `2026-2027`,
-horloge figée au **mardi 20 octobre 2026, 19 h**.
+`Judo Club des Peupliers`, judo, Laval. 34 adhérents **dont 24 mineurs**, 6 cours, une
+saison `2026-2027`, horloge figée au **mardi 20 octobre 2026, 19 h**.
+
+**Le club a changé de discipline le 13/08/2026, et ce n'est pas cosmétique.** La campagne
+de prospection vise 2 000 clubs de sports de combat : la démonstration devait montrer ce
+que l'email promet — des dossiers d'enfants, une autorisation parentale à réclamer, un
+questionnaire de santé signé par un parent. Le club de yoga ne le pouvait pas, faute de
+mineurs. Klubster n'est pour autant pas un logiciel de combat : le judo est un décor,
+et rien dans le code de `/demo` ne connaît de ceinture ni de tatami.
 
 Ce que les données rendent atteignable, et qu'il ne faut pas casser :
 
 - **un adhérent sans email** (Michel Chevalier) — fait exister le « 33 sur 34 » du
   composeur et la mention « Pas d'email » des relances ;
-- **aucun mineur** — le groupe « Parents » rend zéro et désactive l'envoi ;
-- **cinq dossiers incomplets** — font vivre le groupe « Dossiers incomplets » ;
+- **24 mineurs sur 34** — font vivre le groupe « Parents », les autorisations parentales,
+  et le bloc « Responsable légal » de la fiche. La minorité se **déduit** de
+  `date_naissance` via `estMineur` (`src/lib/sante.ts`), jamais d'un indicateur posé sur
+  la fiche : c'est la règle du serveur, et la démonstration ne s'en écarte pas. Aucune
+  date de naissance n'est en octobre, pour qu'un décalage de fuseau ne puisse faire
+  basculer personne d'un groupe à l'autre entre le rendu serveur et le rendu navigateur ;
+- **cinq dossiers incomplets** — cinq autorisations parentales jamais rendues, ce qui fait
+  vivre le groupe « Dossiers incomplets » ;
+- **deux questionnaires de santé concluent au certificat** — seul chemin du produit vers
+  une pièce « certificat médical ». En judo le questionnaire **suffit** depuis 2021, sauf
+  réponse positive et sauf compétition ; le certificat systématique est l'affaire de la
+  boxe anglaise. Ne pas réécrire l'inverse ;
 - **deux personnes n'ont que la saison passée** — sans elles, « RENOUVELER LA SAISON »
   répond immédiatement « tout le monde en a déjà une » ;
-- **le Hatha est complet, sept inscrits pour sept places** — c'est la jauge, et rien
-  d'autre, qui ouvre la liste d'attente. Corrigé le 01/08 : il annonçait 22 places pour
-  7 inscrits, et une adhérente attendait pourtant ;
+- **les poussins sont complets, sept inscrits pour sept places** — c'est la jauge, et rien
+  d'autre, qui ouvre la liste d'attente. Corrigé le 01/08 : le cours annonçait 22 places
+  pour 7 inscrits, et une enfant attendait pourtant ;
 - **une seule adhésion payée par carte** — seul chemin vers le panneau de remboursement ;
 - **cinq chèques non remis** — matière de la remise ;
-- **trois personnes déjà présentes ce soir** — le contrôle montre l'état « déjà présent ».
+- **trois enfants déjà présents ce soir** — le contrôle montre l'état « déjà présent ».
+
+**Dette levée.** La portée d'âge d'une pièce (`form_config.pieces[].mineurs_seulement`) est
+ce qui évite de réclamer une autorisation parentale à un adulte. Elle était absente du tronc
+tant que la release n'était pas fusionnée ; elle y est depuis (migration
+`20260804090000_pieces_mineurs.sql`, `src/types/form.ts`, le `FormBuilder` du cockpit et le
+filtre de `src/app/[asso]/inscription/actions.ts`). La démonstration ne devance plus son
+propre produit : la case « MINEURS UNIQUEMENT » de `/demo/inscriptions` a désormais un
+équivalent exact dans le cockpit réel.

@@ -82,7 +82,7 @@ describe("les règles du réducteur", () => {
   });
 
   it("supprime un cours vide", () => {
-    const cree = reducteurDemo(base, { type: "cours/ajouter", nom: "Yoga du matin", tarifCentimes: 18000 });
+    const cree = reducteurDemo(base, { type: "cours/ajouter", nom: "Kata du samedi", tarifCentimes: 18000 });
     const nouveau = cree.cours.at(-1)!;
     const apres = reducteurDemo(cree, { type: "cours/supprimer", id: nouveau.id });
     expect(apres.cours.some((c) => c.id === nouveau.id)).toBe(false);
@@ -129,7 +129,7 @@ describe("l’écran", () => {
   it("ouvre la suppression sur un cours créé pendant la visite", () => {
     const base = creerEtatDemoInitial();
     monter(<DemoCours />);
-    poser(screen.getByLabelText("Nom du nouveau cours"), "Yoga du matin", window.HTMLInputElement);
+    poser(screen.getByLabelText("Nom du nouveau cours"), "Kata du samedi", window.HTMLInputElement);
     poser(screen.getByLabelText("Tarif du nouveau cours"), "180", window.HTMLInputElement);
     clic(/SIMULER L’AJOUT/);
     avancer(450);
@@ -139,8 +139,8 @@ describe("l’écran", () => {
     expect(screen.getByText(`${base.cours.length + 1} cours`)).toBeTruthy();
 
     // Ce cours-là n'a personne : il se supprime.
-    clic("Supprimer le cours Yoga du matin");
-    expect(screen.getByText(/Supprimer « Yoga du matin » \?/)).toBeTruthy();
+    clic("Supprimer le cours Kata du samedi");
+    expect(screen.getByText(/Supprimer « Kata du samedi » \?/)).toBeTruthy();
     clic("Oui, supprimer");
     expect(vu!.cours.length).toBe(base.cours.length);
   });
@@ -242,7 +242,7 @@ describe("un tarif modifié suit jusqu’à la vitrine", () => {
         <Sonde />
       </DemoLayout>
     );
-    const c = base.cours[2]; // Yin Yoga, 16 places, loin d'être plein
+    const c = base.cours[2]; // Judo benjamins, 16 places, loin d'être plein
     expect(jaugeDuCours(base, c.id).complet).toBe(false);
     expect(screen.getAllByText("S’INSCRIRE À CE COURS →").length).toBeGreaterThan(0);
 

@@ -242,6 +242,11 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         email: facultatif(action.email, 160),
         telephone: facultatif(action.telephone, 30),
         created_at: AUJOURDHUI,
+        // L'ajout manuel du cockpit ne demande PAS la date de naissance — quatre champs,
+        // un cours, un mode de paiement, et c'est tout. La fiche naît donc sans âge
+        // connu, ce qui la range du côté des majeurs : ni autorisation parentale, ni
+        // groupe « Parents ». C'est le comportement du produit, pas un raccourci.
+        date_naissance: null,
         infos: {},
       };
       // Le tarif est relu depuis le cours, JAMAIS pris dans le formulaire — même règle
@@ -293,7 +298,7 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
       //
       // La règle du serveur, relue dans `importerAdherents` : AVEC un email, c'est
       // l'email seul qui fait le doublon ; SANS email, c'est le couple prénom + nom.
-      // Deux homonymes ayant chacun son adresse sont donc acceptés — un club de yoga a
+      // Deux homonymes ayant chacun son adresse sont donc acceptés — un club a toujours
       // ses deux Marie Martin, et refuser la seconde aurait été un bug silencieux.
       //
       // Mon code comparait les valeurs BRUTES et ne nettoyait qu'à la création. Trois
@@ -340,6 +345,10 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
           email: email || null,
           telephone,
           created_at: AUJOURDHUI,
+          // Les cinq colonnes de l'import réel sont prénom, nom, email, téléphone et
+          // cours : pas de date de naissance. Une fiche importée est donc sans âge
+          // connu, comme une fiche saisie à la main.
+          date_naissance: null,
           infos: {},
         });
         const cours = etat.cours.find((c) => c.id === l.coursId);
@@ -385,7 +394,12 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
         ...etat,
         adherents: etat.adherents.map((a) =>
           a.id === action.id
-            ? { ...a, prenom: "Adhérent", nom: "anonymisé", email: null, telephone: null, infos: {}, anonymise: true }
+            // `date_naissance = null` fait partie de la remise à zéro de la RPC réelle, et
+            // ce n'est pas un détail : une fiche anonymisée qui garderait sa date de
+            // naissance resterait dans le groupe « Parents » du composeur, et le club
+            // écrirait encore aux représentants légaux de quelqu'un qui a demandé
+            // l'effacement.
+            ? { ...a, prenom: "Adhérent", nom: "anonymisé", email: null, telephone: null, date_naissance: null, infos: {}, anonymise: true }
             : a
         ),
         questionnaires: etat.questionnaires.filter((q) => q.adherent_id !== action.id),
@@ -742,7 +756,16 @@ export function reducteurDemo(etat: EtatDemo, action: ActionDemo): EtatDemo {
       };
 
     case "form/piece-ajouter":
-      return { ...etat, form: { ...etat.form, pieces: [...etat.form.pieces, { id: id("pf"), label: "", obligatoire: true, cours_id: null }] }, compteur: n };
+      // Une pièce neuve est demandée à tout le monde : ni portée de cours, ni portée
+      // d'âge. C'est au club de restreindre ensuite, pas au produit de deviner.
+      return {
+        ...etat,
+        form: {
+          ...etat.form,
+          pieces: [...etat.form.pieces, { id: id("pf"), label: "", obligatoire: true, cours_id: null, mineurs_seulement: false }],
+        },
+        compteur: n,
+      };
 
     case "form/piece-modifier":
       return { ...etat, form: { ...etat.form, pieces: etat.form.pieces.map((p) => (p.id === action.id ? { ...p, ...action.piece } : p)) } };

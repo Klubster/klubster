@@ -16,7 +16,10 @@ import { TYPE_LABELS, type ChampTypeDemo } from "@/lib/demo/types";
  *
  * — Les RÉDUCTIONS n'ont PAS de flèches de réordonnancement ; les autorisations et les
  *   pièces en ont. Ce n'est pas un oubli du produit, c'est ce qu'il fait.
- * — Une pièce peut être rattachée à UN cours (« Yin Yoga uniquement ») ; un champ, non.
+ * — Une pièce a DEUX portées, indépendantes : un cours (« Judo benjamins uniquement »)
+ *   et l'âge (« MINEURS UNIQUEMENT »). Un champ n'a ni l'une ni l'autre. La portée d'âge
+ *   est celle qui fait exister l'autorisation parentale sans la réclamer aux adultes ;
+ *   c'est le serveur qui en décide, à partir de la date de naissance.
  * — Le questionnaire de santé est une seule case à cocher, avec deux paragraphes
  *   d'explication qui disent quand NE PAS l'activer. Ces paragraphes sont la seule
  *   pédagogie du produit sur un point de droit ; les résumer serait les perdre.
@@ -355,13 +358,18 @@ export default function DemoInscriptions() {
                   />
                   OBLIGATOIRE
                 </label>
-                <Btn titre="Monter l’autorisation" onClick={() => envoyer({ type: "form/autorisation-deplacer", id: a.id, sens: -1 })}>
+                {/* Le nom accessible nomme l'autorisation. Tant qu'il n'y en avait
+                    aucune dans le club de démonstration, trois « Monter l'autorisation »
+                    identiques ne se voyaient pas ; avec trois autorisations réelles, une
+                    lecture d'écran n'aurait plus su laquelle elle déplaçait. Même
+                    traitement que les champs et les pièces. */}
+                <Btn titre={`Monter « ${a.label || "autorisation sans libellé"} »`} onClick={() => envoyer({ type: "form/autorisation-deplacer", id: a.id, sens: -1 })}>
                   ↑
                 </Btn>
-                <Btn titre="Descendre l’autorisation" onClick={() => envoyer({ type: "form/autorisation-deplacer", id: a.id, sens: 1 })}>
+                <Btn titre={`Descendre « ${a.label || "autorisation sans libellé"} »`} onClick={() => envoyer({ type: "form/autorisation-deplacer", id: a.id, sens: 1 })}>
                   ↓
                 </Btn>
-                <Btn titre="Supprimer l’autorisation" onClick={() => envoyer({ type: "form/autorisation-supprimer", id: a.id })}>
+                <Btn titre={`Supprimer « ${a.label || "autorisation sans libellé"} »`} onClick={() => envoyer({ type: "form/autorisation-supprimer", id: a.id })}>
                   ✕
                 </Btn>
               </div>
@@ -399,10 +407,20 @@ export default function DemoInscriptions() {
                   Version majeur ou mineur choisie automatiquement selon la date de naissance, signée
                   en ligne, et seul le résultat est conservé (jamais le détail des réponses).
                 </span>
+                {/* ÉCART ASSUMÉ AVEC LE TEXTE DU PRODUIT, ET IL EST VOLONTAIRE.
+                    `cockpit/formulaire/FormBuilder.tsx` écrit « sports de combat,
+                    compétition… », ce qui range le judo du mauvais côté : en judo, le
+                    questionnaire de santé remplace bien le certificat depuis 2021, sauf
+                    réponse positive et sauf compétition. Le certificat systématique est
+                    l'affaire de la boxe anglaise. Reprendre la phrase telle quelle
+                    aurait fait dire à la démonstration l'inverse de ce que ses propres
+                    données montrent — et l'inverse du droit. La correction est à porter
+                    dans le produit. */}
                 <span className="mt-2 block max-w-prose text-[13px] leading-relaxed text-ink-soft">
-                  Si votre discipline exige un certificat médical dans tous les cas (sports de
-                  combat, compétition…), laissez cette case décochée et demandez le certificat dans
-                  les pièces à fournir ci-dessous.
+                  Certaines disciplines exigent un certificat médical dans tous les cas — la boxe
+                  anglaise, par exemple. Dans ce cas, laissez cette case décochée et demandez le
+                  certificat dans les pièces à fournir ci-dessous. En judo, le questionnaire suffit :
+                  le certificat n’est réclamé qu’au moindre « oui », ou pour la compétition.
                 </span>
               </span>
             </label>
@@ -456,6 +474,21 @@ export default function DemoInscriptions() {
                     className="h-5 w-5 accent-success"
                   />
                   OBLIGATOIRE
+                </label>
+                {/* La seconde portée d'une pièce. Elle n'a l'air de rien et c'est elle qui
+                    évite de réclamer une autorisation parentale à un adulte de quarante
+                    ans — le genre de demande qui fait douter un club de son logiciel. */}
+                <label
+                  className="mono flex min-h-[44px] items-center gap-1.5 text-[11px] text-ink-soft"
+                  title="Cette pièce n'est demandée que si l'adhérent est mineur (autorisation parentale, etc.)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={pc.mineurs_seulement}
+                    onChange={(e) => envoyer({ type: "form/piece-modifier", id: pc.id, piece: { mineurs_seulement: e.target.checked } })}
+                    className="h-5 w-5 accent-success"
+                  />
+                  MINEURS UNIQUEMENT
                 </label>
                 <Btn titre={`Monter « ${pc.label || "pièce sans libellé"} »`} onClick={() => envoyer({ type: "form/piece-deplacer", id: pc.id, sens: -1 })}>
                   ↑

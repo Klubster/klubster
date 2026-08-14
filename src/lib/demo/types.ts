@@ -32,9 +32,34 @@ export type AdherentDemo = {
   id: string;
   prenom: string;
   nom: string;
+  /**
+   * L'adresse du DOSSIER, pas forcément celle de l'adhérent.
+   *
+   * Pour un mineur, c'est le représentant légal qui crée le compte et saisit son propre
+   * email : la colonne `adherents.email` porte donc l'adresse d'un parent. C'est ce qui
+   * fait fonctionner le groupe « Parents (adhérents mineurs) » du composeur, qui
+   * sélectionne les adhérents MINEURS et écrit à leur adresse
+   * (`cockpit/communication/actions.ts`).
+   */
   email: string | null;
   telephone: string | null;
   created_at: string;
+  /**
+   * Date de naissance — colonne réelle `adherents.date_naissance`.
+   *
+   * Elle décide de trois choses dans le produit, toutes côté serveur : l'affichage du
+   * bloc « Responsable légal » à l'inscription, la version du questionnaire de santé
+   * (adulte ou mineur), et l'appartenance au groupe « Parents » de la messagerie. Jamais
+   * un booléen « est mineur » posté par le navigateur : la minorité se DÉDUIT de cette
+   * date (correctif de l'audit du 21/07/2026).
+   *
+   * `null` est possible, et il faut le tenir : une fiche saisie à la main au forum des
+   * associations n'a pas de date de naissance — le cockpit ne la demande pas. Sans date,
+   * le produit tranche du côté prudent et considère la personne MAJEURE : on ne réclame
+   * pas d'autorisation parentale à quelqu'un dont on ignore l'âge, et on ne l'ajoute pas
+   * au groupe « Parents » d'un envoi collectif.
+   */
+  date_naissance: string | null;
   /** Réponses libres du formulaire d'inscription, clés brutes comme dans le produit. */
   infos: Record<string, string>;
   /** Anonymisé par le parcours RGPD simulé. */
@@ -153,7 +178,28 @@ export type ChampDemo = {
 };
 
 export type PageFormDemo = { id: string; titre: string; champs: ChampDemo[] };
-export type PieceFormDemo = { id: string; label: string; obligatoire: boolean; cours_id: string | null };
+
+export type PieceFormDemo = {
+  id: string;
+  label: string;
+  obligatoire: boolean;
+  /** Pièce demandée uniquement pour ce cours (`null` = tous). */
+  cours_id: string | null;
+  /**
+   * Pièce exigée des seuls adhérents MINEURS — l'autorisation parentale, typiquement.
+   *
+   * Champ réel `form_config.pieces[].mineurs_seulement` : `register_adherent_full` ne
+   * crée la pièce que si la date de naissance indique un mineur ; une date absente ou
+   * invalide vaut ADULTE, pour ne pas réclamer une autorisation parentale à quelqu'un
+   * dont on ignore l'âge.
+   *
+   * La dette est levée : la release a été fusionnée, et le champ existe bel et bien dans
+   * le produit — migration `20260804090000_pieces_mineurs.sql`, `src/types/form.ts`,
+   * le `FormBuilder` du cockpit et le filtre de `src/app/[asso]/inscription/actions.ts`.
+   * La démonstration ne devance donc plus rien : elle montre ce qui est livré.
+   */
+  mineurs_seulement: boolean;
+};
 export type RemiseFormDemo = {
   id: string;
   label: string;

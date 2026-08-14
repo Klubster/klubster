@@ -7,7 +7,8 @@ import DemoLayout from "@/app/demo/layout";
 import DemoMessages from "@/app/demo/messages/page";
 import DemoCampagne from "@/app/demo/messages/[id]/page";
 import { useDemo } from "@/components/demo/DemoProvider";
-import { creerEtatDemoInitial, type EtatDemo } from "@/lib/demo/etat";
+import { creerEtatDemoInitial, reducteurDemo, type EtatDemo } from "@/lib/demo/etat";
+import { estMineurDemo } from "@/lib/demo/donnees";
 import {
   compteursCampagne,
   destinatairesDuGroupe,
@@ -27,7 +28,8 @@ import {
  * 2. « Accepté » n'exclut pas « distribué ». Le produit incrémente `nombre_acceptes` à
  *    l'envoi et n'y retouche plus ; compter les seules lignes RESTÉES au statut
  *    « accepté » afficherait « 0 accepté · 32 distribués ».
- * 3. Le libellé archivé du groupe « parents » n'est PAS celui du menu déroulant.
+ * 3. Le libellé archivé du groupe « parents » n'est PAS celui du menu déroulant, et ce
+ *    groupe sélectionne les adhérents MINEURS — pas une liste de parents tenue à part.
  * 4. Les ouvertures et les clics n'existent pas, et aucun écran ne doit les inventer.
  */
 
@@ -43,6 +45,16 @@ function Sonde() {
     vu = etat;
   }, [etat]);
   return null;
+}
+
+/** Un levier monté à côté de l'écran : il ouvre un créneau, qui naît sans inscrit. */
+function Levier() {
+  const { envoyer } = useDemo();
+  return (
+    <button onClick={() => envoyer({ type: "cours/ajouter", nom: "Kata — nouveau créneau", tarifCentimes: 12000 })}>
+      ouvrir-un-cours
+    </button>
+  );
 }
 
 const monter = (ecran: React.ReactNode) =>
@@ -123,8 +135,62 @@ describe("le calcul des destinataires", () => {
     expect(emails.filter((e) => e === partagee).length).toBe(1);
   });
 
-  it("rend zéro destinataire pour les mineurs — ce club n'en a pas", () => {
-    expect(destinatairesDuGroupe(base, "parents")).toEqual([]);
+  it("rend les adresses des représentants légaux, et elles seules", () => {
+    // LE GROUPE LE PLUS UTILISÉ D'UN CLUB D'ENFANTS, et celui qui peut se tromper sans
+    // qu'on s'en aperçoive : écrire aux « parents » d'un adulte serait embarrassant,
+    // oublier une famille serait pire. On compare donc la liste rendue à celle qu'on
+    // recalcule depuis les seules dates de naissance.
+    const emails = destinatairesDuGroupe(base, "parents");
+    const mineurs = base.adherents.filter((a) => a.email && estMineurDemo(a.date_naissance));
+
+    expect(mineurs.length).toBeGreaterThan(0);
+    expect(emails.length).toBe(mineurs.length);
+    expect([...emails].sort()).toEqual([...mineurs.map((a) => a.email as string)].sort());
+
+    // Aucun majeur n'y entre — et le club en compte, ce qui rend la vérification utile.
+    const majeurs = base.adherents.filter((a) => a.email && !estMineurDemo(a.date_naissance));
+    expect(majeurs.length).toBeGreaterThan(0);
+    for (const a of majeurs) expect(emails).not.toContain(a.email);
+  });
+
+  it("écrit à l’adresse du dossier, qui est celle du responsable légal", () => {
+    // L'adresse d'un mineur EST celle de son parent : c'est lui qui a créé le compte à
+    // l'inscription. Le club n'a donc pas deux carnets d'adresses à tenir — et la fiche
+    // porte la même adresse sous « Responsable légal — email ».
+    const emails = destinatairesDuGroupe(base, "parents");
+    const enfant = base.adherents.find((a) => estMineurDemo(a.date_naissance) && a.email)!;
+
+    expect(emails).toContain(enfant.email);
+    expect(enfant.infos["Responsable légal — email"]).toBe(enfant.email);
+    expect(enfant.infos["Responsable légal"]).toBeTruthy();
+    expect(enfant.infos["Responsable légal — qualité"]).toBeTruthy();
+  });
+
+  it("sort du groupe une fiche anonymisée, qui n’a plus d’âge", () => {
+    // L'anonymisation vide `date_naissance`. Sans cela, le club continuerait d'écrire
+    // aux représentants légaux de quelqu'un qui a demandé l'effacement.
+    const enfant = base.adherents.find((a) => estMineurDemo(a.date_naissance))!;
+    const apres = reducteurDemo(base, { type: "adherent/anonymiser", id: enfant.id });
+    expect(destinatairesDuGroupe(apres, "parents").length).toBe(
+      destinatairesDuGroupe(base, "parents").length - 1
+    );
+  });
+
+  it("laisse dehors une fiche saisie à la main, faute de date de naissance", () => {
+    // L'ajout manuel du cockpit ne demande pas la date de naissance. Sans âge connu, le
+    // produit tranche du côté prudent : majeur. Deviner l'inverse ferait partir une
+    // convocation « aux parents » d'un adulte.
+    const apres = reducteurDemo(base, {
+      type: "adherent/ajouter",
+      prenom: "Sans",
+      nom: "Age",
+      email: "sans.age@example.com",
+      telephone: "",
+      coursId: "c1",
+      mode: "cheque",
+    });
+    expect(destinatairesDuGroupe(apres, "parents")).toEqual(destinatairesDuGroupe(base, "parents"));
+    expect(destinatairesDuGroupe(apres, "tous")).toContain("sans.age@example.com");
   });
 
   it("compte les dossiers incomplets, et seulement ceux qui ont un email", () => {
@@ -240,12 +306,28 @@ describe("le composeur", () => {
   });
 
   it("désactive l’envoi sur un groupe vide, même objet et message remplis", () => {
-    monter(<DemoMessages />);
-    taperObjet("Réunion des parents");
+    /**
+     * IL A FALLU FABRIQUER LE GROUPE VIDE, et c'est une bonne nouvelle.
+     *
+     * Ce test s'appuyait sur « Parents », qui ne rendait rien tant que le club de
+     * démonstration n'accueillait aucun mineur. Ce club-ci en compte vingt-quatre : le
+     * groupe est désormais le plus fourni du composeur. On ouvre donc un créneau neuf —
+     * exactement ce que fait un club en janvier — et personne n'y est encore inscrit.
+     */
+    monter(
+      <>
+        <DemoMessages />
+        <Levier />
+      </>
+    );
+    act(() => screen.getByText("ouvrir-un-cours").click());
+    const neuf = vu!.cours.at(-1)!;
+
+    taperObjet("Réunion de rentrée");
     taperMessage("Bonjour,");
     expect(boutonEnvoi().disabled).toBe(false);
 
-    choisirGroupe("parents");
+    choisirGroupe(neuf.id);
     expect(screen.getByText("0 destinataire avec un email")).toBeTruthy();
     expect(boutonEnvoi().disabled).toBe(true);
     expect(screen.getByText(/n’a d’adresse email/)).toBeTruthy();
@@ -274,7 +356,7 @@ describe("l’envoi simulé", () => {
     const attendu = destinatairesDuGroupe(base, "tous");
     monter(<DemoMessages />);
 
-    taperObjet("Le studio ferme lundi");
+    taperObjet("Le dojo ferme lundi");
     taperMessage("Bonjour à toutes et à tous.");
     act(() => boutonEnvoi().click());
 
@@ -285,7 +367,7 @@ describe("l’envoi simulé", () => {
 
     expect(vu!.campagnes.length).toBe(base.campagnes.length + 1);
     const campagne = vu!.campagnes[0];
-    expect(campagne.objet).toBe("Le studio ferme lundi");
+    expect(campagne.objet).toBe("Le dojo ferme lundi");
     expect(campagne.groupe_libelle).toBe("Tous les adhérents");
     expect(campagne.destinataires.map((d) => d.email)).toEqual(attendu);
     expect(campagne.statut).toBe("en_cours");
@@ -358,7 +440,7 @@ describe("l’historique", () => {
     monter(<DemoMessages />);
     const ligne = document.querySelector('a[href="/demo/messages/m1"]')!;
     expect(ligne.textContent).toContain("Tous les adhérents");
-    expect(ligne.textContent).toContain("Hélène Vasseur");
+    expect(ligne.textContent).toContain("Sébastien Delcourt");
     expect(ligne.textContent).toContain("14 octobre à 18 h 12");
   });
 

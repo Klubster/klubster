@@ -135,7 +135,7 @@ function Leviers() {
         ajouter-adherent
       </button>
       <button onClick={() => envoyer({ type: "reinitialiser" })}>reinitialiser</button>
-      <button onClick={() => envoyer({ type: "piece/basculer", id: "a03-certificat" })}>recevoir-piece</button>
+      <button onClick={() => envoyer({ type: "piece/basculer", id: "a03-autorisation" })}>recevoir-piece</button>
       {/* Reçoit TOUTES les pièces manquantes d'un coup : c'est le seul moyen de voir
           disparaître la ligne « pièces attendues », qui n'existe que si le compte est
           supérieur à zéro. */}
@@ -384,10 +384,10 @@ describe("la date affichée — juste, et la même partout", () => {
   it("le cours affiché est celui du mardi, pas celui du lundi", () => {
     hub();
     const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
-    // Mardi 12:30 → Vinyasa Flow. Lundi 18:30 → Hatha Yoga : un jour faux se serait vu
+    // Mardi 18:00 → Judo poussins. Lundi 17:00 → Éveil judo : un jour faux se serait vu
     // dans le nom du cours avant de se voir dans la date.
-    expect(bloc).toContain("Vinyasa Flow");
-    expect(bloc).not.toContain("Hatha Yoga");
+    expect(bloc).toContain("Judo poussins");
+    expect(bloc).not.toContain("Éveil judo");
   });
 
   it("le fuseau de la machine ne change ni le jour ni les cours", () => {
@@ -403,7 +403,7 @@ describe("la date affichée — juste, et la même partout", () => {
       const kicker = screen.getByText(/OCTOBRE/).textContent ?? "";
       const bloc = screen.getByText(/LE CLUB AUJOURD/).parentElement?.textContent ?? "";
       vue.unmount();
-      return { kicker, coursCite: /Vinyasa Flow/.test(bloc) };
+      return { kicker, coursCite: /Judo poussins/.test(bloc) };
     };
 
     try {

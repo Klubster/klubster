@@ -16,9 +16,17 @@ import type { ModeReglement } from "@/lib/demo/types";
  * l'historique, les pièces, le questionnaire, les informations complémentaires et le
  * RGPD.
  *
- * SEULS QUATRE CHAMPS SONT MODIFIABLES : prénom, nom, email, téléphone. Pas de date de
- * naissance — elle existe en base et n'est ni affichée ni éditable ici. Pas de
- * représentant légal, pas de changement de cours : ils sont en feuille de route.
+ * SEULS QUATRE CHAMPS SONT MODIFIABLES : prénom, nom, email, téléphone. La date de
+ * naissance et le représentant légal ne sont PAS éditables ici — ils se lisent plus bas,
+ * dans « Informations complémentaires », parce que l'inscription les a écrits dans
+ * `adherents.infos` et que le bloc affiche ce que le formulaire a recueilli. Corriger un
+ * nom de parent demande donc, aujourd'hui encore, de passer par l'adhérent. Le
+ * changement de cours, lui, est en feuille de route.
+ *
+ * C'est aussi là que se lit le travail d'un club d'enfants : « Responsable légal —
+ * téléphone », et surtout « Autorisation — J'autorise mon enfant à quitter seul le
+ * dojo » suivi d'un « Non ». Ce « Non » est la seule ligne de la fiche qu'un encadrant
+ * doit avoir vue avant la fin du cours.
  *
  * LA FICHE NE CRÉE RIEN AU PREMIER RENDU. Elle lit, elle n'écrit pas — le bouton d'une
  * pièce ne fait que basculer une pièce DÉJÀ existante.

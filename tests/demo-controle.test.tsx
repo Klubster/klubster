@@ -74,7 +74,7 @@ describe("le verdict, tel que la RPC le calcule", () => {
   it("lit le cours et le règlement sur la MÊME adhésion, la plus récente", () => {
     const etat: EtatDemo = {
       ...base,
-      adherents: [{ id: "x", prenom: "Zoé", nom: "Vasseur", email: null, telephone: null, created_at: "2025-09-01", infos: {} }],
+      adherents: [{ id: "x", prenom: "Zoé", nom: "Vasseur", email: null, telephone: null, created_at: "2025-09-01", date_naissance: null, infos: {} }],
       pieces: [],
       presences: [],
       adhesions: [
@@ -85,13 +85,13 @@ describe("le verdict, tel que la RPC le calcule", () => {
     const v = verifierAdherentDemo(etat, "x")!;
     // L'an dernier était soldé ; cette année ne l'est pas. C'est cette année qui compte.
     expect(v.regle).toBe(false);
-    expect(v.cours).toBe("Yin Yoga");
+    expect(v.cours).toBe("Judo benjamins");
   });
 
   it("dit « non réglé » d’un adhérent sans aucune adhésion", () => {
     const etat: EtatDemo = {
       ...base,
-      adherents: [{ id: "y", prenom: "Sans", nom: "Adhesion", email: null, telephone: null, created_at: "2026-09-01", infos: {} }],
+      adherents: [{ id: "y", prenom: "Sans", nom: "Adhesion", email: null, telephone: null, created_at: "2026-09-01", date_naissance: null, infos: {} }],
       adhesions: [],
       pieces: [],
       presences: [],
@@ -114,14 +114,14 @@ describe("le verdict, tel que la RPC le calcule", () => {
     });
     const etat: EtatDemo = {
       ...base,
-      adherents: [{ id: "z", prenom: "Ex", nom: "Aequo", email: null, telephone: null, created_at: "2026-09-01", infos: {} }],
+      adherents: [{ id: "z", prenom: "Ex", nom: "Aequo", email: null, telephone: null, created_at: "2026-09-01", date_naissance: null, infos: {} }],
       // Écrites dans le désordre : sans second critère de tri, le résultat dépendrait
       // de l'ordre du tableau, c'est-à-dire du hasard.
       adhesions: [memeJour("ad-b", "c2", "paye"), memeJour("ad-a", "c1", "en_attente")],
       pieces: [],
       presences: [],
     };
-    expect(verifierAdherentDemo(etat, "z")!.cours).toBe("Vinyasa Flow");
+    expect(verifierAdherentDemo(etat, "z")!.cours).toBe("Éveil judo");
   });
 
   it("renvoie null sur un identifiant inconnu", () => {
@@ -143,8 +143,8 @@ describe("la recherche du scanner", () => {
   });
 
   it("cherche dans le nom comme dans le prénom, sans casse", () => {
-    expect(chercherPourControle(base, "BERTHIER")[0].prenom).toBe("Marion");
-    expect(chercherPourControle(base, "marion")[0].nom).toBe("Berthier");
+    expect(chercherPourControle(base, "BERTHIER")[0].prenom).toBe("Lina");
+    expect(chercherPourControle(base, "lina")[0].nom).toBe("Berthier");
   });
 
   it("écarte les caractères d’injection avant de chercher", () => {
@@ -179,8 +179,8 @@ describe("l’écran de contrôle", () => {
   it("présente d’abord un dossier en règle", () => {
     monter();
     scan();
-    expect(screen.getByText("Marion Berthier")).toBeTruthy();
-    expect(screen.getByText("Hatha Yoga")).toBeTruthy();
+    expect(screen.getByText("Lina Berthier")).toBeTruthy();
+    expect(screen.getByText("Judo poussins")).toBeTruthy();
     expect(screen.getByText("✓ À jour")).toBeTruthy();
     expect(screen.getByText("✓ Complet")).toBeTruthy();
   });
@@ -189,12 +189,12 @@ describe("l’écran de contrôle", () => {
     monter();
     scan();
     scan();
-    expect(screen.getByText("Sylvie Nguyen")).toBeTruthy();
+    expect(screen.getByText("Adam Nguyen")).toBeTruthy();
     expect(screen.getByText("✕ Non réglé")).toBeTruthy();
     expect(screen.getByText("✓ Complet")).toBeTruthy();
 
     scan();
-    expect(screen.getByText("Thomas Leclerc")).toBeTruthy();
+    expect(screen.getByText("Jules Leclerc")).toBeTruthy();
     expect(screen.getByText("✕ 1 pièce(s) manquante(s)")).toBeTruthy();
     expect(screen.getByText("✓ À jour")).toBeTruthy();
   });
@@ -214,13 +214,13 @@ describe("l’écran de contrôle", () => {
     monter();
     for (let i = 0; i < 4; i++) scan();
     scan();
-    expect(screen.getByText("Marion Berthier")).toBeTruthy();
+    expect(screen.getByText("Lina Berthier")).toBeTruthy();
   });
 
   it("trouve quelqu’un par son nom et affiche le même verdict", () => {
     monter();
     taper("leclerc");
-    clic("Thomas Leclerc");
+    clic("Jules Leclerc");
     expect(screen.getByText("✕ 1 pièce(s) manquante(s)")).toBeTruthy();
     // La liste s'est refermée et le champ est vide, comme dans le produit.
     expect((document.getElementById("q-controle") as HTMLInputElement).value).toBe("");
@@ -248,16 +248,16 @@ describe("l’écran de contrôle", () => {
  *
  * Je l'avais oublié en écrivant ces tests, et je comptais les présences à partir de
  * zéro. C'est le club qui avait raison : un cockpit ouvert à 19 h a déjà des gens dans
- * la salle. La première carte de la rotation, Marion Berthier, est donc DÉJÀ présente —
+ * la salle. La première carte de la rotation, Lina Berthier, est donc DÉJÀ présente —
  * ce qui donne gratuitement la démonstration de l'état « déjà pointé ». Les gestes se
- * testent sur la deuxième carte, Sylvie Nguyen, qui ne l'est pas.
+ * testent sur la deuxième carte, Adam Nguyen, qui ne l'est pas.
  */
 const DEJA = 3;
 
 describe("marquer la présence", () => {
   it("montre l’état « déjà pointé » sans qu’on ait rien à faire", () => {
     monter();
-    scan(); // Marion Berthier, arrivée avant l'ouverture de l'écran
+    scan(); // Lina Berthier, arrivée avant l'ouverture de l'écran
     expect(screen.getByText("✓ PRÉSENT AUJOURD’HUI")).toBeTruthy();
     expect(screen.queryByText("SIMULER LA PRÉSENCE →")).toBeNull();
   });
@@ -265,7 +265,7 @@ describe("marquer la présence", () => {
   it("n’écrit rien avant 450 ms", () => {
     monter();
     scan();
-    scan(); // Sylvie Nguyen
+    scan(); // Adam Nguyen
     clic("SIMULER LA PRÉSENCE →");
     avancer(449);
     expect(vu!.presences.length).toBe(DEJA);
@@ -290,7 +290,7 @@ describe("marquer la présence", () => {
     clic("SIMULER LA PRÉSENCE →");
     avancer(450);
     for (let i = 0; i < 4; i++) scan(); // un tour complet
-    expect(screen.getByText("Sylvie Nguyen")).toBeTruthy();
+    expect(screen.getByText("Adam Nguyen")).toBeTruthy();
     expect(screen.getByText("✓ PRÉSENT AUJOURD’HUI")).toBeTruthy();
   });
 
@@ -309,7 +309,7 @@ describe("marquer la présence", () => {
   it("n’écrit une présence que pour la personne présentée", () => {
     monter();
     scan();
-    scan(); // Sylvie Nguyen
+    scan(); // Adam Nguyen
     clic("SIMULER LA PRÉSENCE →");
     avancer(450);
     expect(vu!.presences.map((p) => p.adherent_id)).toEqual(["a01", "a11", "a22", "a02"]);

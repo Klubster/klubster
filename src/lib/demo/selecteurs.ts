@@ -11,7 +11,7 @@
  * Aucun import de Supabase, Stripe, Resend ou d'une Server Action.
  */
 
-import { AUJOURDHUI, CLUB, INSTANT_DEMO } from "./donnees";
+import { AUJOURDHUI, CLUB, INSTANT_DEMO, estMineurDemo } from "./donnees";
 import type { EtatDemo } from "./etat";
 import type { AdherentDemo, AdhesionDemo } from "./types";
 
@@ -181,9 +181,10 @@ export function adherentsIncomplets(etat: EtatDemo): AdherentDemo[] {
 /**
  * Les groupes du composeur réel, dans l'ordre exact du `<select>`.
  *
- * « Responsables légaux des mineurs » figure bien dans la liste — c'est le libellé que
- * le produit archive. Il rendra ZÉRO destinataire pour ce club de yoga, qui n'accueille
- * aucun mineur, et l'envoi se désactivera tout seul. C'est la vérité de ce club.
+ * Le groupe « Parents » porte DEUX libellés, et ce n'est pas une inadvertance : le menu
+ * déroulant dit « Parents (adhérents mineurs) », l'historique archive « Responsables
+ * légaux des mineurs ». Le produit photographie le second à l'envoi, pour qu'un message
+ * relu six mois plus tard reste compréhensible.
  */
 export function groupesDisponibles(etat: EtatDemo) {
   return [
@@ -194,14 +195,25 @@ export function groupesDisponibles(etat: EtatDemo) {
   ];
 }
 
-/** Adresses du groupe, dédoublonnées — comme le `Set` du composeur réel. */
+/**
+ * Adresses du groupe, dédoublonnées — comme le `Set` du composeur réel.
+ *
+ * LE GROUPE « PARENTS » SÉLECTIONNE LES ADHÉRENTS MINEURS, PAS DES PARENTS.
+ * C'est exactement ce que fait `envoyerMessage` : il filtre `adherents` sur la date de
+ * naissance et écrit à `adherents.email`. L'adresse d'un dossier de mineur EST celle de
+ * son représentant légal — c'est lui qui a créé le compte à l'inscription. Il n'existe
+ * donc pas de second carnet d'adresses à tenir à jour, et c'est justement ce qui rend le
+ * groupe fiable : il ne peut pas se désynchroniser.
+ *
+ * La minorité se déduit de la date de naissance, jamais d'un indicateur posé sur la
+ * fiche — même règle que le serveur, et même fonction (`estMineur`).
+ */
 export function destinatairesDuGroupe(etat: EtatDemo, groupe: string): string[] {
   const avecEmail = etat.adherents.filter((a) => a.email);
   let choisis: AdherentDemo[];
 
   if (groupe === "tous") choisis = avecEmail;
-  // Aucun mineur dans ce club : le groupe est vide, et c'est exact.
-  else if (groupe === "parents") choisis = [];
+  else if (groupe === "parents") choisis = avecEmail.filter((a) => estMineurDemo(a.date_naissance));
   else if (groupe === "incomplet") choisis = avecEmail.filter((a) => dossierIncomplet(etat, a.id));
   else {
     const ids = new Set(etat.adhesions.filter((ad) => ad.cours_id === groupe).map((ad) => ad.adherent_id));

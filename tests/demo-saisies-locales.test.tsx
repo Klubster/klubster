@@ -16,8 +16,8 @@ import { creerEtatDemoInitial, reducteurDemo } from "@/lib/demo/etat";
  * dire, et c'est exactement là que se cachait le défaut : « RÉINITIALISER » remettait
  * les données à zéro et laissait le formulaire tel quel.
  *
- * Le cas qui le montre : Marion est enregistrée « Marion », on tape « Mathilde » sans
- * enregistrer, on réinitialise. L'état contient « Marion » avant ET après — les clés des
+ * Le cas qui le montre : Lina est enregistrée « Lina », on tape « Mathilde » sans
+ * enregistrer, on réinitialise. L'état contient « Lina » avant ET après — les clés des
  * sous-composants ne changent pas, le champ reste sur « Mathilde », et le bouton semble
  * n'avoir rien fait.
  *
@@ -73,13 +73,13 @@ const premiereRecue = () => act(() => screen.getAllByText("✓ Reçue")[0].click
 describe("une saisie non enregistrée survit aux autres actions", () => {
   it("cocher une pièce n’efface pas le prénom en cours de frappe", async () => {
     fiche("a01");
-    expect(champ("PRÉNOM *").value).toBe("Marion");
+    expect(champ("PRÉNOM *").value).toBe("Lina");
 
     taper("PRÉNOM *", "Mathilde");
     expect(champ("PRÉNOM *").value).toBe("Mathilde");
 
     // Une action sans rapport, sur la même fiche.
-    // Marion a DEUX pièces reçues : on vise la première, sans ambiguïté.
+    // Lina a DEUX pièces reçues : on vise la première, sans ambiguïté.
     premiereRecue();
     expect(champ("PRÉNOM *").value).toBe("Mathilde");
   });
@@ -87,7 +87,7 @@ describe("une saisie non enregistrée survit aux autres actions", () => {
   it("l’email en cours de frappe survit lui aussi", async () => {
     fiche("a01");
     taper("EMAIL", "brouillon@example.com");
-    // Marion a DEUX pièces reçues : on vise la première, sans ambiguïté.
+    // Lina a DEUX pièces reçues : on vise la première, sans ambiguïté.
     premiereRecue();
     expect(champ("EMAIL").value).toBe("brouillon@example.com");
   });
@@ -99,22 +99,22 @@ describe("RÉINITIALISER efface aussi les saisies locales", () => {
     taper("PRÉNOM *", "Mathilde");
     expect(champ("PRÉNOM *").value).toBe("Mathilde");
 
-    // C'est LE cas qui échouait : l'état vaut « Marion » avant comme après, donc la clé
+    // C'est LE cas qui échouait : l'état vaut « Lina » avant comme après, donc la clé
     // des coordonnées ne bouge pas. Seule une génération de réinitialisation, portée par
     // le provider, remonte l'arbre entier.
     clic("RÉINITIALISER");
-    expect(champ("PRÉNOM *").value).toBe("Marion");
+    expect(champ("PRÉNOM *").value).toBe("Lina");
   });
 
   it("une pièce cochée revient à son état initial, et le champ avec", async () => {
     fiche("a01");
     taper("EMAIL", "brouillon@example.com");
-    // Marion a DEUX pièces reçues : on vise la première, sans ambiguïté.
+    // Lina a DEUX pièces reçues : on vise la première, sans ambiguïté.
     premiereRecue();
     expect(screen.getAllByText("○ Manquante").length).toBeGreaterThan(0);
 
     clic("RÉINITIALISER");
-    expect(champ("EMAIL").value).toBe("marion.berthier@example.com");
+    expect(champ("EMAIL").value).toBe("sophie.berthier@example.com");
     expect(screen.queryByText("○ Manquante")).toBeNull();
   });
 });
@@ -166,7 +166,7 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
   it("l’ajout retire les espaces périphériques", () => {
     const apres = reducteurDemo(etat(), {
       type: "adherent/ajouter",
-      prenom: "  Marion  ",
+      prenom: "  Lina  ",
       nom: "\tBerthier\n",
       email: "  m@example.com ",
       telephone: " 06 11 22 33 44 ",
@@ -174,7 +174,7 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
       mode: "cheque",
     });
     const nouvel = apres.adherents[apres.adherents.length - 1];
-    expect(nouvel.prenom).toBe("Marion");
+    expect(nouvel.prenom).toBe("Lina");
     expect(nouvel.nom).toBe("Berthier");
     expect(nouvel.email).toBe("m@example.com");
     expect(nouvel.telephone).toBe("06 11 22 33 44");
@@ -202,13 +202,13 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
     const apres = reducteurDemo(etat(), {
       type: "adherent/modifier",
       id: "a01",
-      prenom: "  Marion  ",
+      prenom: "  Lina  ",
       nom: " Berthier ",
       email: "  ",
       telephone: " 06 00 00 00 00 ",
     });
     const a = apres.adherents.find((x) => x.id === "a01");
-    expect(a?.prenom).toBe("Marion");
+    expect(a?.prenom).toBe("Lina");
     expect(a?.nom).toBe("Berthier");
     expect(a?.email).toBeNull();
     expect(a?.telephone).toBe("06 00 00 00 00");
@@ -243,13 +243,14 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
   });
 
   it("un email existant avec espaces et casse différente est reconnu", () => {
-    // « ␣MARION.BERTHIER@EXAMPLE.COM␣ » est le même que celui de Marion. Comparé brut,
+    // « ␣SOPHIE.BERTHIER@EXAMPLE.COM␣ » est le même que celui du dossier de Lina — sa
+    // mère l'a saisi à l'inscription. Comparé brut,
     // il ne l'était pas — et le club se retrouvait avec deux fiches pour une personne.
     const avant = etat();
     const apres = reducteurDemo(avant, {
       type: "adherent/importer",
       lignes: [
-        { prenom: "Marion", nom: "Berthier", email: "  MARION.BERTHIER@EXAMPLE.COM  ", telephone: "", coursId: null },
+        { prenom: "Lina", nom: "Berthier", email: "  SOPHIE.BERTHIER@EXAMPLE.COM  ", telephone: "", coursId: null },
       ],
     });
     expect(apres.adherents).toHaveLength(avant.adherents.length);
@@ -259,7 +260,7 @@ describe("le nettoyage des champs, comme les Server Actions", () => {
     const avant = etat();
     const apres = reducteurDemo(avant, {
       type: "adherent/importer",
-      lignes: [{ prenom: "  Marion  ", nom: " Berthier ", email: "", telephone: "", coursId: null }],
+      lignes: [{ prenom: "  Lina  ", nom: " Berthier ", email: "", telephone: "", coursId: null }],
     });
     expect(apres.adherents).toHaveLength(avant.adherents.length);
   });
