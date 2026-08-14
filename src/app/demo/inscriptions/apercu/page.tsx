@@ -211,6 +211,13 @@ export default function DemoApercuInscription() {
                             {coursLie.nom} uniquement
                           </span>
                         ) : null}
+                        {/* La portée d'âge se lit ici aussi : sans elle, l'aperçu
+                            promettrait une autorisation parentale à un adulte. */}
+                        {pc.mineurs_seulement ? (
+                          <span className="mono ml-2 text-[11px] uppercase tracking-wider text-ink-soft">
+                            mineurs uniquement
+                          </span>
+                        ) : null}
                       </span>
                       <span className="mono text-[11px] uppercase tracking-wider text-ink-soft">À TÉLÉCHARGER</span>
                     </div>

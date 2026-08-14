@@ -147,7 +147,7 @@ describe("la lecture du fichier", () => {
   it("lit un fichier choisi sur le disque, sans réseau", async () => {
     monter();
     const input = document.getElementById("fichier") as HTMLInputElement;
-    const f = new File(["Prenom,Nom\nZoe,Vasseur\n"], "mesadherents.csv", { type: "text/csv" });
+    const f = new File(["Prenom,Nom\nZoe,Delcourt\n"], "mesadherents.csv", { type: "text/csv" });
     Object.defineProperty(input, "files", { value: [f], configurable: true });
     await act(async () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -251,16 +251,16 @@ describe("l’import simulé", () => {
       const ad = vu!.adhesions.find((x) => x.adherent_id === a.id);
       return ad ? parId.get(ad.cours_id!) : null;
     };
-    expect(cours("Aubert")).toBe("Hatha Yoga");
-    expect(cours("Perrot")).toBe("Vinyasa Flow");
-    expect(cours("Belkacem")).toBe("Yin Yoga");
-    expect(cours("Morvan")).toBe("Yoga sur chaise");
+    expect(cours("Aubert")).toBe("Judo poussins");
+    expect(cours("Perrot")).toBe("Éveil judo");
+    expect(cours("Belkacem")).toBe("Judo benjamins");
+    expect(cours("Morvan")).toBe("Taïso");
   });
 
   it("applique le cours par défaut aux lignes sans correspondance", () => {
     monter();
     exemple();
-    choisir("COURS PAR DÉFAUT", "c4"); // Yoga Nidra
+    choisir("COURS PAR DÉFAUT", "c4"); // Judo minimes et cadets
     lancer();
     avancer(450);
     const elodie = vu!.adherents.find((a) => a.nom === "Charpentier")!;
@@ -339,9 +339,9 @@ describe("l’export CSV", () => {
   it("écrit le montant à la française et laisse le statut brut", () => {
     const michel = lignes.find((l) => l.includes('"Chevalier"'))!;
     // Michel Chevalier n'a pas d'email : la colonne est vide, pas absente.
-    expect(michel).toContain('"Chevalier";"";"02 41 77 88 99"');
-    expect(michel).toContain('"Yoga sur chaise"');
-    expect(michel).toContain('"210,00"');
+    expect(michel).toContain('"Chevalier";"";"02 43 77 88 99"');
+    expect(michel).toContain('"Taïso"');
+    expect(michel).toContain('"175,00"');
     // `paye`, pas « Payé » : c'est la valeur de la base, comme dans le produit.
     expect(michel).toContain('"paye"');
   });

@@ -141,27 +141,38 @@ describe("l’atelier", () => {
   });
 
   it("ne donne PAS de flèches aux réductions, mais en donne aux autorisations", () => {
+    const base = creerEtatDemoInitial();
     monter(<DemoInscriptions />);
-    // Une réduction existe déjà ; aucune autorisation.
-    expect(vu === null || vu.form.remises.length === 1).toBe(true);
+    // Une réduction existe déjà, et trois autorisations parentales : ce club accueille
+    // des enfants, et son formulaire le dit.
+    expect(base.form.remises.length).toBe(1);
+    expect(base.form.autorisations.length).toBe(3);
     expect(screen.queryByRole("button", { name: "Monter la réduction" })).toBeNull();
 
-    clic("+ AJOUTER UNE AUTORISATION");
-    expect(screen.getByRole("button", { name: "Monter l’autorisation" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Descendre l’autorisation" })).toBeTruthy();
+    // Le nom accessible nomme l'autorisation : trois « Monter » indistincts ne diraient
+    // rien à une lecture d'écran.
+    const premiere = base.form.autorisations[0].label;
+    expect(screen.getByRole("button", { name: `Monter « ${premiere} »` })).toBeTruthy();
+    expect(screen.getByRole("button", { name: `Descendre « ${premiere} »` })).toBeTruthy();
   });
 
   it("réordonne deux autorisations", () => {
+    const base = creerEtatDemoInitial();
+    const depart = base.form.autorisations.map((a) => a.label);
     monter(<DemoInscriptions />);
-    clic("+ AJOUTER UNE AUTORISATION");
-    poser(screen.getByLabelText("Libellé de l’autorisation"), "Premiers soins", window.HTMLInputElement);
+
     clic("+ AJOUTER UNE AUTORISATION");
     const champs = screen.getAllByLabelText("Libellé de l’autorisation");
-    poser(champs[1], "Sortie seul", window.HTMLInputElement);
-    expect(vu!.form.autorisations.map((a) => a.label)).toEqual(["Premiers soins", "Sortie seul"]);
+    expect(champs.length).toBe(depart.length + 1);
+    poser(champs.at(-1)!, "Sortie seul", window.HTMLInputElement);
+    expect(vu!.form.autorisations.map((a) => a.label)).toEqual([...depart, "Sortie seul"]);
 
-    clicN("Monter l’autorisation", 1);
-    expect(vu!.form.autorisations.map((a) => a.label)).toEqual(["Sortie seul", "Premiers soins"]);
+    // On remonte la dernière : elle passe devant l'avant-dernière, et rien d'autre ne
+    // bouge.
+    clic("Monter « Sortie seul »");
+    const attendu = [...depart];
+    attendu.splice(depart.length - 1, 0, "Sortie seul");
+    expect(vu!.form.autorisations.map((a) => a.label)).toEqual(attendu);
   });
 
   it("saisit une réduction en euros et l’enregistre en centimes", () => {
@@ -227,14 +238,14 @@ describe("l’aperçu du formulaire", () => {
   it("liste les cours au tarif vivant, et signale le cours complet", () => {
     const base = creerEtatDemoInitial();
     monter(<DemoApercu />);
-    // Le Hatha est plein : sept inscrits pour sept places. C'est la jauge qui le dit,
+    // Les poussins sont pleins : sept inscrits pour sept places. C'est la jauge qui le dit,
     // jamais un réglage — et la donnée le porte réellement, elle ne le prétend pas.
-    const hatha = base.cours[0];
-    expect(jaugeDuCours(base, hatha.id).complet).toBe(true);
-    const ligne = screen.getByText(new RegExp(`^${hatha.nom} —`));
+    const poussins = base.cours[0];
+    expect(jaugeDuCours(base, poussins.id).complet).toBe(true);
+    const ligne = screen.getByText(new RegExp(`^${poussins.nom} —`));
     expect(ligne.textContent).toContain("COMPLET (liste d’attente)");
     // Le tarif affiché est celui du cours, au centime près.
-    expect(ligne.textContent!.replace(/\D/g, "")).toContain(String(hatha.tarif_centimes));
+    expect(ligne.textContent!.replace(/\D/g, "")).toContain(String(poussins.tarif_centimes));
 
     // Un cours qui a de la place ne porte pas la mention.
     const yin = base.cours[2];
@@ -244,8 +255,8 @@ describe("l’aperçu du formulaire", () => {
 
   it("ne compte pas les saisons passées ni la liste d’attente dans la jauge", () => {
     const base = creerEtatDemoInitial();
-    const hatha = base.cours[0];
-    const j = jaugeDuCours(base, hatha.id);
+    const poussins = base.cours[0];
+    const j = jaugeDuCours(base, poussins.id);
     expect(j.places).toBe(7);
     expect(j.inscrits).toBe(7);
     // L'adhérente en attente n'occupe pas la place qu'elle attend.
@@ -260,7 +271,7 @@ describe("l’aperçu du formulaire", () => {
         { ...base.adhesions[0], id: "ad-vieille", saison: "2025-2026", statut: "paye" },
       ],
     };
-    expect(jaugeDuCours(avecVieille, hatha.id).inscrits).toBe(7);
+    expect(jaugeDuCours(avecVieille, poussins.id).inscrits).toBe(7);
   });
 
   it("saute une page sans champ", () => {

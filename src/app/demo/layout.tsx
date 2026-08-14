@@ -25,12 +25,12 @@ import { CLUB } from "@/lib/demo/donnees";
  *
  * `noindex` : c'est une vitrine commerciale peuplée de données fictives. Indexée, elle
  * ferait concurrence aux vraies pages sur les mêmes requêtes, et pourrait sortir en
- * résultat pour « L'Arbre et le Souffle », un club qui n'existe pas.
+ * résultat pour « Judo Club des Peupliers », un club qui n'existe pas.
  */
 export const metadata: Metadata = {
   title: "Démonstration — Klubster",
   description:
-    "Essayez le cockpit de Klubster sur un club de yoga fictif : adhérents, dossiers, cotisations, contrôle au scan, messages et site. Sans compte, sans inscription.",
+    "Essayez le cockpit de Klubster sur un club de judo fictif : dossiers d’enfants, autorisations parentales, cotisations, contrôle au bord du tapis, messages aux parents et site. Sans compte, sans inscription.",
   robots: { index: false, follow: true },
 };
 

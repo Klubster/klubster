@@ -185,11 +185,11 @@ export const emailPlausible = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v
  * avertissements — c'est-à-dire de ce qui rassure vraiment un président.
  */
 export const CSV_EXEMPLE = `Prénom;Nom;Adresse email;Portable;Activité
-Camille;Aubert;camille.aubert@example.com;06 11 11 11 11;Hatha Yoga
-Nicolas;Perrot;nicolas.perrot@example.com;06 22 22 22 22;Vinyasa Flow
-Farida;Belkacem;;06 33 33 33 33;Yin Yoga
-Camille;Aubert;camille.aubert@example.com;06 11 11 11 11;Hatha Yoga
+Camille;Aubert;camille.aubert@example.com;06 11 11 11 11;Judo poussins
+Nicolas;Perrot;nicolas.perrot@example.com;06 22 22 22 22;Éveil judo
+Farida;Belkacem;;06 33 33 33 33;Judo benjamins
+Camille;Aubert;camille.aubert@example.com;06 11 11 11 11;Judo poussins
 Élodie;Charpentier;elodie.charpentier@example;06 44 44 44 44;Aquagym
-;Sanchez;p.sanchez@example.com;06 55 55 55 55;Yoga Nidra
-Gaël;Morvan;gael.morvan@example.com;;Yoga sur chaise
+;Sanchez;p.sanchez@example.com;06 55 55 55 55;Judo minimes et cadets
+Gaël;Morvan;gael.morvan@example.com;;Taïso
 `;

@@ -184,7 +184,7 @@ describe("modifier les coordonnées", () => {
     clic("SIMULER L’ENREGISTREMENT DE LA FICHE");
 
     avancer(449);
-    expect(vu!.adherents.find((a) => a.id === "a01")?.prenom).toBe("Marion");
+    expect(vu!.adherents.find((a) => a.id === "a01")?.prenom).toBe("Lina");
 
     avancer(1);
     expect(vu!.adherents.find((a) => a.id === "a01")?.prenom).toBe("Mathilde");
@@ -203,7 +203,7 @@ describe("modifier les coordonnées", () => {
 // ——— 4. ENCAISSEMENT —————————————————————————————————————————————————————————
 
 describe("encaisser", () => {
-  /** Aïcha Benali, en retard, aucun règlement : le cas propre pour un acompte. */
+  /** Aya Benali, en retard, aucun règlement : le cas propre pour un acompte. */
   const EN_RETARD = "a04";
 
   it("le montant est réellement prérempli avec le solde", () => {
@@ -350,17 +350,19 @@ describe("les gestes immédiats n’attendent pas", () => {
 
   it("basculer une pièce est immédiat", () => {
     monter(fiche("a03"));
-    expect(vu!.pieces.find((p) => p.id === "a03-certificat")?.statut).toBe("manquante");
+    expect(vu!.pieces.find((p) => p.id === "a03-autorisation")?.statut).toBe("manquante");
     clic("○ Manquante");
-    expect(vu!.pieces.find((p) => p.id === "a03-certificat")?.statut).toBe("recue");
+    expect(vu!.pieces.find((p) => p.id === "a03-autorisation")?.statut).toBe("recue");
   });
 
   it("l’anonymisation s’ouvre et se confirme sans attendre", () => {
     monter(fiche("a01"));
+    // Photo d’identité et autorisation parentale : Lina est mineure, son dossier en
+    // porte donc deux.
     expect(vu!.pieces.filter((p) => p.adherent_id === "a01")).toHaveLength(2);
 
     clic("Anonymiser (droit à l’effacement)");
-    expect(screen.getByText(/Anonymiser définitivement Marion Berthier/)).toBeTruthy();
+    expect(screen.getByText(/Anonymiser définitivement Lina Berthier/)).toBeTruthy();
 
     clic("OUI, SIMULER L’ANONYMISATION");
     const a = vu!.adherents.find((x) => x.id === "a01")!;
@@ -375,9 +377,9 @@ describe("les gestes immédiats n’attendent pas", () => {
   it("RÉINITIALISER est immédiat", () => {
     monter(fiche("a03"));
     clic("○ Manquante");
-    expect(vu!.pieces.find((p) => p.id === "a03-certificat")?.statut).toBe("recue");
+    expect(vu!.pieces.find((p) => p.id === "a03-autorisation")?.statut).toBe("recue");
     clic("RÉINITIALISER");
-    expect(vu!.pieces.find((p) => p.id === "a03-certificat")?.statut).toBe("manquante");
+    expect(vu!.pieces.find((p) => p.id === "a03-autorisation")?.statut).toBe("manquante");
   });
 });
 

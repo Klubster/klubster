@@ -23,9 +23,14 @@ import {
  *    `.filter(a => a.email)` : ils ne sont pas comptés, pas listés, pas prévenus. Ce
  *    club en a un — Michel Chevalier — et le compteur dit donc 33 sur 34.
  * 2. Le groupe « Parents (adhérents mineurs) » sélectionne LES ADHÉRENTS MINEURS
- *    eux-mêmes ; c'est leur adresse, celle qu'un représentant légal a renseignée, qui
- *    reçoit. Ce club de yoga n'accueille aucun mineur : le groupe rend zéro destinataire
- *    et désactive l'envoi. C'est sa vérité, pas un écran cassé.
+ *    eux-mêmes ; c'est leur adresse, celle qu'un représentant légal a renseignée à
+ *    l'inscription, qui reçoit. Vingt-quatre des trente-quatre licenciés de ce club de
+ *    judo sont mineurs : le groupe est donc le plus utilisé du composeur, et c'est lui
+ *    qu'un président ouvre pour convoquer un passage de grades.
+ *
+ *    LA MINORITÉ VIENT DE LA DATE DE NAISSANCE, jamais d'une case cochée sur la fiche.
+ *    Un club n'a donc aucune liste de parents à tenir à jour : le groupe se vide tout
+ *    seul quand un adhérent atteint dix-huit ans.
  * 3. Le libellé ARCHIVÉ diffère du libellé affiché pour ce seul groupe :
  *    « Responsables légaux des mineurs » dans l'historique. Le produit photographie le
  *    libellé à l'envoi pour qu'un cours renommé six mois plus tard ne rende pas

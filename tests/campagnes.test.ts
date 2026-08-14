@@ -55,10 +55,10 @@ function base(supabase: ReturnType<typeof fauxSupabase>, cibles: number) {
   return {
     supabase,
     organisationId: "org-1",
-    nomClub: "L’Arbre et le Souffle",
+    nomClub: "Judo Club des Peupliers",
     replyTo: "contact@club.fr",
     auteurProfileId: "prof-1",
-    auteurNom: "Hélène Vasseur",
+    auteurNom: "Sébastien Delcourt",
     groupe: "tous",
     groupeLibelle: "Tous les adhérents",
     objet: "Stage de novembre",

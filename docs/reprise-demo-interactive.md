@@ -109,9 +109,15 @@ tourner sur la machine de Mathieu, pas dans le bac à sable.
 ### Lot 4 — Messages
 
 Les adhérents **sans email** n'entrent nulle part : le club en a un, le compteur dit donc
-33 sur 34. Le groupe « Parents (adhérents mineurs) » rend **zéro** destinataire — ce club
-de yoga n'accueille aucun mineur — et désactive l'envoi. Son libellé **archivé** diffère
-du libellé affiché : « Responsables légaux des mineurs ».
+33 sur 34. Le groupe « Parents (adhérents mineurs) » sélectionne les adhérents **mineurs**
+et écrit à l'adresse de leur dossier, qui est celle du représentant légal ; il rend donc
+24 destinataires. Son libellé **archivé** diffère du libellé affiché : « Responsables
+légaux des mineurs ».
+
+⚠️ **Corrigé le 13/08/2026, avec le passage au judo.** Le groupe rendait auparavant
+**zéro** en dur, avec le commentaire « aucun mineur dans ce club » — vrai du club de yoga,
+faux dès qu'un club en accueille. Le test qui avait besoin d'un groupe vide s'appuie
+désormais sur un créneau neuf où personne n'est encore inscrit.
 
 **Le compteur qui se trompe tout seul** : « accepté » n'est pas exclusif de « distribué ».
 `nombre_acceptes` est posé à l'envoi et `appliquer_evenement_resend` n'y retouche jamais.
@@ -393,20 +399,45 @@ Pièges déjà payés :
 
 ## 8. Les données du club, et ce qu'elles portent
 
-`L'Arbre et le Souffle`, yoga, Angers. 34 adhérents, 6 cours, une saison `2026-2027`,
-horloge figée au **mardi 20 octobre 2026, 19 h**.
+`Judo Club des Peupliers`, judo, Laval. 34 adhérents **dont 24 mineurs**, 6 cours, une
+saison `2026-2027`, horloge figée au **mardi 20 octobre 2026, 19 h**.
+
+**Le club a changé de discipline le 13/08/2026, et ce n'est pas cosmétique.** La campagne
+de prospection vise 2 000 clubs de sports de combat : la démonstration devait montrer ce
+que l'email promet — des dossiers d'enfants, une autorisation parentale à réclamer, un
+questionnaire de santé signé par un parent. Le club de yoga ne le pouvait pas, faute de
+mineurs. Klubster n'est pour autant pas un logiciel de combat : le judo est un décor,
+et rien dans le code de `/demo` ne connaît de ceinture ni de tatami.
 
 Ce que les données rendent atteignable, et qu'il ne faut pas casser :
 
 - **un adhérent sans email** (Michel Chevalier) — fait exister le « 33 sur 34 » du
   composeur et la mention « Pas d'email » des relances ;
-- **aucun mineur** — le groupe « Parents » rend zéro et désactive l'envoi ;
-- **cinq dossiers incomplets** — font vivre le groupe « Dossiers incomplets » ;
+- **24 mineurs sur 34** — font vivre le groupe « Parents », les autorisations parentales,
+  et le bloc « Responsable légal » de la fiche. La minorité se **déduit** de
+  `date_naissance` via `estMineur` (`src/lib/sante.ts`), jamais d'un indicateur posé sur
+  la fiche : c'est la règle du serveur, et la démonstration ne s'en écarte pas. Aucune
+  date de naissance n'est en octobre, pour qu'un décalage de fuseau ne puisse faire
+  basculer personne d'un groupe à l'autre entre le rendu serveur et le rendu navigateur ;
+- **cinq dossiers incomplets** — cinq autorisations parentales jamais rendues, ce qui fait
+  vivre le groupe « Dossiers incomplets » ;
+- **deux questionnaires de santé concluent au certificat** — seul chemin du produit vers
+  une pièce « certificat médical ». En judo le questionnaire **suffit** depuis 2021, sauf
+  réponse positive et sauf compétition ; le certificat systématique est l'affaire de la
+  boxe anglaise. Ne pas réécrire l'inverse ;
 - **deux personnes n'ont que la saison passée** — sans elles, « RENOUVELER LA SAISON »
   répond immédiatement « tout le monde en a déjà une » ;
-- **le Hatha est complet, sept inscrits pour sept places** — c'est la jauge, et rien
-  d'autre, qui ouvre la liste d'attente. Corrigé le 01/08 : il annonçait 22 places pour
-  7 inscrits, et une adhérente attendait pourtant ;
+- **les poussins sont complets, sept inscrits pour sept places** — c'est la jauge, et rien
+  d'autre, qui ouvre la liste d'attente. Corrigé le 01/08 : le cours annonçait 22 places
+  pour 7 inscrits, et une enfant attendait pourtant ;
 - **une seule adhésion payée par carte** — seul chemin vers le panneau de remboursement ;
 - **cinq chèques non remis** — matière de la remise ;
-- **trois personnes déjà présentes ce soir** — le contrôle montre l'état « déjà présent ».
+- **trois enfants déjà présents ce soir** — le contrôle montre l'état « déjà présent ».
+
+⚠️ **Une dette assumée, à lever avant toute fusion isolée.** La portée d'âge d'une pièce
+(`form_config.pieces[].mineurs_seulement`) est ce qui évite de réclamer une autorisation
+parentale à un adulte. Elle vient de la migration `20260804090000_pieces_mineurs.sql`, qui
+vit sur `release/klubster-commercial-v1-demo` et **pas sur cette branche** : ni
+`src/types/form.ts` ni le `FormBuilder` ne la connaissent ici. La démonstration devance
+donc son propre tronc. Tenable puisque les deux branches convergent — faux si la release
+n'était pas fusionnée.

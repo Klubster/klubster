@@ -376,7 +376,7 @@ export default function Home() {
           </Reveal>
         </div>
         <div className="relative min-h-[58vh] overflow-hidden md:min-h-[88vh]">
-          <Parallax src="/08-studio.jpg" alt="Un studio de yoga, tapis déroulés, au soleil couchant." className="absolute inset-0" strength={0.08} />
+          <Parallax src="/08-studio.jpg" alt="Une salle de sport, tapis déroulés, au soleil couchant." className="absolute inset-0" strength={0.08} />
         </div>
       </section>
 
