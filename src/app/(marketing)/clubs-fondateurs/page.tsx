@@ -175,17 +175,35 @@ export default function ClubsFondateurs() {
               montrer immédiatement ce qui est complet — et ce qui ne l’est pas.
             </p>
 
+            {/*
+              LE PREMIER GESTE EST « VOIR », PAS « CRÉER ».
+              Cette page reçoit le trafic de la prospection : des présidents de club qui
+              n'ont jamais entendu parler de Klubster il y a trois minutes. Leur proposer
+              d'abord de créer leur club, c'est demander un engagement avant la preuve.
+              Le cockpit de démonstration est cette preuve, et il ne coûte rien à ouvrir.
+
+              L'ancienne action secondaire menait à `#mecanisme`, c'est-à-dire au contrôle
+              au QR code. C'est un bon bloc, mais il répond à une autre question que celle
+              qui a fait cliquer : les emails parlent de dossiers incomplets, de cotisations
+              et de relances. On promettait une chose et on en montrait une autre.
+            */}
             <div className="mt-10 flex flex-wrap items-center gap-5">
               <Link
-                href="/creer?offre=fondateur"
+                href="/demo"
                 className="mono bg-brand-dark px-7 py-3.5 text-[13px] text-white hover:opacity-90"
+              >
+                VOIR LE COCKPIT DE DÉMONSTRATION →
+              </Link>
+              <Link
+                href="/creer?offre=fondateur"
+                className="mono border border-ink px-7 py-3.5 text-[13px] hover:bg-ink hover:text-paper"
               >
                 CRÉER MON CLUB →
               </Link>
-              <a href="#mecanisme" className="mono py-3.5 text-[12px] uppercase tracking-label text-ink-soft hover:text-ink">
-                VOIR COMMENT ÇA FONCTIONNE →
-              </a>
             </div>
+            <p className="mono mt-4 text-[11px] uppercase tracking-label text-ink-soft">
+              Club fictif · Aucun compte à créer · Tout est cliquable
+            </p>
 
             <p className="mono mt-8 text-[11px] uppercase tracking-label text-ink-soft">
               15 clubs fondateurs · Import de votre fichier inclus<span className="text-brand">_</span>
