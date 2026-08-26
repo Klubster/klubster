@@ -465,7 +465,7 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
   }
 
   try {
-    await rembourser(pi, account, montantCentimes);
+    await rembourser(pi, account, montantCentimes, adhesionId);
   } catch (e) {
     console.error("rembourserEnLigne", e instanceof Error ? e.message : e);
     redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement`);
@@ -602,6 +602,27 @@ export async function marquerPieceParEmail(
  * (capacité verrouillée, tarif honnête, pièces du nouveau cours, audit) ;
  * l'action ne fait que porter le résultat à l'écran.
  */
+// Inscrit l'adhérent à un cours SUPPLÉMENTAIRE (école de danse : plusieurs cours par
+// personne). Tout le contrôle vit dans la RPC : rôle, doublon, capacité, tarif, pièces.
+export async function inscrireAutreCours(slug: string, adherentId: string, formData: FormData): Promise<void> {
+  await garde(slug);
+  const coursId = String(formData.get("cours_ajout") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(coursId)) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours_choix`);
+  const mode = String(formData.get("mode_ajout") ?? "");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("inscrire_autre_cours", {
+    p_adherent_id: adherentId,
+    p_cours_id: coursId,
+    p_mode: mode || null,
+  });
+  if (error) {
+    // le message de la RPC est écrit pour un bénévole : on le transmet tel quel
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=cours_ajout&detail=${encodeURIComponent(error.message)}`);
+  }
+  revalidatePath(`/${slug}/cockpit/adherents/${adherentId}`);
+  redirect(`/${slug}/cockpit/adherents/${adherentId}?ok=cours_ajoute`);
+}
+
 export async function changerCours(slug: string, adherentId: string, adhesionId: string, formData: FormData): Promise<void> {
   await garde(slug);
   const nouveau = String(formData.get("nouveau_cours") ?? "");

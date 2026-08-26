@@ -9,7 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
 import { resteAPayer } from "@/lib/finances";
 import { saisonCourante } from "@/lib/saison";
-import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours, basculerOppositionCommunications } from "../actions";
+import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours, inscrireAutreCours, basculerOppositionCommunications } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
 import AjoutReglement from "./AjoutReglement";
 import Rgpd from "./Rgpd";
@@ -157,9 +157,19 @@ export default async function FicheAdherent(
     (a) => a.saison === saisonAct && ["en_attente", "paye", "en_retard"].includes(a.statut ?? "")
   ) ?? null;
   const { data: tousCours } = await supabase
-    .from("cours").select("id, nom").eq("organisation_id", org.id).order("ordre");
-  const autresCours = ((tousCours ?? []) as { id: string; nom: string }[])
+    .from("cours").select("id, nom, tarif_centimes").eq("organisation_id", org.id).order("ordre");
+  const autresCours = ((tousCours ?? []) as { id: string; nom: string; tarif_centimes: number }[])
     .filter((c) => c.id !== adhesionCourante?.cours_id);
+  // Cours où l'adhérent n'a PAS d'adhésion vivante cette saison : les cibles du bloc
+  // « Inscrire à un autre cours » (écoles de danse : plusieurs cours par personne).
+  const coursOccupes = new Set(
+    listeAdhesions
+      .filter((a) => a.saison === saisonAct && ["en_attente", "paye", "en_retard", "liste_attente"].includes(a.statut ?? ""))
+      .map((a) => a.cours_id)
+      .filter(Boolean)
+  );
+  const coursDisponibles = ((tousCours ?? []) as { id: string; nom: string; tarif_centimes: number }[])
+    .filter((c) => !coursOccupes.has(c.id));
 
   return (
     <main className="min-h-screen text-ink">
@@ -399,6 +409,40 @@ export default async function FicheAdherent(
         {searchParams?.erreur === "cours" ? (
           <p className="mono mt-6 text-[12px] text-danger">{searchParams?.detail ?? "Le changement de cours a échoué."}</p>
         ) : null}
+        {/* ——— INSCRIRE À UN AUTRE COURS (plusieurs cours par personne) ——— */}
+        {searchParams?.ok === "cours_ajoute" ? (
+          <p className="mono mt-6 text-[12px] text-success">
+            ✓ Adhésion ajoutée. Encaissez-la depuis cette fiche ou depuis Encaissements.
+          </p>
+        ) : null}
+        {searchParams?.erreur === "cours_ajout" ? (
+          <p className="mono mt-6 text-[12px] text-danger">{searchParams?.detail ?? "L’inscription au cours a échoué."}</p>
+        ) : null}
+        {peut(profile.role, "adherents_ecriture") && coursDisponibles.length > 0 ? (
+          <details className="mt-8 border border-line bg-paper">
+            <summary className="mono cursor-pointer px-5 py-3 text-[11px] uppercase tracking-label text-ink-soft">
+              Inscrire à un autre cours (saison en cours)
+            </summary>
+            <form action={inscrireAutreCours.bind(null, org.slug, adherent.id)} className="flex flex-wrap items-center gap-3 px-5 pb-4">
+              <select name="cours_ajout" required className="min-h-[44px] max-w-full border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink">
+                {coursDisponibles.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nom} — {formatPrix(c.tarif_centimes)}</option>
+                ))}
+              </select>
+              <select name="mode_ajout" className="min-h-[44px] border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink" title="Règlement prévu">
+                <option value="">Règlement à préciser</option>
+                <option value="cheque">Par chèque</option>
+                <option value="especes">En espèces</option>
+                <option value="virement">Par virement</option>
+              </select>
+              <Button variant="secondary" className="px-4 py-2 uppercase">Inscrire →</Button>
+              <span className="mono w-full text-[11px] text-ink-faint">
+                Une adhésion « en attente » est créée au tarif du cours. Cours complet = refus.
+              </span>
+            </form>
+          </details>
+        ) : null}
+
         {adhesionCourante && peut(profile.role, "adherents_ecriture") && autresCours.length > 0 ? (
           <details className="mt-8 border border-line bg-paper">
             <summary className="mono cursor-pointer px-5 py-3 text-[11px] uppercase tracking-label text-ink-soft">

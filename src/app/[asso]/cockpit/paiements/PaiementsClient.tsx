@@ -13,7 +13,7 @@ export interface LignePaiement {
   nom: string;
   email: string | null;
   cours: string;
-  mode: string; // cheque | especes
+  mode: string; // cheque | especes | virement
   statut: string; // en_attente | en_retard
   montantCentimes: number;
   regleCentimes: number;
@@ -26,13 +26,13 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
   const router = useRouter();
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [saisie, setSaisie] = useState<Record<string, string>>({});
-  const [modeLigne, setModeLigne] = useState<Record<string, "especes" | "cheque" | "autre">>({});
+  const [modeLigne, setModeLigne] = useState<Record<string, "especes" | "cheque" | "virement" | "autre">>({});
   const [enCours, startTransition] = useTransition();
   const [erreur, setErreur] = useState<string | null>(null);
 
   // Mode par défaut d'une ligne : celui déclaré à l'inscription, sinon espèces.
-  const modeDe = (l: LignePaiement): "especes" | "cheque" | "autre" =>
-    modeLigne[l.id] ?? (l.mode === "cheque" ? "cheque" : l.mode === "autre" ? "autre" : "especes");
+  const modeDe = (l: LignePaiement): "especes" | "cheque" | "virement" | "autre" =>
+    modeLigne[l.id] ?? (l.mode === "cheque" ? "cheque" : l.mode === "virement" ? "virement" : l.mode === "autre" ? "autre" : "especes");
 
   const soldeDe = (l: LignePaiement) => resteAPayer(l.montantCentimes, l.regleCentimes);
   const totalSolde = useMemo(() => lignes.reduce((s, l) => s + soldeDe(l), 0), [lignes]);
@@ -47,7 +47,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
     });
   }
 
-  function encaisser(l: LignePaiement, montantCentimes: number, mode: "cheque" | "especes" | "autre") {
+  function encaisser(l: LignePaiement, montantCentimes: number, mode: "cheque" | "especes" | "virement" | "autre") {
     setErreur(null);
     startTransition(async () => {
       const res = await enregistrerReglement(slug, l.id, montantCentimes, mode);
@@ -66,7 +66,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
         `${l.prenom} ${l.nom}`,
         l.email ?? "",
         l.cours,
-        l.mode === "cheque" ? "Chèque" : "Espèces",
+        l.mode === "cheque" ? "Chèque" : l.mode === "virement" ? "Virement" : "Espèces",
         l.statut === "en_retard" ? "En retard" : "En attente",
         (l.montantCentimes / 100).toFixed(2).replace(".", ","),
         (l.regleCentimes / 100).toFixed(2).replace(".", ","),
@@ -140,7 +140,7 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                   ) : null}
                 </div>
                 <div className="text-[13px] text-ink-soft">
-                  {l.cours} · {l.mode === "cheque" ? "Chèque" : "Espèces"}
+                  {l.cours} · {l.mode === "cheque" ? "Chèque" : l.mode === "virement" ? "Virement" : "Espèces"}
                   {l.regleCentimes > 0 ? (
                     <span className="mono"> · déjà réglé {eur(l.regleCentimes)}</span>
                   ) : null}
@@ -163,12 +163,13 @@ export default function PaiementsClient({ slug, nomClub, lignes }: { slug: strin
                 />
                 <select
                   value={modeDe(l)}
-                  onChange={(e) => setModeLigne((m) => ({ ...m, [l.id]: e.target.value as "especes" | "cheque" | "autre" }))}
+                  onChange={(e) => setModeLigne((m) => ({ ...m, [l.id]: e.target.value as "especes" | "cheque" | "virement" | "autre" }))}
                   className="border border-line bg-paper px-2 py-3 text-[12px] outline-none focus:border-ink"
                   title="Moyen de paiement"
                 >
                   <option value="especes">Espèces</option>
                   <option value="cheque">Chèque</option>
+                  <option value="virement">Virement</option>
                   <option value="autre">Autre</option>
                 </select>
                 <button

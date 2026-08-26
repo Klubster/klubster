@@ -481,7 +481,18 @@ export async function createCheckoutForClub(opts: {
   cancelUrl: string;
   adhesionId: string;
   clientEmail?: string | null;
+  /** Inscription multi-cours : un paiement, une écriture PAR adhésion (webhook). */
+  adhesions?: Array<{ id: string; montantCentimes: number }>;
 }) {
+  // Multi-cours : la répartition voyage dans les métadonnées (format compact
+  // `id:centimes;id:centimes` — la limite Stripe est de 500 caractères par valeur,
+  // soit une dizaine de cours ; le formulaire n'en propose jamais autant).
+  const repartition =
+    opts.adhesions && opts.adhesions.length > 1
+      ? opts.adhesions.map((a) => `${a.id}:${a.montantCentimes}`).join(";")
+      : null;
+  const metadata: Record<string, string> = { adhesion_id: opts.adhesionId };
+  if (repartition && repartition.length <= 500) metadata.adhesions_json = repartition;
   // Charge directe sur le compte connecté du club → l'argent va au club, 0 % pour Klubster.
   return call(
     "POST",
@@ -501,8 +512,8 @@ export async function createCheckoutForClub(opts: {
           },
         },
       ],
-      payment_intent_data: { metadata: { adhesion_id: opts.adhesionId } },
-      metadata: { adhesion_id: opts.adhesionId },
+      payment_intent_data: { metadata },
+      metadata,
     },
     opts.clubAccount
   );
@@ -514,9 +525,12 @@ export async function createCheckoutForClub(opts: {
  * l'événement `charge.refunded` qui suit qui enregistre l'écriture, une seule fois,
  * qu'on rembourse depuis Klubster ou depuis le tableau de bord Stripe.
  */
-export async function rembourser(paymentIntent: string, clubAccount: string, montantCentimes?: number) {
+export async function rembourser(paymentIntent: string, clubAccount: string, montantCentimes?: number, adhesionId?: string) {
   const body: Dict = { payment_intent: paymentIntent };
   if (typeof montantCentimes === "number" && montantCentimes > 0) body.amount = montantCentimes;
+  // Multi-cours : un même payment_intent couvre plusieurs adhésions. Le remboursement
+  // porte l'adhésion visée dans SES métadonnées, que le webhook lit en priorité.
+  if (adhesionId) body.metadata = { adhesion_id: adhesionId };
   return call("POST", "/refunds", body, clubAccount);
 }
 

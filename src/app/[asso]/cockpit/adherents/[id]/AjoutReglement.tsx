@@ -31,7 +31,7 @@ export default function AjoutReglement({
   const [adhesionId, setAdhesionId] = useState(dues[0]?.id ?? "");
   const active = dues.find((a) => a.id === adhesionId) ?? dues[0];
   const [montant, setMontant] = useState(active ? euros(active.resteCentimes) : "");
-  const [mode, setMode] = useState<"especes" | "cheque" | "autre">("especes");
+  const [mode, setMode] = useState<"especes" | "cheque" | "virement" | "autre">("especes");
   const [libelle, setLibelle] = useState(""); // pour « autre » : chèque vacances, aide CAF…
   const [etat, setEtat] = useState<"repos" | "ok">("repos");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -106,14 +106,14 @@ export default function AjoutReglement({
         <div>
           <span className="mono block text-[10px] uppercase tracking-label text-ink-soft">Reçu en</span>
           <div className="mt-1.5 flex border border-line">
-            {(["especes", "cheque", "autre"] as const).map((m) => (
+            {(["especes", "cheque", "virement", "autre"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
                 className={`mono px-4 py-2.5 text-[12px] ${mode === m ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
               >
-                {m === "especes" ? "Espèces" : m === "cheque" ? "Chèque" : "Autre"}
+                {m === "especes" ? "Espèces" : m === "cheque" ? "Chèque" : m === "virement" ? "Virement" : "Autre"}
               </button>
             ))}
           </div>

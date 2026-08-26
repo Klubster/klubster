@@ -99,6 +99,7 @@ export default async function NouvelAdherent(
             <select name="mode" className={CHAMP} defaultValue="cheque">
               <option value="cheque">Par chèque</option>
               <option value="especes">En espèces</option>
+              <option value="virement">Par virement</option>
               <option value="en_ligne">En ligne</option>
             </select>
           </div>

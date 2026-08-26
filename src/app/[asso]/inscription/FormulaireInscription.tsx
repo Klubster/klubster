@@ -60,9 +60,12 @@ export default function FormulaireInscription({
   const [etat, formAction, enCours] = useActionState(inscrireAdherent, null);
   const [verifEnCours, setVerifEnCours] = useState(false);
   const [erreurJeton, setErreurJeton] = useState(false);
-  // Le cours choisi pilote la liste des pièces affichées : fini les pièces des autres
-  // cours avec de simples badges — on montre CE que CE dossier demandera.
-  const [coursChoisi, setCoursChoisi] = useState<string>(coursPreselectionne ?? cours[0]?.id ?? "");
+  // Les cours choisis (un ou PLUSIEURS — écoles de danse) pilotent la liste des
+  // pièces affichées : on montre ce que CE dossier demandera.
+  const [coursChoisis, setCoursChoisis] = useState<string[]>(
+    coursPreselectionne ? [coursPreselectionne] : cours[0] ? [cours[0].id] : []
+  );
+  const [erreurCours, setErreurCours] = useState(false);
   // Compat : `?erreur=…` reste honoré pour les redirections venant d'ailleurs
   // (ex. retour Stripe) ; l'état de l'action, plus récent, prime.
   const erreur = etat?.erreur ?? erreurInitiale;
@@ -80,6 +83,10 @@ export default function FormulaireInscription({
     e.preventDefault();
     const form = e.currentTarget;
     if (!form.reportValidity()) return;
+    if (coursChoisis.length === 0) {
+      setErreurCours(true);
+      return;
+    }
     setErreurJeton(false);
     setVerifEnCours(true);
     const jeton = await demanderJetonTurnstile();
@@ -163,27 +170,55 @@ export default function FormulaireInscription({
           </div>
         </fieldset>
 
-        {/* COURS */}
+        {/* COURS — cases à cocher : une personne peut s’inscrire à plusieurs cours. */}
         <fieldset>
           <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">COURS<span style={{ color: accent }}>_</span></legend>
-          <div className="mt-4 border border-line bg-paper px-5 py-4">
-            <label htmlFor="cours" className="mono text-[11px] uppercase tracking-label text-ink-soft">COURS SOUHAITÉ</label>
-            <select
-              id="cours"
-              name="cours"
-              required
-              value={coursChoisi}
-              onChange={(e) => setCoursChoisi(e.target.value)}
-              className="mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink"
-            >
-              {cours.map((c) => (
-                // data-tarif : lu par le sélecteur de mensualités pour afficher le vrai montant.
-                (<option key={c.id} value={c.id} data-tarif={c.tarif_centimes}>
-                  {c.nom} — {formatPrix(c.tarif_centimes)}/an{c.complet ? " · COMPLET (liste d’attente)" : ""}
-                </option>)
-              ))}
-            </select>
+          <div className="mt-4 divide-y divide-line border border-line bg-paper">
+            {cours.map((c) => {
+              const coche = coursChoisis.includes(c.id);
+              return (
+                <label key={c.id} className="flex cursor-pointer items-center gap-3 px-5 py-4">
+                  <input
+                    type="checkbox"
+                    name="cours"
+                    value={c.id}
+                    checked={coche}
+                    onChange={() => {
+                      setErreurCours(false);
+                      setCoursChoisis((prev) => (coche ? prev.filter((id) => id !== c.id) : [...prev, c.id]));
+                    }}
+                  />
+                  <span className="flex-1 text-[15px]">
+                    {c.nom}
+                    {c.complet ? (
+                      <span className="mono ml-2 text-[10px] uppercase tracking-wider text-ink-soft">
+                        COMPLET · liste d’attente
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mono text-[13px] text-ink-soft">{formatPrix(c.tarif_centimes)}/an</span>
+                </label>
+              );
+            })}
           </div>
+          {coursChoisis.length > 1 ? (
+            <p className="mono mt-2 text-[12px]">
+              {coursChoisis.length} cours — total{" "}
+              <strong>
+                {formatPrix(
+                  cours.filter((c) => coursChoisis.includes(c.id)).reduce((s, c) => s + c.tarif_centimes, 0)
+                )}
+                /an
+              </strong>
+            </p>
+          ) : (
+            <p className="mono mt-2 text-[12px] text-ink-faint">Vous pouvez sélectionner plusieurs cours.</p>
+          )}
+          {erreurCours ? (
+            <p role="alert" className="mono mt-2 text-[12px] text-danger">
+              Choisissez au moins un cours.
+            </p>
+          ) : null}
         </fieldset>
 
         {/* PAGES PERSONNALISÉES */}
@@ -202,11 +237,11 @@ export default function FormulaireInscription({
         <RemisesInscription remises={remises} accent={accent} />
 
         {/* PIÈCES (info) */}
-        {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).length > 0 ? (
+        {pieces.filter((pc) => !pc.cours_id || coursChoisis.includes(pc.cours_id)).length > 0 ? (
           <fieldset>
             <legend className="mono text-[12px] uppercase tracking-label text-ink-soft">PIÈCES À FOURNIR<span style={{ color: accent }}>_</span></legend>
             <div className="mt-4 divide-y divide-line border border-line bg-paper">
-              {pieces.filter((pc) => !pc.cours_id || pc.cours_id === coursChoisi).map((pc) => {
+              {pieces.filter((pc) => !pc.cours_id || coursChoisis.includes(pc.cours_id)).map((pc) => {
                 const coursLie = pc.cours_id ? cours.find((c) => c.id === pc.cours_id) : null;
                 return (
                   <div key={pc.id} className="flex items-center justify-between gap-3 px-5 py-3 text-[14px]">
@@ -275,11 +310,20 @@ export default function FormulaireInscription({
             {paiementEnLigne ? (
               <>
                 <Radio name="mode" value="en_ligne" defaultChecked label="En ligne (carte bancaire)" hint="Sécurisé, immédiat." />
-                <ChoixEcheances
-                  echeancesMax={echeancesMax}
-                  tarifInitialCentimes={cours[0]?.tarif_centimes ?? 0}
-                  accent={accent}
-                />
+                {/* Mensualités : uniquement pour UN cours — le prélèvement mensuel est
+                    rattaché à une adhésion. Plusieurs cours = paiement en une fois. */}
+                {coursChoisis.length === 1 ? (
+                  <ChoixEcheances
+                    key={coursChoisis[0]}
+                    echeancesMax={echeancesMax}
+                    tarifInitialCentimes={cours.find((c) => c.id === coursChoisis[0])?.tarif_centimes ?? 0}
+                    accent={accent}
+                  />
+                ) : echeancesMax > 1 ? (
+                  <p className="mono border-t border-line px-5 py-3 text-[11px] text-ink-faint">
+                    Le paiement en plusieurs fois est proposé pour une inscription à un seul cours.
+                  </p>
+                ) : null}
               </>
             ) : null}
             <Radio name="mode" value="cheque" defaultChecked={chequeParDefaut} label="Par chèque" hint="À remettre au club." />

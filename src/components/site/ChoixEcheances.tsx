@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * Choix du nombre de mensualités par l'adhérent, dans la limite fixée par le club.
@@ -19,21 +19,9 @@ export default function ChoixEcheances({
 }) {
   const [mode, setMode] = useState<"comptant" | "echeances">("comptant");
   const [n, setN] = useState(Math.min(3, echeancesMax));
-  const [tarifCentimes, setTarif] = useState(tarifInitialCentimes);
-
-  // Le tarif dépend du cours choisi : on suit le <select> plutôt que d'afficher un montant faux.
-  useEffect(() => {
-    const select = document.querySelector<HTMLSelectElement>('select[name="cours"]');
-    if (!select) return;
-    const lire = () => {
-      const opt = select.selectedOptions[0];
-      const t = Number(opt?.dataset.tarif);
-      if (Number.isFinite(t) && t > 0) setTarif(t);
-    };
-    lire();
-    select.addEventListener("change", lire);
-    return () => select.removeEventListener("change", lire);
-  }, []);
+  // Le tarif du cours choisi arrive en prop ; le parent remonte le composant
+  // (`key`) quand le cours change — plus d'écoute du DOM depuis les cases à cocher.
+  const tarifCentimes = tarifInitialCentimes;
 
   if (echeancesMax < 2) return null;
 

@@ -161,8 +161,8 @@ describe("lot J — changement de cours et pièces filtrées", () => {
     expect(FICHE).toMatch(/ajustez le règlement/);
   });
 
-  it("le formulaire public ne montre que les pièces DU cours choisi", () => {
-    expect(FORM).toMatch(/pieces\.filter\(\(pc\) => !pc\.cours_id \|\| pc\.cours_id === coursChoisi\)/);
-    expect(FORM).toMatch(/setCoursChoisi\(e\.target\.value\)/);
+  it("le formulaire public ne montre que les pièces DES cours choisis (multi-cours, 26/08/2026)", () => {
+    expect(FORM).toMatch(/pieces\.filter\(\(pc\) => !pc\.cours_id \|\| coursChoisis\.includes\(pc\.cours_id\)\)/);
+    expect(FORM).toMatch(/setCoursChoisis/);
   });
 });

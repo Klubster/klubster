@@ -163,12 +163,12 @@ export async function marquerEncaisse(slug: string, adhesionId: string) {
   redirect(`/${slug}/cockpit/paiements${error ? "?erreur=encaisse" : ""}`);
 }
 
-// Enregistre un règlement partiel ou total (chèque/espèces). Renvoie le solde restant.
+// Enregistre un règlement partiel ou total (chèque/espèces/virement…). Renvoie le solde restant.
 export async function enregistrerReglement(
   slug: string,
   adhesionId: string,
   montantCentimes: number,
-  mode: "cheque" | "especes" | "autre",
+  mode: "cheque" | "especes" | "virement" | "autre",
   note?: string | null
 ): Promise<{ ok: boolean; soldeCentimes?: number; error?: string }> {
   if (!(await gardeFinanceDouce(slug))) return { ok: false, error: "Accès refusé." };

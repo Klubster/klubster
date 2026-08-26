@@ -108,7 +108,7 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       subscription?: string;
       payment_intent?: string;
       amount_total?: number;
-      metadata?: { adhesion_id?: string; echeances?: string };
+      metadata?: { adhesion_id?: string; echeances?: string; adhesions_json?: string };
     };
     const adhesionId = obj.metadata?.adhesion_id;
     if (!adhesionId) return;
@@ -126,6 +126,37 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
         await appelerRpc(admin, adhesionId, obj.amount_total, `Échéance 1/${echeances} (Stripe)`, event.id);
       }
     } else if (typeof obj.amount_total === "number" && obj.amount_total > 0) {
+      const parts = parserRepartition(obj.metadata?.adhesions_json);
+      if (parts && parts.length > 1) {
+        // INSCRIPTION MULTI-COURS : un seul paiement, une écriture PAR adhésion.
+        // Chaque adhésion est vérifiée contre le compte connecté (métadonnée forgée
+        // par un club → elle ne peut viser que ses propres adhésions, comme en mono).
+        for (const p of parts) await verifierCompte(admin, p.id, event.account!);
+        // On répartit l'ARGENT RÉELLEMENT REÇU (amount_total) au prorata des montants
+        // annoncés ; le reliquat d'arrondi va à la dernière ligne. La référence est
+        // propre à chaque adhésion (l'index unique `stripe_ref` interdit le doublon,
+        // et un rejeu de l'événement saute les lignes déjà écrites).
+        const totalAnnonce = parts.reduce((s, p) => s + p.montant, 0);
+        let distribue = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const part =
+            i === parts.length - 1
+              ? obj.amount_total - distribue
+              : Math.round((obj.amount_total * parts[i].montant) / totalAnnonce);
+          distribue += part;
+          if (part > 0) {
+            await appelerRpc(admin, parts[i].id, part, "Paiement en ligne (Stripe)", `${event.id}:${parts[i].id}`);
+          }
+        }
+        if (obj.payment_intent) {
+          const { error } = await admin
+            .from("adhesions")
+            .update({ stripe_payment_intent: obj.payment_intent })
+            .in("id", parts.map((p) => p.id));
+          if (error) throw new Error(`maj payment_intent (multi): ${error.message}`);
+        }
+        return;
+      }
       // Paiement en une fois : la RPC enregistre le règlement ET passe l'adhésion « payé »
       // seulement si le total réglé couvre le montant dû. Plus de statut forcé à l'aveugle.
       await appelerRpc(admin, adhesionId, obj.amount_total, "Paiement en ligne (Stripe)", event.id);
@@ -189,15 +220,9 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       id?: string;
       payment_intent?: string;
       metadata?: { adhesion_id?: string };
-      refunds?: { data?: Array<{ id?: string; amount?: number }> };
+      refunds?: { data?: Array<{ id?: string; amount?: number; metadata?: { adhesion_id?: string } }> };
     };
-    const adhesionId = await resoudreAdhesion(admin, obj.metadata?.adhesion_id, obj.payment_intent);
-    if (!adhesionId) {
-      console.warn("charge.refunded sans adhesion_id identifiable", event.id);
-      return;
-    }
-    await verifierCompte(admin, adhesionId, event.account!);
-    // On enregistre le DERNIER remboursement (delta), identifié par son propre id (`re_…`) :
+    // On lit d'abord le DERNIER remboursement (delta), identifié par son propre id (`re_…`) :
     // plusieurs remboursements partiels sur une même charge ne sont donc pas additionnés à
     // tort. Si le payload n'inclut pas `refunds.data`, on RELIT la charge — surtout pas de
     // repli sur `amount_refunded` : c'est un CUMUL, pas un delta, et le référencer par
@@ -207,6 +232,19 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       const charge = await getChargeAvecRefunds(obj.id, event.account!);
       dernier = charge.refunds?.data?.[0];
     }
+    // Multi-cours : un même payment_intent couvre plusieurs adhésions. Un remboursement
+    // lancé depuis le cockpit porte l'adhésion visée dans SES métadonnées — priorité —,
+    // sinon celles de la charge, sinon le payment_intent (première adhésion rattachée).
+    const adhesionId = await resoudreAdhesion(
+      admin,
+      dernier?.metadata?.adhesion_id ?? obj.metadata?.adhesion_id,
+      obj.payment_intent
+    );
+    if (!adhesionId) {
+      console.warn("charge.refunded sans adhesion_id identifiable", event.id);
+      return;
+    }
+    await verifierCompte(admin, adhesionId, event.account!);
     if (!dernier?.id || typeof dernier.amount !== "number" || dernier.amount <= 0) {
       // Plutôt qu'écrire un montant faux, on lève : Stripe redélivrera l'événement.
       throw new Error(`charge.refunded ${event.id}: remboursement introuvable sur la charge ${obj.id ?? "?"}`);
@@ -247,6 +285,25 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
 }
 
 /**
+ * Répartition d'un paiement multi-cours, portée par la métadonnée `adhesions_json`
+ * (format compact `id:centimes;id:centimes`). La MOINDRE anomalie — id mal formé,
+ * montant non entier ou négatif — invalide tout : on retombe alors sur le chemin
+ * mono-adhésion, qui écrit au moins le paiement quelque part plutôt que rien.
+ */
+function parserRepartition(brut: string | undefined): Array<{ id: string; montant: number }> | null {
+  if (!brut) return null;
+  const parts: Array<{ id: string; montant: number }> = [];
+  for (const morceau of brut.split(";")) {
+    const [id, montant] = morceau.split(":");
+    const n = Number(montant);
+    if (!/^[0-9a-f-]{36}$/i.test(id ?? "") || !Number.isInteger(n) || n < 0) return null;
+    parts.push({ id, montant: n });
+  }
+  if (parts.length === 0 || parts.reduce((s, p) => s + p.montant, 0) <= 0) return null;
+  return parts;
+}
+
+/**
  * Retrouve l'adhésion visée par un événement de charge (remboursement, litige).
  * D'abord par la métadonnée `adhesion_id` si Stripe la porte, sinon par le
  * `payment_intent` qu'on a mémorisé à l'encaissement — le chemin fiable, car les
@@ -259,15 +316,19 @@ async function resoudreAdhesion(
 ): Promise<string | null> {
   if (adhesionId) return adhesionId;
   if (!paymentIntent) return null;
+  // Multi-cours : plusieurs adhésions partagent le même payment_intent — on prend la
+  // première (l'événement sans métadonnée ne peut pas dire mieux ; le remboursement
+  // ciblé passe, lui, par la métadonnée du refund).
   const { data, error } = await admin
     .from("adhesions")
     .select("id")
     .eq("stripe_payment_intent", paymentIntent)
-    .maybeSingle();
+    .order("created_at", { ascending: true })
+    .limit(1);
   // Une panne de base ne doit pas se déguiser en « adhésion introuvable » : sans ce
   // contrôle, l'événement était acquitté à tort et jamais rejoué (4e audit).
   exiger({ error }, "resoudreAdhesion");
-  return (data?.id as string | undefined) ?? null;
+  return ((data ?? [])[0]?.id as string | undefined) ?? null;
 }
 
 /** Un litige (chargeback) a été ouvert : l'adhésion repasse « en retard », le club est prévenu. */

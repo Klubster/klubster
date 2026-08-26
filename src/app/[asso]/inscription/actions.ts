@@ -30,9 +30,14 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   const nom = String(formData.get("nom") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const tel = String(formData.get("tel") ?? "");
-  const coursId = String(formData.get("cours") ?? "");
+  // Un ou PLUSIEURS cours (cases à cocher `cours`), dédoublonnés, ordre conservé.
+  const coursIds = Array.from(new Set(formData.getAll("cours").map((v) => String(v)).filter(Boolean)));
+  const coursId = coursIds[0] ?? "";
   const password = String(formData.get("password") ?? "");
-  const mode = String(formData.get("mode") ?? "en_ligne");
+  let mode = String(formData.get("mode") ?? "en_ligne");
+  // Multi-cours : pas de mensualités (le pipeline d'échéances est mono-adhésion).
+  // Le formulaire ne les propose pas au-delà d'un cours ; on aligne le serveur.
+  if (coursIds.length > 1 && mode === "en_ligne_echeances") mode = "en_ligne";
 
   // Formulaire public : on filtre les robots AVANT tout envoi d'email ou création de compte.
   const verdict = await verifierSoumissionPublique(formData, slug);
@@ -117,7 +122,7 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   // Base commune : identité, cours, date calendaire, adresse, email valide, mot de passe.
   // Le navigateur marque ces champs requis ; un appel direct ne passe par aucun de ces
   // contrôles, on les rejoue donc ici (4e audit).
-  if (!prenom || !nom || !coursId || !dateValide) manque.push("base");
+  if (!prenom || !nom || coursIds.length === 0 || coursIds.length > 10 || !dateValide) manque.push("base");
   if (!adressePostale) manque.push("adresse");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) manque.push("email");
   // Compte adhérent : mot de passe d'au moins 8 caractères. Sans lui, un appel direct
@@ -229,6 +234,170 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   // Le questionnaire part dès qu'il est fourni et valide ; il vient d'être exigé plus haut
   // quand le club l'active.
   const questionnaireFourni = dateValide && signatureValide && qAtteste;
+
+  // ——— INSCRIPTION MULTI-COURS (écoles de danse : plusieurs cours par personne) ———
+  // Une seule fiche, une adhésion PAR cours, dans une seule transaction SQL. Le chemin
+  // mono-cours, éprouvé, reste strictement inchangé plus bas.
+  if (coursIds.length > 1) {
+    const { data: brut, error: errMulti } = await admin.rpc("register_adherent_multi_avec_sante", {
+      p_slug: slug,
+      p_user_id: userId,
+      p_prenom: prenom,
+      p_nom: nom,
+      p_email: email,
+      p_tel: tel,
+      p_cours_ids: coursIds,
+      p_infos: infos,
+      p_mode: mode,
+      p_q_type: questionnaireFourni ? qType : null,
+      p_q_date_naissance: questionnaireFourni ? dateNaissance : null,
+      p_q_resultat: questionnaireFourni ? qResultat : null,
+      p_q_signataire_nom: questionnaireFourni ? qSignataire || null : null,
+      p_q_signataire_qualite: questionnaireFourni ? qQualite : null,
+      p_q_signature: questionnaireFourni ? qSignature : null,
+    });
+    const lignes = (brut ?? []) as Array<{
+      adhesion_id: string;
+      cours_id: string;
+      cours_nom: string;
+      statut: string;
+      montant_centimes: number;
+    }>;
+    if (errMulti || lignes.length === 0) {
+      console.error("register_adherent_multi_avec_sante", errMulti?.message);
+      if (userId) {
+        const { error: eDel } = await admin.auth.admin.deleteUser(userId);
+        if (eDel) console.error("rollback compte Auth", userId, eDel.message);
+      }
+      return { erreur: "1" };
+    }
+
+    const actives = lignes.filter((l) => l.statut !== "liste_attente");
+    const attente = lignes.filter((l) => l.statut === "liste_attente");
+    const totalCentimes = actives.reduce((s, l) => s + l.montant_centimes, 0);
+    const libelleModeMulti =
+      mode === "en_ligne" ? "En ligne (carte bancaire)"
+      : mode === "cheque" ? "Par chèque, à remettre au club"
+      : "En espèces, à remettre au club";
+    // Pièces demandées pour LES cours choisis (une pièce sans cours_id vaut pour tous).
+    const piecesDemandeesMulti = (org.form_config?.pieces ?? []).filter(
+      (p) => (!p.cours_id || coursIds.includes(p.cours_id)) && (!p.mineurs_seulement || estInscriptionMineur)
+    );
+    const modelesMulti = piecesDemandeesMulti
+      .filter((p) => p.modele_url)
+      .map((p) => ({ nom: p.modele_nom || `${p.label}.pdf`, url: p.modele_url as string }));
+
+    try {
+      if (email) {
+        const para = [`Bonjour ${prenom},`];
+        if (actives.length > 0) {
+          para.push(`Votre inscription au ${org.nom} est bien enregistrée.`);
+          para.push(
+            `Cours : ${actives.map((l) => l.cours_nom).join(", ")} · Cotisation totale : ${(totalCentimes / 100).toLocaleString("fr-FR")} € / an · Règlement : ${libelleModeMulti}.`
+          );
+        }
+        if (attente.length > 0) {
+          para.push(
+            attente.length === 1
+              ? `Le cours « ${attente[0].cours_nom} » est complet : vous êtes sur sa liste d'attente (aucun paiement demandé pour ce cours). Nous vous préviendrons dès qu'une place se libère.`
+              : `Les cours ${attente.map((l) => `« ${l.cours_nom} »`).join(", ")} sont complets : vous êtes sur leur liste d'attente (aucun paiement demandé pour ces cours).`
+          );
+        }
+        para.push(`Depuis votre espace adhérent, vous suivez votre dossier, déposez vos pièces et retrouvez votre carte de membre.`);
+        para.push(`Pour un accès en un clic, installez l'app du club sur votre téléphone : ${BASE}/${slug}/installer`);
+        para.push(`Pensez à confirmer votre adresse email si ce n'est pas déjà fait (un email séparé vous a été envoyé).`);
+        if (actives.length > 0 && piecesDemandeesMulti.length > 0) {
+          para.push(
+            `Pièces à fournir : ${piecesDemandeesMulti.map((p) => p.label + (p.obligatoire ? "" : " (facultative)")).join(", ")}.`
+          );
+          if (modelesMulti.length > 0) {
+            para.push(
+              modelesMulti.length === 1
+                ? `Le document à faire remplir est joint à cet email.`
+                : `Les ${modelesMulti.length} documents à faire remplir sont joints à cet email.`
+            );
+          }
+          para.push(`Téléchargez vos pièces depuis votre espace adhérent : ${BASE}/${slug}/espace`);
+        }
+        const objet = actives.length === 0 ? `Liste d'attente — ${org.nom}` : `Votre inscription — ${org.nom}`;
+        await envoyerEmail({
+          to: email,
+          fromNom: `${org.nom} via Klubster`,
+          replyTo: org.email_contact,
+          objet,
+          piecesJointes: actives.length === 0 ? [] : modelesMulti,
+          texte: para.join("\n\n") + `\n\nSportivement,\n${org.nom}`,
+          html: gabaritEmail({
+            club: org.nom,
+            couleur: org.couleur_primaire,
+            titre: objet,
+            paragraphes: para,
+            bouton: { libelle: "OUVRIR MON ESPACE", url: `${BASE}/${slug}/espace` },
+          }),
+        });
+      }
+      let destinataireClub = org.email_contact;
+      if (!destinataireClub) {
+        const { data: president } = await admin
+          .from("profiles")
+          .select("email")
+          .eq("organisation_id", org.id)
+          .in("role", ["admin_asso", "super_admin"])
+          .not("email", "is", null)
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        destinataireClub = president?.email ?? null;
+      }
+      if (destinataireClub) {
+        await envoyerEmail({
+          to: destinataireClub,
+          objet: `Nouvelle inscription — ${prenom} ${nom}`,
+          texte:
+            `Une nouvelle inscription (plusieurs cours) vient d'arriver au ${org.nom} :\n\n` +
+            `${prenom} ${nom}\n` +
+            `Cours : ${lignes.map((l) => l.cours_nom + (l.statut === "liste_attente" ? " (liste d'attente)" : "")).join(", ")}\n` +
+            (actives.length > 0 ? `Règlement : ${libelleModeMulti}\n` : "") +
+            `\nÀ retrouver dans votre cockpit :\n${BASE}/${slug}/cockpit\n\n— Klubster`,
+        });
+      }
+    } catch (e) {
+      console.error("emails inscription multi", e);
+    }
+
+    // Tous les cours choisis sont complets : rien à payer, la personne attend sa place.
+    if (actives.length === 0) {
+      redirect(`/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&attente=1`);
+    }
+
+    const compteClubMulti = compteConnecte(org);
+    if (mode === "en_ligne" && compteClubMulti && stripeConfigured() && totalCentimes > 0) {
+      let urlPaiement: string | null = null;
+      try {
+        const session = await createCheckoutForClub({
+          clubAccount: compteClubMulti,
+          coursNom: actives.map((l) => l.cours_nom).join(" + "),
+          montantCentimes: totalCentimes,
+          successUrl: `${BASE}/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paye=1`,
+          cancelUrl: `${BASE}/${slug}/inscription?annule=1`,
+          adhesionId: actives[0].adhesion_id,
+          clientEmail: email || null,
+          // La répartition par adhésion voyage avec le paiement : le webhook écrira
+          // une écriture PAR cours, jamais tout sur la première adhésion.
+          adhesions: actives.map((l) => ({ id: l.adhesion_id, montantCentimes: l.montant_centimes })),
+        });
+        urlPaiement = (session?.url as string) ?? null;
+      } catch (e) {
+        console.error("stripe checkout multi", e);
+      }
+      // ⚠️ redirect() lève NEXT_REDIRECT : toujours HORS du try.
+      if (urlPaiement) redirect(urlPaiement);
+      redirect(`/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&paiement=indisponible`);
+    }
+
+    redirect(`/${slug}/inscription/merci?prenom=${encodeURIComponent(prenom)}&mode=${mode}`);
+  }
+
   const { data: adhesionId, error } = await admin.rpc("register_adherent_avec_sante", {
     p_slug: slug,
     p_user_id: userId,

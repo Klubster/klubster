@@ -18,6 +18,7 @@ const LIBELLE_MODE: Record<string, string> = {
   especes: "Espèces",
   cheque: "Chèques",
   en_ligne: "En ligne (carte)",
+  virement: "Virements",
   autre: "Autre (chèques vacances, aides…)",
   remboursement: "Remboursements",
 };
@@ -76,7 +77,7 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
     .in("statut", ["en_attente", "en_retard"])
     // Un renouvellement de saison ou un import crée l'adhésion SANS mode de paiement :
     // ces impayés n'apparaissaient jamais ici (alors que les relances les voyaient).
-    .or("mode_paiement.in.(cheque,especes),mode_paiement.is.null")
+    .or("mode_paiement.in.(cheque,especes,virement),mode_paiement.is.null")
     .order("created_at", { ascending: false });
 
   const brut = (data ?? []) as unknown as Array<{
@@ -173,7 +174,7 @@ export default async function PaiementsPage(props: { params: Promise<{ asso: str
             </div>
           ) : (
             <div className="divide-y divide-line">
-              {["especes", "cheque", "en_ligne", "autre", "remboursement"]
+              {["especes", "cheque", "virement", "en_ligne", "autre", "remboursement"]
                 .filter((m) => totaux.has(m))
                 .map((m) => (
                   <div key={m} className="flex items-center justify-between px-5 py-2.5">
