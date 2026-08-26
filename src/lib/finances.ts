@@ -106,3 +106,97 @@ export const LIBELLES_FINANCIERS: Record<EtatFinancier, { long: string; court: s
 export function libelleFinancier(etat: EtatFinancier): string {
   return LIBELLES_FINANCIERS[etat].long;
 }
+
+/* ————————————————————————————————————————————————————————————————
+   PAIEMENT PARTAGÉ ENTRE PLUSIEURS ADHÉSIONS (inscription multi-cours)
+   ————————————————————————————————————————————————————————————————
+
+   Depuis le 26/08/2026, une inscription à plusieurs cours produit UN paiement
+   Stripe pour PLUSIEURS adhésions. Deux conséquences, et un défaut réel corrigé
+   le jour même (revue externe) :
+
+   1. À l'encaissement, l'argent reçu doit être RÉPARTI entre les adhésions.
+   2. Au remboursement, l'hypothèse « un paiement = une adhésion » ne tient plus.
+      Le code envoyait à Stripe un remboursement SANS montant quand le bureau
+      laissait le champ vide — or, sans montant, Stripe rend TOUT le solde du
+      paiement, donc l'argent des AUTRES cours, et l'écriture (négative) tombait
+      en entier sur la seule adhésion visée. Concrètement : danse 200 € + jazz
+      300 €, « remboursement total » depuis la fiche danse → 500 € rendus et
+      −500 € imputés à la danse. Un montant est désormais TOUJOURS envoyé, borné
+      à ce que CETTE adhésion a réellement encaissé en ligne.
+
+   Ces trois fonctions sont pures et testées par leur comportement (et non par
+   le texte de leur source) : c'est ici que vit l'arithmétique de l'argent. */
+
+/**
+ * Ce qu'une adhésion peut encore se voir rembourser EN LIGNE : ce qu'elle a
+ * encaissé par carte, moins ce qui lui a déjà été rendu.
+ *
+ * Les règlements espèces/chèque/virement sont exclus : Stripe ne peut pas rendre
+ * un chèque. Les remboursements sont stockés en négatif, ils se soustraient donc
+ * naturellement. Jamais négatif : un trop-remboursé (rendu depuis le tableau de
+ * bord Stripe, par exemple) ne devient pas un droit à rembourser encore.
+ */
+export function remboursableEnLigne(reglements: Array<{ montantCentimes: number; mode: string | null }>): number {
+  const net = reglements
+    .filter((r) => r.mode === "en_ligne" || r.mode === "remboursement")
+    .reduce((s, r) => s + r.montantCentimes, 0);
+  return Math.max(net, 0);
+}
+
+/**
+ * Répartit un montant entre plusieurs adhésions, au prorata de leurs parts.
+ *
+ * INVARIANT : la somme des parts rendues égale EXACTEMENT `montantCentimes`.
+ * Le reliquat d'arrondi va à la dernière part — sinon un club encaisserait un
+ * ou deux centimes de moins que ce que l'adhérent a payé. Une part peut valoir
+ * zéro (cours gratuit dans le lot) ; aucune n'est jamais négative.
+ *
+ * Sert au paiement (webhook `checkout.session.completed`) ET au remboursement
+ * non ciblé (`charge.refunded` sans métadonnée) : une seule arithmétique.
+ */
+export function repartirProrata(
+  parts: Array<{ id: string; montantCentimes: number }>,
+  montantCentimes: number
+): Array<{ id: string; partCentimes: number }> {
+  const total = parts.reduce((s, p) => s + p.montantCentimes, 0);
+  if (parts.length === 0 || total <= 0) return [];
+  let distribue = 0;
+  return parts.map((p, i) => {
+    const part =
+      i === parts.length - 1
+        ? montantCentimes - distribue
+        : Math.round((montantCentimes * p.montantCentimes) / total);
+    distribue += part;
+    return { id: p.id, partCentimes: part };
+  });
+}
+
+/**
+ * Lit la répartition portée par les métadonnées Stripe (`id:centimes;id:centimes`).
+ *
+ * La MOINDRE anomalie — identifiant mal formé, montant non entier ou négatif —
+ * invalide tout le lot : on retombe alors sur le chemin mono-adhésion, qui écrit
+ * au moins le paiement quelque part plutôt que de ne rien écrire du tout.
+ */
+export function lireRepartition(brut: string | undefined | null): Array<{ id: string; montantCentimes: number }> | null {
+  if (!brut) return null;
+  const parts: Array<{ id: string; montantCentimes: number }> = [];
+  for (const morceau of brut.split(";")) {
+    const [id, montant] = morceau.split(":");
+    const n = Number(montant);
+    if (!/^[0-9a-f-]{36}$/i.test(id ?? "") || !Number.isInteger(n) || n < 0) return null;
+    parts.push({ id, montantCentimes: n });
+  }
+  if (parts.length === 0 || parts.reduce((s, p) => s + p.montantCentimes, 0) <= 0) return null;
+  return parts;
+}
+
+/** Écrit la répartition pour les métadonnées Stripe. `null` si elle ne tient pas
+ *  dans la limite de 500 caractères par valeur — l'appelant retombe alors sur le
+ *  chemin mono plutôt que d'envoyer une valeur tronquée, donc fausse. */
+export function ecrireRepartition(parts: Array<{ id: string; montantCentimes: number }>): string | null {
+  if (parts.length < 2) return null;
+  const brut = parts.map((p) => `${p.id}:${p.montantCentimes}`).join(";");
+  return brut.length <= 500 ? brut : null;
+}

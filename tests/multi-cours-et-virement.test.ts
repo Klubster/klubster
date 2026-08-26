@@ -82,15 +82,16 @@ describe("inscription publique multi-cours — un paiement, une écriture par ad
     expect(FORM).toMatch(/coursChoisis\.length === 1 \? \(\s*<ChoixEcheances/);
   });
 
-  it("la répartition voyage dans les métadonnées du checkout, bornée à 500 caractères", () => {
-    expect(STRIPE).toMatch(/repartition && repartition\.length <= 500/);
+  it("l'arithmétique de l'argent vit dans lib/finances — source unique, testée par comportement", () => {
+    // Le détail des montants est couvert par tests/paiement-partage.test.ts ;
+    // ici on épingle seulement le fait que le webhook et Stripe la CONSOMMENT.
+    expect(STRIPE).toMatch(/ecrireRepartition\(/);
+    expect(WEBHOOK).toMatch(/lireRepartition\(obj\.metadata\?\.adhesions_json\)/);
+    expect(WEBHOOK).toMatch(/repartirProrata\(parts, obj\.amount_total\)/);
   });
 
   it("le webhook écrit une écriture PAR adhésion, avec une référence propre à chacune", () => {
-    expect(WEBHOOK).toMatch(/function parserRepartition/);
-    expect(WEBHOOK).toMatch(/`\$\{event\.id\}:\$\{parts\[i\]\.id\}`/);
-    // la moindre anomalie de la métadonnée invalide la répartition (repli mono)
-    expect(WEBHOOK).toMatch(/return null;\s*\n\s*parts\.push/);
+    expect(WEBHOOK).toMatch(/`\$\{event\.id\}:\$\{id\}`/);
   });
 
   it("chaque adhésion de la répartition est vérifiée contre le compte connecté", () => {
@@ -99,6 +100,17 @@ describe("inscription publique multi-cours — un paiement, une écriture par ad
 
   it("un remboursement cible l'adhésion portée par SES métadonnées (multi : payment_intent partagé)", () => {
     expect(STRIPE).toMatch(/if \(adhesionId\) body\.metadata = \{ adhesion_id: adhesionId \};/);
-    expect(WEBHOOK).toMatch(/dernier\?\.metadata\?\.adhesion_id \?\? obj\.metadata\?\.adhesion_id/);
+    expect(WEBHOOK).toMatch(/dernier\.metadata\?\.adhesion_id \?\? obj\.metadata\?\.adhesion_id/);
+  });
+
+  it("un remboursement sans cible (tableau de bord Stripe) est RÉPARTI, jamais imputé à une seule adhésion", () => {
+    const ACTIONS_ADH = lire("src/app/[asso]/cockpit/adherents/actions.ts");
+    const REMB = lire("src/app/[asso]/cockpit/adherents/[id]/Remboursement.tsx");
+    expect(WEBHOOK).toMatch(/adhesionsDuPaiement\(admin, obj\.payment_intent\)/);
+    expect(WEBHOOK).toMatch(/`\$\{dernier\.id\}:\$\{id\}`/);
+    // Défaut du 26/08 : le montant envoyé à Stripe est TOUJOURS explicite.
+    expect(ACTIONS_ADH).toMatch(/let montantCentimes = remboursable;/);
+    expect(ACTIONS_ADH).toMatch(/n > remboursable/);
+    expect(REMB).toMatch(/remboursableCentimes/);
   });
 });

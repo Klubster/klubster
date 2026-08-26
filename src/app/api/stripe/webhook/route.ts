@@ -12,6 +12,7 @@ import {
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { envoyerEmail } from "@/lib/resend";
 import { compteConnecte } from "@/lib/stripe-org";
+import { lireRepartition, repartirProrata, remboursableEnLigne } from "@/lib/finances";
 import type { Organisation } from "@/types/db";
 
 export const dynamic = "force-dynamic";
@@ -126,26 +127,19 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
         await appelerRpc(admin, adhesionId, obj.amount_total, `Échéance 1/${echeances} (Stripe)`, event.id);
       }
     } else if (typeof obj.amount_total === "number" && obj.amount_total > 0) {
-      const parts = parserRepartition(obj.metadata?.adhesions_json);
+      const parts = lireRepartition(obj.metadata?.adhesions_json);
       if (parts && parts.length > 1) {
         // INSCRIPTION MULTI-COURS : un seul paiement, une écriture PAR adhésion.
         // Chaque adhésion est vérifiée contre le compte connecté (métadonnée forgée
         // par un club → elle ne peut viser que ses propres adhésions, comme en mono).
         for (const p of parts) await verifierCompte(admin, p.id, event.account!);
         // On répartit l'ARGENT RÉELLEMENT REÇU (amount_total) au prorata des montants
-        // annoncés ; le reliquat d'arrondi va à la dernière ligne. La référence est
-        // propre à chaque adhésion (l'index unique `stripe_ref` interdit le doublon,
-        // et un rejeu de l'événement saute les lignes déjà écrites).
-        const totalAnnonce = parts.reduce((s, p) => s + p.montant, 0);
-        let distribue = 0;
-        for (let i = 0; i < parts.length; i++) {
-          const part =
-            i === parts.length - 1
-              ? obj.amount_total - distribue
-              : Math.round((obj.amount_total * parts[i].montant) / totalAnnonce);
-          distribue += part;
-          if (part > 0) {
-            await appelerRpc(admin, parts[i].id, part, "Paiement en ligne (Stripe)", `${event.id}:${parts[i].id}`);
+        // annoncés (`repartirProrata`, lib/finances — même arithmétique qu'au
+        // remboursement). La référence est propre à chaque adhésion : l'index unique
+        // `stripe_ref` interdit le doublon, et un rejeu saute les lignes déjà écrites.
+        for (const { id, partCentimes } of repartirProrata(parts, obj.amount_total)) {
+          if (partCentimes > 0) {
+            await appelerRpc(admin, id, partCentimes, "Paiement en ligne (Stripe)", `${event.id}:${id}`);
           }
         }
         if (obj.payment_intent) {
@@ -232,23 +226,43 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
       const charge = await getChargeAvecRefunds(obj.id, event.account!);
       dernier = charge.refunds?.data?.[0];
     }
+    if (!dernier?.id || typeof dernier.amount !== "number" || dernier.amount <= 0) {
+      // Plutôt qu'écrire un montant faux, on lève : Stripe redélivrera l'événement.
+      throw new Error(`charge.refunded ${event.id}: remboursement introuvable sur la charge ${obj.id ?? "?"}`);
+    }
+
     // Multi-cours : un même payment_intent couvre plusieurs adhésions. Un remboursement
-    // lancé depuis le cockpit porte l'adhésion visée dans SES métadonnées — priorité —,
-    // sinon celles de la charge, sinon le payment_intent (première adhésion rattachée).
-    const adhesionId = await resoudreAdhesion(
-      admin,
-      dernier?.metadata?.adhesion_id ?? obj.metadata?.adhesion_id,
-      obj.payment_intent
-    );
+    // lancé depuis le cockpit porte l'adhésion visée dans SES métadonnées — priorité.
+    const cible = dernier.metadata?.adhesion_id ?? obj.metadata?.adhesion_id;
+
+    // Aucune cible (remboursement lancé depuis le tableau de bord Stripe) : on ne peut
+    // pas deviner l'intention, mais on peut refuser d'imputer 500 € rendus à la seule
+    // première adhésion. On répartit alors au prorata de ce que CHAQUE adhésion du
+    // paiement a réellement encaissé en ligne — la même arithmétique qu'à l'encaissement.
+    if (!cible && obj.payment_intent) {
+      const lot = await adhesionsDuPaiement(admin, obj.payment_intent);
+      if (lot.length > 1) {
+        for (const a of lot) await verifierCompte(admin, a.id, event.account!);
+        const parts = lot.map((a) => ({ id: a.id, montantCentimes: a.encaisseCentimes }));
+        for (const { id, partCentimes } of repartirProrata(parts, dernier.amount)) {
+          if (partCentimes <= 0) continue;
+          const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
+            p_adhesion_id: id,
+            p_montant_centimes: partCentimes,
+            p_ref: `${dernier.id}:${id}`,
+          });
+          if (error) throw new Error(`remboursement réparti: ${error.message}`);
+        }
+        return;
+      }
+    }
+
+    const adhesionId = await resoudreAdhesion(admin, cible, obj.payment_intent);
     if (!adhesionId) {
       console.warn("charge.refunded sans adhesion_id identifiable", event.id);
       return;
     }
     await verifierCompte(admin, adhesionId, event.account!);
-    if (!dernier?.id || typeof dernier.amount !== "number" || dernier.amount <= 0) {
-      // Plutôt qu'écrire un montant faux, on lève : Stripe redélivrera l'événement.
-      throw new Error(`charge.refunded ${event.id}: remboursement introuvable sur la charge ${obj.id ?? "?"}`);
-    }
     const { error } = await admin.rpc("enregistrer_remboursement_webhook", {
       p_adhesion_id: adhesionId,
       p_montant_centimes: dernier.amount,
@@ -285,22 +299,30 @@ async function traiterCotisation(event: StripeEvent, admin: ClientAdmin): Promis
 }
 
 /**
- * Répartition d'un paiement multi-cours, portée par la métadonnée `adhesions_json`
- * (format compact `id:centimes;id:centimes`). La MOINDRE anomalie — id mal formé,
- * montant non entier ou négatif — invalide tout : on retombe alors sur le chemin
- * mono-adhésion, qui écrit au moins le paiement quelque part plutôt que rien.
+ * Les adhésions couvertes par un même paiement, avec ce que chacune a encaissé
+ * EN LIGNE (remboursements déjà rendus déduits). Sert à répartir un remboursement
+ * qui ne désigne aucune adhésion — celui lancé depuis le tableau de bord Stripe.
  */
-function parserRepartition(brut: string | undefined): Array<{ id: string; montant: number }> | null {
-  if (!brut) return null;
-  const parts: Array<{ id: string; montant: number }> = [];
-  for (const morceau of brut.split(";")) {
-    const [id, montant] = morceau.split(":");
-    const n = Number(montant);
-    if (!/^[0-9a-f-]{36}$/i.test(id ?? "") || !Number.isInteger(n) || n < 0) return null;
-    parts.push({ id, montant: n });
-  }
-  if (parts.length === 0 || parts.reduce((s, p) => s + p.montant, 0) <= 0) return null;
-  return parts;
+async function adhesionsDuPaiement(
+  admin: ClientAdmin,
+  paymentIntent: string
+): Promise<Array<{ id: string; encaisseCentimes: number }>> {
+  const { data, error } = await admin
+    .from("adhesions")
+    .select("id, reglements(montant_centimes, mode)")
+    .eq("stripe_payment_intent", paymentIntent)
+    .order("created_at", { ascending: true });
+  exiger({ error }, "adhesionsDuPaiement");
+  const lignes = (data ?? []) as unknown as Array<{
+    id: string;
+    reglements: Array<{ montant_centimes: number; mode: string | null }> | null;
+  }>;
+  return lignes.map((l) => ({
+    id: l.id,
+    encaisseCentimes: remboursableEnLigne(
+      (l.reglements ?? []).map((r) => ({ montantCentimes: r.montant_centimes, mode: r.mode }))
+    ),
+  }));
 }
 
 /**

@@ -12,6 +12,7 @@ import { peut } from "@/lib/roles";
 import { rembourser } from "@/lib/stripe";
 import { compteConnecte } from "@/lib/stripe-org";
 import type { Organisation } from "@/types/db";
+import { remboursableEnLigne } from "@/lib/finances";
 
 /**
  * Toutes les actions de ce fichier écrivent sur des fiches d'adhérents : création,
@@ -452,13 +453,35 @@ export async function rembourserEnLigne(slug: string, adherentId: string, adhesi
   const account = compteConnecte(org);
   if (!account) redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement_impossible`);
 
-  // Montant vide → remboursement total ; sinon on borne au montant de l'adhésion.
+  // ⚠️ CE QUE CETTE ADHÉSION PEUT SE VOIR RENDRE — et rien de plus.
+  //
+  // Depuis l'inscription multi-cours (26/08/2026), un même paiement Stripe couvre
+  // PLUSIEURS adhésions. Le code envoyait alors un remboursement SANS montant quand
+  // le bureau laissait le champ vide : Stripe rend dans ce cas TOUT le solde du
+  // paiement — donc l'argent des autres cours — et l'écriture négative tombait en
+  // entier sur la seule adhésion visée. Danse 200 € + jazz 300 €, « total » depuis
+  // la fiche danse : 500 € rendus, −500 € imputés à la danse. Défaut trouvé par la
+  // revue externe du 26/08 et corrigé ici : le montant est TOUJOURS explicite.
+  const { data: reglementsAdhesion } = await supabase
+    .from("reglements")
+    .select("montant_centimes, mode")
+    .eq("adhesion_id", adhesionId);
+  const remboursable = remboursableEnLigne(
+    ((reglementsAdhesion ?? []) as Array<{ montant_centimes: number; mode: string | null }>).map((r) => ({
+      montantCentimes: r.montant_centimes,
+      mode: r.mode,
+    }))
+  );
+  if (remboursable <= 0) {
+    redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=remboursement_impossible`);
+  }
+
+  // Montant vide → tout ce que CETTE adhésion a encaissé en ligne ; sinon on borne.
   const brut = String(formData.get("montant") ?? "").replace(",", ".").trim();
-  let montantCentimes: number | undefined;
+  let montantCentimes = remboursable;
   if (brut) {
     const n = Math.round(parseFloat(brut) * 100);
-    const max = (adh?.montant_centimes as number | null) ?? 0;
-    if (!Number.isFinite(n) || n <= 0 || (max > 0 && n > max)) {
+    if (!Number.isFinite(n) || n <= 0 || n > remboursable) {
       redirect(`/${slug}/cockpit/adherents/${adherentId}?erreur=montant`);
     }
     montantCentimes = n;

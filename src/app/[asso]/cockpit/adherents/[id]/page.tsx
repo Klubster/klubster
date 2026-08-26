@@ -7,7 +7,7 @@ import { getOrganisationBySlug } from "@/lib/queries";
 import { getProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatPrix, formatMontant } from "@/lib/format";
-import { resteAPayer } from "@/lib/finances";
+import { resteAPayer, remboursableEnLigne } from "@/lib/finances";
 import { saisonCourante } from "@/lib/saison";
 import { modifierAdherent, basculerPiece, deposerPieceCockpit, marquerPieceParEmail, changerCours, inscrireAutreCours, basculerOppositionCommunications } from "../actions";
 import { estFournie, libellePiece } from "@/lib/pieces";
@@ -141,6 +141,20 @@ export default async function FicheAdherent(
   for (const r of listeReglements) {
     regleParAdhesion.set(r.adhesion_id, (regleParAdhesion.get(r.adhesion_id) ?? 0) + r.montant_centimes);
   }
+  // Ce que chaque adhésion peut se voir REMBOURSER en ligne (encaissé carte moins
+  // déjà rendu) — distinct du montant dû : un paiement multi-cours est partagé.
+  const remboursableParAdhesion = new Map<string, number>();
+  for (const a of listeAdhesions) {
+    remboursableParAdhesion.set(
+      a.id,
+      remboursableEnLigne(
+        listeReglements
+          .filter((r) => r.adhesion_id === a.id)
+          .map((r) => ({ montantCentimes: r.montant_centimes, mode: r.mode }))
+      )
+    );
+  }
+
   const soldes = listeAdhesions.map((a) => ({
     id: a.id,
     cours: a.cours?.nom ?? a.saison ?? "Adhésion",
@@ -354,7 +368,7 @@ export default async function FicheAdherent(
                       slug={org.slug}
                       adherentId={adherent.id}
                       adhesionId={a.id}
-                      montantCentimes={a.montant_centimes ?? 0}
+                      remboursableCentimes={remboursableParAdhesion.get(a.id) ?? 0}
                     />
                   ) : null}
                 </div>

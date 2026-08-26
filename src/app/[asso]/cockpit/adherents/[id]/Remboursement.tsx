@@ -4,25 +4,35 @@ import { useState, useTransition } from "react";
 import { rembourserEnLigne } from "../actions";
 
 /**
- * Rembourser un paiement en ligne depuis la fiche. Montant vide = remboursement total ;
- * un montant borne un remboursement partiel. L'écriture n'apparaît qu'une fois le
- * remboursement confirmé par Stripe (via le webhook), pour ne jamais compter deux fois.
+ * Rembourser un paiement en ligne depuis la fiche. Montant vide = tout ce que CETTE
+ * adhésion a encaissé en ligne ; un montant borne un remboursement partiel. L'écriture
+ * n'apparaît qu'une fois le remboursement confirmé par Stripe (via le webhook), pour ne
+ * jamais compter deux fois.
+ *
+ * `remboursableCentimes` est l'encaissé EN LIGNE de cette adhésion, remboursements déjà
+ * rendus déduits — et non son montant dû. Avec l'inscription multi-cours, un paiement
+ * couvre plusieurs adhésions : afficher le montant dû laissait croire qu'on ne rendait
+ * que ce cours-là, alors que Stripe rendait tout le paiement (corrigé le 26/08/2026).
  */
 export default function Remboursement({
   slug,
   adherentId,
   adhesionId,
-  montantCentimes,
+  remboursableCentimes,
 }: {
   slug: string;
   adherentId: string;
   adhesionId: string;
-  montantCentimes: number;
+  remboursableCentimes: number;
 }) {
   const [ouvert, setOuvert] = useState(false);
   const [enCours, start] = useTransition();
   const action = rembourserEnLigne.bind(null, slug, adherentId, adhesionId);
-  const eur = (montantCentimes / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
+  const eur = (remboursableCentimes / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
+
+  // Rien n'a été encaissé en ligne sur cette adhésion (ou tout a déjà été rendu) :
+  // pas de geste qui échouerait chez Stripe.
+  if (remboursableCentimes <= 0) return null;
 
   if (!ouvert) {
     return (
@@ -60,8 +70,9 @@ export default function Remboursement({
         </button>
       </div>
       <p className="mono mt-3 text-[11px] leading-relaxed text-ink-faint">
-        Laissez vide pour rembourser la totalité ({eur} €). L’argent est rendu sur la carte de l’adhérent
-        via Stripe ; l’écriture apparaît une fois le remboursement confirmé.
+        Laissez vide pour rendre tout ce qui a été encaissé en ligne sur CETTE adhésion ({eur} €).
+        Les autres cours réglés dans le même paiement ne sont pas touchés. L’argent est rendu sur la
+        carte de l’adhérent via Stripe ; l’écriture apparaît une fois le remboursement confirmé.
       </p>
     </form>
   );

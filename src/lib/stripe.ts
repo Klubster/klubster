@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { ecrireRepartition } from "./finances";
 
 // Intégration Stripe via l'API REST (sans SDK) — Connect, charges directes (0 % Klubster).
 const API = "https://api.stripe.com/v1";
@@ -484,15 +485,14 @@ export async function createCheckoutForClub(opts: {
   /** Inscription multi-cours : un paiement, une écriture PAR adhésion (webhook). */
   adhesions?: Array<{ id: string; montantCentimes: number }>;
 }) {
-  // Multi-cours : la répartition voyage dans les métadonnées (format compact
-  // `id:centimes;id:centimes` — la limite Stripe est de 500 caractères par valeur,
-  // soit une dizaine de cours ; le formulaire n'en propose jamais autant).
-  const repartition =
-    opts.adhesions && opts.adhesions.length > 1
-      ? opts.adhesions.map((a) => `${a.id}:${a.montantCentimes}`).join(";")
-      : null;
+  // Multi-cours : la répartition voyage dans les métadonnées Stripe. L'écriture
+  // (et la lecture, côté webhook) vit dans `lib/finances` — une seule arithmétique
+  // de l'argent, une seule grammaire.
+  const repartition = ecrireRepartition(
+    (opts.adhesions ?? []).map((a) => ({ id: a.id, montantCentimes: a.montantCentimes }))
+  );
   const metadata: Record<string, string> = { adhesion_id: opts.adhesionId };
-  if (repartition && repartition.length <= 500) metadata.adhesions_json = repartition;
+  if (repartition) metadata.adhesions_json = repartition;
   // Charge directe sur le compte connecté du club → l'argent va au club, 0 % pour Klubster.
   return call(
     "POST",
