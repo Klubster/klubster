@@ -25,7 +25,7 @@ const MAX_PAR_IP = 5;
 const MAX_PAR_ASSO = 30;
 const TAILLE_MAX_CACHE = 5000;
 
-function trop(cle: string, max: number): boolean {
+function trop(cle: string, max: number, fenetreMs: number = FENETRE_MS): boolean {
   const maintenant = Date.now();
 
   // Purge paresseuse : on borne la mémoire (le middleware avait le défaut inverse).
@@ -36,7 +36,7 @@ function trop(cle: string, max: number): boolean {
 
   const actuel = compteurs.get(cle);
   if (!actuel || actuel.reset < maintenant) {
-    compteurs.set(cle, { nb: 1, reset: maintenant + FENETRE_MS });
+    compteurs.set(cle, { nb: 1, reset: maintenant + fenetreMs });
     return false;
   }
   actuel.nb += 1;
@@ -50,19 +50,19 @@ function trop(cle: string, max: number): boolean {
  * bloque jamais une inscription pour une panne du limiteur, le pot de miel et Turnstile
  * restant en place.
  */
-async function tropDistribue(cle: string, max: number): Promise<boolean> {
+async function tropDistribue(cle: string, max: number, fenetreMs: number = FENETRE_MS): Promise<boolean> {
   const admin = createSupabaseAdminClient();
-  if (!admin) return trop(cle, max);
+  if (!admin) return trop(cle, max, fenetreMs);
   try {
     const { data, error } = await admin.rpc("incrementer_rate_limit", {
       p_cle: cle,
-      p_fenetre_secondes: Math.round(FENETRE_MS / 1000),
+      p_fenetre_secondes: Math.round(fenetreMs / 1000),
       p_max: max,
     });
-    if (error) return trop(cle, max);
+    if (error) return trop(cle, max, fenetreMs);
     return data === true;
   } catch {
-    return trop(cle, max);
+    return trop(cle, max, fenetreMs);
   }
 }
 
@@ -147,4 +147,69 @@ export async function verifierSoumissionPublique(formData: FormData, slug: strin
   if (await tropDistribue(`asso:${slug}`, MAX_PAR_ASSO)) return { ok: false, raison: "trop_de_tentatives" };
 
   return { ok: true };
+}
+
+/* ————————————————————————————————————————————————————————————————
+   CHAT PUBLIC DE LA HOME
+   ————————————————————————————————————————————————————————————————
+
+   Le chat du site est une Server Action ANONYME qui écrit en service-role et
+   pousse une notification Telegram à chaque message. Sans garde, un robot
+   remplissait la base et harcelait le téléphone de l'éditeur (revue externe du
+   26/08/2026). Turnstile n'est pas la bonne réponse ici : un visiteur qui pose
+   une question ne doit pas résoudre un challenge pour écrire une phrase. Le
+   levier utile est la limitation de débit — et surtout par IP, car `visiteurId`
+   vient du navigateur : un robot en change à chaque appel.
+
+   Les seuils sont larges pour un humain (une question, quelques allers-retours)
+   et serrés pour une boucle automatique. */
+
+const CHAT_FENETRE_MS = 10 * 60 * 1000;
+const CHAT_MAX_PAR_IP = 12;          // une conversation nourrie reste sous ce seuil
+const CHAT_MAX_PAR_VISITEUR = 20;
+const CHAT_MAX_OUVERTURES_PAR_IP = 3; // ouvrir 3 conversations en 10 min = pas un humain
+
+export type VerdictChat = { ok: true } | { ok: false; raison: "trop_de_messages" };
+
+/** Garde du chat public. À appeler AVANT toute écriture ou notification. */
+export async function verifierMessageChatPublic(opts: {
+  visiteurId: string;
+  nouvelleConversation: boolean;
+}): Promise<VerdictChat> {
+  const adresse = await ip();
+  if (await tropDistribue(`chat-ip:${adresse}`, CHAT_MAX_PAR_IP, CHAT_FENETRE_MS)) {
+    return { ok: false, raison: "trop_de_messages" };
+  }
+  if (await tropDistribue(`chat-visiteur:${opts.visiteurId}`, CHAT_MAX_PAR_VISITEUR, CHAT_FENETRE_MS)) {
+    return { ok: false, raison: "trop_de_messages" };
+  }
+  if (
+    opts.nouvelleConversation &&
+    (await tropDistribue(`chat-ouverture:${adresse}`, CHAT_MAX_OUVERTURES_PAR_IP, CHAT_FENETRE_MS))
+  ) {
+    return { ok: false, raison: "trop_de_messages" };
+  }
+  return { ok: true };
+}
+
+/**
+ * Robinet des notifications : le message est TOUJOURS écrit, mais on ne fait pas
+ * sonner le téléphone à chaque phrase.
+ *
+ * Deux niveaux : une notification par conversation et par tranche (une salve de
+ * cinq phrases = une vibration), et un plafond global — au-delà, c'est une
+ * attaque et non un afflux de prospects ; les messages restent lisibles là où ils
+ * arrivent, seule l'alerte se tait.
+ *
+ * Ne bloque jamais l'écriture : en cas de doute (base indisponible), on notifie.
+ */
+export async function notificationChatAutorisee(cle: string, fenetreMs: number): Promise<boolean> {
+  const tropSouvent = await tropDistribue(`notif-chat:${cle}`, 1, fenetreMs);
+  if (tropSouvent) return false;
+  const plafondAtteint = await tropDistribue("notif-chat:global-heure", 30, 60 * 60 * 1000);
+  if (plafondAtteint) {
+    console.warn("[antiabus] Plafond horaire de notifications de chat atteint — message enregistré, alerte tue.");
+    return false;
+  }
+  return true;
 }

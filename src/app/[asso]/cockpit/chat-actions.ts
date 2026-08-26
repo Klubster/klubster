@@ -56,7 +56,13 @@ export async function chargerMessagesClub(slug: string): Promise<{ ok: boolean; 
   const sb = await createSupabaseServerClient();
   const conv = await conversationDuClub(ctx.org.id, sb);
   if (!conv) return { ok: false };
-  const { data } = await sb.from("chat_messages").select(COLS).eq("conversation_id", conv.id).order("created_at", { ascending: true });
+  const { data, error } = await sb.from("chat_messages").select(COLS).eq("conversation_id", conv.id).order("created_at", { ascending: true });
+  // Un fil illisible (RLS, panne) s'affichait comme un fil vide : les réponses de
+  // l'éditeur paraissaient perdues.
+  if (error) {
+    console.error("chat cockpit : lecture du fil", error.message);
+    return { ok: false };
+  }
   await sb.from("chat_conversations").update({ non_lus_club: 0 }).eq("id", conv.id);
   return { ok: true, convId: conv.id, messages: (data ?? []) as ChatMessage[] };
 }
@@ -71,16 +77,23 @@ export async function envoyerMessageClub(slug: string, corps: string): Promise<{
   const conv = await conversationDuClub(ctx.org.id, sb);
   if (!conv) return { ok: false };
 
-  const { data: msg } = await sb
+  // ⚠️ Le message d'abord, la notification ENSUITE. Sans ce contrôle, une écriture
+  // refusée (RLS, panne) laissait le président devant son message affiché, l'éditeur
+  // recevait une alerte, et rien n'existait en base (revue externe du 26/08/2026).
+  const { data: msg, error: eMsg } = await sb
     .from("chat_messages")
     .insert({ conversation_id: conv.id, sender: "club", corps: texte, auteur: ctx.profile.id })
     .select(COLS)
     .single();
+  if (eMsg || !msg) {
+    console.error("chat cockpit : message non enregistré", eMsg?.message);
+    return { ok: false };
+  }
 
   // Notification push à chaque message (temps réel sur le téléphone de l'éditeur).
   await sendToAll({ title: `💬 ${ctx.org.nom}`, body: texte.slice(0, 140), url: "/admin/messages" }).catch(() => {});
 
-  await sb
+  const { error: eConv } = await sb
     .from("chat_conversations")
     .update({
       dernier_message_at: new Date().toISOString(),
@@ -90,6 +103,8 @@ export async function envoyerMessageClub(slug: string, corps: string): Promise<{
       non_lus_operateur: (conv.non_lus_operateur ?? 0) + 1,
     })
     .eq("id", conv.id);
+  // Compteurs et aperçu : un échec ici ne perd pas le message, mais il se voit.
+  if (eConv) console.error("chat cockpit : entête de conversation", eConv.message);
 
   // Notif Telegram (klubster_bot) à chaque message. Mathieu répond DIRECTEMENT depuis
   // Telegram : le bot du VPS route la réponse via /api/chat/reply. Le tag #c:<convId>
@@ -98,5 +113,5 @@ export async function envoyerMessageClub(slug: string, corps: string): Promise<{
     `💬 <b>${escapeHtml(ctx.org.nom)}</b> — cockpit\n${escapeHtml(texte.slice(0, 1500))}\n\n↩️ Réponds à ce message pour répondre au club.\n#c:${conv.id}`,
   ).catch(() => {});
 
-  return { ok: true, convId: conv.id, message: (msg as ChatMessage) ?? undefined };
+  return { ok: true, convId: conv.id, message: msg as ChatMessage };
 }

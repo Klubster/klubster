@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { controlerAdherent, marquerPresent, rechercher, type ControleResult } from "./actions";
 import { ligneControle, COULEURS_CONTROLE, coursParDefaut } from "@/lib/controle";
-import { texteSur } from "@/lib/contraste";
+import { texteSur, accentLisibleSur } from "@/lib/contraste";
 import type { CoursControle } from "./page";
 
 function Cur() { return <span className="cur">_</span>; }
@@ -11,6 +11,12 @@ function Cur() { return <span className="cur">_</span>; }
 const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
 export default function Scanner({ slug, nom, accent, cours }: { slug: string; nom: string; accent: string; cours: CoursControle[] }) {
+  // La couleur du club est un hex libre : posée telle quelle en couleur de TEXTE sur
+  // le papier, un jaune ou un bleu ciel tombe sous 4,5:1 — illisible sur un écran de
+  // 11 px, à bout de bras, dans un gymnase (revue externe du 26/08/2026). `accentLisibleSur`
+  // assombrit jusqu'au seuil ; les FONDS colorés, eux, gardent l'accent exact (texteSur
+  // choisit alors l'encre ou le blanc).
+  const accentTexte = accentLisibleSur(accent, "#FCFCFA");
   const [cam, setCam] = useState(false);
   const [camOk, setCamOk] = useState<boolean | null>(null);
   const [result, setResult] = useState<ControleResult | null>(null);
@@ -150,7 +156,7 @@ export default function Scanner({ slug, nom, accent, cours }: { slug: string; no
             ))}
           </select>
           {coursNom ? (
-            <p className="mono mt-2 text-[11px]" style={{ color: accent }}>
+            <p className="mono mt-2 text-[11px]" style={{ color: accentTexte }}>
               ✓ Appel du cours&nbsp;: {coursNom}
             </p>
           ) : (
@@ -260,7 +266,7 @@ export default function Scanner({ slug, nom, accent, cours }: { slug: string; no
                     present ? (
                       // Double scan / double clic : déjà pointé, on le dit, on ne
                       // réécrit rien — la présence du jour est unique en base.
-                      <span className="mono text-[13px]" style={{ color: accent }}>✓ DÉJÀ POINTÉ AUJOURD&apos;HUI — {coursNom}</span>
+                      <span className="mono text-[13px]" style={{ color: accentTexte }}>✓ DÉJÀ POINTÉ AUJOURD&apos;HUI — {coursNom}</span>
                     ) : (
                       <button
                         onClick={async () => {

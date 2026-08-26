@@ -26,6 +26,7 @@ export default function ChatSite() {
   const [texte, setTexte] = useState("");
   const [contact, setContact] = useState("");
   const [envoi, setEnvoi] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
   const vidRef = useRef<string>("");
   const cidRef = useRef<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
@@ -74,11 +75,23 @@ export default function ChatSite() {
       cree_at: new Date().toISOString(),
     };
     setMessages((m) => [...m, optimiste]);
+    setErreur(null);
     const r = await envoyerMessageVisiteur(vidRef.current, cidRef.current, corps, undefined, contact || undefined);
     if (r.ok && r.convId) {
       cidRef.current = r.convId;
       localStorage.setItem(CID_KEY, r.convId);
       await rafraichir();
+    } else {
+      // L'affichage optimiste ne doit pas survivre à un envoi refusé : le message
+      // disparaissait dans le vide en paraissant parti. On le retire, on rend sa
+      // saisie au visiteur, et on dit ce qui s'est passé.
+      setMessages((m) => m.filter((x) => x.id !== optimiste.id));
+      setTexte(corps);
+      setErreur(
+        r.raison === "trop_de_messages"
+          ? "Trop de messages d’affilée. Patientez quelques minutes avant de réessayer."
+          : "Votre message n’a pas pu être envoyé. Réessayez dans un instant."
+      );
     }
     setEnvoi(false);
   }
@@ -138,6 +151,11 @@ export default function ChatSite() {
           </div>
 
           <form onSubmit={envoyer} className="border-t border-line p-3">
+            {erreur ? (
+              <p role="alert" className="mono mb-2 text-[11px] text-danger">
+                {erreur}
+              </p>
+            ) : null}
             {messages.length === 0 && (
               <input
                 value={contact}

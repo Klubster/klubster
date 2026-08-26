@@ -39,6 +39,26 @@ Klubster intervient sous **deux qualités** :
 - **Base légale :** intérêt légitime.
 - **Données :** journaux de connexion, adresses IP, métadonnées techniques, échanges de support.
 - **Durée :** 6 à 12 mois pour les journaux.
+- **Sous-traitant ultérieur :** Supabase (table de limitation de débit, journal des envois).
+
+### A4. Mesure d'audience des pages de présentation
+- **Finalité :** comprendre ce qui se lit mal ou décourage les visiteurs sur les pages publiques de présentation (accueil, tarifs, fonctionnalités) — **jamais** dans les espaces authentifiés, ni sur la page de création d'association (seule page publique où l'on saisit nom, email et mot de passe).
+- **Base légale :** intérêt légitime (amélioration du service). Fonctionnement **sans cookie** : aucun dépôt ni lecture sur le terminal, aucun identifiant persistant, aucun profilage — d'où l'absence de bandeau de consentement.
+- **Personnes concernées :** visiteurs des pages de présentation.
+- **Données :** pages vues, interactions agrégées, métadonnées techniques (type d'appareil, navigateur, adresse IP tronquée par l'outil).
+- **Destinataires :** Klubster ; Microsoft Corporation (Microsoft Clarity).
+- **Transferts hors UE :** États-Unis — clauses contractuelles types et cadre de protection des données UE–États-Unis.
+- **Durée :** durée de rétention par défaut de l'outil.
+- **Sécurité :** aucune donnée d'adhérent ni de dirigeant n'entre dans ce périmètre (mesure confinée aux pages marketing).
+
+### A5. Échanges de messagerie avec les clubs et les visiteurs
+- **Finalité :** répondre aux questions posées depuis le cockpit d'un club ou depuis le chat du site public.
+- **Base légale :** exécution du contrat (clubs) / intérêt légitime (visiteurs).
+- **Personnes concernées :** dirigeants de clubs, visiteurs du site.
+- **Données :** contenu des messages, identifiant de conversation, coordonnée de rappel si le visiteur en laisse une.
+- **Destinataires :** Klubster ; Supabase (stockage) ; Telegram Messenger LLP (notification à l'éditeur, contenu du message inclus).
+- **Transferts hors UE :** Telegram — hors UE, garanties contractuelles ; ne transitent que les messages volontairement adressés à l'éditeur.
+- **Durée :** durée de la relation + 12 mois.
 
 ---
 
@@ -50,7 +70,7 @@ Klubster intervient sous **deux qualités** :
 - **Catégories de traitement :** collecte, hébergement, organisation, consultation, conservation, suppression.
 - **Personnes concernées :** adhérents, représentants légaux de mineurs.
 - **Données :** identité, contact, date de naissance, cours, statut de paiement, pièces justificatives, champs de formulaire définis par le club.
-- **Sous-traitants ultérieurs :** Supabase/AWS (UE), Vercel, Stripe.
+- **Sous-traitants ultérieurs :** Supabase/AWS (UE), Vercel, Stripe, Resend (emails transactionnels).
 - **Transferts hors UE :** non (données UE) ; Stripe sous garanties appropriées.
 - **Durée :** définie par le club ; par défaut, durée de l'adhésion + archivage limité puis suppression.
 
@@ -82,6 +102,9 @@ Klubster intervient sous **deux qualités** :
 | Supabase (sur AWS) | Base de données, authentification, stockage | Union européenne (Irlande, eu-west-1) | Hébergement UE, DPA Supabase |
 | Vercel | Hébergement applicatif, fonctions serveur | Fonctions forcées en Europe (Paris, cdg1) | DPA Vercel |
 | Stripe | Paiements | UE / international | Clauses contractuelles types / DPF, PCI-DSS |
+| Resend | Envoi des emails transactionnels (confirmation de compte et d'inscription, messages d'un club à ses adhérents, relances) | États-Unis | Clauses contractuelles types. Données transmises limitées à l'adresse email, au nom et au contenu du message |
+| Microsoft (Clarity) | Mesure d'audience des pages de présentation, sans cookie (traitement A4) | États-Unis | Clauses contractuelles types / cadre UE–États-Unis. Aucun accès aux espaces authentifiés |
+| Telegram | Notification à l'éditeur des messages de chat (traitement A5) | Hors UE | Garanties contractuelles ; limité aux messages adressés volontairement à l'éditeur |
 
 ## Mesures de sécurité transverses
 Cloisonnement multi-tenant par `organisation_id` + Row Level Security ; fonctions privilégiées `SECURITY DEFINER` validant l'appartenance ; HTTPS ; chiffrement au repos (Supabase) ; sauvegardes ; journalisation ; procédure de notification de violation sous 72 h.

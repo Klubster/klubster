@@ -38,8 +38,17 @@ export async function POST(req: NextRequest) {
       .eq("id", convId)
       .maybeSingle();
     if (!conv) return NextResponse.json({ ok: false, error: "conv_introuvable" }, { status: 404 });
-    await admin.from("site_chat_messages").insert({ conversation_id: convId, sender: "operateur", corps });
-    await admin
+    // ⚠️ Une réponse qui n'atteint pas la base doit être ANNONCÉE au bot : sinon
+    // Mathieu voit son message parti depuis Telegram, le visiteur n'a jamais rien
+    // reçu, et personne ne l'apprend (revue externe du 26/08/2026).
+    const { error: eMsg } = await admin
+      .from("site_chat_messages")
+      .insert({ conversation_id: convId, sender: "operateur", corps });
+    if (eMsg) {
+      console.error("chat reply (visiteur) : message non enregistré", eMsg.message);
+      return NextResponse.json({ ok: false, error: "ecriture_refusee" }, { status: 500 });
+    }
+    const { error: eConv } = await admin
       .from("site_chat_conversations")
       .update({
         dernier_sender: "operateur",
@@ -48,6 +57,7 @@ export async function POST(req: NextRequest) {
         non_lus_visiteur: ((conv as { non_lus_visiteur: number }).non_lus_visiteur ?? 0) + 1,
       })
       .eq("id", convId);
+    if (eConv) console.error("chat reply (visiteur) : entête de conversation", eConv.message);
     return NextResponse.json({ ok: true, cible: "visiteur" });
   }
 
@@ -58,8 +68,14 @@ export async function POST(req: NextRequest) {
     .eq("id", convId)
     .maybeSingle();
   if (!conv) return NextResponse.json({ ok: false, error: "conv_introuvable" }, { status: 404 });
-  await admin.from("chat_messages").insert({ conversation_id: convId, sender: "operateur", corps });
-  await admin
+  const { error: eMsg } = await admin
+    .from("chat_messages")
+    .insert({ conversation_id: convId, sender: "operateur", corps });
+  if (eMsg) {
+    console.error("chat reply (club) : message non enregistré", eMsg.message);
+    return NextResponse.json({ ok: false, error: "ecriture_refusee" }, { status: 500 });
+  }
+  const { error: eConv } = await admin
     .from("chat_conversations")
     .update({
       dernier_message_at: now,
@@ -70,5 +86,6 @@ export async function POST(req: NextRequest) {
       non_lus_club: ((conv as { non_lus_club: number }).non_lus_club ?? 0) + 1,
     })
     .eq("id", convId);
+  if (eConv) console.error("chat reply (club) : entête de conversation", eConv.message);
   return NextResponse.json({ ok: true, cible: "club" });
 }
