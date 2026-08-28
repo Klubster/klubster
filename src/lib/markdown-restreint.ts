@@ -42,6 +42,42 @@ export function urlSure(url: string): string | null {
   return u;
 }
 
+/**
+ * Base publique du stockage Klubster — la même valeur que les clients Supabase
+ * (`NEXT_PUBLIC_*` est inlinée au build, donc disponible aussi côté navigateur).
+ */
+export const BASE_STOCKAGE =
+  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://basnfuvdjobanejahayt.supabase.co") +
+  "/storage/v1/object/public/sections/";
+
+/**
+ * Une IMAGE ne s'affiche que si elle vient du stockage Klubster (arbitrage du
+ * 28/08/2026, sur ma réserve).
+ *
+ * POURQUOI. Un bloc descriptif est lu sur une page publique, par des parents et des
+ * mineurs. Une image hébergée ailleurs se télécharge toute seule à l'affichage : elle
+ * envoie l'adresse IP et le navigateur de chaque visiteur chez un tiers que personne
+ * n'a choisi, qui ne figure à aucun registre de traitements, et dont le contenu peut
+ * changer sans qu'on le sache. Le club envoie donc son fichier depuis l'Atelier.
+ *
+ * Une adresse extérieure n'est pas perdue pour autant : elle retombe en LIEN, que le
+ * visiteur suit s'il le veut. Un lien ne télécharge rien tout seul — c'est toute la
+ * différence, et c'est pourquoi les liens restent libres.
+ */
+export function urlImageSure(url: string): string | null {
+  const u = urlSure(url);
+  return u && u.startsWith(BASE_STOCKAGE) ? u : null;
+}
+
+/**
+ * Les adresses écrites en syntaxe image dans un contenu, TELLES QUELLES (valides ou
+ * non). Sert à la validation serveur : pour refuser une image extérieure avec un
+ * message clair, il faut d'abord la voir.
+ */
+export function urlsImagesBrutes(contenu: string): string[] {
+  return [...(contenu ?? "").matchAll(/^!\[[^\]]*\]\(([^\s()]+)\)\s*$/gm)].map((m) => m[1]);
+}
+
 // `[texte](url)` ou `![alt](url)` — l'URL ne contient ni espace ni parenthèse.
 const LIEN = /^(!?)\[([^\]]*)\]\(([^\s()]+)\)/;
 
@@ -113,10 +149,12 @@ export function parseMarkdownRestreint(src: string): Bloc[] {
     const lignes = brut.split("\n").map((l) => l.trimEnd());
     if (lignes.every((l) => l.trim() === "")) continue;
 
-    // Image seule sur sa ligne = bloc image (affichée en pleine largeur).
+    // Image seule sur sa ligne = bloc image (affichée en pleine largeur), à condition
+    // qu'elle vienne de notre stockage. Sinon la ligne repart en paragraphe, où la
+    // syntaxe image est rendue comme un lien : rien ne se télécharge sans un clic.
     const img = /^!\[([^\]]*)\]\(([^\s()]+)\)$/.exec(brut.trim());
     if (img) {
-      const url = urlSure(img[2]);
+      const url = urlImageSure(img[2]);
       if (url) {
         blocs.push({ type: "image", url, alt: img[1].trim() });
         continue;

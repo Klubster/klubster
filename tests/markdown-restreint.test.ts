@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { parseMarkdownRestreint, parseInline, urlSure, texteBrut, CONTENU_INFO_MAX } from "@/lib/markdown-restreint";
+import {
+  parseMarkdownRestreint,
+  parseInline,
+  urlSure,
+  texteBrut,
+  CONTENU_INFO_MAX,
+  BASE_STOCKAGE,
+  urlImageSure,
+  urlsImagesBrutes,
+} from "@/lib/markdown-restreint";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -35,8 +44,11 @@ describe("markdown restreint — bloc descriptif du formulaire d'inscription", (
   });
 
   it("image seule sur sa ligne = bloc image, avec légende", () => {
-    const b = parseMarkdownRestreint("![Planning de la saison](https://monclub.fr/planning.png)");
-    expect(b).toEqual([{ type: "image", url: "https://monclub.fr/planning.png", alt: "Planning de la saison" }]);
+    // Depuis le 28/08/2026, une image ne s'affiche que si elle vient de notre stockage
+    // (le bouton « Ajouter une image » de l'Atelier) — voir le bloc dédié plus bas.
+    const url = `${BASE_STOCKAGE}11111111-2222-3333-4444-555555555555/bloc-planning.png`;
+    const b = parseMarkdownRestreint(`![Planning de la saison](${url})`);
+    expect(b).toEqual([{ type: "image", url, alt: "Planning de la saison" }]);
   });
 
   it("seules les adresses http(s) absolues sont acceptées — le reste redevient du texte", () => {
@@ -81,5 +93,57 @@ describe("rendu — jamais d'innerHTML, liens et images cadrés", () => {
   it("liens en nouvel onglet sans référent, images sans référent", () => {
     expect(RENDU).toMatch(/target="_blank" rel="noopener noreferrer"/);
     expect(RENDU).toMatch(/referrerPolicy="no-referrer"/);
+  });
+});
+
+/**
+ * Images restreintes au stockage Klubster — arbitrage du 28/08/2026.
+ *
+ * Une image se télécharge toute seule à l'affichage : hébergée ailleurs, elle envoie
+ * l'IP de chaque visiteur du formulaire chez un tiers. Un lien, lui, ne charge rien
+ * sans un clic — c'est pourquoi les liens restent libres.
+ */
+describe("images : seul le stockage Klubster s'affiche", () => {
+  const NOTRE = `${BASE_STOCKAGE}11111111-2222-3333-4444-555555555555/bloc-planning.png`;
+
+  it("une image de notre stockage devient un bloc image", () => {
+    const blocs = parseMarkdownRestreint(`![Planning](${NOTRE})`);
+    expect(blocs).toEqual([{ type: "image", url: NOTRE, alt: "Planning" }]);
+  });
+
+  it("une image hébergée ailleurs ne se télécharge pas : elle retombe en lien", () => {
+    const blocs = parseMarkdownRestreint("![Planning](https://un-tiers.example/pixel.png)");
+    expect(blocs.some((b) => b.type === "image")).toBe(false);
+    const [bloc] = blocs;
+    expect(bloc.type).toBe("paragraphe");
+    if (bloc.type === "paragraphe") {
+      const lien = bloc.enfants.find((n) => n.type === "lien");
+      expect(lien).toBeTruthy();
+      if (lien && lien.type === "lien") expect(lien.url).toBe("https://un-tiers.example/pixel.png");
+    }
+  });
+
+  it("un lien vers un site extérieur reste un lien", () => {
+    const blocs = parseMarkdownRestreint("Voir [le planning](https://votreclub.fr/planning) du club.");
+    const [bloc] = blocs;
+    expect(bloc.type).toBe("paragraphe");
+    if (bloc.type === "paragraphe") {
+      expect(bloc.enfants.some((n) => n.type === "lien" && n.url === "https://votreclub.fr/planning")).toBe(true);
+    }
+  });
+
+  it("urlImageSure refuse tout ce qui n'est pas notre stockage", () => {
+    expect(urlImageSure(NOTRE)).toBe(NOTRE);
+    expect(urlImageSure("https://un-tiers.example/x.png")).toBeNull();
+    expect(urlImageSure("javascript:alert(1)")).toBeNull();
+    expect(urlImageSure("data:image/png;base64,AAAA")).toBeNull();
+    expect(urlImageSure("/local/x.png")).toBeNull();
+    // Un domaine qui commence pareil mais n'est pas le nôtre.
+    expect(urlImageSure("https://basnfuvdjobanejahayt.supabase.co.evil.test/storage/v1/object/public/sections/x.png")).toBeNull();
+  });
+
+  it("les adresses d'images sont lisibles telles quelles pour la validation serveur", () => {
+    const contenu = `Texte\n\n![A](${NOTRE})\n\n![B](https://un-tiers.example/b.png)`;
+    expect(urlsImagesBrutes(contenu)).toEqual([NOTRE, "https://un-tiers.example/b.png"]);
   });
 });

@@ -2,7 +2,7 @@
 import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
 import { estChampSaisi, type FormConfig } from "@/types/form";
-import { CONTENU_INFO_MAX } from "@/lib/markdown-restreint";
+import { CONTENU_INFO_MAX, BASE_STOCKAGE, urlsImagesBrutes } from "@/lib/markdown-restreint";
 import { validerImageBloc } from "@/lib/upload";
 
 export async function saveFormConfig(slug: string, config: FormConfig): Promise<{ ok?: boolean; error?: string }> {
@@ -35,6 +35,17 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
     for (const ch of pg.champs) {
       if (ch.type === "info") {
         if (!ch.contenu) return { error: `Un bloc descriptif${ch.label ? ` « ${ch.label} »` : ""} est vide : écrivez son texte, ou supprimez-le.` };
+        // Les images d'un bloc viennent du bouton « Ajouter une image » — donc de NOTRE
+        // stockage, dans le dossier de CE club. Une adresse extérieure collée à la main
+        // ferait télécharger un fichier tiers par chaque visiteur du formulaire.
+        const attendu = `${BASE_STOCKAGE}${org.id}/`;
+        for (const u of urlsImagesBrutes(ch.contenu)) {
+          if (!u.startsWith(attendu)) {
+            return {
+              error: `Une image du bloc descriptif${ch.label ? ` « ${ch.label} »` : ""} vient d’une adresse extérieure. Utilisez « + AJOUTER UNE IMAGE » pour l’envoyer : elle sera hébergée avec vos autres fichiers. Un lien vers un site extérieur, lui, reste possible.`,
+            };
+          }
+        }
         continue;
       }
       if (!ch.label) return { error: "Un champ n’a pas de libellé : donnez-lui un nom, ou supprimez-le." };

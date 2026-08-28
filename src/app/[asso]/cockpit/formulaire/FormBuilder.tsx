@@ -336,12 +336,13 @@ export default function FormBuilder({
                             onChange={(e) => patchChamp(page.id, ch.id, { contenu: e.target.value.slice(0, CONTENU_INFO_MAX) })}
                             rows={4}
                             maxLength={CONTENU_INFO_MAX}
-                            placeholder={"Ex. Consultez [le planning de la saison](https://votreclub.fr/planning) avant de choisir votre créneau.\n\n![Planning](https://votreclub.fr/planning.png)"}
+                            placeholder={"Ex. Consultez [le planning de la saison](https://votreclub.fr/planning) avant de choisir votre créneau.\n\n- Baby : mercredi 14 h\n- Ados : lundi et mercredi 18 h"}
                             className="w-full border border-line bg-paper px-3 py-2 text-[13px] outline-none focus:border-ink"
                           />
                           <p className="mono mt-1 text-[10px] leading-relaxed text-ink-faint">
-                            **gras**, *italique*, [texte du lien](https://…), ![légende](https://…image.jpg) seule sur sa ligne,
-                            listes avec « - ». Liens et images en https uniquement. {(ch.contenu ?? "").length}/{CONTENU_INFO_MAX}
+                            **gras**, *italique*, [texte du lien](https://…), listes avec « - ». Les liens vers
+                            d’autres sites sont libres ; une image s’ajoute avec le bouton ci-dessous, pour qu’elle
+                            soit hébergée avec vos fichiers. {(ch.contenu ?? "").length}/{CONTENU_INFO_MAX}
                           </p>
                           <div className="mono mt-2 flex flex-wrap items-center gap-3 text-[11px]">
                             <label className={imageEnvoi ? "text-ink-faint" : "cursor-pointer text-ink-soft underline underline-offset-2 hover:text-ink"}>
