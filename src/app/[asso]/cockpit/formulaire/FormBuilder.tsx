@@ -5,6 +5,8 @@ import Link from "next/link";
 import { saveFormConfig, uploaderModelePiece } from "./actions";
 import { TYPE_LABELS, type FormConfig, type Champ, type ChampType, type Page, type Piece } from "@/types/form";
 import { formulaireType } from "@/lib/formulaires-types";
+import { CONTENU_INFO_MAX } from "@/lib/markdown-restreint";
+import TexteRestreint from "@/components/site/TexteRestreint";
 
 function Cur() {
   return <span className="cur">_</span>;
@@ -20,7 +22,7 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   return copy;
 }
 
-const TYPES: ChampType[] = ["texte", "zone", "date", "tel", "nombre", "choix", "case"];
+const TYPES: ChampType[] = ["texte", "zone", "date", "tel", "nombre", "choix", "case", "info"];
 
 export default function FormBuilder({
   slug,
@@ -253,7 +255,10 @@ export default function FormBuilder({
                     <div key={ch.id} className="flex flex-wrap items-center gap-2 px-4 py-3">
                       <select
                         value={ch.type}
-                        onChange={(e) => patchChamp(page.id, ch.id, { type: e.target.value as ChampType })}
+                        onChange={(e) => {
+                          const type = e.target.value as ChampType;
+                          patchChamp(page.id, ch.id, type === "info" ? { type, obligatoire: false } : { type });
+                        }}
                         className="border border-line bg-paper px-2 py-2 text-[13px] outline-none focus:border-ink"
                       >
                         {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
@@ -261,7 +266,7 @@ export default function FormBuilder({
                       <input
                         value={ch.label}
                         onChange={(e) => patchChamp(page.id, ch.id, { label: e.target.value })}
-                        placeholder="Libellé du champ"
+                        placeholder={ch.type === "info" ? "Titre du bloc (facultatif)" : "Libellé du champ"}
                         className="min-w-[180px] flex-1 border border-line bg-paper px-3 py-2 text-[14px] outline-none focus:border-ink"
                       />
                       {ch.type === "choix" ? (
@@ -272,13 +277,40 @@ export default function FormBuilder({
                           className="min-w-[160px] flex-1 border border-line bg-paper px-3 py-2 text-[13px] outline-none focus:border-ink"
                         />
                       ) : null}
-                      <label className="mono flex items-center gap-1.5 text-[11px] text-ink-soft">
-                        <input type="checkbox" checked={ch.obligatoire} onChange={(e) => patchChamp(page.id, ch.id, { obligatoire: e.target.checked })} />
-                        OBLIGATOIRE
-                      </label>
+                      {ch.type === "info" ? (
+                        // Un bloc descriptif n'a pas de réponse : « obligatoire » n'a pas de sens ici.
+                        <span className="mono text-[11px] text-ink-faint">RIEN À REMPLIR</span>
+                      ) : (
+                        <label className="mono flex items-center gap-1.5 text-[11px] text-ink-soft">
+                          <input type="checkbox" checked={ch.obligatoire} onChange={(e) => patchChamp(page.id, ch.id, { obligatoire: e.target.checked })} />
+                          OBLIGATOIRE
+                        </label>
+                      )}
                       <Btn onClick={() => patchPage(page.id, { champs: move(page.champs, ci, -1) })}>↑</Btn>
                       <Btn onClick={() => patchPage(page.id, { champs: move(page.champs, ci, 1) })}>↓</Btn>
                       <Btn onClick={() => patchPage(page.id, { champs: page.champs.filter((c) => c.id !== ch.id) })}>✕</Btn>
+                      {ch.type === "info" ? (
+                        <div className="w-full pt-1">
+                          <textarea
+                            value={ch.contenu ?? ""}
+                            onChange={(e) => patchChamp(page.id, ch.id, { contenu: e.target.value.slice(0, CONTENU_INFO_MAX) })}
+                            rows={4}
+                            maxLength={CONTENU_INFO_MAX}
+                            placeholder={"Ex. Consultez [le planning de la saison](https://votreclub.fr/planning) avant de choisir votre créneau.\n\n![Planning](https://votreclub.fr/planning.png)"}
+                            className="w-full border border-line bg-paper px-3 py-2 text-[13px] outline-none focus:border-ink"
+                          />
+                          <p className="mono mt-1 text-[10px] leading-relaxed text-ink-faint">
+                            **gras**, *italique*, [texte du lien](https://…), ![légende](https://…image.jpg) seule sur sa ligne,
+                            listes avec « - ». Liens et images en https uniquement. {(ch.contenu ?? "").length}/{CONTENU_INFO_MAX}
+                          </p>
+                          {(ch.contenu ?? "").trim() ? (
+                            <div className="mt-2 border border-dashed border-line bg-bg-alt px-4 py-3">
+                              <p className="mono mb-2 text-[10px] uppercase tracking-label text-ink-faint">APERÇU</p>
+                              <TexteRestreint contenu={ch.contenu ?? ""} />
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>

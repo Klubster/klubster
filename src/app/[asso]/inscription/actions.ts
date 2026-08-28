@@ -8,6 +8,7 @@ import { verifierSoumissionPublique } from "@/lib/antiabus";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { compteConnecte, accesClub } from "@/lib/stripe-org";
 import { resultatDepuisReponses, estMineur, estDateNaissanceValide } from "@/lib/sante";
+import { estChampSaisi } from "@/types/form";
 
 // Modes de paiement acceptés côté serveur. Un mode hors liste (requête forgée) ne doit
 // pas devenir « null » en silence : il est refusé (4e audit).
@@ -58,6 +59,7 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   const infos: Record<string, string> = {};
   for (const page of org.form_config?.pages ?? []) {
     for (const ch of page.champs) {
+      if (!estChampSaisi(ch)) continue; // bloc descriptif : rien à lire, rien à stocker
       const v = formData.get(`champ_${ch.id}`);
       if (v != null && String(v) !== "") infos[ch.label || ch.id] = String(v);
     }
@@ -139,7 +141,7 @@ export async function inscrireAdherent(_etatPrecedent: EtatInscription, formData
   // Champs personnalisés déclarés obligatoires par le club.
   for (const page of org.form_config?.pages ?? []) {
     for (const ch of page.champs) {
-      if (!ch.obligatoire) continue;
+      if (!ch.obligatoire || !estChampSaisi(ch)) continue;
       const v = formData.get(`champ_${ch.id}`);
       if (v == null || String(v).trim() === "") manque.push(`champ:${ch.id}`);
     }

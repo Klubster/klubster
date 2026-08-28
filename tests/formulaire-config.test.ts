@@ -166,3 +166,38 @@ describe("lot J — changement de cours et pièces filtrées", () => {
     expect(FORM).toMatch(/setCoursChoisis/);
   });
 });
+
+describe("bloc descriptif — un champ qui ne demande rien (suggestion d'un club testeur, 08/2026)", () => {
+  const RENDU = lire("src/components/site/TexteRestreint.tsx");
+
+  it("le type existe, avec son contenu et sa règle d'exclusion documentée", () => {
+    expect(TYPES).toMatch(/"case" \| "info"/);
+    expect(TYPES).toMatch(/contenu\?: string/);
+    expect(TYPES).toMatch(/export function estChampSaisi/);
+    expect(TYPES).toMatch(/info: "Bloc descriptif"/);
+  });
+
+  it("l'enregistrement : jamais obligatoire, contenu plafonné, bloc vide refusé, exclu des doublons", () => {
+    expect(ACTIONS).toMatch(/slice\(0, CONTENU_INFO_MAX\), obligatoire: false/);
+    expect(ACTIONS).toMatch(/Un bloc descriptif.*est vide/);
+    expect(ACTIONS).toMatch(/if \(!estChampSaisi\(ch\)\) continue; \/\/ un bloc descriptif n'écrit sous aucune clé/);
+  });
+
+  it("l'inscription : rien lu, rien stocké, jamais bloquant", () => {
+    expect(INSCRIPTION).toMatch(/if \(!estChampSaisi\(ch\)\) continue; \/\/ bloc descriptif/);
+    expect(INSCRIPTION).toMatch(/if \(!ch\.obligatoire \|\| !estChampSaisi\(ch\)\) continue;/);
+  });
+
+  it("le formulaire public le rend sans champ de saisie, via le rendu restreint", () => {
+    expect(PUBLIC_FORM).toMatch(/if \(champ\.type === "info"\)/);
+    expect(PUBLIC_FORM).toMatch(/<TexteRestreint contenu=\{champ\.contenu \?\? ""\}/);
+    expect(RENDU).not.toMatch(/dangerouslySet/);
+  });
+
+  it("l'Atelier le propose, avec aperçu, et sans case OBLIGATOIRE", () => {
+    expect(BUILDER).toMatch(/"case", "info"\]/);
+    expect(BUILDER).toMatch(/RIEN À REMPLIR/);
+    expect(BUILDER).toMatch(/APERÇU/);
+    expect(BUILDER).toMatch(/maxLength=\{CONTENU_INFO_MAX\}/);
+  });
+});

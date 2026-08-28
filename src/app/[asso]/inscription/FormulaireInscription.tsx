@@ -11,6 +11,7 @@ import RemisesInscription from "./RemisesInscription";
 import { NaissanceProvider, ChampNaissance } from "./naissance";
 import Turnstile, { demanderJetonTurnstile } from "@/components/site/Turnstile";
 import ChoixEcheances from "@/components/site/ChoixEcheances";
+import TexteRestreint from "@/components/site/TexteRestreint";
 import type { Champ, Page, Piece, Remise, AutorisationMineur as Autorisation } from "@/types/form";
 
 /** Cours proposé à l'inscription, avec sa jauge déjà calculée côté serveur. */
@@ -382,6 +383,16 @@ function Field({ label, name, type = "text", required, autoComplete, messageErre
 function ChampInput({ champ }: { champ: Champ }) {
   const name = `champ_${champ.id}`;
   const base = "mt-2 w-full border border-line bg-paper px-3 py-2.5 outline-none focus:border-ink";
+  // Bloc descriptif : rien à saisir, aucun `name` — le serveur n'attend rien de lui.
+  // Le titre est facultatif ; le texte (liens, image) explique ce qui suit.
+  if (champ.type === "info") {
+    return (
+      <div className="bg-paper px-5 py-4">
+        {champ.label ? <p className="mono text-[11px] uppercase tracking-label text-ink-soft">{champ.label}</p> : null}
+        <TexteRestreint contenu={champ.contenu ?? ""} className={champ.label ? "mt-2" : undefined} />
+      </div>
+    );
+  }
   return (
     <div className="bg-paper px-5 py-4">
       <label htmlFor={name} className="mono text-[11px] uppercase tracking-label text-ink-soft">{champ.label || "Champ"}{champ.obligatoire ? " *" : ""}</label>
