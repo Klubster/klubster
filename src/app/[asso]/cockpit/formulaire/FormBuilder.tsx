@@ -2,7 +2,8 @@
 import { classesBouton } from "@/components/ui/Button";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { saveFormConfig, uploaderModelePiece } from "./actions";
+import { saveFormConfig, uploaderModelePiece, uploaderImageBloc } from "./actions";
+import { IMAGE_BLOC } from "@/lib/upload";
 import { TYPE_LABELS, type FormConfig, type Champ, type ChampType, type Page, type Piece } from "@/types/form";
 import { formulaireType } from "@/lib/formulaires-types";
 import { CONTENU_INFO_MAX } from "@/lib/markdown-restreint";
@@ -109,6 +110,45 @@ export default function FormBuilder({
       setModeleErr("L'envoi a échoué. Réessayez.");
     } finally {
       setModeleEnvoi(null);
+    }
+  }
+
+  // Image d'un bloc descriptif : le fichier part tout de suite, l'URL est insérée à la
+  // fin du texte du bloc en syntaxe image ; le club ajuste la légende s'il veut.
+  const [imageEnvoi, setImageEnvoi] = useState<string | null>(null); // id du champ en cours d'envoi
+  const [imageErr, setImageErr] = useState<{ champ: string; message: string } | null>(null);
+  async function joindreImageBloc(pid: string, cid: string, f: File | null) {
+    if (!f) return;
+    setImageErr(null);
+    setImageEnvoi(cid);
+    try {
+      const fd = new FormData();
+      fd.append("image", f);
+      const r = await uploaderImageBloc(slug, fd);
+      if (r.error || !r.url) {
+        setImageErr({ champ: cid, message: r.error ?? "L'envoi a échoué." });
+      } else {
+        const url = r.url;
+        setConfig((c) => ({
+          ...c,
+          pages: c.pages.map((p) =>
+            p.id === pid
+              ? {
+                  ...p,
+                  champs: p.champs.map((ch) => {
+                    if (ch.id !== cid) return ch;
+                    const actuel = (ch.contenu ?? "").trimEnd();
+                    return { ...ch, contenu: `${actuel ? `${actuel}\n\n` : ""}![Légende de l'image](${url})` };
+                  }),
+                }
+              : p
+          ),
+        }));
+      }
+    } catch {
+      setImageErr({ champ: cid, message: "L'envoi a échoué. Réessayez." });
+    } finally {
+      setImageEnvoi(null);
     }
   }
 
@@ -303,6 +343,22 @@ export default function FormBuilder({
                             **gras**, *italique*, [texte du lien](https://…), ![légende](https://…image.jpg) seule sur sa ligne,
                             listes avec « - ». Liens et images en https uniquement. {(ch.contenu ?? "").length}/{CONTENU_INFO_MAX}
                           </p>
+                          <div className="mono mt-2 flex flex-wrap items-center gap-3 text-[11px]">
+                            <label className={imageEnvoi ? "text-ink-faint" : "cursor-pointer text-ink-soft underline underline-offset-2 hover:text-ink"}>
+                              {imageEnvoi === ch.id ? "ENVOI DE L'IMAGE…" : `+ AJOUTER UNE IMAGE (JPEG, PNG ou WebP · ${String(IMAGE_BLOC.maxMo).replace(".", ",")} Mo · ${IMAGE_BLOC.maxPx} px max)`}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                disabled={imageEnvoi !== null}
+                                onChange={(e) => {
+                                  joindreImageBloc(page.id, ch.id, e.target.files?.[0] ?? null);
+                                  e.target.value = ""; // permet de renvoyer le même fichier après un refus
+                                }}
+                              />
+                            </label>
+                            {imageErr?.champ === ch.id ? <span className="text-danger">{imageErr.message}</span> : null}
+                          </div>
                           {(ch.contenu ?? "").trim() ? (
                             <div className="mt-2 border border-dashed border-line bg-bg-alt px-4 py-3">
                               <p className="mono mb-2 text-[10px] uppercase tracking-label text-ink-faint">APERÇU</p>

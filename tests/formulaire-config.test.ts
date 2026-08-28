@@ -201,3 +201,22 @@ describe("bloc descriptif — un champ qui ne demande rien (suggestion d'un club
     expect(BUILDER).toMatch(/maxLength=\{CONTENU_INFO_MAX\}/);
   });
 });
+
+describe("bloc descriptif — image envoyée par le club, règles contrôlées côté serveur", () => {
+  it("la Server Action valide par validerImageBloc (octets, poids, dimensions) avant tout envoi", () => {
+    expect(ACTIONS).toMatch(/export async function uploaderImageBloc/);
+    expect(ACTIONS).toMatch(/const v = await validerImageBloc\(file as File\);\s*if \(!v\.ok\) return \{ error: v\.erreur \};/);
+  });
+  it("écriture via le client Storage dédié, dans le dossier de l'organisation, permission « site »", () => {
+    const corps = ACTIONS.slice(ACTIONS.indexOf("uploaderImageBloc"));
+    expect(corps).toMatch(/verifierPermission\(slug, "site"\)/);
+    expect(corps).toMatch(/createSupabaseStorageClient\(\)/);
+    expect(corps).toMatch(/`\$\{org\.id\}\/bloc-\$\{Date\.now\(\)\}\.\$\{v\.ext\}`/);
+  });
+  it("l'Atelier propose l'envoi, annonce les limites et insère la syntaxe image", () => {
+    expect(BUILDER).toMatch(/AJOUTER UNE IMAGE \(JPEG, PNG ou WebP/);
+    expect(BUILDER).toMatch(/IMAGE_BLOC\.maxPx\} px max/);
+    expect(BUILDER).toMatch(/!\[Légende de l'image\]\(\$\{url\}\)/);
+    expect(BUILDER).toMatch(/accept="image\/jpeg,image\/png,image\/webp"/);
+  });
+});
