@@ -1,4 +1,10 @@
-export type ChampType = "texte" | "zone" | "date" | "tel" | "nombre" | "choix" | "case";
+/**
+ * `info` n'est pas un champ à remplir : c'est un bloc descriptif que le club place où
+ * il veut dans le formulaire (« choisissez votre créneau — voici le planning », un lien,
+ * une image). Il n'a pas de réponse, n'est jamais obligatoire et n'écrit rien dans le
+ * dossier de l'adhérent. Demandé par un club testeur (août 2026), absent de SportEasy.
+ */
+export type ChampType = "texte" | "zone" | "date" | "tel" | "nombre" | "choix" | "case" | "info";
 
 export interface Champ {
   id: string;
@@ -6,6 +12,13 @@ export interface Champ {
   label: string;
   obligatoire: boolean;
   options?: string[];
+  /** Type `info` seulement : texte en Markdown restreint (voir `src/lib/markdown-restreint.ts`). */
+  contenu?: string;
+}
+
+/** Un bloc descriptif ne collecte rien : à exclure des réponses, de l'obligatoire, des doublons. */
+export function estChampSaisi(ch: Pick<Champ, "type">): boolean {
+  return ch.type !== "info";
 }
 export interface Page {
   id: string;
@@ -79,4 +92,5 @@ export const TYPE_LABELS: Record<ChampType, string> = {
   nombre: "Nombre",
   choix: "Liste de choix",
   case: "Case à cocher",
+  info: "Bloc descriptif",
 };

@@ -166,3 +166,57 @@ describe("lot J — changement de cours et pièces filtrées", () => {
     expect(FORM).toMatch(/setCoursChoisis/);
   });
 });
+
+describe("bloc descriptif — un champ qui ne demande rien (suggestion d'un club testeur, 08/2026)", () => {
+  const RENDU = lire("src/components/site/TexteRestreint.tsx");
+
+  it("le type existe, avec son contenu et sa règle d'exclusion documentée", () => {
+    expect(TYPES).toMatch(/"case" \| "info"/);
+    expect(TYPES).toMatch(/contenu\?: string/);
+    expect(TYPES).toMatch(/export function estChampSaisi/);
+    expect(TYPES).toMatch(/info: "Bloc descriptif"/);
+  });
+
+  it("l'enregistrement : jamais obligatoire, contenu plafonné, bloc vide refusé, exclu des doublons", () => {
+    expect(ACTIONS).toMatch(/slice\(0, CONTENU_INFO_MAX\), obligatoire: false/);
+    expect(ACTIONS).toMatch(/Un bloc descriptif.*est vide/);
+    expect(ACTIONS).toMatch(/if \(!estChampSaisi\(ch\)\) continue; \/\/ un bloc descriptif n'écrit sous aucune clé/);
+  });
+
+  it("l'inscription : rien lu, rien stocké, jamais bloquant", () => {
+    expect(INSCRIPTION).toMatch(/if \(!estChampSaisi\(ch\)\) continue; \/\/ bloc descriptif/);
+    expect(INSCRIPTION).toMatch(/if \(!ch\.obligatoire \|\| !estChampSaisi\(ch\)\) continue;/);
+  });
+
+  it("le formulaire public le rend sans champ de saisie, via le rendu restreint", () => {
+    expect(PUBLIC_FORM).toMatch(/if \(champ\.type === "info"\)/);
+    expect(PUBLIC_FORM).toMatch(/<TexteRestreint contenu=\{champ\.contenu \?\? ""\}/);
+    expect(RENDU).not.toMatch(/dangerouslySet/);
+  });
+
+  it("l'Atelier le propose, avec aperçu, et sans case OBLIGATOIRE", () => {
+    expect(BUILDER).toMatch(/"case", "info"\]/);
+    expect(BUILDER).toMatch(/RIEN À REMPLIR/);
+    expect(BUILDER).toMatch(/APERÇU/);
+    expect(BUILDER).toMatch(/maxLength=\{CONTENU_INFO_MAX\}/);
+  });
+});
+
+describe("bloc descriptif — image envoyée par le club, règles contrôlées côté serveur", () => {
+  it("la Server Action valide par validerImageBloc (octets, poids, dimensions) avant tout envoi", () => {
+    expect(ACTIONS).toMatch(/export async function uploaderImageBloc/);
+    expect(ACTIONS).toMatch(/const v = await validerImageBloc\(file as File\);\s*if \(!v\.ok\) return \{ error: v\.erreur \};/);
+  });
+  it("écriture via le client Storage dédié, dans le dossier de l'organisation, permission « site »", () => {
+    const corps = ACTIONS.slice(ACTIONS.indexOf("uploaderImageBloc"));
+    expect(corps).toMatch(/verifierPermission\(slug, "site"\)/);
+    expect(corps).toMatch(/createSupabaseStorageClient\(\)/);
+    expect(corps).toMatch(/`\$\{org\.id\}\/bloc-\$\{Date\.now\(\)\}\.\$\{v\.ext\}`/);
+  });
+  it("l'Atelier propose l'envoi, annonce les limites et insère la syntaxe image", () => {
+    expect(BUILDER).toMatch(/AJOUTER UNE IMAGE \(JPEG, PNG ou WebP/);
+    expect(BUILDER).toMatch(/IMAGE_BLOC\.maxPx\} px max/);
+    expect(BUILDER).toMatch(/!\[Légende de l'image\]\(\$\{url\}\)/);
+    expect(BUILDER).toMatch(/accept="image\/jpeg,image\/png,image\/webp"/);
+  });
+});

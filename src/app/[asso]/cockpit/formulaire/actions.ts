@@ -1,7 +1,9 @@
 "use server";
 import { verifierPermission } from "@/lib/garde";
 import { createSupabaseServerClient, createSupabaseStorageClient } from "@/lib/supabase/server";
-import type { FormConfig } from "@/types/form";
+import { estChampSaisi, type FormConfig } from "@/types/form";
+import { CONTENU_INFO_MAX } from "@/lib/markdown-restreint";
+import { validerImageBloc } from "@/lib/upload";
 
 export async function saveFormConfig(slug: string, config: FormConfig): Promise<{ ok?: boolean; error?: string }> {
   // Le formulaire d'inscription décide des pièces demandées et des réductions : il
@@ -19,12 +21,22 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
     pages: (config.pages ?? []).map((pg) => ({
       ...pg,
       titre: (pg.titre ?? "").trim(),
-      champs: (pg.champs ?? []).map((ch) => ({ ...ch, label: (ch.label ?? "").trim() })),
+      champs: (pg.champs ?? []).map((ch) =>
+        ch.type === "info"
+          ? // Bloc descriptif : le titre est facultatif, le contenu est plafonné, et il n'est
+            // JAMAIS obligatoire — sinon l'inscription bloquerait sur un champ sans réponse.
+            { ...ch, label: (ch.label ?? "").trim(), contenu: (ch.contenu ?? "").trim().slice(0, CONTENU_INFO_MAX), obligatoire: false }
+          : { ...ch, label: (ch.label ?? "").trim(), contenu: undefined }
+      ),
     })),
     pieces: (config.pieces ?? []).map((p) => ({ ...p, label: (p.label ?? "").trim() })),
   };
   for (const pg of propre.pages) {
     for (const ch of pg.champs) {
+      if (ch.type === "info") {
+        if (!ch.contenu) return { error: `Un bloc descriptif${ch.label ? ` « ${ch.label} »` : ""} est vide : écrivez son texte, ou supprimez-le.` };
+        continue;
+      }
       if (!ch.label) return { error: "Un champ n’a pas de libellé : donnez-lui un nom, ou supprimez-le." };
       if (ch.type === "choix" && !(ch.options ?? []).filter((o) => o.trim()).length) {
         return { error: `La liste de choix « ${ch.label} » n’a aucune option : ajoutez-en, ou changez son type.` };
@@ -39,6 +51,7 @@ export async function saveFormConfig(slug: string, config: FormConfig): Promise<
   const vus = new Set<string>();
   for (const pg of propre.pages) {
     for (const ch of pg.champs) {
+      if (!estChampSaisi(ch)) continue; // un bloc descriptif n'écrit sous aucune clé
       const cle = ch.label.toLowerCase();
       if (vus.has(cle)) return { error: `Deux champs portent le même libellé « ${ch.label} » : renommez-en un, sinon la seconde réponse écraserait la première.` };
       vus.add(cle);
@@ -92,4 +105,32 @@ export async function uploaderModelePiece(
   }
   const url = supabase.storage.from("sections").getPublicUrl(path).data.publicUrl;
   return { url, nom: f.name || `modele.${ext}` };
+}
+
+/**
+ * Image d'un bloc descriptif du formulaire (planning, plan d'accès…). Le club envoie
+ * un fichier, l'Atelier insère `![légende](url)` dans le texte du bloc.
+ * Règles (`validerImageBloc`) : JPEG/PNG/WebP vérifiés par les octets, 1,5 Mo max,
+ * 2000 px max de côté, 200 px min de large — contrôlées ICI, pas seulement dans le
+ * navigateur. Même chemin d'écriture que les modèles de pièce : client Storage
+ * dédié, dossier déduit de l'organisation, jamais d'une valeur postée.
+ */
+export async function uploaderImageBloc(slug: string, fd: FormData): Promise<{ url?: string; error?: string }> {
+  const ctx = await verifierPermission(slug, "site");
+  if (!ctx) return { error: "Non autorisé." };
+  const { org } = ctx;
+  const file = fd.get("image");
+  if (!file || typeof file !== "object" || !("size" in file)) return { error: "Aucun fichier reçu." };
+  const v = await validerImageBloc(file as File);
+  if (!v.ok) return { error: v.erreur };
+
+  const supabase = await createSupabaseStorageClient();
+  if (!supabase) return { error: "Session expirée. Reconnectez-vous, puis réessayez." };
+  const path = `${org.id}/bloc-${Date.now()}.${v.ext}`;
+  const { error: upErr } = await supabase.storage.from("sections").upload(path, file as File, { upsert: false, contentType: v.contentType });
+  if (upErr) {
+    console.error("uploaderImageBloc", upErr.message, org.id.slice(0, 8));
+    return { error: `L'envoi a échoué (${upErr.message}).` };
+  }
+  return { url: supabase.storage.from("sections").getPublicUrl(path).data.publicUrl };
 }
